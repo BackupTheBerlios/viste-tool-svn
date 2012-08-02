@@ -4,10 +4,10 @@ rem Specify release version
 set version=1.0-SNAPSHOT
 
 rem Specify directories
-set dirTemp=C:\vISTe\releases
-set dirLibs=C:\vISTe\subversion\installation\libraries
-set dirData=C:\vISTe\subversion\data
-set dirTool=C:\vISTe\viste_build_msvc2008
+set dirTemp=D:\vISTe\releases
+set dirLibs=D:\vISTe\subversion.berlios\installation\libraries
+set dirData=D:\vISTe\subversion.berlios\data
+set dirTool=D:\vISTe\viste_build_msvc2008
 
 rem Warn user if destination directory not empty
 if exist %dirTemp%\%version%\bin echo Installation directory %dirTemp%\%version% not empty!
@@ -47,7 +47,7 @@ mkdir %dirTemp%\%version%\bin\data\72dirs\tensors
 mkdir %dirTemp%\%version%\bin\data\72dirs\sphericalharmonics
 
 echo Copying libraries, settings and microsoft redistribution...
-copy %dirLibs%\%mode%\* %dirTemp%\%version%\bin
+copy %dirLibs%\%mode%\windows\* %dirTemp%\%version%\bin
 copy %dirLibs%\..\vcredist_x86.exe %dirTemp%\%version%
 copy %dirLibs%\..\settings.xml %dirTemp%\%version%\bin
 

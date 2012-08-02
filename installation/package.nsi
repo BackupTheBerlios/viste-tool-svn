@@ -40,8 +40,8 @@ Section "vIST/e (required)"
 	File /r /x Release /x Debug tool\bin\shaders
 	File tool\bin\Release\*.exe
 	File tool\bin\Release\*.dll
-	File C:\vISTe\subversion.berlios\installation\libraries\release\*.dll
-	File C:\vISTe\subversion.berlios\installation\settings.xml
+	File D:\vISTe\subversion.berlios\installation\libraries\release\windows\*.dll
+	File D:\vISTe\subversion.berlios\installation\settings.xml
   
 	; Write the installation path into the registry
 	WriteRegStr HKLM SOFTWARE\vISTe "Install_Dir" "$INSTDIR"
@@ -62,7 +62,7 @@ Section "Data Sets"
 	SetOutPath $INSTDIR\bin\data
   
 	; This will copy the entiry content of the "Installer\Data" folder to the output  
-	File /r C:\vISTe\subversion.berlios\data\*.*
+	File /r D:\vISTe\subversion.berlios\data\*.*
   
 SectionEnd
 
