@@ -1,0 +1,2 @@
+ADD_EXECUTABLE(metacanvas metacanvas.cxx)
+TARGET_LINK_LIBRARIES(metacanvas vtkMetaCanvas vtkRendering)

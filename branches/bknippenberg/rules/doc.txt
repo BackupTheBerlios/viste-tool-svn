@@ -1,0 +1,38 @@
+Each .cpp and .h file should include a comment header with the name of the file,
+and a history of updates. Dates are written as YYYY-mm-dd. After the date, list
+the name of the person(s) that update the file. For example:
+
+/**
+ * ReallyCoolHeaderFile.h
+ *
+ * 2012-01-01	Tim Peeters
+ * - Creation of this file.
+ *
+ * 2012-02-12	Tim Peeters
+ * - Add the doSomething() function.
+ * - Remove the doNothing() function.
+ */
+ 
+If you make changes to a file, update the header with your changes.
+
+We use Doxygen for documentation. Doxygen supports several documentation styles.
+We follow the JavaDoc style, i.e.: documentation is enclosed by /** and */.
+For example:
+
+/**
+ * This class is an example.
+ * This is a more detailed description extending the brief description.
+ */
+class ExampleClass : public ParentClass
+
+We use JAVADOC_AUTOBRIEF for have brief and detailed descriptions.
+Everything up to the first dot followed by a space or newline is the brief
+description, and then follows the detailed description.
+
+Function parameters are documented by @param. For example:
+
+/**
+ * This is an example function.
+ * And here we have a detailed description for the function.
+ *
+ * @param

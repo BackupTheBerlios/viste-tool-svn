@@ -1,0 +1,25 @@
+Use java coding standards.
+
+Check the indenting how I use it. And don't mess up my indents!
+(If you use auto-indent in some code editors, then configure them correctly!)
+Use FOUR (4) spaces for an indent. Tabs must be set every 8 spaces (not 4).
+
+We make use of various namespaces.
+Everything should have the namespace bmia.
+
+Other namespaces depend on the module that you are working on.
+See other source files in the same module to find out which namespace to use.
+
+
+In header files, only include the header files of the superclass.
+Other classes can be defined using
+
+    class SomeOtherClass;
+
+In the cxx file, you can include SomeOtherclass.h. This speeds up compilation.
+
+
+When referring to a variable of an object, always use this->variable.
+This increases readibility.
+
+Exceptions: for VTK classes, use VTK coding standards.

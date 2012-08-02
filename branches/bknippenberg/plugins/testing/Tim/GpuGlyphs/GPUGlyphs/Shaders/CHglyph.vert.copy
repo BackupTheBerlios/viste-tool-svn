@@ -1,0 +1,146 @@
+uniform vec3 EyePosition;
+varying vec3 vEyeDirection;
+
+//attribute vec3 GlyphPosition;
+attribute float MaxRadius;
+attribute vec4 SHCoefficients1;
+attribute vec4 SHCoefficients2;
+attribute vec4 SHCoefficients3;
+attribute vec3 SHCoefficients4;
+attribute float CameraZ;
+//float CameraZ = 10.0;
+//attribute vec3 RotationAngles;
+
+varying vec3 vGlyphPosition;
+varying float vMaxRadius;
+varying vec4 vSHCoefficients1;
+varying vec4 vSHCoefficients2;
+varying vec4 vSHCoefficients3;
+varying vec3 vSHCoefficients4;
+varying float vCameraZ;
+
+//attribute vec2 MinMax;
+//varying vec2 vMinMax;
+
+varying vec3 vRelativeVertexPosition;
+
+void main()
+{
+  vec3 GlyphPosition = gl_Normal.xyz;
+
+  vec3 vertex = gl_Vertex.xyz;
+  vEyeDirection = vertex - EyePosition;
+
+  vec3 RotationAngles = gl_Color.xyz;
+  float alpha = RotationAngles[0];
+  float beta = RotationAngles[1];
+  float gamma = RotationAngles[2];
+
+/*
+  float RotationPhi = RotationAngles[0];	// rotation around Z-axis
+  float RotationTheta = RotationAngles[1];	// rotation around Y-axis
+  float RotationPsi = RotationAngles[2];	// rotation around Z-axis
+*/
+  mat3 zRotMatrix;
+/*
+  zRotMatrix[0] = vec3(cos(alpha), sin(alpha), 0.0);
+  zRotMatrix[1] = vec3(-1.0*sin(alpha), cos(alpha), 0.0);
+  zRotMatrix[2] = vec3(0.0, 0.0, 1.0);
+*/
+  zRotMatrix[0] = vec3(cos(alpha), -1.0*sin(alpha), 0.0);
+  zRotMatrix[0] = vec3(sin(alpha), cos(alpha), 0.0);
+  zRotMatrix[2] = vec3(0.0, 0.0, 1.0);
+
+  mat3 yRotMatrix;
+  yRotMatrix[0] = vec3(cos(beta), 0.0, -1.0*sin(beta));
+  yRotMatrix[1] = vec3(0.0, 1.0, 0.0);
+  yRotMatrix[2] = vec3(sin(beta), 0.0, cos(beta));
+
+  mat3 zRotMatrix2;
+  zRotMatrix2[0] = vec3(cos(gamma), sin(gamma), 0.0);
+  zRotMatrix2[1] = vec3(-1.0*sin(gamma), cos(gamma), 0.0);
+  zRotMatrix2[2] = vec3(0.0, 0.0, 1.0);
+
+  mat3 RotMatrix = zRotMatrix2 * yRotMatrix * zRotMatrix;
+
+  vertex = vertex - GlyphPosition;
+
+// XXX: It doesn't seem to matter which of the two lines below I choose.
+//	Why? Something wrong in passing the angles? Or maybe the sin
+//	or cos to compute the matrices do sth weird/unexpected? Maybe
+//	domain is different than what I expect??
+  vRelativeVertexPosition = RotMatrix * vertex;
+//  vRelativeVertexPosition = vertex;
+
+/*
+  // XXX: So I convert the vertex position into the new coordinate system,
+  // 	and that position is interpolated for the fragment shader.
+  //	Is that correct?
+  // TODO: pass the value that we should have here from the CPU. Then I can
+  // compare the value, and check on CPU if the result is what we expect.
+
+  vec3 eyepos_t = EyePosition - GlyphPosition; // relative eye position.
+
+
+  vec3 e = eyepos_t;
+int j;
+
+      // rotate around z-axis
+      for (j=0; j < 2; j++) e[j] = eyepos_t[j];
+      eyepos_t[0] = e[0] * cos(alpha) + e[1] * sin(alpha);
+      eyepos_t[1] = e[1] * cos(alpha) - e[0] * sin(alpha);
+
+      // rotate around y-axis
+      for (j=0; j < 3; j++) e[j] = eyepos_t[j];
+      eyepos_t[0] = e[0] * cos(beta) - e[2] * sin(beta);
+      eyepos_t[2] = e[2] * cos(beta) + e[0] * sin(beta);
+
+      // rotate around z-axis
+      for (j=0; j < 3; j++) e[j]=  eyepos_t[j];
+      eyepos_t[0] = e[0] * cos(gamma) + e[1] * sin(gamma);
+      eyepos_t[1] = e[1] * cos(gamma) - e[0] * sin(gamma);
+
+// XXX: Commenting out the line below does not change the result, but it SHOULD.
+//  vec3 eyepos_r;
+
+//  vec3 eyepos_r = RotMatrix * eyepos_t;
+
+  vec3 eyepos_r = eyepos_t;
+
+//  vCameraZ = eyepos_r.z;
+//  vCameraZ = CameraZ;
+  vGlyphPosition = GlyphPosition;
+
+//  vMaxRadius = MaxRadius;
+  vSHCoefficients1 = SHCoefficients1;
+  vSHCoefficients2 = SHCoefficients2;
+  vSHCoefficients3 = SHCoefficients3;
+  vSHCoefficients4 = SHCoefficients4;
+
+//  color = abs(RotationAngles);
+//  color = abs(normalize(eyepos_t));
+//  color = abs(normalize(vGlyphPosition));
+
+  vCameraZ = eyepos_t.z;
+//  color = vec3(abs(CameraZ - vCameraZ));
+//  color = abs(eyeppos_t);
+//color = RotationAngles;
+*/
+
+  vec3 color;
+vec3 e = EyePosition - GlyphPosition;
+vec3 t1 = vec3(e[0]*cos(alpha) + e[1]*sin(alpha), e[1]*cos(alpha) - e[0]*sin(alpha), e[2]);
+vec3 r1 = zRotMatrix * e;
+color = abs(t1-r1);
+//color = vec3(cos(alpha), sin(alpha), 0.0);
+//  color = vec3(abs(CameraZ - EyePosition.z));
+
+//  gl_FrontColor = vec4(color, 1.0);
+//  gl_FrontColor = vec4(vec3(abs(CameraZ - vCameraZ)), 1.0);
+  gl_FrontColor = vec4(color, 1.0);
+
+//  vec4 v = vec4(vec3(vRelativeVertexPosition + GlyphPosition), gl_Vertex[3]);
+  vec4 v = vec4(vRelativeVertexPosition + GlyphPosition, gl_Vertex[3]);
+//  gl_Position = gl_ModelViewProjectionMatrix * v;
+  gl_Position = ftransform();
+}

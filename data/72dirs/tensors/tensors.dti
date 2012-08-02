@@ -1,0 +1,11 @@
+/* DTI BMT format */
+T
+float
+XX XX.dat
+YY YY.dat
+ZZ ZZ.dat
+XY XY.dat
+XZ XZ.dat
+YZ YZ.dat
+I  II.dat
+1.796875 1.796875 1.800000

@@ -1,0 +1,6 @@
+add_subdirectory( GpuGlyphs )
+add_subdirectory( PlanesVis )
+#add_subdirectory( VTKPipelineTest )
+#add_subdirectory( RoiDraw )
+add_subdirectory( RoiDraw2 )
+add_subdirectory( VtiReader )

@@ -1,0 +1,7 @@
+FRAG matrix.frag
+VERT tensorglyph.vert
+FRAG infinity.frag
+FRAG geometry.frag
+FRAG lighting.frag
+FRAG superquadric.frag
+FRAG tensorglyph.frag

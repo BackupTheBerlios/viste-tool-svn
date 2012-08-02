@@ -1,0 +1,1 @@
+find . -name link.txt -print | xargs sed -i "" 's/-framework QtDBus//'
