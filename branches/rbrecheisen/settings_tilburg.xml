@@ -1,0 +1,284 @@
+<!DOCTYPE DTIToolSettings>
+<DTIToolSettings>
+	<profiles>
+		<profile name="Default" default="yes">
+			<plugin file="%plugin%/libAxesVisualizationPlugin.so" load="yes" />
+			<plugin file="%plugin%/libClusteringPlugin.so" load="yes" />
+			<plugin file="%plugin%/libConnectivityMeasuresPlugin.so" load="yes" />
+			<plugin file="%plugin%/libDistanceUncertaintyPlugin.so" load="yes" />
+			<plugin file="%plugin%/libDTIMeasuresPlugin.so" load="yes" />
+			<plugin file="%plugin%/libDTIReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/libFiberCuttingPlugin.so" load="yes" />
+			<plugin file="%plugin%/libFiberFilterPlugin.so" load="yes" />
+			<plugin file="%plugin%/libFiberOutputPlugin.so" load="yes" />
+			<plugin file="%plugin%/libFibersToVoxelsPlugin.so" load="yes" />
+			<plugin file="%plugin%/libFiberTrackingPlugin.so" load="yes" />
+			<plugin file="%plugin%/libFiberVisualizationPlugin.so" load="yes" />
+			<plugin file="%plugin%/libGeometryGlyphsPlugin.so" load="yes" />
+			<plugin file="%plugin%/libGpuGlyphsPlugin.so" load="yes" />
+			<plugin file="%plugin%/libHARDIConverterPlugin.so" load="yes" />
+			<plugin file="%plugin%/libHARDIConvolutionsPlugin.so" load="yes" />
+			<plugin file="%plugin%/libHARDIMeasuresPlugin.so" load="yes" />
+			<plugin file="%plugin%/libHARDIReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/libImageTypeConverterPlugin.so" load="yes" />
+			<plugin file="%plugin%/libNiftiReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/libPlanesVisPlugin.so" load="yes" />
+			<plugin file="%plugin%/libPolyDataReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/libPolyDataVisualizationPlugin.so" load="yes" />
+			<plugin file="%plugin%/libRayCastPlugin.so" load="yes" />
+			<plugin file="%plugin%/libRoiDrawPlugin.so" load="yes" />
+			<plugin file="%plugin%/libSeedingPlugin.so" load="yes" />
+			<plugin file="%plugin%/libStructuredPointsReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/libTransferFunctionPlugin.so" load="yes" />
+			<plugin file="%plugin%/libTransferFunctionReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/libTransformationPlugin.so" load="yes" />
+			<plugin file="%plugin%/libUncertaintyVisPlugin.so" load="yes" />
+			<plugin file="%plugin%/libVolumeReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/libVtiReaderPlugin.so" load="yes" />
+			<folder type="plugin" dir="%app%/plugins" />
+			<folder type="data" dir="%app%" />
+		</profile>
+		<profile name="bekk070710" default="no">
+			<plugin file="%plugin%/plugins/libAxesVisualizationPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libClusteringPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libConnectivityMeasuresPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libDistanceUncertaintyPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libDTIMeasuresPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libDTIReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libFiberCuttingPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libFiberFilterPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libFiberOutputPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libFibersToVoxelsPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libFiberTrackingPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libFiberVisualizationPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libGeometryGlyphsPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libGpuGlyphsPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libHARDIConverterPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libHARDIConvolutionsPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libHARDIMeasuresPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libHARDIReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libImageTypeConverterPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libNiftiReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libPlanesVisPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libPolyDataReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libPolyDataVisualizationPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libRayCastPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libRoiDrawPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libSeedingPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libStructuredPointsReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libTransferFunctionPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libTransferFunctionReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libTransformationPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libUncertaintyVisPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libVolumeReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libVtiReaderPlugin.so" load="yes" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/bekk070710_contrack/dti32/bin/tensors.nii" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/bekk070710_contrack/raw/dwi_brain.vol" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/bekk070710_contrack/raw/mri.vol" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/bekk070710_contrack/raw/mri_brain.vol" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/bekk070710_contrack/raw/mri_tumor.vol" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/bekk070710_contrack/raw/mri_tumor_mesh.vtk" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/bekk070710_contrack/fibers/conTrack/fibers_language_scores.fbs" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/bekk070710_contrack/fibers/conTrack/fibers_language_scores.vol" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/bekk070710_contrack/fibers/conTrack/fibers_motor_scores.fbs" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/bekk070710_contrack/fibers/conTrack/fibers_motor_scores.vol" />
+			<folder type="plugin" dir="%app%" />
+			<folder type="data" dir="%app%" />
+		</profile>
+		<profile name="dieb120410" default="no">
+			<plugin file="%plugin%/plugins/libAxesVisualizationPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libClusteringPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libConnectivityMeasuresPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libDistanceUncertaintyPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libDTIMeasuresPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libDTIReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libFiberCuttingPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libFiberFilterPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libFiberOutputPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libFibersToVoxelsPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libFiberTrackingPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libFiberVisualizationPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libGeometryGlyphsPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libGpuGlyphsPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libHARDIConverterPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libHARDIConvolutionsPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libHARDIMeasuresPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libHARDIReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libImageTypeConverterPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libNiftiReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libPlanesVisPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libPolyDataReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libPolyDataVisualizationPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libRayCastPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libRoiDrawPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libSeedingPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libStructuredPointsReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libTransferFunctionPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libTransferFunctionReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libTransformationPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libUncertaintyVisPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libVolumeReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libVtiReaderPlugin.so" load="yes" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/dieb120410_contrack/dti32/bin/tensors.nii" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/dieb120410_contrack/raw/dwi_brain.vol" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/dieb120410_contrack/raw/mri.vol" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/dieb120410_contrack/raw/mri_brain.vol" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/dieb120410_contrack/raw/mri_tumor.vol" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/dieb120410_contrack/raw/mri_tumor_mesh.vtk" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/dieb120410_contrack/fibers/conTrack/fibers_language_scores.fbs" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/dieb120410_contrack/fibers/conTrack/fibers_language_scores.vol" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/dieb120410_contrack/fibers/conTrack/fibers_motor_scores.fbs" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/dieb120410_contrack/fibers/conTrack/fibers_motor_scores.vol" />
+			<folder type="plugin" dir="%app%" />
+			<folder type="data" dir="%app%" />
+		</profile>
+		<profile name="kuhl280909" default="no">
+			<plugin file="%plugin%/plugins/libAxesVisualizationPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libClusteringPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libConnectivityMeasuresPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libDistanceUncertaintyPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libDTIMeasuresPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libDTIReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libFiberCuttingPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libFiberFilterPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libFiberOutputPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libFibersToVoxelsPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libFiberTrackingPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libFiberVisualizationPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libGeometryGlyphsPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libGpuGlyphsPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libHARDIConverterPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libHARDIConvolutionsPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libHARDIMeasuresPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libHARDIReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libImageTypeConverterPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libNiftiReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libPlanesVisPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libPolyDataReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libPolyDataVisualizationPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libRayCastPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libRoiDrawPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libSeedingPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libStructuredPointsReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libTransferFunctionPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libTransferFunctionReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libTransformationPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libUncertaintyVisPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libVolumeReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libVtiReaderPlugin.so" load="yes" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/kuhl280909_contrack/dti32/bin/tensors.nii" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/kuhl280909_contrack/raw/dwi_brain.vol" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/kuhl280909_contrack/raw/mri.vol" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/kuhl280909_contrack/raw/mri_brain.vol" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/kuhl280909_contrack/raw/mri_tumor.vol" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/kuhl280909_contrack/fibers/conTrack/fibers_language_scores.fbs" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/kuhl280909_contrack/fibers/conTrack/fibers_language_scores.vol" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/kuhl280909_contrack/fibers/conTrack/fibers_motor_scores.fbs" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/kuhl280909_contrack/fibers/conTrack/fibers_motor_scores.vol" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/kuhl280909_contrack/fibers/conTrack/fibers_sensory_motor_scores.fbs" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/kuhl280909_contrack/fibers/conTrack/fibers_sensory_motor_scores.vol" />
+			<folder type="plugin" dir="%app%" />
+			<folder type="data" dir="%app%" />
+		</profile>
+		<profile name="rade110707" default="no">
+			<plugin file="%plugin%/plugins/libAxesVisualizationPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libClusteringPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libConnectivityMeasuresPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libDistanceUncertaintyPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libDTIMeasuresPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libDTIReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libFiberCuttingPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libFiberFilterPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libFiberOutputPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libFibersToVoxelsPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libFiberTrackingPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libFiberVisualizationPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libGeometryGlyphsPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libGpuGlyphsPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libHARDIConverterPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libHARDIConvolutionsPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libHARDIMeasuresPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libHARDIReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libImageTypeConverterPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libNiftiReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libPlanesVisPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libPolyDataReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libPolyDataVisualizationPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libRayCastPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libRoiDrawPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libSeedingPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libStructuredPointsReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libTransferFunctionPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libTransferFunctionReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libTransformationPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libUncertaintyVisPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libVolumeReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libVtiReaderPlugin.so" load="yes" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/rade110707_contrack/dti32/bin/tensors.nii" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/rade110707_contrack/raw/dwi_brain.vol" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/rade110707_contrack/raw/mri.vol" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/rade110707_contrack/raw/mri_brain.vol" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/rade110707_contrack/raw/mri_tumor.vol" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/rade110707_contrack/raw/mri_tumor_mesh.vtk" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/rade110707_contrack/fibers/conTrack/fibers_language_scores.fbs" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/rade110707_contrack/fibers/conTrack/fibers_language_scores.vol" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/rade110707_contrack/fibers/conTrack/fibers_motor_scores.fbs" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/rade110707_contrack/fibers/conTrack/fibers_motor_scores.vol" />
+			<folder type="plugin" dir="%app%" />
+			<folder type="data" dir="%app%" />
+		</profile>
+		<profile name="wiec070711" default="no">
+			<plugin file="%plugin%/plugins/libAxesVisualizationPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libClusteringPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libConnectivityMeasuresPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libDistanceUncertaintyPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libDTIMeasuresPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libDTIReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libFiberCuttingPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libFiberFilterPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libFiberOutputPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libFibersToVoxelsPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libFiberTrackingPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libFiberVisualizationPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libGeometryGlyphsPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libGpuGlyphsPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libHARDIConverterPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libHARDIConvolutionsPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libHARDIMeasuresPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libHARDIReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libImageTypeConverterPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libNiftiReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libPlanesVisPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libPolyDataReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libPolyDataVisualizationPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libRayCastPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libRoiDrawPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libSeedingPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libStructuredPointsReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libTransferFunctionPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libTransferFunctionReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libTransformationPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libUncertaintyVisPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libVolumeReaderPlugin.so" load="yes" />
+			<plugin file="%plugin%/plugins/libVtiReaderPlugin.so" load="yes" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/wiec070711_contrack/dti32/bin/tensors.nii" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/wiec070711_contrack/raw/dwi_brain.vol" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/wiec070711_contrack/raw/mri.vol" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/wiec070711_contrack/raw/mri_brain.vol" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/wiec070711_contrack/raw/mri_tumor.vol" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/wiec070711_contrack/raw/mri_tumor_mesh.vtk" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/wiec070711_contrack/fibers/conTrack/fibers_language_scores.fbs" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/wiec070711_contrack/fibers/conTrack/fibers_language_scores.vol" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/wiec070711_contrack/fibers/conTrack/fibers_motor_scores.fbs" />
+			<openfile file="/home/rbrecheis/datasets/tilburg/wiec070711_contrack/fibers/conTrack/fibers_motor_scores.vol" />
+			<folder type="plugin" dir="%app%" />
+			<folder type="data" dir="%app%" />
+		</profile>
+	</profiles>
+	<settings>
+		<windowsize w="1024" h="768" maximize="no" />
+		<backgroundcolor r="0" g="0" b="0" gradient="yes" />
+		<guishortcuts>
+		</guishortcuts>
+	</settings>
+</DTIToolSettings>
