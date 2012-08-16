@@ -1,13 +1,13 @@
 @echo off
 
 rem Specify release version
-set version=1.0-SNAPSHOT
+set version=1.0.1
 
 rem Specify directories
 set dirTemp=D:\vISTe\releases
 set dirLibs=D:\vISTe\subversion.berlios\installation\libraries
 set dirData=D:\vISTe\subversion.berlios\data
-set dirTool=D:\vISTe\viste_build_msvc2008
+set dirTool=D:\vISTe\builds\viste_build_msvc2008
 
 rem Warn user if destination directory not empty
 if exist %dirTemp%\%version%\bin echo Installation directory %dirTemp%\%version% not empty!

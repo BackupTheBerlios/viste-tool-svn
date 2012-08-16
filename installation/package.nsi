@@ -37,9 +37,9 @@ Section "vIST/e (required)"
 	SetOutPath $INSTDIR\bin
   
 	; Copy everything in the "bin" directory
-	File /r /x Release /x Debug tool\bin\shaders
-	File tool\bin\Release\*.exe
-	File tool\bin\Release\*.dll
+	File /r /x Release /x Debug D:\vISTe\builds\viste_build_msvc2008\tool\bin\shaders
+	File D:\vISTe\builds\viste_build_msvc2008\tool\bin\Release\*.exe
+	File D:\vISTe\builds\viste_build_msvc2008\tool\bin\Release\*.dll
 	File D:\vISTe\subversion.berlios\installation\libraries\release\windows\*.dll
 	File D:\vISTe\subversion.berlios\installation\settings.xml
   
