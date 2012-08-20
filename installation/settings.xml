@@ -1,24 +1,24 @@
-<!DOCTYPE vISTeSettings>
-<vISTeSettings>
+<!DOCTYPE DTIToolSettings>
+<DTIToolSettings>
 	<profiles>
 		<profile name="Essentials" default="yes">
-			<plugin file="%plugin%/libAxesVisualizationPlugin.dll" load="yes" />
-			<plugin file="%plugin%/libDTIMeasuresPlugin.dll" load="yes" />
-			<plugin file="%plugin%/libDTIReaderPlugin.dll" load="yes" />
-			<plugin file="%plugin%/libFiberFilterPlugin.dll" load="yes" />
-			<plugin file="%plugin%/libFiberTrackingPlugin.dll" load="yes" />
-			<plugin file="%plugin%/libFiberVisualizationPlugin.dll" load="yes" />
-			<plugin file="%plugin%/libGpuGlyphsPlugin.dll" load="yes" />
-			<plugin file="%plugin%/libNiftiReaderPlugin.dll" load="yes" />
-			<plugin file="%plugin%/libPlanesVisPlugin.dll" load="yes" />
-			<plugin file="%plugin%/libPolyDataReaderPlugin.dll" load="yes" />
-			<plugin file="%plugin%/libRayCastPlugin.dll" load="yes" />
-			<plugin file="%plugin%/libRoiDrawPlugin.dll" load="yes" />
-			<plugin file="%plugin%/libSeedingPlugin.dll" load="yes" />
-			<plugin file="%plugin%/libTransferFunctionPlugin.dll" load="yes" />
-			<plugin file="%plugin%/libTransferFunctionReaderPlugin.dll" load="yes" />
-			<plugin file="%plugin%/libTransformationPlugin.dll" load="yes" />
-			<plugin file="%plugin%/libVolumeReaderPlugin.dll" load="yes" />
+			<plugin file="%plugin%/AxesVisualizationPlugin.dll" load="yes" />
+			<plugin file="%plugin%/DTIMeasuresPlugin.dll" load="yes" />
+			<plugin file="%plugin%/DTIReaderPlugin.dll" load="yes" />
+			<plugin file="%plugin%/FiberFilterPlugin.dll" load="yes" />
+			<plugin file="%plugin%/FiberTrackingPlugin.dll" load="yes" />
+			<plugin file="%plugin%/FiberVisualizationPlugin.dll" load="yes" />
+			<plugin file="%plugin%/GpuGlyphsPlugin.dll" load="yes" />
+			<plugin file="%plugin%/NiftiReaderPlugin.dll" load="yes" />
+			<plugin file="%plugin%/PlanesVisPlugin.dll" load="yes" />
+			<plugin file="%plugin%/PolyDataReaderPlugin.dll" load="yes" />
+			<plugin file="%plugin%/RayCastPlugin.dll" load="yes" />
+			<plugin file="%plugin%/RoiDrawPlugin.dll" load="yes" />
+			<plugin file="%plugin%/SeedingPlugin.dll" load="yes" />
+			<plugin file="%plugin%/TransferFunctionPlugin.dll" load="yes" />
+			<plugin file="%plugin%/TransferFunctionReaderPlugin.dll" load="yes" />
+			<plugin file="%plugin%/TransformationPlugin.dll" load="yes" />
+			<plugin file="%plugin%/VolumeReaderPlugin.dll" load="yes" />
 			<folder type="plugin" dir="%app%" />
 			<folder type="data" dir="%app%/data" />
 		</profile>
@@ -63,4 +63,4 @@
 		<backgroundcolor r="0" g="0" b="0" gradient="yes" />
 		<guishortcuts />
 	</settings>
-</vISTeSettings>
+</DTIToolSettings>
