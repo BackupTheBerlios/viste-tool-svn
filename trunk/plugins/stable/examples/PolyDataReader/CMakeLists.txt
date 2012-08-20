@@ -51,6 +51,6 @@ set(SRCS
 qt4_wrap_cpp( MOC_SRCS PolyDataReaderPlugin.h )
 
 add_library( PolyDataReaderPlugin SHARED ${SRCS} ${MOC_SRCS} )
-target_link_libraries( PolyDataReaderPlugin bmia_libs )
+target_link_libraries( PolyDataReaderPlugin bmia_libs vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering)
 
 endif(PLUGINS_BUILD_POLYDATAREADER)

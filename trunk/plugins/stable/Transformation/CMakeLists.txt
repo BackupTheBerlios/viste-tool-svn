@@ -57,6 +57,6 @@ set_source_files_properties(TransformationPlugin.cxx PROPERTIES OBJECT_DEPENDS "
 
 link_directories(${BMIA_LIBS_BINARY_DIR})
 add_library( TransformationPlugin SHARED ${SRCS} ${MOC_SRCS} )
-target_link_libraries( TransformationPlugin bmia_plugin bmia_data bmia_libs vtkTensorMath )
+target_link_libraries( TransformationPlugin bmia_plugin bmia_data bmia_libs vtkTensorMath vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering)
 
 endif(PLUGINS_BUILD_TRANSFORMATION)

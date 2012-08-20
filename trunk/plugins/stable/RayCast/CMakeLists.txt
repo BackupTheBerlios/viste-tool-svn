@@ -73,6 +73,6 @@ qt4_wrap_cpp( MOC_SRCS RayCastPlugin.h RayCastVolumeMapper.h)
 set_source_files_properties(RayCastPlugin.cxx PROPERTIES OBJECT_DEPENDS "${UiHeaders}")
 
 add_library( RayCastPlugin SHARED ${SRCS} ${MOC_SRCS} vtkShaderBase.h vtkShaderRayDirections.h vtkShaderDVR.h vtkShaderMIP.h vtkShaderIsosurface.h vtkShaderToon.h vtkClippingPlane.h)
-target_link_libraries( RayCastPlugin bmia_plugin vtkIO vtkGraphics vtkVolumeRendering )
+target_link_libraries( RayCastPlugin bmia_plugin vtkIO vtkGraphics vtkVolumeRendering vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering)
 
 endif(PLUGINS_BUILD_RAYCASTING)

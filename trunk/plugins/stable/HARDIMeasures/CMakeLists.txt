@@ -53,6 +53,6 @@ set(SRCS
 qt4_wrap_cpp( MOC_SRCS HARDIMeasuresPlugin.h )
 
 add_library( HARDIMeasuresPlugin SHARED ${SRCS} ${MOC_SRCS} )
-target_link_libraries( HARDIMeasuresPlugin vtkHARDI bmia_libs )
+target_link_libraries( HARDIMeasuresPlugin vtkHARDI bmia_libs vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering)
 
 endif(PLUGINS_BUILD_HARDIMEASURES)

@@ -55,6 +55,6 @@ set_source_files_properties(PolyDataVisualizationPlugin.cxx PROPERTIES OBJECT_DE
 
 
 add_library( PolyDataVisualizationPlugin SHARED ${SRCS} ${MOC_SRCS} )
-target_link_libraries( PolyDataVisualizationPlugin bmia_libs )
+target_link_libraries( PolyDataVisualizationPlugin bmia_libs vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering )
 
 endif(PLUGINS_BUILD_POLYDATAVISUALIZATION)

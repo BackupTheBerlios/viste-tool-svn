@@ -64,6 +64,6 @@ qt4_wrap_cpp( MOC_SRCS TransferFunctionPlugin.h QTransferFunctionCanvas.h QCusto
 set_source_files_properties(TransferFunctionPlugin.cxx PROPERTIES OBJECT_DEPENDS "${UiHeaders}")
 
 add_library( TransferFunctionPlugin SHARED ${SRCS} ${MOC_SRCS} QAnchorItem.h  )
-target_link_libraries( TransferFunctionPlugin bmia_plugin vtkIO )
+target_link_libraries( TransferFunctionPlugin bmia_plugin vtkIO vtkVolumeRendering vtkWidgets vtkGraphics vtkRendering)
 
 endif(PLUGINS_BUILD_TRANSFERFUNCTION)

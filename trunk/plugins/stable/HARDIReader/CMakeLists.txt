@@ -58,6 +58,6 @@ include_directories(${BMIA_LIBS_SOURCE_DIR})
 qt4_wrap_cpp( MOC_SRCS HARDIReaderPlugin.h )
 
 add_library( HARDIReaderPlugin SHARED ${SRCS} ${MOC_SRCS} )
-target_link_libraries( HARDIReaderPlugin bmia_libs )
+target_link_libraries( HARDIReaderPlugin bmia_libs vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering)
 
 endif(PLUGINS_BUILD_HARDIREADER)

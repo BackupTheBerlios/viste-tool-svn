@@ -64,6 +64,6 @@ set_source_files_properties(GeometryGlyphsPlugin.cxx PROPERTIES OBJECT_DEPENDS "
 link_directories(${BMIA_LIBS_BINARY_DIR})
 
 add_library( GeometryGlyphsPlugin SHARED ${SRCS} ${MOC_SRCS} )
-target_link_libraries( GeometryGlyphsPlugin bmia_libs vtkHARDI )
+target_link_libraries( GeometryGlyphsPlugin bmia_libs vtkHARDI vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering)
 
 endif(PLUGINS_BUILD_GEOMETRYGLYPHS)

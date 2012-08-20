@@ -77,6 +77,6 @@ ADD_LIBRARY( ${PROJECT_NAME} SHARED ${SOURCES_MOC}
 TARGET_LINK_LIBRARIES( ${PROJECT_NAME}
 	gdcmCommon gdcmDICT gdcmIOD gdcmDSED gdcmjpeg12
 	gdcmjpeg16 gdcmjpeg8 gdcmMSFF gdcmopenjpeg gdcmzlib gdcmexpat 
-	vtkgdcm vtkIO
+	vtkgdcm vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering
 	bmia_plugin 
 	)

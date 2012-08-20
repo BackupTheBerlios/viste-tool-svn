@@ -58,6 +58,6 @@ link_directories(${BMIA_LIBS_BINARY_DIR})
 qt4_wrap_cpp( MOC_SRCS NiftiReaderPlugin.h )
 
 add_library( NiftiReaderPlugin SHARED ${SRCS} ${MOC_SRCS} )
-target_link_libraries( NiftiReaderPlugin bmia_plugin bmia_data vtkIO vtkNIfTI bmia_libs )
+target_link_libraries( NiftiReaderPlugin bmia_plugin bmia_data vtkIO vtkNIfTI vtkVolumeRendering vtkWidgets vtkGraphics vtkRendering bmia_libs )
 
 endif(PLUGINS_BUILD_NIFTIREADER)

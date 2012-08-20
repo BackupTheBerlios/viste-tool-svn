@@ -63,6 +63,6 @@ set_source_files_properties(FiberOutputPlugin.cxx PROPERTIES OBJECT_DEPENDS "${U
 
 link_directories(${BMIA_LIBS_BINARY_DIR})
 add_library( FiberOutputPlugin SHARED ${SRCS} ${MOC_SRCS} )
-target_link_libraries( FiberOutputPlugin bmia_libs vtkTensorMath )
+target_link_libraries( FiberOutputPlugin bmia_libs vtkTensorMath vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering)
 
 endif(PLUGINS_BUILD_FIBEROUTPUT)

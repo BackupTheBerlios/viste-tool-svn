@@ -51,6 +51,6 @@ set(SRCS
 qt4_wrap_cpp( MOC_SRCS TransferFunctionReaderPlugin.h )
 
 add_library( TransferFunctionReaderPlugin SHARED ${SRCS} ${MOC_SRCS} )
-target_link_libraries( TransferFunctionReaderPlugin bmia_plugin bmia_data vtkIO )
+target_link_libraries( TransferFunctionReaderPlugin bmia_plugin bmia_data vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering )
 
 endif(PLUGINS_BUILD_TRANSFERFUNCTIONREADER)

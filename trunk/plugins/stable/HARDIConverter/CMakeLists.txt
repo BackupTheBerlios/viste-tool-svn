@@ -60,6 +60,6 @@ set_source_files_properties(HARDIConverterPlugin.cxx PROPERTIES OBJECT_DEPENDS "
 link_directories(${BMIA_LIBS_BINARY_DIR})
 
 add_library(HARDIConverterPlugin SHARED ${SRCS} ${MOC_SRCS})
-target_link_libraries(HARDIConverterPlugin bmia_core bmia_plugin bmia_data vtkHARDI)
+target_link_libraries(HARDIConverterPlugin bmia_core bmia_plugin bmia_data vtkHARDI vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering)
 
 endif(PLUGINS_BUILD_HARDICONVERTER)

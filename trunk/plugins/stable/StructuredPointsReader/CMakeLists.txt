@@ -54,6 +54,6 @@ include_directories(${BMIA_LIBS_SOURCE_DIR})
 qt4_wrap_cpp( MOC_SRCS StructuredPointsReaderPlugin.h )
 
 add_library( StructuredPointsReaderPlugin SHARED ${SRCS} ${MOC_SRCS} )
-target_link_libraries( StructuredPointsReaderPlugin bmia_libs )
+target_link_libraries( StructuredPointsReaderPlugin bmia_libs vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering )
 
 endif(PLUGINS_BUILD_STRUCTUREDPOINTSREADER)

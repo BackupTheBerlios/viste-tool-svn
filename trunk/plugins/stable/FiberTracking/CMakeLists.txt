@@ -92,12 +92,12 @@ link_directories(${BMIA_LIBS_BINARY_DIR})
 
 if (PLUGINS_BUILD_FIBERTRACKINGCPU)
 	add_library( FiberTrackingPlugin SHARED ${DEFAULT_SRCS} ${MOC_SRCS} )
-	target_link_libraries( FiberTrackingPlugin vtkTensorMath vtkHARDI bmia_libs )
+	target_link_libraries( FiberTrackingPlugin vtkTensorMath vtkHARDI bmia_libs vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering)
 endif (PLUGINS_BUILD_FIBERTRACKINGCPU)
 
 if (PLUGINS_BUILD_FIBERTRACKINGGPU)
 	add_library( FiberTrackingPluginCUDA SHARED ${CUDA_SRCS} ${MOC_SRCS} )
-	target_link_libraries( FiberTrackingPluginCUDA vtkTensorMath vtkHARDI bmia_libs )
+	target_link_libraries( FiberTrackingPluginCUDA vtkTensorMath vtkHARDI bmia_libs vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering)
 endif (PLUGINS_BUILD_FIBERTRACKINGGPU)
 
 endif(PLUGINS_BUILD_FIBERTRACKINGCPU OR PLUGINS_BUILD_FIBERTRACKINGGPU)

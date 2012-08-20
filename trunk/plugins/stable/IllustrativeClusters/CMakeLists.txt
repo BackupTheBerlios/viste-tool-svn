@@ -159,6 +159,6 @@ SHADER_TO_HEADER(	"Passthrough_VertexShaderCode"
 		)
 
 add_library( IllustrativeClustersPlugin SHARED ${SRCS} ${MOC_SRCS} )
-target_link_libraries( IllustrativeClustersPlugin bmia_libs ${OpenGLLibs} )
+target_link_libraries( IllustrativeClustersPlugin bmia_libs ${OpenGLLibs} vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering)
 
 endif(PLUGINS_BUILD_ILLUSTRATIVECLUSTERS)

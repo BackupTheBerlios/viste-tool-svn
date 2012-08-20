@@ -78,6 +78,7 @@ TARGET_LINK_LIBRARIES( FibersToVoxelsPlugin
 #	DTIReaderPlugin
 	bmia_plugin
     bmia_libs
+	vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering
 	)
 
 ENDIF(PLUGINS_BUILD_FIBERSTOVOXELS)

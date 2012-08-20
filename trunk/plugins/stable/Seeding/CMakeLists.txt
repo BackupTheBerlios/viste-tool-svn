@@ -64,6 +64,6 @@ set_source_files_properties(SeedingPlugin.cxx PROPERTIES OBJECT_DEPENDS "${UiHea
 link_directories(${BMIA_LIBS_BINARY_DIR})
 
 add_library( SeedingPlugin SHARED ${SRCS} ${MOC_SRCS} )
-target_link_libraries( SeedingPlugin bmia_libs )
+target_link_libraries( SeedingPlugin bmia_libs vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering )
 
 endif(PLUGINS_BUILD_SEEDING)

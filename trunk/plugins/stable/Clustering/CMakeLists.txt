@@ -59,6 +59,6 @@ set_source_files_properties(ClusteringPlugin.cxx PROPERTIES OBJECT_DEPENDS "${Ui
 
 link_directories(${BMIA_LIBS_BINARY_DIR})
 add_library( ClusteringPlugin SHARED ${SRCS} ${MOC_SRCS} )
-target_link_libraries( ClusteringPlugin bmia_libs )
+target_link_libraries( ClusteringPlugin bmia_libs vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering)
 
 endif(PLUGINS_BUILD_CLUSTERING)

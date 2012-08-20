@@ -63,6 +63,6 @@ set_source_files_properties(ConnectivityMeasuresPlugin.cxx PROPERTIES OBJECT_DEP
 
 link_directories(${BMIA_LIBS_BINARY_DIR})
 add_library( ConnectivityMeasuresPlugin SHARED ${SRCS} ${MOC_SRCS} )
-target_link_libraries( ConnectivityMeasuresPlugin bmia_libs vtkTensorMath )
+target_link_libraries( ConnectivityMeasuresPlugin bmia_libs vtkTensorMath vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering)
 
 endif(PLUGINS_BUILD_CONNECTIVITYMEASURES)

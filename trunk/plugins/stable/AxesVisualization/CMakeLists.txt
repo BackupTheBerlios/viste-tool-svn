@@ -57,6 +57,6 @@ set_source_files_properties(AxesVisualizationPlugin.cxx PROPERTIES OBJECT_DEPEND
 
 link_directories(${BMIA_LIBS_BINARY_DIR})
 add_library( AxesVisualizationPlugin SHARED ${SRCS} ${MOC_SRCS} )
-target_link_libraries( AxesVisualizationPlugin bmia_plugin bmia_libs ) 
+target_link_libraries( AxesVisualizationPlugin bmia_plugin bmia_libs vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering) 
 
 endif(PLUGINS_BUILD_AXESVISUALIZATION)

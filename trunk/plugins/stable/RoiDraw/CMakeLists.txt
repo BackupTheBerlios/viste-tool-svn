@@ -59,6 +59,6 @@ qt4_wrap_cpp(MOC_SRCS RoiDrawPlugin.h)
 set_source_files_properties(RoiDrawPlugin.cxx PROPERTIES OBJECT_DEPENDS "${UiHeaders}")
 
 add_library( RoiDrawPlugin SHARED ${SRCS} ${MOC_SRCS} )
-target_link_libraries( RoiDrawPlugin bmia_libs )
+target_link_libraries( RoiDrawPlugin bmia_libs vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering )
 
 endif(PLUGINS_BUILD_ROIDRAW)

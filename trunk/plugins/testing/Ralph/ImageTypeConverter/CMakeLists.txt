@@ -61,5 +61,5 @@ ADD_LIBRARY( ImageTypeConverterPlugin SHARED
 	)
     
 TARGET_LINK_LIBRARIES( ImageTypeConverterPlugin
-	bmia_plugin
+	bmia_plugin vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering
 	)

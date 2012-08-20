@@ -57,6 +57,6 @@ qt4_wrap_cpp( MOC_SRCS DTIReaderPlugin.h )
 
 link_directories(${BMIA_LIBS_BINARY_DIR})
 add_library( DTIReaderPlugin SHARED ${SRCS} ${MOC_SRCS} )
-target_link_libraries( DTIReaderPlugin bmia_libs )
+target_link_libraries( DTIReaderPlugin bmia_libs vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering)
 
 endif(PLUGINS_BUILD_DTIREADER)

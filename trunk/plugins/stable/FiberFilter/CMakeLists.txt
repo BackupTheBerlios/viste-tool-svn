@@ -59,6 +59,6 @@ qt4_wrap_cpp( MOC_SRCS FiberFilterPlugin.h FiberFilterWidget.h )
 set_source_files_properties(FiberFilterWidget.cxx PROPERTIES OBJECT_DEPENDS "${UiHeaders}")
 
 add_library( FiberFilterPlugin SHARED ${SRCS} ${MOC_SRCS} )
-target_link_libraries( FiberFilterPlugin bmia_libs )
+target_link_libraries( FiberFilterPlugin bmia_libs vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering)
 
 endif(PLUGINS_BUILD_FIBERFILTER)

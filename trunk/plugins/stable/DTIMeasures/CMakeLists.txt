@@ -61,6 +61,6 @@ set(SRCS
 qt4_wrap_cpp( MOC_SRCS DTIMeasuresPlugin.h )
 
 add_library( DTIMeasuresPlugin SHARED ${SRCS} ${MOC_SRCS} )
-target_link_libraries( DTIMeasuresPlugin vtkTensorMath bmia_libs )
+target_link_libraries( DTIMeasuresPlugin vtkTensorMath bmia_libs vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering)
 
 endif(PLUGINS_BUILD_DTIMEASURES)

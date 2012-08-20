@@ -65,6 +65,6 @@ set_source_files_properties(HARDIConvolutionsPlugin.cxx PROPERTIES OBJECT_DEPEND
 
 link_directories(${BMIA_LIBS_BINARY_DIR})
 add_library( HARDIConvolutionsPlugin SHARED ${SRCS} ${MOC_SRCS} )
-target_link_libraries( HARDIConvolutionsPlugin bmia_core bmia_plugin bmia_data vtkNIfTI )
+target_link_libraries( HARDIConvolutionsPlugin bmia_core bmia_plugin bmia_data vtkNIfTI vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering)
 
 endif(PLUGINS_BUILD_HARDICONVOLUTIONS)

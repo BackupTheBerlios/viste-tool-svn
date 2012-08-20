@@ -62,6 +62,6 @@ qt4_wrap_cpp( MOC_SRCS FiberCuttingPlugin.h )
 set_source_files_properties(FiberCuttingPlugin.cxx PROPERTIES OBJECT_DEPENDS "${UiHeaders}")
 
 add_library( FiberCuttingPlugin SHARED ${SRCS} ${MOC_SRCS} )
-target_link_libraries( FiberCuttingPlugin bmia_libs bmia_core )
+target_link_libraries( FiberCuttingPlugin bmia_libs bmia_core vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering)
 
 endif(PLUGINS_BUILD_FIBERCUTTING)

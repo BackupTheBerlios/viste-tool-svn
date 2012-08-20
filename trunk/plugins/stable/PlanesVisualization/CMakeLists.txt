@@ -59,6 +59,6 @@ set_source_files_properties(PlanesVisPlugin.cxx PROPERTIES OBJECT_DEPENDS "${UiH
 
 link_directories(${BMIA_LIBS_BINARY_DIR})
 add_library( PlanesVisPlugin SHARED ${SRCS} ${MOC_SRCS} )
-target_link_libraries( PlanesVisPlugin bmia_core bmia_plugin bmia_data vtkMetaCanvas vtkHelpers )
+target_link_libraries( PlanesVisPlugin bmia_core bmia_plugin bmia_data vtkMetaCanvas vtkHelpers vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering)
 
 endif(PLUGINS_BUILD_PLANESVISUALIZATION)

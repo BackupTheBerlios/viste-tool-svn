@@ -51,6 +51,6 @@ set(SRCS
 qt4_wrap_cpp( MOC_SRCS VtiReaderPlugin.h )
 
 add_library( VtiReaderPlugin SHARED ${SRCS} ${MOC_SRCS} )
-target_link_libraries( VtiReaderPlugin bmia_data bmia_plugin vtkHelpers )
+target_link_libraries( VtiReaderPlugin bmia_data bmia_plugin vtkHelpers vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering)
 
 endif(PLUGINS_BUILD_VTIREADER)
