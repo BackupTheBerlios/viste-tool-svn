@@ -59,10 +59,10 @@ SectionEnd
 Section "Data Sets"
 
 	; Set the output path
-	SetOutPath $INSTDIR\bin\data
+	SetOutPath $INSTDIR\bin\data\72dirs
   
 	; This will copy the entiry content of the "Installer\Data" folder to the output  
-	File /r D:\vISTe\subversion.berlios\data\*.*
+	File /r D:\vISTe\data\72dirs\*
   
 SectionEnd
 
@@ -108,6 +108,7 @@ Section "Uninstall"
   ; Remove directories used
   RMDir "$SMPROGRAMS\vISTe"
   RMDir /r "$INSTDIR\bin\shaders"
+  RMDir /r "$INSTDIR\bin\data\72dirs"
   RMDir /r "$INSTDIR\bin\data"
   RMDir /r "$INSTDIR\bin"
   RMDir "$INSTDIR"

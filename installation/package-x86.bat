@@ -15,7 +15,7 @@ set platform=x86
 rem Specify directories
 set dirTemp=D:\vISTe\releases
 set dirLibs=D:\vISTe\subversion.berlios\installation\libraries
-set dirData=D:\vISTe\subversion.berlios\data
+set dirData=D:\vISTe\data
 set dirTool=D:\vISTe\builds\viste_build_msvc2008
 
 rem Warn user if destination directory not empty
