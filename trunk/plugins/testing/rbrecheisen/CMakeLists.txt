@@ -31,11 +31,11 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-add_subdirectory( BootstrapFibersToDistances )
-add_subdirectory( BootstrapFiberTracking )
-add_subdirectory( BootstrapVis )
-add_subdirectory( DicomConverter )
-add_subdirectory( DicomReader )
-add_subdirectory( UncertaintyVis )
+#add_subdirectory( BootstrapFibersToDistances )
+#add_subdirectory( BootstrapFiberTracking )
+#add_subdirectory( BootstrapVis )
+#add_subdirectory( DicomConverter )
+#add_subdirectory( DicomReader )
+#add_subdirectory( UncertaintyVis )
 add_subdirectory( FibersToVoxels )
 add_subdirectory( ImageTypeConverter )
