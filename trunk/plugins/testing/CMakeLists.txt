@@ -31,5 +31,5 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-add_subdirectory( Ralph )
-#add_subdirectory( Anna )
+add_subdirectory( avilanova )
+add_subdirectory( rbrecheisen )
