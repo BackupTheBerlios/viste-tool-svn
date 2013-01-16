@@ -1,9 +1,0 @@
-FRAG infinity.frag
-FRAG trigonometry.frag
-FRAG matrix.frag
-FRAG geometry.frag
-FRAG lighting.frag
-FRAG SphericalHarmonics.frag
-FRAG CylindricalHarmonics.frag
-VERT CHglyph.vert
-FRAG CHglyph.frag

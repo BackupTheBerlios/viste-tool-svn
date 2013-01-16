@@ -1,1 +1,0 @@
-#include "vtkColor4.h"
