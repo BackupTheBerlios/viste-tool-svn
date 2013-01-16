@@ -1,0 +1,139 @@
+/**
+ * Copyright (c) 2012, Biomedical Image Analysis Eindhoven (BMIA/e)
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without 
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ *   - Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ * 
+ *   - Redistributions in binary form must reproduce the above copyright
+ *     notice, this list of conditions and the following disclaimer in
+ *     the documentation and/or other materials provided with the 
+ *     distribution.
+ * 
+ *   - Neither the name of Eindhoven University of Technology nor the
+ *     names of its contributors may be used to endorse or promote 
+ *     products derived from this software without specific prior 
+ *     written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/*
+ * HARDIReaderPlugin.h
+ *
+ * 2010-11-29	Evert van Aart
+ * - First version.
+ *
+ * 2011-01-24	Evert van Aart
+ * - Added support for transformation matrices
+ *
+ * 2011-04-19	Evert van Aart
+ * - Version 1.0.0.
+ * - Raw HARDI data is now outputted in the format excepted by the Geometry Glyphs
+ *   plugin, so with an array of angles and an array defining the triangles.
+ *
+ * 2011-04-26	Evert van Aart
+ * - Version 1.0.1.
+ * - Improved progress reporting.
+ *
+ */
+
+
+#ifndef bmia_HARDIReaderPlugin_h
+#define bmia_HARDIReaderPlugin_h
+
+
+/** Includes - Main Header */
+
+#include "DTITool.h"
+
+/** Includes - VTK */
+
+#include <vtkImageData.h>
+#include <vtkMatrix4x4.h>
+
+/** Includes - Custom Files */
+
+#include "vtkHARDIReader.h"
+#include "vtkSHARMReader.h"
+#include "Helpers/TransformationMatrixIO.h"
+
+/** Includes - C++ */
+
+#include <string>
+
+
+namespace bmia {
+
+
+/** This class is used to read different formats of HARDI data. At the moment, the only
+	supported format is the "raw" HARDI data format, which consists of one ".hardi" file 
+	and as many ".dat" files as there are gradient directions. Other formats will be added
+	in the future. 
+*/
+
+class HARDIReaderPlugin : public plugin::Plugin, public data::Reader
+{
+    Q_OBJECT
+    Q_INTERFACES(bmia::plugin::Plugin)
+    Q_INTERFACES(bmia::data::Reader)
+
+	public:
+
+		/** Return current version. */
+
+		QString getPluginVersion()
+		{
+			return "1.0.1";
+		}
+
+		/** Constructor */
+
+		HARDIReaderPlugin();
+
+		/** Destructor */
+
+		~HARDIReaderPlugin();
+
+		/** Returns the list of file extensions supported by this reader plugin.
+			This function is required by the data::Reader plugin interface. */
+
+		QStringList getSupportedFileExtensions();
+
+		/** Returns a list containing short descriptions of the supported file
+			types. The number of descriptions and their order should match those
+			of the list returned by "getSupportedFileExtensions". */
+
+		QStringList getSupportedFileDescriptions();
+
+		/** Load point data from the given file and make it available to the data manager.
+			This function is required by the data::Reader plugin interface. */
+	  
+		void loadDataFromFile(QString filename);
+
+	protected:
+
+	private:
+
+}; // class HARDIReaderPlugin
+
+
+} // namespace bmia
+
+
+#endif // bmia_HARDIReaderPlugin_h
