@@ -1,8 +1,0 @@
-FRAG infinity.frag
-FRAG trigonometry.frag
-FRAG matrix.frag
-FRAG geometry.frag
-FRAG lighting.frag
-FRAG SphericalHarmonics.frag
-VERT SHglyph.vert
-FRAG SHglyph.frag
