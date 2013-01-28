@@ -51,6 +51,9 @@
  * - Which transformation matrix to use is now determined correctly based on the
  *   "qform_code" and "sform_code" of the NIfTI image.
  *
+ * 2013-01-28   Mehmet Yusufoglu
+ * - Add a pointer parameter pointing the instance of UserOut class as an argument to the constructor.  
+ * - Userout class pointer is used to ask which transfomation is used if both qform ans sform are larger than zero. 
  */
 
 
@@ -111,12 +114,13 @@ namespace bmia {
 
 //-----------------------------[ Constructor ]-----------------------------\\
 
-bmiaNiftiReader::bmiaNiftiReader()
+bmiaNiftiReader::bmiaNiftiReader(UserOutput * rUserOut)
 {
 	// Initialize pointers to NULL
 	this->NiftiImage		= NULL;
 	this->transformMatrix	= NULL;
 	this->progress			= NULL;
+	this->userOut			= rUserOut;
 }
 
 
@@ -391,8 +395,16 @@ QString bmiaNiftiReader::readNIfTIFile(const char * filename, bool showProgress)
 	// Temporary matrix array
 	double tM[16];
 
+	//If both qform_code and sform_code larger than 0, ask to the user. 
+	QString selectedItem("");
+	if (this->NiftiImage->qform_code > 0 && this->NiftiImage->sform_code > 0)
+	{
+		this->userOut->selectItemDialog("Select Transformation Matrix", "Qform-code and Sform-code are positive. Select one of the matrices.", "QForm,SForm",selectedItem);
+	}
+	
+     
 	// Use the QForm matrix if available
-	if (this->NiftiImage->qform_code > 0)
+	if (this->NiftiImage->qform_code > 0 && selectedItem!="SForm")
 	{
 		// Get the transformation matrix
 		tM[ 0] = (double) this->NiftiImage->qto_xyz.m[0][0];	
@@ -806,7 +818,7 @@ vtkImageData * bmiaNiftiReader::parseDiscreteSphereVolume()
 	QString geoFileName = this->filenameQ.insert(this->filenameQ.lastIndexOf("."), "_topo");
 
 	vtkIntArray * triangleArray = NULL;
-	bmiaNiftiReader * geoReader = new bmiaNiftiReader;
+	bmiaNiftiReader * geoReader = new bmiaNiftiReader(this->userOut);
 	
 	// Check if the topology file exists
 	if (geoReader->CanReadFile(geoFileName.toLatin1().data()))
