@@ -88,7 +88,7 @@
 /** Includes - Custom Files */
 
 #include "HARDI/SphereTriangulator.h"
-
+#include "core/UserOutput.h"
 
 namespace bmia {
 
@@ -109,7 +109,7 @@ class bmiaNiftiReader
 
 		/** Constructor */
 
-		bmiaNiftiReader();
+		bmiaNiftiReader(UserOutput * rUserOut);
 
 		/** Destructor */
 
@@ -261,6 +261,8 @@ class bmiaNiftiReader
 		/** Progress dialog. */
 
 		QProgressDialog * progress;
+
+		UserOutput * userOut;									// User output (for s_form q_form selection)
 
 }; // class bmiaNiftiReader
 

@@ -93,7 +93,7 @@ QStringList NiftiReaderPlugin::getSupportedFileExtensions()
 {
 	QStringList list;
 	list.push_back("nii");
-//	list.push_back("nii.gz");
+	//list.push_back("nii.gz");
 	return list;
 }
 
@@ -104,7 +104,7 @@ QStringList NiftiReaderPlugin::getSupportedFileDescriptions()
 {
 	QStringList list;
 	list.push_back("NIfTI Files");
-//	list.push_back("GZipped NIfTI Files");
+	//list.push_back("GZipped NIfTI Files");
 	return list;
 }
 
@@ -117,7 +117,7 @@ void NiftiReaderPlugin::loadDataFromFile(QString filename)
     this->core()->out()->logMessage("Trying to load data from file " + filename + ".");
 
     // Create a new reader object and set the filename
-    bmiaNiftiReader * reader = new bmiaNiftiReader;
+	bmiaNiftiReader * reader = new bmiaNiftiReader(this->core()->out());
     
     // Read the data from file by updating the VTK reader object
     QString err = reader->readNIfTIFile(filename.toLatin1().data());
