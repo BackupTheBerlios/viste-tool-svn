@@ -51,6 +51,9 @@
  * - Which transformation matrix to use is now determined correctly based on the
  *   "qform_code" and "sform_code" of the NIfTI image.
  *
+ * * 2013-01-28   Mehmet Yusufoglu
+ * - Add a pointer parameter pointing the instance of UserOut class as an argument to the constructor.  
+ * - Userout class pointer is used to ask which transfomation is used if both qform ans sform are larger than zero.
  */
 
 

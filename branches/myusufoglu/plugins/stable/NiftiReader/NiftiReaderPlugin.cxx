@@ -59,6 +59,9 @@
  * - Which transformation matrix to use is now determined correctly based on the
  *   "qform_code" and "sform_code" of the NIfTI image.
  *
+ *  2013-02-06 Mehmet Yusufoglu
+ *  core()->out() is passed to bmiaNiftiReader constructor so that the reader can ask to the user
+ * which transformation will be used if qform_code and sform_code both are positive.
  */
 
 

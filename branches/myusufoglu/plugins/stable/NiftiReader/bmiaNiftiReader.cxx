@@ -53,7 +53,7 @@
  *
  * 2013-01-28   Mehmet Yusufoglu
  * - Add a pointer parameter pointing the instance of UserOut class as an argument to the constructor.  
- * - Userout class pointer is used to ask which transfomation is used if both qform ans sform are larger than zero. 
+ * - Userout class pointer is used to ask which transfomation is used if both qform_code ans sform_code are larger than zero. 
  */
 
 
@@ -80,7 +80,7 @@
 #define createDoubleMappedArrayMacro(C_TYPE, ELEMENTS)							\
 	{																			\
 		C_TYPE * inArrayCasted = (C_TYPE *) this->NiftiImage->data;				\
-		for (int i = 0; i < arraySize; ++i) {									\
+		for (int i = 0; i < arraySize; ++i) {					 				\
 			for (int j = 0; j < ELEMENTS; ++j) {								\
 				outDoubleArray[j + ELEMENTS * i] = (double) inArrayCasted[i + indexMap[j] * arraySize];	\
 	} } }
