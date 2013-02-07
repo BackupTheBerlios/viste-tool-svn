@@ -48,6 +48,9 @@
  * 2011-10-04   Ralph Brecheisen
  * - Fixed bug in constructor where Q_ASSERT was check member 'core'
  * instead of the parameter 'coreInstance'.
+ *
+ * 2013-02-07   Mehmet Yusufoglu
+ * - Changed the unloadable plugin warning which is called by load(), from a message box warning to terminal log warning.
  */
 
 
@@ -174,7 +177,7 @@ bool Manager::load(int i)
 	// Check if loading was successful 
 	if (!loadedQObject)
 	{
-		this->core->out()->showMessage("Plugin could not be loaded. " + loader->errorString());
+		this->core->out()->logMessage("Plugin could not be loaded. " + loader->errorString()); 
 		return false;
 	}
  
