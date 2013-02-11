@@ -142,7 +142,7 @@ void NiftiReaderPlugin::loadDataFromFile(QString filename)
 	{
 		int lastSlash = filename.lastIndexOf("/");
 		dsName = filename.right(filename.length() - lastSlash - 1);
-	}
+	} 
 	else if (filename.contains("\\"))
 	{
 		int lastBSlash = filename.lastIndexOf("\\");

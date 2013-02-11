@@ -30,37 +30,5 @@
 # LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-# 06.02.2012 Remove CMAKE_BUILD_TYPE assignment to Debug. 
-# 06.02.2012 Add two messages to print the IDE selected and the status of 64bit compiler for windows. 
-# 06.02.2012 CMAKE_BUILD_TYPE control and messages. 
 
-cmake_minimum_required(VERSION 2.6)
-
-# CMAKE_BUILD_TYPE default value is Release
-IF(DEFINED CMAKE_BUILD_TYPE)
-   SET(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Choose the type of
-build, options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug
-Release.")
-ELSE()
-   SET(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build,
-options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release.")
-ENDIF()
-
-message( STATUS "CMAKE_GENERATOR: ${CMAKE_GENERATOR}")
-message( STATUS "CMAKE_CL_64: ${CMAKE_CL_64}")
-message( STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
-
-OPTION(TESTING_BUILD_TESTS "Build test programs." OFF)
-
-#SET(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose the type of build" FORCE)
-#SET(CMAKE_OSX_ARCHITECTURES "x86_64;i386" CACHE STRING "Set OSX architectures" FORCE)
-#SET(CMAKE_CXX_FLAGS "-fPIC" CACHE STRING "Add CXX compiler flags" FORCE)
-SET(CMAKE_C_FLAGS "-fPIC" CACHE STRING "Add C compiler flags" FORCE)
-
-add_subdirectory( tool )
-add_subdirectory( libs )
-add_subdirectory( plugins )
-
-# CONFIGURE_FILE(../installation/package.bat  ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
-# CONFIGURE_FILE(../installation/package.sh   ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
-# CONFIGURE_FILE(../installation/package.nsi  ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
+add_subdirectory( Crop3D )

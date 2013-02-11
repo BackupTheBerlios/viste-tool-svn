@@ -39,6 +39,7 @@ set(gui_h_moc
   MainWindow.h
   PluginDialog.h
   DataDialog.h
+  SaveDialog.h
   ProfileManager.h
   DefaultProfileDialog.h
   SettingsDialog.h
@@ -55,6 +56,7 @@ set(gui_cxx
   MainWindow.cxx
   PluginDialog.cxx
   DataDialog.cxx
+  SaveDialog.cxx
   ProfileManager.cxx
   DefaultProfileDialog.cxx
   SettingsDialog.cxx

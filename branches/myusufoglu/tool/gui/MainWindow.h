@@ -113,6 +113,7 @@
 
 #include "MainWindowInterface.h"
 #include "DataDialog.h"
+#include "SaveDialog.h"
 #include "PluginDialog.h"
 #include "ProfileManager.h"
 #include "DefaultProfileDialog.h"
@@ -329,6 +330,11 @@ class MainWindow : public QMainWindow, public Ui::MainWindow, public MainWindowI
 			in the data manager. */
 
 		DataDialog * dataDialog;
+
+	   /** Save dialog, used to display and save the data that are currently available
+			in the data manager. */
+
+		SaveDialog * saveDialog;
 
 		/** Core object of the DTITool. */
 
