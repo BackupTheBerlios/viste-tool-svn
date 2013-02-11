@@ -608,7 +608,16 @@ void Manager::readAll(QDir dir)
 	// Loop through all files in the current directory
 	foreach (QString filename, dir.entryList(QDir::Files))
 	{
-		// (Try to) load the current DLL file
+		#if defined (_WIN32) || defined (_WIN64) 
+			if(filename.endsWith(".dll"))
+		#elif defined (__linux__)
+			if(filename.endsWith(".so"))
+		#elif defined (__APPLE__) || defined (__MACH__)
+			if(filename.endsWith(".dylib"))
+		#endif
+		//Alternatively: if(filename.endsWith(".dll") || filename.endsWith(".so") || filename.endsWith(".dylib")   )
+	    
+		// (Try to) load the current Dynamic Libray File. Dll (WINDOWS), so (linux), dylib (Mac)
 		core->plugin()->load(core->plugin()->add(dir.absoluteFilePath(filename)));
 	}
 
