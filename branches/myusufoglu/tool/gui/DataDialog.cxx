@@ -78,7 +78,8 @@ namespace gui {
 DataDialog::DataDialog(Manager * dManager, QWidget * parent) :
 											QDialog(parent),
 											treeWidget(new QTreeWidget),
-											closeButton(new QPushButton("Close"))
+											closeButton(new QPushButton("Close")),
+											saveButton(new QPushButton("Save"))
 {
 	// Store the pointer to the data manager
 	Q_ASSERT(dManager);
@@ -93,11 +94,13 @@ DataDialog::DataDialog(Manager * dManager, QWidget * parent) :
 	this->treeWidget->setAnimated(true);
 	this->treeWidget->header()->hide();
 	this->treeWidget->header()->setStretchLastSection(false);
-
+	
 	this->setMinimumWidth(430);
 
 	// Connect the close button to the "close" function
 	connect(closeButton, SIGNAL(clicked()), this, SLOT(close()));
+	connect(saveButton, SIGNAL(clicked()), this, SLOT(saveSelectedItem()));
+	connect(this->treeWidget,SIGNAL(itemClicked(QTreeWidgetItem*, int)), SLOT(setClickedItem(QTreeWidgetItem*,int)));
 
 	// Create the main layout and the layout for the buttons
 	QVBoxLayout * mainLayout   = new QVBoxLayout;
@@ -109,6 +112,7 @@ DataDialog::DataDialog(Manager * dManager, QWidget * parent) :
 	// Setup the button layout
 	buttonLayout->addStretch(0);
 	buttonLayout->addWidget(closeButton);
+	buttonLayout->addWidget(saveButton);
 	buttonLayout->addStretch(0);
 
 	// Add the button layout to the main layout
@@ -157,7 +161,7 @@ void DataDialog::update()
 		if (!dataSets[i])
 			continue;
 		
-		// Add the data set to the tree widget
+		// Add the data sett o the tree widget
 		this->populateTreeWidget(dataSets[i]);
 	}
 }
@@ -426,7 +430,7 @@ void DataDialog::dataSetRemoved(DataSet * ds)
 {
 	if (!ds)
 		return;
-
+ 
 	// Check if the data set has been added before
 	if (!(this->dataSets.contains(ds)))
 		return;
@@ -451,6 +455,34 @@ void DataDialog::close()
     this->hide();
 }
 
+//--------------------------------[ 
+ 
+void DataDialog::saveSelectedItem()
+{
+	//Get the selected item and save
+	foreach( QTreeWidgetItem *item, this->treeWidget->selectedItems() ) {
+		for( int col = 0; col < item->columnCount(); ++col ) {
+			qDebug() << "Item Text [" << col << "]: " << item->text( col );
+			//itemIndex=item->row
+		}
+	}
+	//
+//	 QString Directory = QFileDialog::getExistingDirectory(this,
+//                        tr("Choose Or Create Directory"),
+//                        "/home",
+//                        QFileDialog::DontResolveSymlinks | QFileDialog::ReadOnly 
+//| QFileDialog::ShowDirsOnly);
+
+	// Simply hide the dialog window
+	this->hide();
+}
+
+void DataDialog::setClickedItem(QTreeWidgetItem*, int index)
+{
+	qDebug() << index << endl;
+
+
+}
 
 } // namespace gui
 

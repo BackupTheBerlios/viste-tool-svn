@@ -248,6 +248,10 @@ class MainWindow : public QMainWindow, public Ui::MainWindow, public MainWindowI
 		
 		void openData();
 
+		/** Launches the save data dialog. */
+
+		void saveData();
+
 		/** List all available data files. Launches the data dialog. */
 
 		void listData();

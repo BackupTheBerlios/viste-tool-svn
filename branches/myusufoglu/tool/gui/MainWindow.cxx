@@ -215,6 +215,7 @@ void MainWindow::connectActions()
 	// Connect the actions in the main menu
     connect(this->actionOpenData,				SIGNAL(triggered()), this, SLOT(openData()));
     connect(this->actionListData,				SIGNAL(triggered()), this, SLOT(listData()));
+	connect(this->actionSaveData,				SIGNAL(triggered()), this, SLOT(saveData()));
     connect(this->actionQuit,					SIGNAL(triggered()), this, SLOT(quit()));
     connect(this->actionListPlugins,			SIGNAL(triggered()), this, SLOT(listPlugins()));
 	connect(this->actionProfileManager,			SIGNAL(triggered()), this, SLOT(launchProfileManager()));
@@ -397,6 +398,14 @@ void MainWindow::openData()
 		this->core->data()->loadDataFromFile(filename);
 	}
 }
+
+//-------------------------------[ saveData ]------------------------------\\
+
+void MainWindow::saveData()
+{
+	this->dataDialog->show();
+}
+
 
 
 //-------------------------------[ listData ]------------------------------\\

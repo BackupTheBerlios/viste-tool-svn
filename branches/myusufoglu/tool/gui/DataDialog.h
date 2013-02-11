@@ -83,6 +83,8 @@
 #include <QtDebug>
 #include <QHash>
 
+#include <QFileDialog>
+
 /** Includes - VTK */
 
 #include <vtkImageData.h>
@@ -138,6 +140,14 @@ class DataDialog : public QDialog, public data::Consumer
 
 		void close();
 
+		/** Saves the corresponding data of the selected item */
+
+		void saveSelectedItem();
+
+		/** Sets the clicked item of the data list */
+		void setClickedItem(QTreeWidgetItem*,int index);
+
+
 	private:
 	
 		/** Update the contents of the dialog. */
@@ -154,6 +164,10 @@ class DataDialog : public QDialog, public data::Consumer
 		/** Button for closing the dialog. */
 
 		QPushButton * closeButton;
+
+		/** Button for saving the data selected in the dialog. */
+
+		QPushButton * saveButton;
 
 		/** List of all available data sets. */
 
