@@ -208,7 +208,9 @@ void Crop3DPlugin::connectControls(bool doConnect)
 		connect(this->ui->yVisibleCheck,		SIGNAL(toggled(bool)),				this, SLOT(setYVisible(bool))		);
 		connect(this->ui->zVisibleCheck,		SIGNAL(toggled(bool)),				this, SLOT(setZVisible(bool))		);
 
-		// 3D Crop ROI 
+		// 3D Crop ROI signals
+		connect(this->ui->cropButton,		SIGNAL(clicked()),			this , SLOT( cropData() )			);
+		
 		connect(this->ui->x0ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderX0 , SLOT(setValue(int) )			);
         connect(this->ui->y0ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderY0 , SLOT(setValue(int) )			);
 		connect(this->ui->x0ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderZ0 , SLOT(setValue(int) )			);
@@ -1369,7 +1371,7 @@ void Crop3DPlugin::get3DROIBoundaries(int *bnd)
 void Crop3DPlugin::cropData()
 {
 
-
+	// check the combo box indexes, understand which one is shown cut it by crop3DDataSet
 }
 
 void Crop3DPlugin::crop3DDataSet(data::DataSet * ds)

@@ -43,6 +43,8 @@ include(${VTK_USE_FILE})
 find_package(Qt4 REQUIRED)
 include(${QT_USE_FILE})
 
+
+
 #subdirs(HWShading)
 
 set(SRCS

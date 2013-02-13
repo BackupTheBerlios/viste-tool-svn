@@ -43,7 +43,7 @@ build, options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug
 Release.")
 ELSE()
    SET(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build,
-options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release.")
+options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release.") 
 ENDIF()
 
 message( STATUS "CMAKE_GENERATOR: ${CMAKE_GENERATOR}")
