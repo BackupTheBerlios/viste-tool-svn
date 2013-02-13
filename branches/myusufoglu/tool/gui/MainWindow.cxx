@@ -108,6 +108,7 @@ MainWindow::MainWindow(Core * coreInstance, QWidget * parent) : QMainWindow(pare
 	// Create the plugin and data dialogs
 	this->pluginDialog = new PluginDialog(this->core->plugin(), this);
 	this->dataDialog   = new DataDialog(  this->core->data(),   this);
+    this->saveDialog   = new SaveDialog(  this->core->data(),   this);
 
 	// Setup the renderer
 	this->renderer		= NULL;
@@ -167,6 +168,9 @@ MainWindow::~MainWindow()
 
 	if (this->dataDialog)
 		delete this->dataDialog;
+
+	if (this->saveDialog)
+		delete this->saveDialog;
 
 	// Delete the canvas
 	this->metaCanvas->Delete();
@@ -399,11 +403,12 @@ void MainWindow::openData()
 	}
 }
 
+
 //-------------------------------[ saveData ]------------------------------\\
 
 void MainWindow::saveData()
 {
-	this->dataDialog->show();
+	this->saveDialog->show();
 }
 
 
