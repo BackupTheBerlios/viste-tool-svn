@@ -210,7 +210,7 @@
      <property name="shortcut">
        <string>Ctrl+S</string>
      </property>
-   </action>  
+   </action>
   <action name="actionListPlugins">
    <property name="text">
     <string>P&amp;lugins</string>
