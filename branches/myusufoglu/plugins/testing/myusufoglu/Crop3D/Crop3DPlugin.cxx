@@ -209,15 +209,16 @@ void Crop3DPlugin::connectControls(bool doConnect)
 		connect(this->ui->zVisibleCheck,		SIGNAL(toggled(bool)),				this, SLOT(setZVisible(bool))		);
 
 		// 3D Crop ROI signals
-		connect(this->ui->cropButton,		SIGNAL(clicked()),			this , SLOT( cropData() )			);
 		
+		connect(this->ui->cropButton,		SIGNAL(clicked()),			this , SLOT( cropData() ),	Qt::UniqueConnection		);
+	    // spin -> slider connection 
 		connect(this->ui->x0ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderX0 , SLOT(setValue(int) )			);
         connect(this->ui->y0ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderY0 , SLOT(setValue(int) )			);
-		connect(this->ui->x0ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderZ0 , SLOT(setValue(int) )			);
+		connect(this->ui->z0ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderZ0 , SLOT(setValue(int) )			);
         connect(this->ui->x1ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderX1 , SLOT(setValue(int) )			);
         connect(this->ui->y1ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderY1 , SLOT(setValue(int) )			);
-		connect(this->ui->x1ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderZ1 , SLOT(setValue(int) )			);
-
+		connect(this->ui->z1ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderZ1 , SLOT(setValue(int) )			);
+		//slider -> spin connections
 		connect(this->ui->horizontalSliderX0,		SIGNAL(valueChanged(int)),			this->ui->x0ROIPositionSpin, SLOT(setValue(int) )			);
         connect(this->ui->horizontalSliderY0,		SIGNAL(valueChanged(int)),			this->ui->y0ROIPositionSpin, SLOT(setValue(int) )			);
 		connect(this->ui->horizontalSliderZ0,		SIGNAL(valueChanged(int)),			this->ui->z0ROIPositionSpin, SLOT(setValue(int) )			);
@@ -243,14 +244,16 @@ void Crop3DPlugin::connectControls(bool doConnect)
 		disconnect(this->ui->yVisibleCheck,		SIGNAL(toggled(bool)),				this, SLOT(setYVisible(bool))		);
 		disconnect(this->ui->zVisibleCheck,		SIGNAL(toggled(bool)),				this, SLOT(setZVisible(bool))		);
 		
-		//3D Crop ROI 
+		//ROI
+		disconnect(this->ui->cropButton,		SIGNAL(clicked()),			this , SLOT( cropData() )			);
+		//3D Crop ROI spin -> slider connection 
 		disconnect(this->ui->x0ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderX0 , SLOT(setValue(int) )			);
         disconnect(this->ui->y0ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderY0 , SLOT(setValue(int) )			);
 		disconnect(this->ui->z0ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderZ0 , SLOT(setValue(int) )			);
         disconnect(this->ui->x1ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderX1 , SLOT(setValue(int) )			);
         disconnect(this->ui->y1ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderY1 , SLOT(setValue(int) )			);
 		disconnect(this->ui->z1ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderZ1 , SLOT(setValue(int) )			);
-
+		//3D Crpo ROI   slider->spin conection 
 		disconnect(this->ui->horizontalSliderX0,		SIGNAL(valueChanged(int)),			this->ui->x0ROIPositionSpin, SLOT(setValue(int) )			);
         disconnect(this->ui->horizontalSliderY0,		SIGNAL(valueChanged(int)),			this->ui->y0ROIPositionSpin, SLOT(setValue(int) )			);
 		disconnect(this->ui->horizontalSliderZ0,		SIGNAL(valueChanged(int)),			this->ui->z0ROIPositionSpin, SLOT(setValue(int) )			);
@@ -1340,7 +1343,7 @@ void Crop3DPluginCallback::Execute(vtkObject * caller, unsigned long event, void
 // Set Slider limits to data dimensions
 void Crop3DPlugin::set3DROISliderLimits()
 {
-			 
+			 //sliders
 			this->ui->horizontalSliderX0->setMinimum(this->actor->GetXMin());
 			this->ui->horizontalSliderX0->setMaximum(this->actor->GetXMax());
 			this->ui->horizontalSliderY0->setMinimum(this->actor->GetYMin());
@@ -1354,13 +1357,32 @@ void Crop3DPlugin::set3DROISliderLimits()
 			this->ui->horizontalSliderY1->setMaximum(this->actor->GetYMax());
 			this->ui->horizontalSliderZ1->setMinimum(this->actor->GetZMin());
 			this->ui->horizontalSliderZ1->setMaximum(this->actor->GetZMax());
+
+			// spins
+			this->ui->x0ROIPositionSpin->setMinimum(this->actor->GetXMin());
+			this->ui->x0ROIPositionSpin->setMaximum(this->actor->GetXMax());
+
+			this->ui->x1ROIPositionSpin->setMinimum(this->actor->GetXMin());
+			this->ui->x1ROIPositionSpin->setMaximum(this->actor->GetXMax());
+
+			this->ui->y0ROIPositionSpin->setMinimum(this->actor->GetYMin());
+			this->ui->y0ROIPositionSpin->setMaximum(this->actor->GetYMax());
+			
+			this->ui->y1ROIPositionSpin->setMinimum(this->actor->GetYMin());
+			this->ui->y1ROIPositionSpin->setMaximum(this->actor->GetYMax());
+
+			this->ui->z0ROIPositionSpin->setMinimum(this->actor->GetZMin());
+			this->ui->z0ROIPositionSpin->setMaximum(this->actor->GetZMax());
+			
+			this->ui->z1ROIPositionSpin->setMinimum(this->actor->GetZMin());
+			this->ui->z1ROIPositionSpin->setMaximum(this->actor->GetZMax());
 }
 
 // Get ROI Boundaries Set by the user
 void Crop3DPlugin::get3DROIBoundaries(int *bnd)
 { 
 			 
-			bnd[0] = this->ui->horizontalSliderX0->value();
+			bnd[0] = this->ui->horizontalSliderX0->value(); // * spacing
 			bnd[1] = this->ui->horizontalSliderX1->value(); 
 			bnd[2] = this->ui->horizontalSliderY0->value();
 		    bnd[3] = this->ui->horizontalSliderY1->value();
@@ -1370,20 +1392,45 @@ void Crop3DPlugin::get3DROIBoundaries(int *bnd)
 
 void Crop3DPlugin::cropData()
 {
+	// Get the data sets of the DTI eigensystem image and the weighting image
+	//data::DataSet * dtiDS = this->dtiDataSets.at(this->ui->dtiVolumeCombo->currentIndex());
+	data::DataSet *weightDS = this->scalarVolumeDataSets.at(this->ui->dtiWeightCombo->currentIndex() - 1);
+	cout << "cropData" << endl;
+	if (weightDS == NULL)
+		return ;
+	this->roiBox = vtkBoxWidget2::New();	
+	this->roiBox->SetInteractor(this->fullCore()->canvas()->GetSubCanvas3D()->GetInteractor());
+	this->roiBox->RotationEnabledOff();
+	this->roiBox->ScalingEnabledOff();
+	this->roiBox->TranslationEnabledOff();
+	//this->roiBox->SetHandleSize(0.01);
+	// this->roiBox->SetPlaceFactor(0.3);
+	 //this->roiBox->SetProp3D(this->actor);
+	 //this->roiBox->PlaceWidget(;
+	this->roiBox->SetCurrentRenderer(this->fullCore()->canvas()->GetSubCanvas3D()->GetRenderer());
+	//m_pThreeDROI->SetTransform(m_pTransfrom);
+	this->roiBox->On();
 
+	
+	this->crop3DDataSet(weightDS);
+	//vtkImageData * dtiImage = dtiDS->getVtkImageData();
+	//vtkImageData * weightImage = weightDS->getVtkImageData();
 	// check the combo box indexes, understand which one is shown cut it by crop3DDataSet
+
+
+
 }
 
 void Crop3DPlugin::crop3DDataSet(data::DataSet * ds)
 {
-
+	qDebug() << "crop3DDataSet "<< ds->getKind() << endl;
 	// Scalar volume
 	if (ds->getKind() == "scalar volume" ) // DTI ??
 	{
 			vtkImageData * image   = ds->getVtkImageData();
 			if(!image) return;
 			int* inputDims = image->GetDimensions();
-			std::cout << "Dims: " << " x: " << inputDims[0]
+			std::cout << "Dims input: " << " x: " << inputDims[0]
 					<< " y: " << inputDims[1]
 					<< " z: " << inputDims[2] << std::endl;
 			//std::cout << "Number of points: " << image->GetNumberOfPoints() << std::endl;
@@ -1392,14 +1439,14 @@ void Crop3DPlugin::crop3DDataSet(data::DataSet * ds)
 			 vtkExtractVOI *extractVOI = vtkExtractVOI::New();
 			 extractVOI->SetInputConnection(image->GetProducerPort());
 			 int bnd[6];
-			 get3DROIBoundaries(bnd);
+			 this->get3DROIBoundaries(bnd);
 			extractVOI->SetVOI(bnd[0],bnd[1],bnd[2],bnd[3],bnd[4],bnd[5]);
 			extractVOI->Update();
  
 			vtkImageData* extracted = extractVOI->GetOutput();
  
 			int* extractedDims = extracted->GetDimensions();
-			std::cout << "Dims: " << " x: " << extractedDims[0]
+			std::cout << "Dims extracted: " << " x: " << extractedDims[0]
 					<< " y: " << extractedDims[1]
 					<< " z: " << extractedDims[2] << std::endl;
 			//std::cout << "Number of points: " << extracted->GetNumberOfPoints() << std::endl;

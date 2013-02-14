@@ -85,6 +85,7 @@
 #include <vtkMath.h>
 #include <vtkCommand.h>
 #include <vtkExtractVOI.h>
+#include <vtkBoxWidget2.h>
 
 /** Includes - Qt */
 
@@ -372,6 +373,9 @@ class Crop3DPlugin : public plugin::AdvancedPlugin,
 			@param doConnect	Connect controls if true, disconnect if false. */
 
 		void connectControls(bool doConnect);
+
+		/** Box widget drawn for the selected bounding box which defines the region to be cropped out. */
+		vtkBoxWidget2	*roiBox;
 
 }; // class Crop3DPlugin
 
