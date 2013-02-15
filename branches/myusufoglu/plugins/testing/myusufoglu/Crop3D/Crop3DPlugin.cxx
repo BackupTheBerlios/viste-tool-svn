@@ -1,46 +1,46 @@
 
 /**
- * Copyright (c) 2012, Biomedical Image Analysis Eindhoven (BMIA/e)
- * All rights reserved.
- * 
- * Redistribution and use in source and binary forms, with or without 
- * modification, are permitted provided that the following conditions
- * are met:
- * 
- *   - Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- * 
- *   - Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in
- *     the documentation and/or other materials provided with the 
- *     distribution.
- * 
- *   - Neither the name of Eindhoven University of Technology nor the
- *     names of its contributors may be used to endorse or promote 
- *     products derived from this software without specific prior 
- *     written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- */
+* Copyright (c) 2012, Biomedical Image Analysis Eindhoven (BMIA/e)
+* All rights reserved.
+* 
+* Redistribution and use in source and binary forms, with or without 
+* modification, are permitted provided that the following conditions
+* are met:
+* 
+*   - Redistributions of source code must retain the above copyright
+*     notice, this list of conditions and the following disclaimer.
+* 
+*   - Redistributions in binary form must reproduce the above copyright
+*     notice, this list of conditions and the following disclaimer in
+*     the documentation and/or other materials provided with the 
+*     distribution.
+* 
+*   - Neither the name of Eindhoven University of Technology nor the
+*     names of its contributors may be used to endorse or promote 
+*     products derived from this software without specific prior 
+*     written permission.
+* 
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+* FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+* COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+* INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+* BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+* LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+* ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+* POSSIBILITY OF SUCH DAMAGE.
+*/
 
 /* Crop3DPlugin.cxx
- *
- * 2013-02-10	Mehmet Yusufoglu
- * - Version 1.0.0.
- * - First version
- */
-  
+*
+* 2013-02-10	Mehmet Yusufoglu
+* - Version 1.0.0.
+* - First version
+*/
+
 /** Includes */
 
 #include "Crop3DPlugin.h"
@@ -49,539 +49,481 @@
 namespace bmia {
 
 
-//-----------------------------[ Constructor ]-----------------------------\\
+	//-----------------------------[ Constructor ]-----------------------------\\
 
-Crop3DPlugin::Crop3DPlugin() : AdvancedPlugin("Crop3D")
-{
-	// Create a planes actor, and hide it for now
-	this->actor = vtkImageOrthogonalSlicesActor::New();
-	this->actor->VisibilityOff();
-
-	// Setup the GUI
-	this->qWidget = new QWidget();
-	this->ui = new Ui::Crop3DForm();
-	this->ui->setupUi(this->qWidget);
-
-	// Create the MEV coloring filter
-	this->MEVColoringFilter = vtkMEVColoringFilter::New();
-
-	// Add default items to combo boxes
-	this->ui->dtiWeightCombo->addItem("None");
-	this->ui->lutCombo->addItem("Default");
-	
-	// Disable the DTI controls by default
-	this->ui->dtiRadio->setEnabled(false);
-	this->ui->dtiVolumeLabel->setEnabled(false);
-	this->ui->dtiVolumeCombo->setEnabled(false);
-	this->ui->dtiWeightLabel->setEnabled(false);
-	this->ui->dtiWeightCombo->setEnabled(false);
-
-	// Create a default Look-Up Table (black to white in the range 0-1)
-	this->defaultLUT = vtkLookupTable::New();
-	this->defaultLUT->SetValueRange(0.0, 1.0);
-	this->defaultLUT->SetSaturationRange(0.0, 0.0);
-	this->defaultLUT->SetAlphaRange(1.0, 1.0);
-
-	// Turn actor interpolation on or off, depending on the default GUI settings
-	this->actor->SetInterpolate(this->ui->interpolationCheck->isChecked() ? 1 : 0);
-
-	// No callback yet, we create it in the "init" function
-	this->callBack = NULL;
-
-	// Connect the controls
-	this->connectControls(true);
-}
-
-
-//---------------------------------[ init ]--------------------------------\\
-
-void Crop3DPlugin::init()
-{
-	// Create one seed point set for each plane
-	this->seedsX = vtkPoints::New();
-	this->seedsY = vtkPoints::New();
-	this->seedsZ = vtkPoints::New();
-
-	vtkUnstructuredGrid * pointSetX = vtkUnstructuredGrid::New();
-	vtkUnstructuredGrid * pointSetY = vtkUnstructuredGrid::New();
-	vtkUnstructuredGrid * pointSetZ = vtkUnstructuredGrid::New();
-
-	pointSetX->SetPoints(this->seedsX);
-	pointSetY->SetPoints(this->seedsY);
-	pointSetZ->SetPoints(this->seedsZ);
-
-	// Create data sets for the seed points
-	this->seedDataSets[0] = new data::DataSet("Plane X", "seed points", pointSetX);
-	this->seedDataSets[1] = new data::DataSet("Plane Y", "seed points", pointSetY);
-	this->seedDataSets[2] = new data::DataSet("Plane Z", "seed points", pointSetZ);
-
-	// Reduce reference count of the point sets to one
-	pointSetX->Delete();
-	pointSetY->Delete();
-	pointSetZ->Delete();
-
-	// Get the canvas
-	vtkMedicalCanvas * canvas = this->fullCore()->canvas();
-
-	QString sliceActorNames[3];
-	sliceActorNames[0] = "X Plane";
-	sliceActorNames[1] = "Y Plane";
-	sliceActorNames[2] = "Z Plane";
-
-	// Loop through all three axes
-	for(int axis = 0; axis < 3; ++axis)
+	Crop3DPlugin::Crop3DPlugin() : AdvancedPlugin("Crop3D")
 	{
-		// Add the seed point data set to the data manager
-		this->core()->data()->addDataSet(this->seedDataSets[axis]);
+		// Create a planes actor, and hide it for now
+		this->actor = vtkImageOrthogonalSlicesActor::New();
+		this->actor->VisibilityOff();
 
-		// Add the planes to their respective 2D views
-		vtkImageSliceActor * sliceActor = this->actor->GetSliceActor(axis);
-		canvas->GetSubCanvas2D(axis)->GetRenderer()->AddActor(sliceActor);
+		// Setup the GUI
+		this->qWidget = new QWidget();
+		this->ui = new Ui::Crop3DForm();
+		this->ui->setupUi(this->qWidget);
 
-		// Add the slice actors to the data manager
-		this->sliceActorDataSets[axis] = new data::DataSet(sliceActorNames[axis], "sliceActor", sliceActor);
-		this->core()->data()->addDataSet(this->sliceActorDataSets[axis]);
+		// Create the MEV coloring filter
+		this->MEVColoringFilter = vtkMEVColoringFilter::New();
+
+		// Add default items to combo boxes
+		this->ui->dtiWeightCombo->addItem("None");
+		this->ui->lutCombo->addItem("Default");
+
+		// Disable the DTI controls by default
+		this->ui->dtiRadio->setEnabled(false);
+		this->ui->dtiVolumeLabel->setEnabled(false);
+		this->ui->dtiVolumeCombo->setEnabled(false);
+		this->ui->dtiWeightLabel->setEnabled(false);
+		this->ui->dtiWeightCombo->setEnabled(false);
+
+		// Create a default Look-Up Table (black to white in the range 0-1)
+		this->defaultLUT = vtkLookupTable::New();
+		this->defaultLUT->SetValueRange(0.0, 1.0);
+		this->defaultLUT->SetSaturationRange(0.0, 0.0);
+		this->defaultLUT->SetAlphaRange(1.0, 1.0);
+
+		// Turn actor interpolation on or off, depending on the default GUI settings
+		this->actor->SetInterpolate(this->ui->interpolationCheck->isChecked() ? 1 : 0);
+
+		// No callback yet, we create it in the "init" function
+		this->callBack = NULL;
+
+		// Connect the controls
+		this->connectControls(true);
 	}
 
-	// Create the callback class
-	this->callBack = Crop3DPluginCallback::New();
-	this->callBack->plugin = this;
 
-	// Add the callback to the canvas as an observer
-	this->fullCore()->canvas()->AddObserver(vtkCommand::UserEvent + 
+	//---------------------------------[ init ]--------------------------------\\
+
+	void Crop3DPlugin::init()
+	{
+		// Create one seed point set for each plane
+		this->seedsX = vtkPoints::New();
+		this->seedsY = vtkPoints::New();
+		this->seedsZ = vtkPoints::New();
+
+		vtkUnstructuredGrid * pointSetX = vtkUnstructuredGrid::New();
+		vtkUnstructuredGrid * pointSetY = vtkUnstructuredGrid::New();
+		vtkUnstructuredGrid * pointSetZ = vtkUnstructuredGrid::New();
+
+		pointSetX->SetPoints(this->seedsX);
+		pointSetY->SetPoints(this->seedsY);
+		pointSetZ->SetPoints(this->seedsZ);
+
+		// Create data sets for the seed points
+		this->seedDataSets[0] = new data::DataSet("Plane X", "seed points", pointSetX);
+		this->seedDataSets[1] = new data::DataSet("Plane Y", "seed points", pointSetY);
+		this->seedDataSets[2] = new data::DataSet("Plane Z", "seed points", pointSetZ);
+
+		// Reduce reference count of the point sets to one
+		pointSetX->Delete();
+		pointSetY->Delete();
+		pointSetZ->Delete();
+
+		// Get the canvas
+		vtkMedicalCanvas * canvas = this->fullCore()->canvas();
+
+		QString sliceActorNames[3];
+		sliceActorNames[0] = "X Plane";
+		sliceActorNames[1] = "Y Plane";
+		sliceActorNames[2] = "Z Plane";
+
+		// Loop through all three axes
+		for(int axis = 0; axis < 3; ++axis)
+		{
+			// Add the seed point data set to the data manager
+			this->core()->data()->addDataSet(this->seedDataSets[axis]);
+
+			// Add the planes to their respective 2D views
+			vtkImageSliceActor * sliceActor = this->actor->GetSliceActor(axis);
+			canvas->GetSubCanvas2D(axis)->GetRenderer()->AddActor(sliceActor);
+
+			// Add the slice actors to the data manager
+			this->sliceActorDataSets[axis] = new data::DataSet(sliceActorNames[axis], "sliceActor", sliceActor);
+			this->core()->data()->addDataSet(this->sliceActorDataSets[axis]);
+		}
+
+		// Create the callback class
+		this->callBack = Crop3DPluginCallback::New();
+		this->callBack->plugin = this;
+
+		// Add the callback to the canvas as an observer
+		this->fullCore()->canvas()->AddObserver(vtkCommand::UserEvent + 
 			BMIA_USER_EVENT_SUBCANVAS_CAMERA_RESET, this->callBack);
-}
-
-
-//------------------------------[ Destructor ]-----------------------------\\
-
-Crop3DPlugin::~Crop3DPlugin()
-{
-	// Get the canvas
-	vtkMedicalCanvas * canvas = this->fullCore()->canvas();
-
-	// Loop through the three axes
-	for (int axis = 0; axis < 3; ++axis)
-	{
-		// For each axis, remove the corresponding plane from the 2D view...
-		canvas->GetSubCanvas2D(axis)->GetRenderer()->RemoveActor(this->actor->GetSliceActor(axis));
-
-		// ...and remove the seed point and slice actor data sets
-		this->core()->data()->removeDataSet(this->seedDataSets[axis]);
-		this->core()->data()->removeDataSet(this->sliceActorDataSets[axis]);
 	}
 
-	// Delete the seed points
-	this->seedsX->Delete();
-	this->seedsY->Delete();
-	this->seedsZ->Delete();
 
-	delete this->qWidget;
-	this->actor->Delete();
-	this->defaultLUT->Delete();
-	this->MEVColoringFilter->Delete();
+	//------------------------------[ Destructor ]-----------------------------\\
 
-	// Delete the callback
-	if (this->callBack)
-		this->callBack->Delete();
-}
-
-
-//---------------------------[ connectControls ]---------------------------\\
-
-void Crop3DPlugin::connectControls(bool doConnect)
-{
-	// Connect all controls to their respective slot functions
-	if (doConnect)
+	Crop3DPlugin::~Crop3DPlugin()
 	{
-		connect(this->ui->scalarVolumeCombo,	SIGNAL(currentIndexChanged(int)),	this, SLOT(changeScalarVolume(int))	);
-		connect(this->ui->lutCombo,				SIGNAL(currentIndexChanged(int)),	this, SLOT(changeLUT(int))			);
-		connect(this->ui->dtiVolumeCombo,		SIGNAL(currentIndexChanged(int)),	this, SLOT(changeDTIVolume(int))	);
-		connect(this->ui->dtiWeightCombo,		SIGNAL(currentIndexChanged(int)),	this, SLOT(changeWeightVolume(int))	);
-		connect(this->ui->scalarVolumeRadio,	SIGNAL(clicked()),					this, SLOT(applyLUTColoring())		);
-		connect(this->ui->dtiRadio,				SIGNAL(clicked()),					this, SLOT(applyRGBColoring())		);
-		connect(this->ui->xPositionSpin,		SIGNAL(valueChanged(int)),			this, SLOT(setXSlice(int))			);
-		connect(this->ui->yPositionSpin,		SIGNAL(valueChanged(int)),			this, SLOT(setYSlice(int))			);
-		connect(this->ui->zPositionSpin,		SIGNAL(valueChanged(int)),			this, SLOT(setZSlice(int))			);
-		connect(this->ui->interpolationCheck,	SIGNAL(toggled(bool)),				this, SLOT(setInterpolation(bool))	);
-		connect(this->ui->xVisibleCheck,		SIGNAL(toggled(bool)),				this, SLOT(setXVisible(bool))		);
-		connect(this->ui->yVisibleCheck,		SIGNAL(toggled(bool)),				this, SLOT(setYVisible(bool))		);
-		connect(this->ui->zVisibleCheck,		SIGNAL(toggled(bool)),				this, SLOT(setZVisible(bool))		);
+		// Get the canvas
+		vtkMedicalCanvas * canvas = this->fullCore()->canvas();
 
-		// 3D Crop ROI signals
-		
-		connect(this->ui->cropButton,		SIGNAL(clicked()),			this , SLOT( cropData() ),	Qt::UniqueConnection		);
-	    // spin -> slider connection 
-		connect(this->ui->x0ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderX0 , SLOT(setValue(int) )			);
-        connect(this->ui->y0ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderY0 , SLOT(setValue(int) )			);
-		connect(this->ui->z0ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderZ0 , SLOT(setValue(int) )			);
-        connect(this->ui->x1ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderX1 , SLOT(setValue(int) )			);
-        connect(this->ui->y1ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderY1 , SLOT(setValue(int) )			);
-		connect(this->ui->z1ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderZ1 , SLOT(setValue(int) )			);
-		//slider -> spin connections
-		connect(this->ui->horizontalSliderX0,		SIGNAL(valueChanged(int)),			this->ui->x0ROIPositionSpin, SLOT(setValue(int) )			);
-        connect(this->ui->horizontalSliderY0,		SIGNAL(valueChanged(int)),			this->ui->y0ROIPositionSpin, SLOT(setValue(int) )			);
-		connect(this->ui->horizontalSliderZ0,		SIGNAL(valueChanged(int)),			this->ui->z0ROIPositionSpin, SLOT(setValue(int) )			);
-		connect(this->ui->horizontalSliderX1,		SIGNAL(valueChanged(int)),			this->ui->x1ROIPositionSpin, SLOT(setValue(int) )			);
-		connect(this->ui->horizontalSliderY1,		SIGNAL(valueChanged(int)),			this->ui->y1ROIPositionSpin, SLOT(setValue(int) )			);
-		connect(this->ui->horizontalSliderZ1,		SIGNAL(valueChanged(int)),			this->ui->z1ROIPositionSpin, SLOT(setValue(int) )			);
-		 
-	}
-	// Disconnect all signals
-	else
-	{
-		disconnect(this->ui->scalarVolumeCombo,	SIGNAL(currentIndexChanged(int)),	this, SLOT(changeScalarVolume(int))	);
-		disconnect(this->ui->lutCombo,			SIGNAL(currentIndexChanged(int)),	this, SLOT(changeLUT(int))			);
-		disconnect(this->ui->dtiVolumeCombo,	SIGNAL(currentIndexChanged(int)),	this, SLOT(changeDTIVolume(int))	);
-		disconnect(this->ui->dtiWeightCombo,	SIGNAL(currentIndexChanged(int)),	this, SLOT(changeWeightVolume(int))	);
-		disconnect(this->ui->scalarVolumeRadio,	SIGNAL(clicked()),					this, SLOT(applyLUTColoring())		);
-		disconnect(this->ui->dtiRadio,			SIGNAL(clicked()),					this, SLOT(applyRGBColoring())		);
-		disconnect(this->ui->xPositionSpin,		SIGNAL(valueChanged(int)),			this, SLOT(setXSlice(int))			);
-		disconnect(this->ui->yPositionSpin,		SIGNAL(valueChanged(int)),			this, SLOT(setYSlice(int))			);
-		disconnect(this->ui->zPositionSpin,		SIGNAL(valueChanged(int)),			this, SLOT(setZSlice(int))			);
-		disconnect(this->ui->interpolationCheck,SIGNAL(toggled(bool)),				this, SLOT(setInterpolation(bool))	);
-		disconnect(this->ui->xVisibleCheck,		SIGNAL(toggled(bool)),				this, SLOT(setXVisible(bool))		);
-		disconnect(this->ui->yVisibleCheck,		SIGNAL(toggled(bool)),				this, SLOT(setYVisible(bool))		);
-		disconnect(this->ui->zVisibleCheck,		SIGNAL(toggled(bool)),				this, SLOT(setZVisible(bool))		);
-		
-		//ROI
-		disconnect(this->ui->cropButton,		SIGNAL(clicked()),			this , SLOT( cropData() )			);
-		//3D Crop ROI spin -> slider connection 
-		disconnect(this->ui->x0ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderX0 , SLOT(setValue(int) )			);
-        disconnect(this->ui->y0ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderY0 , SLOT(setValue(int) )			);
-		disconnect(this->ui->z0ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderZ0 , SLOT(setValue(int) )			);
-        disconnect(this->ui->x1ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderX1 , SLOT(setValue(int) )			);
-        disconnect(this->ui->y1ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderY1 , SLOT(setValue(int) )			);
-		disconnect(this->ui->z1ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderZ1 , SLOT(setValue(int) )			);
-		//3D Crpo ROI   slider->spin conection 
-		disconnect(this->ui->horizontalSliderX0,		SIGNAL(valueChanged(int)),			this->ui->x0ROIPositionSpin, SLOT(setValue(int) )			);
-        disconnect(this->ui->horizontalSliderY0,		SIGNAL(valueChanged(int)),			this->ui->y0ROIPositionSpin, SLOT(setValue(int) )			);
-		disconnect(this->ui->horizontalSliderZ0,		SIGNAL(valueChanged(int)),			this->ui->z0ROIPositionSpin, SLOT(setValue(int) )			);
-		disconnect(this->ui->horizontalSliderX1,		SIGNAL(valueChanged(int)),			this->ui->x1ROIPositionSpin, SLOT(setValue(int) )			);
-		disconnect(this->ui->horizontalSliderY1,		SIGNAL(valueChanged(int)),			this->ui->y1ROIPositionSpin, SLOT(setValue(int) )			);
-		disconnect(this->ui->horizontalSliderZ1,		SIGNAL(valueChanged(int)),			this->ui->z1ROIPositionSpin, SLOT(setValue(int) )			);
-		 
-	}
-}
-
-
-//------------------------------[ getVtkProp ]-----------------------------\\
-
-vtkProp * Crop3DPlugin::getVtkProp()
-{
-	return this->actor;
-}
-
-
-//--------------------------------[ getGUI ]-------------------------------\\
-
-QWidget * Crop3DPlugin::getGUI()
-{
-	return this->qWidget;
-}
-
-
-//----------------------------[ dataSetAdded ]-----------------------------\\
-
-void Crop3DPlugin::dataSetAdded(data::DataSet * ds)
-{
-	// Scalar volume
-	if (ds->getKind() == "scalar volume")
-	{
-		this->connectControls(false);
-
-		// Add the scalar volume to the list
-		this->scalarVolumeDataSets.append(ds);
-			
-		// Add the scalar volume to both relevant combo boxes
-		this->ui->scalarVolumeCombo->addItem(ds->getName());
-		this->ui->dtiWeightCombo->addItem(ds->getName());
-
-		// If this is the first scalar volume we added, select it now
-		if (this->ui->scalarVolumeCombo->count() == 1)
+		// Loop through the three axes
+		for (int axis = 0; axis < 3; ++axis)
 		{
-			this->changeScalarVolume(0);
+			// For each axis, remove the corresponding plane from the 2D view...
+			canvas->GetSubCanvas2D(axis)->GetRenderer()->RemoveActor(this->actor->GetSliceActor(axis));
 
-			// Reset the camera of the 3D volume
-			if (this->ui->scalarVolumeRadio->isChecked())
+			// ...and remove the seed point and slice actor data sets
+			this->core()->data()->removeDataSet(this->seedDataSets[axis]);
+			this->core()->data()->removeDataSet(this->sliceActorDataSets[axis]);
+		}
+
+		// Delete the seed points
+		this->seedsX->Delete();
+		this->seedsY->Delete();
+		this->seedsZ->Delete();
+
+		delete this->qWidget;
+		this->actor->Delete();
+		this->defaultLUT->Delete();
+		this->MEVColoringFilter->Delete();
+
+		// Delete the callback
+		if (this->callBack)
+			this->callBack->Delete();
+	}
+
+
+	//---------------------------[ connectControls ]---------------------------\\
+
+	void Crop3DPlugin::connectControls(bool doConnect)
+	{
+		// Connect all controls to their respective slot functions
+		if (doConnect)
+		{
+			connect(this->ui->scalarVolumeCombo,	SIGNAL(currentIndexChanged(int)),	this, SLOT(changeScalarVolume(int))	);
+			connect(this->ui->lutCombo,				SIGNAL(currentIndexChanged(int)),	this, SLOT(changeLUT(int))			);
+			connect(this->ui->dtiVolumeCombo,		SIGNAL(currentIndexChanged(int)),	this, SLOT(changeDTIVolume(int))	);
+			connect(this->ui->dtiWeightCombo,		SIGNAL(currentIndexChanged(int)),	this, SLOT(changeWeightVolume(int))	);
+			connect(this->ui->scalarVolumeRadio,	SIGNAL(clicked()),					this, SLOT(applyLUTColoring())		);
+			connect(this->ui->dtiRadio,				SIGNAL(clicked()),					this, SLOT(applyRGBColoring())		);
+			connect(this->ui->xPositionSpin,		SIGNAL(valueChanged(int)),			this, SLOT(setXSlice(int))			);
+			connect(this->ui->yPositionSpin,		SIGNAL(valueChanged(int)),			this, SLOT(setYSlice(int))			);
+			connect(this->ui->zPositionSpin,		SIGNAL(valueChanged(int)),			this, SLOT(setZSlice(int))			);
+			connect(this->ui->interpolationCheck,	SIGNAL(toggled(bool)),				this, SLOT(setInterpolation(bool))	);
+			connect(this->ui->xVisibleCheck,		SIGNAL(toggled(bool)),				this, SLOT(setXVisible(bool))		);
+			connect(this->ui->yVisibleCheck,		SIGNAL(toggled(bool)),				this, SLOT(setYVisible(bool))		);
+			connect(this->ui->zVisibleCheck,		SIGNAL(toggled(bool)),				this, SLOT(setZVisible(bool))		);
+
+			// 3D Crop ROI signals
+
+			connect(this->ui->cropButton,		SIGNAL(clicked()),			this , SLOT( cropData() ),	Qt::UniqueConnection		);
+			// spin -> slider connection 
+			connect(this->ui->x0ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderX0 , SLOT(setValue(int) )			);
+			connect(this->ui->y0ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderY0 , SLOT(setValue(int) )			);
+			connect(this->ui->z0ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderZ0 , SLOT(setValue(int) )			);
+			connect(this->ui->x1ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderX1 , SLOT(setValue(int) )			);
+			connect(this->ui->y1ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderY1 , SLOT(setValue(int) )			);
+			connect(this->ui->z1ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderZ1 , SLOT(setValue(int) )			);
+			//slider -> spin connections
+			connect(this->ui->horizontalSliderX0,		SIGNAL(valueChanged(int)),			this->ui->x0ROIPositionSpin, SLOT(setValue(int) )			);
+			connect(this->ui->horizontalSliderY0,		SIGNAL(valueChanged(int)),			this->ui->y0ROIPositionSpin, SLOT(setValue(int) )			);
+			connect(this->ui->horizontalSliderZ0,		SIGNAL(valueChanged(int)),			this->ui->z0ROIPositionSpin, SLOT(setValue(int) )			);
+			connect(this->ui->horizontalSliderX1,		SIGNAL(valueChanged(int)),			this->ui->x1ROIPositionSpin, SLOT(setValue(int) )			);
+			connect(this->ui->horizontalSliderY1,		SIGNAL(valueChanged(int)),			this->ui->y1ROIPositionSpin, SLOT(setValue(int) )			);
+			connect(this->ui->horizontalSliderZ1,		SIGNAL(valueChanged(int)),			this->ui->z1ROIPositionSpin, SLOT(setValue(int) )			);
+
+		}
+		// Disconnect all signals
+		else
+		{
+			disconnect(this->ui->scalarVolumeCombo,	SIGNAL(currentIndexChanged(int)),	this, SLOT(changeScalarVolume(int))	);
+			disconnect(this->ui->lutCombo,			SIGNAL(currentIndexChanged(int)),	this, SLOT(changeLUT(int))			);
+			disconnect(this->ui->dtiVolumeCombo,	SIGNAL(currentIndexChanged(int)),	this, SLOT(changeDTIVolume(int))	);
+			disconnect(this->ui->dtiWeightCombo,	SIGNAL(currentIndexChanged(int)),	this, SLOT(changeWeightVolume(int))	);
+			disconnect(this->ui->scalarVolumeRadio,	SIGNAL(clicked()),					this, SLOT(applyLUTColoring())		);
+			disconnect(this->ui->dtiRadio,			SIGNAL(clicked()),					this, SLOT(applyRGBColoring())		);
+			disconnect(this->ui->xPositionSpin,		SIGNAL(valueChanged(int)),			this, SLOT(setXSlice(int))			);
+			disconnect(this->ui->yPositionSpin,		SIGNAL(valueChanged(int)),			this, SLOT(setYSlice(int))			);
+			disconnect(this->ui->zPositionSpin,		SIGNAL(valueChanged(int)),			this, SLOT(setZSlice(int))			);
+			disconnect(this->ui->interpolationCheck,SIGNAL(toggled(bool)),				this, SLOT(setInterpolation(bool))	);
+			disconnect(this->ui->xVisibleCheck,		SIGNAL(toggled(bool)),				this, SLOT(setXVisible(bool))		);
+			disconnect(this->ui->yVisibleCheck,		SIGNAL(toggled(bool)),				this, SLOT(setYVisible(bool))		);
+			disconnect(this->ui->zVisibleCheck,		SIGNAL(toggled(bool)),				this, SLOT(setZVisible(bool))		);
+
+			//ROI
+			disconnect(this->ui->cropButton,		SIGNAL(clicked()),			this , SLOT( cropData() )			);
+			//3D Crop ROI spin -> slider connection 
+			disconnect(this->ui->x0ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderX0 , SLOT(setValue(int) )			);
+			disconnect(this->ui->y0ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderY0 , SLOT(setValue(int) )			);
+			disconnect(this->ui->z0ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderZ0 , SLOT(setValue(int) )			);
+			disconnect(this->ui->x1ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderX1 , SLOT(setValue(int) )			);
+			disconnect(this->ui->y1ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderY1 , SLOT(setValue(int) )			);
+			disconnect(this->ui->z1ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderZ1 , SLOT(setValue(int) )			);
+			//3D Crpo ROI   slider->spin conection 
+			disconnect(this->ui->horizontalSliderX0,		SIGNAL(valueChanged(int)),			this->ui->x0ROIPositionSpin, SLOT(setValue(int) )			);
+			disconnect(this->ui->horizontalSliderY0,		SIGNAL(valueChanged(int)),			this->ui->y0ROIPositionSpin, SLOT(setValue(int) )			);
+			disconnect(this->ui->horizontalSliderZ0,		SIGNAL(valueChanged(int)),			this->ui->z0ROIPositionSpin, SLOT(setValue(int) )			);
+			disconnect(this->ui->horizontalSliderX1,		SIGNAL(valueChanged(int)),			this->ui->x1ROIPositionSpin, SLOT(setValue(int) )			);
+			disconnect(this->ui->horizontalSliderY1,		SIGNAL(valueChanged(int)),			this->ui->y1ROIPositionSpin, SLOT(setValue(int) )			);
+			disconnect(this->ui->horizontalSliderZ1,		SIGNAL(valueChanged(int)),			this->ui->z1ROIPositionSpin, SLOT(setValue(int) )			);
+
+		}
+	}
+
+
+	//------------------------------[ getVtkProp ]-----------------------------\\
+
+	vtkProp * Crop3DPlugin::getVtkProp()
+	{
+		return this->actor;
+	}
+
+
+	//--------------------------------[ getGUI ]-------------------------------\\
+
+	QWidget * Crop3DPlugin::getGUI()
+	{
+		return this->qWidget;
+	}
+
+
+	//----------------------------[ dataSetAdded ]-----------------------------\\
+
+	void Crop3DPlugin::dataSetAdded(data::DataSet * ds)
+	{
+		// Scalar volume
+		if (ds->getKind() == "scalar volume")
+		{
+			this->connectControls(false);
+
+			// Add the scalar volume to the list
+			this->scalarVolumeDataSets.append(ds);
+
+			// Add the scalar volume to both relevant combo boxes
+			this->ui->scalarVolumeCombo->addItem(ds->getName());
+			this->ui->dtiWeightCombo->addItem(ds->getName());
+
+			// If this is the first scalar volume we added, select it now
+			if (this->ui->scalarVolumeCombo->count() == 1)
+			{
+				this->changeScalarVolume(0);
+
+				// Reset the camera of the 3D volume
+				if (this->ui->scalarVolumeRadio->isChecked())
+					this->fullCore()->canvas()->GetRenderer3D()->ResetCamera();
+			}
+
+			// Likewise for weighting volumes, with the addendum that we need to select
+			// it manually (since the combo box already contained the "None" item.
+
+			if (this->ui->dtiWeightCombo->count() == 2)
+			{
+				this->ui->dtiWeightCombo->setCurrentIndex(1);
+				this->changeWeightVolume(1);
+			}
+
+			this->connectControls(true);
+
+		} // if [scalar volume]
+
+		// Transfer Functions (LUTs)
+		else if (ds->getKind() == "transfer function")
+		{
+			this->connectControls(false);
+
+			// Add data set to the list and to the GUI
+			this->lutDataSets.append(ds);
+			this->ui->lutCombo->addItem(ds->getName());
+
+			this->connectControls(true);
+		} 
+
+		// Eigensystem Data
+		else if (ds->getKind() == "eigen")
+		{
+			this->connectControls(false);
+
+			// Add the eigensystem (DTI) data set to the list
+			this->dtiDataSets.append(ds);
+
+			// Enable the radio button for RGB coloring
+			this->ui->dtiRadio->setEnabled(true);
+
+			// Add the data set to the combo box
+			this->ui->dtiVolumeCombo->addItem(ds->getName());
+
+			// If this is the first DTI set, we switch to RGB coloring
+			if (this->ui->dtiVolumeCombo->count() == 1)
+			{
+				this->ui->dtiRadio->setChecked(true);
+				this->applyRGBColoring();
+
+				// Reset the camera of the 3D volume
 				this->fullCore()->canvas()->GetRenderer3D()->ResetCamera();
+			}
+
+			this->connectControls(true);
 		}
+	}
 
-		// Likewise for weighting volumes, with the addendum that we need to select
-		// it manually (since the combo box already contained the "None" item.
 
-		if (this->ui->dtiWeightCombo->count() == 2)
+	//---------------------------[ dataSetChanged ]----------------------------\\
+
+	void Crop3DPlugin::dataSetChanged(data::DataSet * ds)
+	{
+		// General behavior: For each of the input data types, it updates the name in
+		// the GUI combo boxes, and if the data set is selected in one of these combo
+		// boxes, it also calls the corresponding update function ("changeX").
+
+		// Scalar Volumes
+		if(ds->getKind() == "scalar volume" && this->scalarVolumeDataSets.contains(ds))
 		{
-			this->ui->dtiWeightCombo->setCurrentIndex(1);
-			this->changeWeightVolume(1);
+			this->connectControls(false);
+			int dsIndex = this->scalarVolumeDataSets.indexOf(ds);
+
+			this->ui->scalarVolumeCombo->setItemText(dsIndex, ds->getName());
+			this->ui->dtiWeightCombo->setItemText(dsIndex + 1, ds->getName());
+
+			if (this->ui->scalarVolumeCombo->currentIndex() == dsIndex)
+				this->changeScalarVolume(dsIndex);
+
+			if (this->ui->dtiWeightCombo->currentIndex() == dsIndex + 1)
+				this->changeWeightVolume(dsIndex + 1);
+
+			this->connectControls(true);
 		}
 
-		this->connectControls(true);
-
-	} // if [scalar volume]
-
-	// Transfer Functions (LUTs)
-	else if (ds->getKind() == "transfer function")
-	{
-		this->connectControls(false);
-
-		// Add data set to the list and to the GUI
-		this->lutDataSets.append(ds);
-		this->ui->lutCombo->addItem(ds->getName());
-
-		this->connectControls(true);
-	} 
-
-	// Eigensystem Data
-	else if (ds->getKind() == "eigen")
-	{
-		this->connectControls(false);
-
-		// Add the eigensystem (DTI) data set to the list
-		this->dtiDataSets.append(ds);
-
-		// Enable the radio button for RGB coloring
-		this->ui->dtiRadio->setEnabled(true);
-
-		// Add the data set to the combo box
-		this->ui->dtiVolumeCombo->addItem(ds->getName());
-
-		// If this is the first DTI set, we switch to RGB coloring
-		if (this->ui->dtiVolumeCombo->count() == 1)
+		// Transfer Functions
+		else if (ds->getKind() == "transfer function" && this->lutDataSets.contains(ds))
 		{
-			this->ui->dtiRadio->setChecked(true);
-			this->applyRGBColoring();
+			this->connectControls(false);
+			int dsIndex = this->lutDataSets.indexOf(ds);
 
-			// Reset the camera of the 3D volume
-			this->fullCore()->canvas()->GetRenderer3D()->ResetCamera();
+			this->ui->lutCombo->setItemText(dsIndex + 1, ds->getName());
+
+			if (this->ui->lutCombo->currentIndex() == (dsIndex + 1))
+				this->changeLUT(dsIndex + 1);
+
+			this->connectControls(true);
 		}
 
-		this->connectControls(true);
-	}
-}
-
-
-//---------------------------[ dataSetChanged ]----------------------------\\
-
-void Crop3DPlugin::dataSetChanged(data::DataSet * ds)
-{
-	// General behavior: For each of the input data types, it updates the name in
-	// the GUI combo boxes, and if the data set is selected in one of these combo
-	// boxes, it also calls the corresponding update function ("changeX").
-
-	// Scalar Volumes
-	if(ds->getKind() == "scalar volume" && this->scalarVolumeDataSets.contains(ds))
-	{
-		this->connectControls(false);
-		int dsIndex = this->scalarVolumeDataSets.indexOf(ds);
-
-		this->ui->scalarVolumeCombo->setItemText(dsIndex, ds->getName());
-		this->ui->dtiWeightCombo->setItemText(dsIndex + 1, ds->getName());
-
-		if (this->ui->scalarVolumeCombo->currentIndex() == dsIndex)
-			this->changeScalarVolume(dsIndex);
-		
-		if (this->ui->dtiWeightCombo->currentIndex() == dsIndex + 1)
-			this->changeWeightVolume(dsIndex + 1);
-
-		this->connectControls(true);
-	}
-
-	// Transfer Functions
-	else if (ds->getKind() == "transfer function" && this->lutDataSets.contains(ds))
-	{
-		this->connectControls(false);
-		int dsIndex = this->lutDataSets.indexOf(ds);
-
-		this->ui->lutCombo->setItemText(dsIndex + 1, ds->getName());
-
-		if (this->ui->lutCombo->currentIndex() == (dsIndex + 1))
-			this->changeLUT(dsIndex + 1);
-
-		this->connectControls(true);
-	}
-
-	// DTI Eigensystem
-	else if (ds->getKind() == "eigen" && this->dtiDataSets.contains(ds))
-	{
-		this->connectControls(false);
-		int dsIndex = this->dtiDataSets.indexOf(ds);
-
-		this->ui->dtiVolumeCombo->setItemText(dsIndex, ds->getName());
-
-		if (this->ui->dtiVolumeCombo->currentIndex() == dsIndex)
-			this->changeDTIVolume(dsIndex);
-
-		this->connectControls(true);
-	}
-}
-
-	
-//----------------------------[ dataSetRemoved ]---------------------------\\
-
-void Crop3DPlugin::dataSetRemoved(data::DataSet * ds)
-{
-	// General behavior: Remove the item from the GUI combo boxes and from the
-	// data set lists. If the removed data set was selected in one of the combo 
-	// boxes, reset the index of that combo box to a default value, and update the 
-	// planes for this new index.
-
-	// Scalar Volumes
-	if (ds->getKind() == "scalar volume" && this->scalarVolumeDataSets.contains(ds))
-	{
-		this->connectControls(false);
-		int dsIndex = this->scalarVolumeDataSets.indexOf(ds);
-
-		bool dataSetWasSelectedScalar = this->ui->scalarVolumeCombo->currentIndex() == dsIndex;
-		bool dataSetWasSelectedWeight = this->ui->dtiWeightCombo->currentIndex() == (dsIndex + 1);
-
-		this->ui->scalarVolumeCombo->removeItem(dsIndex);
-		this->ui->dtiWeightCombo->removeItem(dsIndex + 1);
-
-		this->scalarVolumeDataSets.removeAt(dsIndex);
-
-		if (dataSetWasSelectedScalar)
+		// DTI Eigensystem
+		else if (ds->getKind() == "eigen" && this->dtiDataSets.contains(ds))
 		{
-			// Reset to the first data set, or (if none present), deselect all data sets
-			int newIndex = (this->ui->scalarVolumeCombo->count() > 0) ? 0 : -1;
-			this->ui->scalarVolumeCombo->setCurrentIndex(newIndex);
-			this->changeScalarVolume(newIndex);
-		}
+			this->connectControls(false);
+			int dsIndex = this->dtiDataSets.indexOf(ds);
 
-		if (dataSetWasSelectedWeight)
+			this->ui->dtiVolumeCombo->setItemText(dsIndex, ds->getName());
+
+			if (this->ui->dtiVolumeCombo->currentIndex() == dsIndex)
+				this->changeDTIVolume(dsIndex);
+
+			this->connectControls(true);
+		}
+	}
+
+
+	//----------------------------[ dataSetRemoved ]---------------------------\\
+
+	void Crop3DPlugin::dataSetRemoved(data::DataSet * ds)
+	{
+		// General behavior: Remove the item from the GUI combo boxes and from the
+		// data set lists. If the removed data set was selected in one of the combo 
+		// boxes, reset the index of that combo box to a default value, and update the 
+		// planes for this new index.
+
+		// Scalar Volumes
+		if (ds->getKind() == "scalar volume" && this->scalarVolumeDataSets.contains(ds))
 		{
-			// Always reset to the first index ("None")
-			this->ui->dtiWeightCombo->setCurrentIndex(0);
-			this->changeWeightVolume(0);
+			this->connectControls(false);
+			int dsIndex = this->scalarVolumeDataSets.indexOf(ds);
+
+			bool dataSetWasSelectedScalar = this->ui->scalarVolumeCombo->currentIndex() == dsIndex;
+			bool dataSetWasSelectedWeight = this->ui->dtiWeightCombo->currentIndex() == (dsIndex + 1);
+
+			this->ui->scalarVolumeCombo->removeItem(dsIndex);
+			this->ui->dtiWeightCombo->removeItem(dsIndex + 1);
+
+			this->scalarVolumeDataSets.removeAt(dsIndex);
+
+			if (dataSetWasSelectedScalar)
+			{
+				// Reset to the first data set, or (if none present), deselect all data sets
+				int newIndex = (this->ui->scalarVolumeCombo->count() > 0) ? 0 : -1;
+				this->ui->scalarVolumeCombo->setCurrentIndex(newIndex);
+				this->changeScalarVolume(newIndex);
+			}
+
+			if (dataSetWasSelectedWeight)
+			{
+				// Always reset to the first index ("None")
+				this->ui->dtiWeightCombo->setCurrentIndex(0);
+				this->changeWeightVolume(0);
+			}
+
+			this->connectControls(true);
 		}
 
-		this->connectControls(true);
-	}
-
-	// Transfer Functions
-	else if (ds->getKind() == "transfer function" && this->lutDataSets.contains(ds))
-	{
-		this->connectControls(false);
-		int dsIndex = this->lutDataSets.indexOf(ds);
-
-		bool dataSetWasSelected = this->ui->lutCombo->currentIndex() == (dsIndex + 1);
-
-		this->ui->lutCombo->removeItem(dsIndex + 1);
-		this->lutDataSets.removeAt(dsIndex);
-
-		if (dataSetWasSelected)
+		// Transfer Functions
+		else if (ds->getKind() == "transfer function" && this->lutDataSets.contains(ds))
 		{
-			// Always reset to the first index ("Default")
-			this->ui->lutCombo->setCurrentIndex(0);
-			this->changeLUT(0);
+			this->connectControls(false);
+			int dsIndex = this->lutDataSets.indexOf(ds);
+
+			bool dataSetWasSelected = this->ui->lutCombo->currentIndex() == (dsIndex + 1);
+
+			this->ui->lutCombo->removeItem(dsIndex + 1);
+			this->lutDataSets.removeAt(dsIndex);
+
+			if (dataSetWasSelected)
+			{
+				// Always reset to the first index ("Default")
+				this->ui->lutCombo->setCurrentIndex(0);
+				this->changeLUT(0);
+			}
+
+			this->connectControls(true);
 		}
 
-		this->connectControls(true);
-	}
-
-	// DTI Eigensystem
-	else if (ds->getKind() == "eigen" && this->dtiDataSets.contains(ds))
-	{
-		this->connectControls(false);
-		int dsIndex = this->dtiDataSets.indexOf(ds);
-
-		bool dataSetWasSelected = this->ui->dtiVolumeCombo->currentIndex() == dsIndex;
-
-		this->ui->dtiVolumeCombo->removeItem(dsIndex);
-		this->dtiDataSets.removeAt(dsIndex);
-
-		if (dataSetWasSelected)
+		// DTI Eigensystem
+		else if (ds->getKind() == "eigen" && this->dtiDataSets.contains(ds))
 		{
-			// Reset to the first data set, or (if none present), deselect all data sets
-			int newIndex = (this->ui->dtiVolumeCombo->count() > 0) ? 0 : -1;
-			this->ui->dtiVolumeCombo->setCurrentIndex(newIndex);
-			this->changeDTIVolume(newIndex);
+			this->connectControls(false);
+			int dsIndex = this->dtiDataSets.indexOf(ds);
+
+			bool dataSetWasSelected = this->ui->dtiVolumeCombo->currentIndex() == dsIndex;
+
+			this->ui->dtiVolumeCombo->removeItem(dsIndex);
+			this->dtiDataSets.removeAt(dsIndex);
+
+			if (dataSetWasSelected)
+			{
+				// Reset to the first data set, or (if none present), deselect all data sets
+				int newIndex = (this->ui->dtiVolumeCombo->count() > 0) ? 0 : -1;
+				this->ui->dtiVolumeCombo->setCurrentIndex(newIndex);
+				this->changeDTIVolume(newIndex);
+			}
+
+			this->connectControls(true);
+		}
+	}
+
+
+	//--------------------------[ changeScalarVolume ]-------------------------\\
+
+	void Crop3DPlugin::changeScalarVolume(int index)
+	{
+
+		cout << "changeScalarVolume \n"; 
+		// Only do this is we're currently scowing a scalar volume
+		if (!(this->ui->scalarVolumeRadio->isChecked()))
+			return;
+
+		// If the index is out of range, simply hide the actor
+		if (index < 0 || index >= this->scalarVolumeDataSets.size())
+		{
+			this->actor->VisibilityOff();
+			this->actor->SetInput(NULL);
+			this->core()->render();
+			return;
 		}
 
-		this->connectControls(true);
-	}
-}
-
-
-//--------------------------[ changeScalarVolume ]-------------------------\\
-
-void Crop3DPlugin::changeScalarVolume(int index)
-{
-	// Only do this is we're currently scowing a scalar volume
-	if (!(this->ui->scalarVolumeRadio->isChecked()))
-		return;
-
-	// If the index is out of range, simply hide the actor
-	if (index < 0 || index >= this->scalarVolumeDataSets.size())
-	{
-		this->actor->VisibilityOff();
-		this->actor->SetInput(NULL);
-		this->core()->render();
-		return;
-	}
-
-	// Get the scalar volume data set
-	data::DataSet * ds = this->scalarVolumeDataSets.at(index);
-
-	if (!ds)
-		return;
-
-	if (!(ds->getVtkImageData()))
-		return;
-
-	// No rendering until we're done here
-	this->core()->disableRendering();
-
-	// If the memory size of the image is zero, ask it to update. This is done to
-	// deal with images that are only computed on request, like the Anisotropy
-	// Measure images.
-
-	if (ds->getVtkImageData()->GetActualMemorySize() == 0)
-	{
-		ds->getVtkImageData()->Update();
-		this->core()->data()->dataSetChanged(ds);
-	}
-
-	// Use the image as the input for the actor
-	this->actor->SetInput(ds->getVtkImageData());
-
-	// Set transformation matrix, reset slices
-	this->configureNewImage(ds);
-
-	// Recompute the default LUT, since the scalar range may have changed
-	if (this->ui->lutCombo->currentIndex() == 0)
-		this->changeLUT(0);
-
-	// Render the scene
-	this->actor->VisibilityOn();
-	this->actor->UpdateInput();
-	this->core()->enableRendering();
-	this->core()->render();
-}
-
-
-//------------------------------[ changeLUT ]------------------------------\\
-
-void Crop3DPlugin::changeLUT(int index)
-{
-	// Only do this is we're currently scowing a scalar volume
-	if (!(this->ui->scalarVolumeRadio->isChecked()))
-		return;
-
-	// If the index is out of range, simply hide the actor
-	if (index < 0 || index >= this->lutDataSets.size() + 1)
-	{
-		this->actor->VisibilityOff();
-		this->actor->SetInput(NULL);
-		this->core()->render();
-		return;
-	}
-
-	// If we selected the "Default" LUT...
-	if (index == 0)
-	{
 		// Get the scalar volume data set
-		data::DataSet * ds = this->scalarVolumeDataSets.at(this->ui->scalarVolumeCombo->currentIndex());
+		data::DataSet * ds = this->scalarVolumeDataSets.at(index);
 
 		if (!ds)
 			return;
@@ -589,381 +531,442 @@ void Crop3DPlugin::changeLUT(int index)
 		if (!(ds->getVtkImageData()))
 			return;
 
-		// Use the scalar range of the image for the default LUT
-		double range[2];
-		ds->getVtkImageData()->GetScalarRange(range);
-		this->defaultLUT->SetTableRange(range);
-		this->defaultLUT->Build();
-		this->actor->SetLookupTable(this->defaultLUT);
+		// No rendering until we're done here
+		this->core()->disableRendering();
+
+		// If the memory size of the image is zero, ask it to update. This is done to
+		// deal with images that are only computed on request, like the Anisotropy
+		// Measure images.
+
+		if (ds->getVtkImageData()->GetActualMemorySize() == 0)
+		{
+			ds->getVtkImageData()->Update();
+			this->core()->data()->dataSetChanged(ds);
+		}
+
+		// Use the image as the input for the actor
+		this->actor->SetInput(ds->getVtkImageData());
+
+		// Set transformation matrix, reset slices
+		this->configureNewImage(ds);
+
+		// Recompute the default LUT, since the scalar range may have changed
+		if (this->ui->lutCombo->currentIndex() == 0)
+			this->changeLUT(0);
+
+		// Render the scene
+		this->actor->VisibilityOn();
+		this->actor->UpdateInput();
+		this->core()->enableRendering();
+		this->core()->render();
 	}
-	else
+
+
+	//------------------------------[ changeLUT ]------------------------------\\
+
+	void Crop3DPlugin::changeLUT(int index)
 	{
-		// Get the LUT Transfer Function
-		data::DataSet * ds = this->lutDataSets.at(index - 1);
+		// Only do this is we're currently scowing a scalar volume
+		if (!(this->ui->scalarVolumeRadio->isChecked()))
+			return;
+
+		// If the index is out of range, simply hide the actor
+		if (index < 0 || index >= this->lutDataSets.size() + 1)
+		{
+			this->actor->VisibilityOff();
+			this->actor->SetInput(NULL);
+			this->core()->render();
+			return;
+		}
+
+		// If we selected the "Default" LUT...
+		if (index == 0)
+		{
+			// Get the scalar volume data set
+			data::DataSet * ds = this->scalarVolumeDataSets.at(this->ui->scalarVolumeCombo->currentIndex());
+
+			if (!ds)
+				return;
+
+			if (!(ds->getVtkImageData()))
+				return;
+
+			// Use the scalar range of the image for the default LUT
+			double range[2];
+			ds->getVtkImageData()->GetScalarRange(range);
+			this->defaultLUT->SetTableRange(range);
+			this->defaultLUT->Build();
+			this->actor->SetLookupTable(this->defaultLUT);
+		}
+		else
+		{
+			// Get the LUT Transfer Function
+			data::DataSet * ds = this->lutDataSets.at(index - 1);
+
+			if (!ds)
+				return;
+
+			vtkColorTransferFunction * vtkTf = vtkColorTransferFunction::SafeDownCast(ds->getVtkObject());
+
+			if (!vtkTf)
+				return;
+
+			this->actor->SetLookupTable(vtkTf);
+		}
+
+		// Render the scene using the new LUT
+		this->actor->MapColorScalarsThroughLookupTableOn();
+		this->core()->render();
+
+		// Signal the data manager that the slice actors have been modified
+		this->core()->data()->dataSetChanged(this->sliceActorDataSets[0]);
+		this->core()->data()->dataSetChanged(this->sliceActorDataSets[1]);
+		this->core()->data()->dataSetChanged(this->sliceActorDataSets[2]);
+	}
+
+
+	//---------------------------[ changeDTIVolume ]---------------------------\\
+
+	void Crop3DPlugin::changeDTIVolume(int index)
+	{
+		// Do nothing if we're not using RGB coloring
+		if (!this->ui->dtiRadio->isChecked()) 
+			return;
+
+		// If the index is out of range, simply hide the actor
+		if (index < 0 || index >= this->dtiDataSets.size())
+		{
+			this->actor->VisibilityOff();
+			this->actor->SetInput(NULL);
+			this->core()->render();
+			return;
+		}
+
+		// No rendering while we set up the new image
+		this->core()->disableRendering();
+
+		// If the current weighting volume does not match the dimensions of the new
+		// DTI volume, set the weighting volume to "None".
+
+		if (!(this->checkWeightVolumeMatch()))
+		{
+			this->ui->dtiWeightCombo->setCurrentIndex(0);
+		}
+
+		// Get the new DTI data set
+		data::DataSet * ds = this->dtiDataSets.at(index);
+
+		if (!ds)
+		{
+			this->core()->enableRendering();
+			return;
+		}
+
+		vtkImageData * image = ds->getVtkImageData();
+
+		if (!image)
+		{
+			this->core()->enableRendering();
+			return;
+		}
+
+		// Update the RGB filter
+		this->MEVColoringFilter->SetInput(image);
+		this->MEVColoringFilter->UpdateWholeExtent();
+		this->MEVColoringFilter->Update();
+
+		// Update the actor
+		this->actor->SetInput(this->MEVColoringFilter->GetOutput());
+		this->actor->MapColorScalarsThroughLookupTableOff();
+		this->actor->UpdateInput();
+
+		// Configure planes and transformation matrices for the new image
+		this->configureNewImage(ds);
+
+		// Signal the data manager that the slice actors have been modified
+		this->core()->data()->dataSetChanged(this->sliceActorDataSets[0]);
+		this->core()->data()->dataSetChanged(this->sliceActorDataSets[1]);
+		this->core()->data()->dataSetChanged(this->sliceActorDataSets[2]);
+
+		// Render the scene
+		this->actor->VisibilityOn();
+		this->core()->enableRendering();
+		this->core()->render();
+	}
+
+
+	//--------------------------[ changeWeightVolume ]-------------------------\\
+
+	void Crop3DPlugin::changeWeightVolume(int index)
+	{
+		// Do nothing if we're not using RGB coloring
+		if (!this->ui->dtiRadio->isChecked()) 
+			return;
+
+		// If the weight volume has been set to "None"...
+		if (index == 0)
+		{
+			// ...update the RGB filter accordingly...
+			this->MEVColoringFilter->SetWeightingVolume(NULL);
+			this->MEVColoringFilter->Modified();
+			this->MEVColoringFilter->Update();
+
+			// ...and render the scene
+			this->core()->render();
+
+			return;
+		}
+
+		// Get the scalar volume
+		data::DataSet * ds = this->scalarVolumeDataSets.at(index - 1);
 
 		if (!ds)
 			return;
 
-		vtkColorTransferFunction * vtkTf = vtkColorTransferFunction::SafeDownCast(ds->getVtkObject());
-		
-		if (!vtkTf)
+		if (!(ds->getVtkImageData()))
 			return;
 
-		this->actor->SetLookupTable(vtkTf);
-	}
+		// If the memory size of the image is zero, ask it to update. This is done to
+		// deal with images that are only computed on request, like the Anisotropy
+		// Measure images.
 
-	// Render the scene using the new LUT
-	this->actor->MapColorScalarsThroughLookupTableOn();
-	this->core()->render();
+		if (ds->getVtkImageData()->GetActualMemorySize() == 0)
+		{
+			ds->getVtkImageData()->Update();
+			this->core()->data()->dataSetChanged(ds);
+		}
 
-	// Signal the data manager that the slice actors have been modified
-	this->core()->data()->dataSetChanged(this->sliceActorDataSets[0]);
-	this->core()->data()->dataSetChanged(this->sliceActorDataSets[1]);
-	this->core()->data()->dataSetChanged(this->sliceActorDataSets[2]);
-}
+		// If this weight volume does not match the DTI volume, report this to the user,
+		// and set the weight volume to "None".
 
-
-//---------------------------[ changeDTIVolume ]---------------------------\\
-
-void Crop3DPlugin::changeDTIVolume(int index)
-{
-	// Do nothing if we're not using RGB coloring
-	if (!this->ui->dtiRadio->isChecked()) 
-		return;
-
-	// If the index is out of range, simply hide the actor
-	if (index < 0 || index >= this->dtiDataSets.size())
-	{
-		this->actor->VisibilityOff();
-		this->actor->SetInput(NULL);
-		this->core()->render();
-		return;
-	}
-
-	// No rendering while we set up the new image
-	this->core()->disableRendering();
-
-	// If the current weighting volume does not match the dimensions of the new
-	// DTI volume, set the weighting volume to "None".
-
-	if (!(this->checkWeightVolumeMatch()))
-	{
-		this->ui->dtiWeightCombo->setCurrentIndex(0);
-	}
-
-	// Get the new DTI data set
-	data::DataSet * ds = this->dtiDataSets.at(index);
-
-	if (!ds)
-	{
-		this->core()->enableRendering();
-		return;
-	}
-
-	vtkImageData * image = ds->getVtkImageData();
-	
-	if (!image)
-	{
-		this->core()->enableRendering();
-		return;
-	}
-
-	// Update the RGB filter
-	this->MEVColoringFilter->SetInput(image);
-	this->MEVColoringFilter->UpdateWholeExtent();
-	this->MEVColoringFilter->Update();
-
-	// Update the actor
-	this->actor->SetInput(this->MEVColoringFilter->GetOutput());
-	this->actor->MapColorScalarsThroughLookupTableOff();
-	this->actor->UpdateInput();
-
-	// Configure planes and transformation matrices for the new image
-	this->configureNewImage(ds);
-
-	// Signal the data manager that the slice actors have been modified
-	this->core()->data()->dataSetChanged(this->sliceActorDataSets[0]);
-	this->core()->data()->dataSetChanged(this->sliceActorDataSets[1]);
-	this->core()->data()->dataSetChanged(this->sliceActorDataSets[2]);
-
-	// Render the scene
-	this->actor->VisibilityOn();
-	this->core()->enableRendering();
-	this->core()->render();
-}
+		if (!(this->checkWeightVolumeMatch()))
+		{
+			QMessageBox::warning(this->getGUI(), "Crop3D Visualisation", "Dimension mismatch between DTI volume and weighting volume!");
+			this->ui->dtiWeightCombo->setCurrentIndex(0);
+			return;
+		}
 
 
-//--------------------------[ changeWeightVolume ]-------------------------\\
-
-void Crop3DPlugin::changeWeightVolume(int index)
-{
-	// Do nothing if we're not using RGB coloring
-	if (!this->ui->dtiRadio->isChecked()) 
-		return;
-
-	// If the weight volume has been set to "None"...
-	if (index == 0)
-	{
-		// ...update the RGB filter accordingly...
-		this->MEVColoringFilter->SetWeightingVolume(NULL);
+		// Update the RGB filter
+		this->MEVColoringFilter->SetWeightingVolume(ds->getVtkImageData());
 		this->MEVColoringFilter->Modified();
 		this->MEVColoringFilter->Update();
 
-		// ...and render the scene
+		// Update the actor
+		this->actor->SetInput(this->MEVColoringFilter->GetOutput());
+		this->actor->MapColorScalarsThroughLookupTableOff();
+		this->actor->UpdateInput();
+
+		// Signal the data manager that the slice actors have been modified
+		this->core()->data()->dataSetChanged(this->sliceActorDataSets[0]);
+		this->core()->data()->dataSetChanged(this->sliceActorDataSets[1]);
+		this->core()->data()->dataSetChanged(this->sliceActorDataSets[2]);
+
+		// Done, render the scene
 		this->core()->render();
 
-		return;
-	}
-
-	// Get the scalar volume
-	data::DataSet * ds = this->scalarVolumeDataSets.at(index - 1);
-
-	if (!ds)
-		return;
-
-	if (!(ds->getVtkImageData()))
-		return;
-
-	// If the memory size of the image is zero, ask it to update. This is done to
-	// deal with images that are only computed on request, like the Anisotropy
-	// Measure images.
-
-	if (ds->getVtkImageData()->GetActualMemorySize() == 0)
-	{
-		ds->getVtkImageData()->Update();
-		this->core()->data()->dataSetChanged(ds);
-	}
-
-	// If this weight volume does not match the DTI volume, report this to the user,
-	// and set the weight volume to "None".
-
-	if (!(this->checkWeightVolumeMatch()))
-	{
-		QMessageBox::warning(this->getGUI(), "Crop3D Visualisation", "Dimension mismatch between DTI volume and weighting volume!");
-		this->ui->dtiWeightCombo->setCurrentIndex(0);
-		return;
 	}
 
 
-	// Update the RGB filter
-	this->MEVColoringFilter->SetWeightingVolume(ds->getVtkImageData());
-	this->MEVColoringFilter->Modified();
-	this->MEVColoringFilter->Update();
+	//--------------------------[ configureNewImage ]--------------------------\\
 
-	// Update the actor
-	this->actor->SetInput(this->MEVColoringFilter->GetOutput());
-	this->actor->MapColorScalarsThroughLookupTableOff();
-	this->actor->UpdateInput();
-
-	// Signal the data manager that the slice actors have been modified
-	this->core()->data()->dataSetChanged(this->sliceActorDataSets[0]);
-	this->core()->data()->dataSetChanged(this->sliceActorDataSets[1]);
-	this->core()->data()->dataSetChanged(this->sliceActorDataSets[2]);
-
-	// Done, render the scene
-	this->core()->render();
-
-}
-
-
-//--------------------------[ configureNewImage ]--------------------------\\
-
-void Crop3DPlugin::configureNewImage(data::DataSet * ds)
-{
-	// Check if the range of the image has changed
-	bool resetSlices = false;
-	if (this->actor->GetXMin() != this->ui->xPositionSpin->minimum())	resetSlices = true;
-	if (this->actor->GetXMax() != this->ui->xPositionSpin->maximum())	resetSlices = true;
-	if (this->actor->GetYMin() != this->ui->yPositionSpin->minimum())	resetSlices = true;
-	if (this->actor->GetYMax() != this->ui->yPositionSpin->maximum())	resetSlices = true;
-	if (this->actor->GetZMin() != this->ui->zPositionSpin->minimum())	resetSlices = true;
-	if (this->actor->GetZMax() != this->ui->zPositionSpin->maximum())	resetSlices = true;
-
-	// If so, reset the slices to the center, and update the GUI accordingly
-	if (resetSlices)
+	void Crop3DPlugin::configureNewImage(data::DataSet * ds)
 	{
-		this->connectControls(false);
+		cout << "configureNewImage" << endl;
+		// Check if the range of the image has changed
+		bool resetSlices = false;
+		if (this->actor->GetXMin() != this->ui->xPositionSpin->minimum())	resetSlices = true;
+		if (this->actor->GetXMax() != this->ui->xPositionSpin->maximum())	resetSlices = true;
+		if (this->actor->GetYMin() != this->ui->yPositionSpin->minimum())	resetSlices = true;
+		if (this->actor->GetYMax() != this->ui->yPositionSpin->maximum())	resetSlices = true;
+		if (this->actor->GetZMin() != this->ui->zPositionSpin->minimum())	resetSlices = true;
+		if (this->actor->GetZMax() != this->ui->zPositionSpin->maximum())	resetSlices = true;
 
-		this->actor->CenterSlices();
-		int x = this->actor->GetX();
-		int y = this->actor->GetY();
-		int z = this->actor->GetZ();
-
-		this->ui->xPositionSpin-> setMinimum(this->actor->GetXMin());
-		this->ui->xPositionSlide->setMinimum(this->actor->GetXMin());
-		this->ui->xPositionSpin-> setMaximum(this->actor->GetXMax());
-		this->ui->xPositionSlide->setMaximum(this->actor->GetXMax());
-		this->ui->xPositionSpin-> setValue(x);
-
-		this->ui->yPositionSpin-> setMinimum(this->actor->GetYMin());
-		this->ui->yPositionSlide->setMinimum(this->actor->GetYMin());
-		this->ui->yPositionSpin-> setMaximum(this->actor->GetYMax());
-		this->ui->yPositionSlide->setMaximum(this->actor->GetYMax());
-		this->ui->yPositionSpin-> setValue(y);
-
-		this->ui->zPositionSpin-> setMinimum(this->actor->GetZMin());
-		this->ui->zPositionSlide->setMinimum(this->actor->GetZMin());
-		this->ui->zPositionSpin-> setMaximum(this->actor->GetZMax());
-		this->ui->zPositionSlide->setMaximum(this->actor->GetZMax());
-		this->ui->zPositionSpin-> setValue(z);
-
-		// Call these functions to make sure that the seeds are updated as well
-		this->setXSlice(x, false);
-		this->setYSlice(y, false);
-		this->setZSlice(z, false);
-
-		// 3D Crop ROI Part
-		this->set3DROISliderLimits();
-
-		this->connectControls(true);
-	}
-
-	// Check for a transformation matrix
-	vtkObject * obj = NULL;
-	if (ds->getAttributes()->getAttribute("transformation matrix", obj))
-	{
-		// Cast the object to a transformation matrix
-		vtkMatrix4x4 * transformationMatrix = vtkMatrix4x4::SafeDownCast(obj);
-
-		// Check if this went okay
-		if (!transformationMatrix)
+		// If so, reset the slices to the center, and update the GUI accordingly
+		if (resetSlices)
 		{
-			this->core()->out()->logMessage("Not a valid transformation matrix!");
-			return;
+			this->connectControls(false);
+
+			this->actor->CenterSlices();
+			int x = this->actor->GetX();
+			int y = this->actor->GetY();
+			int z = this->actor->GetZ();
+
+			this->ui->xPositionSpin-> setMinimum(this->actor->GetXMin());
+			this->ui->xPositionSlide->setMinimum(this->actor->GetXMin());
+			this->ui->xPositionSpin-> setMaximum(this->actor->GetXMax());
+			this->ui->xPositionSlide->setMaximum(this->actor->GetXMax());
+			this->ui->xPositionSpin-> setValue(x);
+
+			this->ui->yPositionSpin-> setMinimum(this->actor->GetYMin());
+			this->ui->yPositionSlide->setMinimum(this->actor->GetYMin());
+			this->ui->yPositionSpin-> setMaximum(this->actor->GetYMax());
+			this->ui->yPositionSlide->setMaximum(this->actor->GetYMax());
+			this->ui->yPositionSpin-> setValue(y);
+
+			this->ui->zPositionSpin-> setMinimum(this->actor->GetZMin());
+			this->ui->zPositionSlide->setMinimum(this->actor->GetZMin());
+			this->ui->zPositionSpin-> setMaximum(this->actor->GetZMax());
+			this->ui->zPositionSlide->setMaximum(this->actor->GetZMax());
+			this->ui->zPositionSpin-> setValue(z);
+
+			// Call these functions to make sure that the seeds are updated as well
+			this->setXSlice(x, false);
+			this->setYSlice(y, false);
+			this->setZSlice(z, false);
+
+			// 3D Crop ROI Part
+			this->set3DROISliderLimits();
+
+			this->connectControls(true);
 		}
 
-		// Loop through all three dimensions
-		for (int i = 0; i < 3; ++i)
+		// Check for a transformation matrix
+		vtkObject * obj = NULL;
+		if (ds->getAttributes()->getAttribute("transformation matrix", obj))
 		{
-			// Copy the matrix to a new one, and apply it to the current slice actor
-			vtkMatrix4x4 * matrixCopy = vtkMatrix4x4::New();
-			matrixCopy->DeepCopy(transformationMatrix);
-			this->actor->GetSliceActor(i)->SetUserMatrix(matrixCopy);
-			matrixCopy->Delete();
-		}
-	} 
-	// Otherwise, set identity matrices
-	else 
-	{
-		// Loop through all three dimensions
-		for (int i = 0; i < 3; ++i)
+			// Cast the object to a transformation matrix
+			vtkMatrix4x4 * transformationMatrix = vtkMatrix4x4::SafeDownCast(obj);
+
+			// Check if this went okay
+			if (!transformationMatrix)
+			{
+				this->core()->out()->logMessage("Not a valid transformation matrix!");
+				return;
+			}
+
+			// Loop through all three dimensions
+			for (int i = 0; i < 3; ++i)
+			{
+				// Copy the matrix to a new one, and apply it to the current slice actor
+				vtkMatrix4x4 * matrixCopy = vtkMatrix4x4::New();
+				matrixCopy->DeepCopy(transformationMatrix);
+				this->actor->GetSliceActor(i)->SetUserMatrix(matrixCopy);
+				matrixCopy->Delete();
+			}
+		} 
+		// Otherwise, set identity matrices
+		else 
 		{
-			// Create an identity matrix and apply it to the current slice actor
-			vtkMatrix4x4 * id = vtkMatrix4x4::New();
-			id->Identity();
-			this->actor->GetSliceActor(i)->SetUserMatrix(id);
-			id->Delete();
+			// Loop through all three dimensions
+			for (int i = 0; i < 3; ++i)
+			{
+				// Create an identity matrix and apply it to the current slice actor
+				vtkMatrix4x4 * id = vtkMatrix4x4::New();
+				id->Identity();
+				this->actor->GetSliceActor(i)->SetUserMatrix(id);
+				id->Delete();
+			}
 		}
+
+		vtkMedicalCanvas * canvas = this->fullCore()->canvas();
+
+		// Reset the camera of the 3D volume
+		this->fullCore()->canvas()->GetRenderer3D()->ResetCamera();
+
+		// Reset the cameras of the 2D view
+		this->reset2DCamera(canvas->GetSubCanvas2D(0)->GetRenderer(), this->actor->GetSliceActor(0), 0);
+		this->reset2DCamera(canvas->GetSubCanvas2D(1)->GetRenderer(), this->actor->GetSliceActor(1), 1);
+		this->reset2DCamera(canvas->GetSubCanvas2D(2)->GetRenderer(), this->actor->GetSliceActor(2), 2);
+
+		// Signal the data manager that the slice actors have been modified
+		this->core()->data()->dataSetChanged(this->sliceActorDataSets[0]);
+		this->core()->data()->dataSetChanged(this->sliceActorDataSets[1]);
+		this->core()->data()->dataSetChanged(this->sliceActorDataSets[2]);
+
+		this->core()->data()->dataSetChanged(this->seedDataSets[0]);
+		this->core()->data()->dataSetChanged(this->seedDataSets[1]);
+		this->core()->data()->dataSetChanged(this->seedDataSets[2]);
 	}
 
-	vtkMedicalCanvas * canvas = this->fullCore()->canvas();
 
-	// Reset the camera of the 3D volume
-	this->fullCore()->canvas()->GetRenderer3D()->ResetCamera();
+	//------------------------[ checkWeightVolumeMatch ]-----------------------\\
 
-	// Reset the cameras of the 2D view
-	this->reset2DCamera(canvas->GetSubCanvas2D(0)->GetRenderer(), this->actor->GetSliceActor(0), 0);
-	this->reset2DCamera(canvas->GetSubCanvas2D(1)->GetRenderer(), this->actor->GetSliceActor(1), 1);
-	this->reset2DCamera(canvas->GetSubCanvas2D(2)->GetRenderer(), this->actor->GetSliceActor(2), 2);
-
-	// Signal the data manager that the slice actors have been modified
-	this->core()->data()->dataSetChanged(this->sliceActorDataSets[0]);
-	this->core()->data()->dataSetChanged(this->sliceActorDataSets[1]);
-	this->core()->data()->dataSetChanged(this->sliceActorDataSets[2]);
-
-	this->core()->data()->dataSetChanged(this->seedDataSets[0]);
-	this->core()->data()->dataSetChanged(this->seedDataSets[1]);
-	this->core()->data()->dataSetChanged(this->seedDataSets[2]);
-}
-
-
-//------------------------[ checkWeightVolumeMatch ]-----------------------\\
-
-bool Crop3DPlugin::checkWeightVolumeMatch()
-{
-	// Check if indices are in the correct range
-	if (	this->ui->dtiVolumeCombo->currentIndex() < 0 || 
+	bool Crop3DPlugin::checkWeightVolumeMatch()
+	{
+		// Check if indices are in the correct range
+		if (	this->ui->dtiVolumeCombo->currentIndex() < 0 || 
 			this->ui->dtiVolumeCombo->currentIndex() >= this->dtiDataSets.size() ||
 			this->ui->dtiWeightCombo->currentIndex() < 0 ||
 			this->ui->dtiWeightCombo->currentIndex() - 1 >= this->scalarVolumeDataSets.size())
-	{
-		return false;
-	}
-
-	// If the weighting volume is set to "None", we've always got a match
-	if (this->ui->dtiWeightCombo->currentIndex() == 0)
-		return true;
-
-	// Get the data sets of the DTI eigensystem image and the weighting image
-	data::DataSet * dtiDS = this->dtiDataSets.at(this->ui->dtiVolumeCombo->currentIndex());
-	data::DataSet * weightDS = this->scalarVolumeDataSets.at(this->ui->dtiWeightCombo->currentIndex() - 1);
-
-	if (dtiDS == NULL || weightDS == NULL)
-		return false;
-
-	vtkImageData * dtiImage = dtiDS->getVtkImageData();
-	vtkImageData * weightImage = weightDS->getVtkImageData();
-
-	if (dtiImage == NULL || weightImage == NULL)
-		return false;
-
-	int dtiDims[3];
-	int weightDims[3];
-
-	// Get the dimensions of the two images
-	dtiImage->GetDimensions(dtiDims);
-	weightImage->GetDimensions(weightDims);
-
-	// Check if the dimensions match
-	for (int i = 0; i < 3; ++i)
-	{
-		if (dtiDims[i] != weightDims[i])
+		{
 			return false;
+		}
+
+		// If the weighting volume is set to "None", we've always got a match
+		if (this->ui->dtiWeightCombo->currentIndex() == 0)
+			return true;
+
+		// Get the data sets of the DTI eigensystem image and the weighting image
+		data::DataSet * dtiDS = this->dtiDataSets.at(this->ui->dtiVolumeCombo->currentIndex());
+		data::DataSet * weightDS = this->scalarVolumeDataSets.at(this->ui->dtiWeightCombo->currentIndex() - 1);
+
+		if (dtiDS == NULL || weightDS == NULL)
+			return false;
+
+		vtkImageData * dtiImage = dtiDS->getVtkImageData();
+		vtkImageData * weightImage = weightDS->getVtkImageData();
+
+		if (dtiImage == NULL || weightImage == NULL)
+			return false;
+
+		int dtiDims[3];
+		int weightDims[3];
+
+		// Get the dimensions of the two images
+		dtiImage->GetDimensions(dtiDims);
+		weightImage->GetDimensions(weightDims);
+
+		// Check if the dimensions match
+		for (int i = 0; i < 3; ++i)
+		{
+			if (dtiDims[i] != weightDims[i])
+				return false;
+		}
+
+		return true;
 	}
 
-	return true;
-}
 
+	//----------------------------[ reset2DCamera ]----------------------------\\
 
-//----------------------------[ reset2DCamera ]----------------------------\\
-
-void Crop3DPlugin::reset2DCamera(vtkRenderer * renderer, vtkImageSliceActor * sliceActor, int axis)
-{
-	if (renderer == NULL || sliceActor == NULL || axis < 0 || axis > 2)
-		return;
-
-	// Get the image used to create the actor
-	vtkImageData * input = sliceActor->GetInput();
-	
-	if (!input) 
-		return;
-
-	// Create a new parallel projection camera
-	vtkCamera * newCamera = vtkCamera::New();
-	newCamera->ParallelProjectionOn();
-
-	double bounds[6];
-	double center[3];
-	double normal[3];
-	double viewUp[3];
-
-	// Get the bounds of the input, and the center and normal of the plane
-	input->GetBounds(bounds);
-	sliceActor->GetPlaneCenter(center);
-	sliceActor->GetPlaneNormal(normal);
-
-	// Find the minimum and maximum bounds
-	double min = bounds[0];
-	if (bounds[2] < min)	min = bounds[2];
-	if (bounds[4] < min)	min = bounds[4];
-
-	double max = bounds[1];
-	if (bounds[3] > max)	max = bounds[3];
-	if (bounds[5] > max)	max = bounds[5];
-
-	// The view direction depends on the axis
-	switch (axis)
+	void Crop3DPlugin::reset2DCamera(vtkRenderer * renderer, vtkImageSliceActor * sliceActor, int axis)
 	{
+		if (renderer == NULL || sliceActor == NULL || axis < 0 || axis > 2)
+			return;
+
+		// Get the image used to create the actor
+		vtkImageData * input = sliceActor->GetInput();
+
+		if (!input) 
+			return;
+
+		// Create a new parallel projection camera
+		vtkCamera * newCamera = vtkCamera::New();
+		newCamera->ParallelProjectionOn();
+
+		double bounds[6];
+		double center[3];
+		double normal[3];
+		double viewUp[3];
+
+		// Get the bounds of the input, and the center and normal of the plane
+		input->GetBounds(bounds);
+		sliceActor->GetPlaneCenter(center);
+		sliceActor->GetPlaneNormal(normal);
+
+		// Find the minimum and maximum bounds
+		double min = bounds[0];
+		if (bounds[2] < min)	min = bounds[2];
+		if (bounds[4] < min)	min = bounds[4];
+
+		double max = bounds[1];
+		if (bounds[3] > max)	max = bounds[3];
+		if (bounds[5] > max)	max = bounds[5];
+
+		// The view direction depends on the axis
+		switch (axis)
+		{
 		case 0:
 			viewUp[0] = 0.0;
 			viewUp[1] = 0.0;
@@ -980,485 +983,510 @@ void Crop3DPlugin::reset2DCamera(vtkRenderer * renderer, vtkImageSliceActor * sl
 			viewUp[1] = 1.0;
 			viewUp[2] = 0.0;
 			break;
-	}
+		}
 
-	// Get the user transformation matrix from the plane actor
-	vtkMatrix4x4 * m = sliceActor->GetUserMatrix();
+		// Get the user transformation matrix from the plane actor
+		vtkMatrix4x4 * m = sliceActor->GetUserMatrix();
 
-	// Check if the matrix exists
-	if (m)
-	{
-		// Transform the center of the plane (including translation)
-		double center4[4] = {center[0], center[1], center[2], 1.0};
-		m->MultiplyPoint(center4, center4);
-		center[0] = center4[0];
-		center[1] = center4[1];
-		center[2] = center4[2];
-
-		// Transform the plane normal (excluding translation)
-		double normal4[4] = {normal[0], normal[1], normal[2], 0.0};
-		m->MultiplyPoint(normal4, normal4);
-		normal[0] = normal4[0];
-		normal[1] = normal4[1];
-		normal[2] = normal4[2];
-
-		// Transform the view vector (excluding translation)
-		double viewUp4[4] = {viewUp[0], viewUp[1], viewUp[2], 0.0};
-		m->MultiplyPoint(viewUp4, viewUp4);
-		viewUp[0] = viewUp4[0];
-		viewUp[1] = viewUp4[1];
-		viewUp[2] = viewUp4[2];
-
-		// Transform the corner points of the images
-		double boundsMin[4] = {bounds[0], bounds[2], bounds[4], 0.0};
-		double boundsMax[4] = {bounds[1], bounds[3], bounds[5], 0.0};
-		m->MultiplyPoint(boundsMin, boundsMin);
-		m->MultiplyPoint(boundsMax, boundsMax);
-
-		// Recompute the minimum and maximum of the bounds
-		min = boundsMin[0];
-		if (boundsMin[1] < min)		min = boundsMin[1];
-		if (boundsMin[2] < min)		min = boundsMin[2];
-
-		max = boundsMax[0];
-		if (boundsMax[1] > max)		max = boundsMax[1];
-		if (boundsMax[2] > max)		max = boundsMax[2];
-	}
-
-	// Normalize the normal
-	if (vtkMath::Norm(normal) == 0.0)
-	{
-		this->core()->out()->showMessage("Plane normal has zero length!");
-		return;
-	}
-
-	vtkMath::Normalize(normal);
-
-	// Normalize the view vector
-	if (vtkMath::Norm(viewUp) == 0.0)
-	{
-		this->core()->out()->showMessage("Plane 'viewUp' vector has zero length!");
-		return;
-	}
-
-	vtkMath::Normalize(viewUp);
-
-	// Set the position of the camera. We start at the center of the plane, and move 
-	// along its normal to ensure head-on projection for rotated planes. The distance
-	// moved along the normal is equal to the image size along the selected axis, to
-	// ensure that the camera is placed outside of the volume.
-
-	newCamera->SetPosition(	center[0] - (bounds[1] - bounds[0]) * normal[0], 
-							center[1] - (bounds[3] - bounds[2]) * normal[1], 
-							center[2] - (bounds[5] - bounds[4]) * normal[2]);
-
-	// Set the view vector for the camera
-	newCamera->SetViewUp(viewUp);
-
-	// Set the center of the plane as the camera's focal point
-	newCamera->SetFocalPoint(center);
-	newCamera->SetParallelScale((max - min) / 2);
-
-	// Done, set the new camera
-	renderer->SetActiveCamera(newCamera);
-	newCamera->Delete();
-}
-
-
-//------------------------------[ setXSlice ]------------------------------\\
-
-void Crop3DPlugin::setXSlice(int x, bool updateData)
-{
-	// Set the slice position
-	this->actor->SetX(x);
-
-	// Get the input image of the slice
-	vtkImageData * input = this->actor->GetInput();
-		
-	if (input)
-	{
-		// Get the bounds and spacing of the input image
-		double bounds[6]; 
-		input->GetBounds(bounds);
-
-		double spacing[3]; 
-		input->GetSpacing(spacing);
-
-		// Limit the bounds of the X-dimensions to the slice location
-		bounds[0] = bounds[1] = this->actor->GetSliceActor(0)->GetSliceLocation();
-
-		// Compute the seed points in this plane
-		this->updateSeeds(this->seedsX, bounds, spacing);
-
-		// Tell the data manager that the seed points have changed
-		if (updateData)
-			this->core()->data()->dataSetChanged(this->seedDataSets[0]);
-	}
-
-	if (updateData)
-	{
-		// Tell the data manager that the slice actor has been modified
-		this->core()->data()->dataSetChanged(this->sliceActorDataSets[0]);
-		this->core()->render();
-	}
-}
-
-
-//------------------------------[ setYSlice ]------------------------------\\
-
-void Crop3DPlugin::setYSlice(int y, bool updateData)
-{
-	// Like "setXSlice"
-	this->actor->SetY(y);
-	vtkImageData * input = this->actor->GetInput();
-		
-	if (input)
-	{
-		double bounds[6]; 
-		input->GetBounds(bounds);
-		
-		double spacing[3]; 
-		input->GetSpacing(spacing);
-		
-		bounds[2] = bounds[3] = this->actor->GetSliceActor(1)->GetSliceLocation();
-		this->updateSeeds(this->seedsY, bounds, spacing);
-
-		if (updateData)
-			this->core()->data()->dataSetChanged(this->seedDataSets[1]);
-	} 
-
-	if (updateData)
-	{
-		this->core()->data()->dataSetChanged(this->sliceActorDataSets[1]);
-		this->core()->render();
-	}
-}
-
-
-//------------------------------[ setZSlice ]------------------------------\\
-
-void Crop3DPlugin::setZSlice(int z, bool updateData)
-{
-	// Like "setXSlice"
-	this->actor->SetZ(z);
-	vtkImageData * input = this->actor->GetInput();
-
-	if (input)
-	{
-		double bounds[6]; 
-		input->GetBounds(bounds);
-
-		double spacing[3]; 
-		input->GetSpacing(spacing);
-		
-		bounds[4] = bounds[5] = this->actor->GetSliceActor(2)->GetSliceLocation();
-		this->updateSeeds(this->seedsZ, bounds, spacing);
-	
-		if (updateData)
-			this->core()->data()->dataSetChanged(this->seedDataSets[2]);
-	}
-
-	if (updateData)
-	{
-		this->core()->data()->dataSetChanged(this->sliceActorDataSets[2]);
-		this->core()->render();
-	}
-}
-
-
-//-----------------------------[ setXVisible ]-----------------------------\\
-
-void Crop3DPlugin::setXVisible(bool v)
-{
-	// Hide or show the slice, and render the scene
-	this->actor->SetSliceVisible(0, v);
-	this->core()->render();
-}
-
-
-//-----------------------------[ setYVisible ]-----------------------------\\
-
-void Crop3DPlugin::setYVisible(bool v)
-{
-	this->actor->SetSliceVisible(1, v);
-	this->core()->render();
-}
-
-
-//-----------------------------[ setZVisible ]-----------------------------\\
-
-void Crop3DPlugin::setZVisible(bool v)
-{
-	this->actor->SetSliceVisible(2, v);
-	this->core()->render();
-}
-
-
-//---------------------------[ setInterpolation ]--------------------------\\
-
-void Crop3DPlugin::setInterpolation(bool i)
-{
-	// Turn interpolation on or off, and render the scene
-	this->actor->SetInterpolate(i ? 1 : 0);
-	this->core()->render();
-}
-
-
-//-----------------------------[ updateSeeds ]-----------------------------\\
-
-void Crop3DPlugin::updateSeeds(vtkPoints * points, double bounds[6], double steps[3])
-{
-	// Check the bounds
-	for (int i = 0; i < 3; ++i)
-	{
-		Q_ASSERT(bounds[2 * i] <= bounds[2 * i + 1]);
-		Q_ASSERT(steps[i] > 0.0);
-	}
-	// Reset the point set
-	points->Reset();
-
-	double x; 
-	double y; 
-	double z;
-
-	x = bounds[0];
-
-	// Add a seed point on every voxel
-	while (x <= bounds[1])
-	{
-		y = bounds[2];
-		
-		while (y <= bounds[3])
+		// Check if the matrix exists
+		if (m)
 		{
-			z = bounds[4];
-			
-			while (z <= bounds[5])
+			// Transform the center of the plane (including translation)
+			double center4[4] = {center[0], center[1], center[2], 1.0};
+			m->MultiplyPoint(center4, center4);
+			center[0] = center4[0];
+			center[1] = center4[1];
+			center[2] = center4[2];
+
+			// Transform the plane normal (excluding translation)
+			double normal4[4] = {normal[0], normal[1], normal[2], 0.0};
+			m->MultiplyPoint(normal4, normal4);
+			normal[0] = normal4[0];
+			normal[1] = normal4[1];
+			normal[2] = normal4[2];
+
+			// Transform the view vector (excluding translation)
+			double viewUp4[4] = {viewUp[0], viewUp[1], viewUp[2], 0.0};
+			m->MultiplyPoint(viewUp4, viewUp4);
+			viewUp[0] = viewUp4[0];
+			viewUp[1] = viewUp4[1];
+			viewUp[2] = viewUp4[2];
+
+			// Transform the corner points of the images
+			double boundsMin[4] = {bounds[0], bounds[2], bounds[4], 0.0};
+			double boundsMax[4] = {bounds[1], bounds[3], bounds[5], 0.0};
+			m->MultiplyPoint(boundsMin, boundsMin);
+			m->MultiplyPoint(boundsMax, boundsMax);
+
+			// Recompute the minimum and maximum of the bounds
+			min = boundsMin[0];
+			if (boundsMin[1] < min)		min = boundsMin[1];
+			if (boundsMin[2] < min)		min = boundsMin[2];
+
+			max = boundsMax[0];
+			if (boundsMax[1] > max)		max = boundsMax[1];
+			if (boundsMax[2] > max)		max = boundsMax[2];
+		}
+
+		// Normalize the normal
+		if (vtkMath::Norm(normal) == 0.0)
+		{
+			this->core()->out()->showMessage("Plane normal has zero length!");
+			return;
+		}
+
+		vtkMath::Normalize(normal);
+
+		// Normalize the view vector
+		if (vtkMath::Norm(viewUp) == 0.0)
+		{
+			this->core()->out()->showMessage("Plane 'viewUp' vector has zero length!");
+			return;
+		}
+
+		vtkMath::Normalize(viewUp);
+
+		// Set the position of the camera. We start at the center of the plane, and move 
+		// along its normal to ensure head-on projection for rotated planes. The distance
+		// moved along the normal is equal to the image size along the selected axis, to
+		// ensure that the camera is placed outside of the volume.
+
+		newCamera->SetPosition(	center[0] - (bounds[1] - bounds[0]) * normal[0], 
+			center[1] - (bounds[3] - bounds[2]) * normal[1], 
+			center[2] - (bounds[5] - bounds[4]) * normal[2]);
+
+		// Set the view vector for the camera
+		newCamera->SetViewUp(viewUp);
+
+		// Set the center of the plane as the camera's focal point
+		newCamera->SetFocalPoint(center);
+		newCamera->SetParallelScale((max - min) / 2);
+
+		// Done, set the new camera
+		renderer->SetActiveCamera(newCamera);
+		newCamera->Delete();
+	}
+
+
+	//------------------------------[ setXSlice ]------------------------------\\
+
+	void Crop3DPlugin::setXSlice(int x, bool updateData)
+	{
+		// Set the slice position
+		this->actor->SetX(x);
+
+		// Get the input image of the slice
+		vtkImageData * input = this->actor->GetInput();
+
+		if (input)
+		{
+			// Get the bounds and spacing of the input image
+			double bounds[6]; 
+			input->GetBounds(bounds);
+
+			double spacing[3]; 
+			input->GetSpacing(spacing);
+
+			// Limit the bounds of the X-dimensions to the slice location
+			bounds[0] = bounds[1] = this->actor->GetSliceActor(0)->GetSliceLocation();
+
+			// Compute the seed points in this plane
+			this->updateSeeds(this->seedsX, bounds, spacing);
+
+			// Tell the data manager that the seed points have changed
+			if (updateData)
+				this->core()->data()->dataSetChanged(this->seedDataSets[0]);
+		}
+
+		if (updateData)
+		{
+			// Tell the data manager that the slice actor has been modified
+			this->core()->data()->dataSetChanged(this->sliceActorDataSets[0]);
+			this->core()->render();
+		}
+	}
+
+
+	//------------------------------[ setYSlice ]------------------------------\\
+
+	void Crop3DPlugin::setYSlice(int y, bool updateData)
+	{
+		// Like "setXSlice"
+		this->actor->SetY(y);
+		vtkImageData * input = this->actor->GetInput();
+
+		if (input)
+		{
+			double bounds[6]; 
+			input->GetBounds(bounds);
+
+			double spacing[3]; 
+			input->GetSpacing(spacing);
+
+			bounds[2] = bounds[3] = this->actor->GetSliceActor(1)->GetSliceLocation();
+			this->updateSeeds(this->seedsY, bounds, spacing);
+
+			if (updateData)
+				this->core()->data()->dataSetChanged(this->seedDataSets[1]);
+		} 
+
+		if (updateData)
+		{
+			this->core()->data()->dataSetChanged(this->sliceActorDataSets[1]);
+			this->core()->render();
+		}
+	}
+
+
+	//------------------------------[ setZSlice ]------------------------------\\
+
+	void Crop3DPlugin::setZSlice(int z, bool updateData)
+	{
+		// Like "setXSlice"
+		this->actor->SetZ(z);
+		vtkImageData * input = this->actor->GetInput();
+
+		if (input)
+		{
+			double bounds[6]; 
+			input->GetBounds(bounds);
+
+			double spacing[3]; 
+			input->GetSpacing(spacing);
+
+			bounds[4] = bounds[5] = this->actor->GetSliceActor(2)->GetSliceLocation();
+			this->updateSeeds(this->seedsZ, bounds, spacing);
+
+			if (updateData)
+				this->core()->data()->dataSetChanged(this->seedDataSets[2]);
+		}
+
+		if (updateData)
+		{
+			this->core()->data()->dataSetChanged(this->sliceActorDataSets[2]);
+			this->core()->render();
+		}
+	}
+
+
+	//-----------------------------[ setXVisible ]-----------------------------\\
+
+	void Crop3DPlugin::setXVisible(bool v)
+	{
+		// Hide or show the slice, and render the scene
+		this->actor->SetSliceVisible(0, v);
+		this->core()->render();
+	}
+
+
+	//-----------------------------[ setYVisible ]-----------------------------\\
+
+	void Crop3DPlugin::setYVisible(bool v)
+	{
+		this->actor->SetSliceVisible(1, v);
+		this->core()->render();
+	}
+
+
+	//-----------------------------[ setZVisible ]-----------------------------\\
+
+	void Crop3DPlugin::setZVisible(bool v)
+	{
+		this->actor->SetSliceVisible(2, v);
+		this->core()->render();
+	}
+
+
+	//---------------------------[ setInterpolation ]--------------------------\\
+
+	void Crop3DPlugin::setInterpolation(bool i)
+	{
+		// Turn interpolation on or off, and render the scene
+		this->actor->SetInterpolate(i ? 1 : 0);
+		this->core()->render();
+	}
+
+
+	//-----------------------------[ updateSeeds ]-----------------------------\\
+
+	void Crop3DPlugin::updateSeeds(vtkPoints * points, double bounds[6], double steps[3])
+	{
+		// Check the bounds
+		for (int i = 0; i < 3; ++i)
+		{
+			Q_ASSERT(bounds[2 * i] <= bounds[2 * i + 1]);
+			Q_ASSERT(steps[i] > 0.0);
+		}
+		// Reset the point set
+		points->Reset();
+
+		double x; 
+		double y; 
+		double z;
+
+		x = bounds[0];
+
+		// Add a seed point on every voxel
+		while (x <= bounds[1])
+		{
+			y = bounds[2];
+
+			while (y <= bounds[3])
 			{
-				points->InsertNextPoint(x, y, z);
-				z += steps[2];
+				z = bounds[4];
+
+				while (z <= bounds[5])
+				{
+					points->InsertNextPoint(x, y, z);
+					z += steps[2];
+				}
+
+				y += steps[1];
 			}
 
-			y += steps[1];
+			x += steps[0];
 		}
-
-		x += steps[0];
 	}
-}
 
 
-//---------------------------[ applyLUTColoring ]--------------------------\\
+	//---------------------------[ applyLUTColoring ]--------------------------\\
 
-void Crop3DPlugin::applyLUTColoring()
-{
-	// First set the scalar volume, and then set the LUT
-	this->changeScalarVolume(this->ui->scalarVolumeCombo->currentIndex());
-	this->changeLUT(this->ui->lutCombo->currentIndex());
-
-	// Disable/enable GUI widgets
-	this->ui->scalarVolumeLabel->setEnabled(true);
-	this->ui->scalarVolumeCombo->setEnabled(true);
-	this->ui->lutLabel->setEnabled(true);
-	this->ui->lutCombo->setEnabled(true);
-
-	this->ui->dtiVolumeLabel->setEnabled(false);
-	this->ui->dtiVolumeCombo->setEnabled(false);
-	this->ui->dtiWeightLabel->setEnabled(false);
-	this->ui->dtiWeightCombo->setEnabled(false);
-}
-
-	
-//---------------------------[ applyRGBColoring ]--------------------------\\
-
-void Crop3DPlugin::applyRGBColoring()
-{
-	// First set the DTI volume, and then the weighting volume
-	this->changeDTIVolume(this->ui->dtiVolumeCombo->currentIndex());
-	this->changeWeightVolume(this->ui->dtiWeightCombo->currentIndex());
-
-	this->ui->scalarVolumeLabel->setEnabled(false);
-	this->ui->scalarVolumeCombo->setEnabled(false);
-	this->ui->lutLabel->setEnabled(false);
-	this->ui->lutCombo->setEnabled(false);
-
-	this->ui->dtiVolumeLabel->setEnabled(true);
-	this->ui->dtiVolumeCombo->setEnabled(true);
-	this->ui->dtiWeightLabel->setEnabled(true);
-	this->ui->dtiWeightCombo->setEnabled(true);
-}
-
-
-//-----------------------------[ getSubcanvas ]----------------------------\\
-
-vtkSubCanvas * Crop3DPlugin::getSubcanvas(int i)
-{
-	// Return the required 2D subcanvas
-	return this->fullCore()->canvas()->GetSubCanvas2D(i);
-}
-
-
-//-------------------------[ resetSubCanvasCamera ]------------------------\\
-
-void Crop3DPlugin::resetSubCanvasCamera(int i)
-{
-	// Get the renderer of the selected subcanvas
-	vtkRenderer * ren = this->fullCore()->canvas()->GetSubCanvas2D(i)->GetRenderer();
-
-	// Reset the camera for this renderer
-	this->reset2DCamera(ren, this->actor->GetSliceActor(i), i);
-
-	// Redraw the screen
-	this->fullCore()->render();
-}
-
-
-//-------------------------------[ Execute ]-------------------------------\\
-
-void Crop3DPluginCallback::Execute(vtkObject * caller, unsigned long event, void * callData)
-{
-	// Handle the event of selecting a new subcanvas
-	if (event == vtkCommand::UserEvent + BMIA_USER_EVENT_SUBCANVAS_CAMERA_RESET)
+	void Crop3DPlugin::applyLUTColoring()
 	{
-		// Index of selected 2D subcanvas, or "-1" if no subcanvas is selected
-		int selected2DCanvas = -1;
+		// First set the scalar volume, and then set the LUT
+		this->changeScalarVolume(this->ui->scalarVolumeCombo->currentIndex());
+		this->changeLUT(this->ui->lutCombo->currentIndex());
 
-		// Find the index of the selected subcanvas
-		if (this->plugin->getSubcanvas(0) == (vtkSubCanvas *) callData)
-			selected2DCanvas = 0;
-		else if (this->plugin->getSubcanvas(1) == (vtkSubCanvas *) callData)
-			selected2DCanvas = 1;
-		else if (this->plugin->getSubcanvas(2) == (vtkSubCanvas *) callData)
-			selected2DCanvas = 2;
+		// Disable/enable GUI widgets
+		this->ui->scalarVolumeLabel->setEnabled(true);
+		this->ui->scalarVolumeCombo->setEnabled(true);
+		this->ui->lutLabel->setEnabled(true);
+		this->ui->lutCombo->setEnabled(true);
 
-		// Reset the camera for the selected subcanvas
-		if (selected2DCanvas != -1)
+		this->ui->dtiVolumeLabel->setEnabled(false);
+		this->ui->dtiVolumeCombo->setEnabled(false);
+		this->ui->dtiWeightLabel->setEnabled(false);
+		this->ui->dtiWeightCombo->setEnabled(false);
+	}
+
+
+	//---------------------------[ applyRGBColoring ]--------------------------\\
+
+	void Crop3DPlugin::applyRGBColoring()
+	{
+		// First set the DTI volume, and then the weighting volume
+		this->changeDTIVolume(this->ui->dtiVolumeCombo->currentIndex());
+		this->changeWeightVolume(this->ui->dtiWeightCombo->currentIndex());
+
+		this->ui->scalarVolumeLabel->setEnabled(false);
+		this->ui->scalarVolumeCombo->setEnabled(false);
+		this->ui->lutLabel->setEnabled(false);
+		this->ui->lutCombo->setEnabled(false);
+
+		this->ui->dtiVolumeLabel->setEnabled(true);
+		this->ui->dtiVolumeCombo->setEnabled(true);
+		this->ui->dtiWeightLabel->setEnabled(true);
+		this->ui->dtiWeightCombo->setEnabled(true);
+	}
+
+
+	//-----------------------------[ getSubcanvas ]----------------------------\\
+
+	vtkSubCanvas * Crop3DPlugin::getSubcanvas(int i)
+	{
+		// Return the required 2D subcanvas
+		return this->fullCore()->canvas()->GetSubCanvas2D(i);
+	}
+
+
+	//-------------------------[ resetSubCanvasCamera ]------------------------\\
+
+	void Crop3DPlugin::resetSubCanvasCamera(int i)
+	{
+		// Get the renderer of the selected subcanvas
+		vtkRenderer * ren = this->fullCore()->canvas()->GetSubCanvas2D(i)->GetRenderer();
+
+		// Reset the camera for this renderer
+		this->reset2DCamera(ren, this->actor->GetSliceActor(i), i);
+
+		// Redraw the screen
+		this->fullCore()->render();
+	}
+
+
+	//-------------------------------[ Execute ]-------------------------------\\
+
+	void Crop3DPluginCallback::Execute(vtkObject * caller, unsigned long event, void * callData)
+	{
+		// Handle the event of selecting a new subcanvas
+		if (event == vtkCommand::UserEvent + BMIA_USER_EVENT_SUBCANVAS_CAMERA_RESET)
 		{
-			this->plugin->resetSubCanvasCamera(selected2DCanvas);
+			// Index of selected 2D subcanvas, or "-1" if no subcanvas is selected
+			int selected2DCanvas = -1;
 
-			// Turn on the abort flag to show that we've handled this event
-			this->AbortFlagOn();
+			// Find the index of the selected subcanvas
+			if (this->plugin->getSubcanvas(0) == (vtkSubCanvas *) callData)
+				selected2DCanvas = 0;
+			else if (this->plugin->getSubcanvas(1) == (vtkSubCanvas *) callData)
+				selected2DCanvas = 1;
+			else if (this->plugin->getSubcanvas(2) == (vtkSubCanvas *) callData)
+				selected2DCanvas = 2;
+
+			// Reset the camera for the selected subcanvas
+			if (selected2DCanvas != -1)
+			{
+				this->plugin->resetSubCanvasCamera(selected2DCanvas);
+
+				// Turn on the abort flag to show that we've handled this event
+				this->AbortFlagOn();
+			}
 		}
 	}
-}
 
-// Set Slider limits to data dimensions
-void Crop3DPlugin::set3DROISliderLimits()
-{
-			 //sliders
-			this->ui->horizontalSliderX0->setMinimum(this->actor->GetXMin());
-			this->ui->horizontalSliderX0->setMaximum(this->actor->GetXMax());
-			this->ui->horizontalSliderY0->setMinimum(this->actor->GetYMin());
-			this->ui->horizontalSliderY0->setMaximum(this->actor->GetYMax());
-			this->ui->horizontalSliderZ0->setMinimum(this->actor->GetZMin());
-			this->ui->horizontalSliderZ0->setMaximum(this->actor->GetZMax());
-
-			 this->ui->horizontalSliderX1->setMinimum(this->actor->GetXMin());
-			this->ui->horizontalSliderX1->setMaximum(this->actor->GetXMax());
-			this->ui->horizontalSliderY1->setMinimum(this->actor->GetYMin());
-			this->ui->horizontalSliderY1->setMaximum(this->actor->GetYMax());
-			this->ui->horizontalSliderZ1->setMinimum(this->actor->GetZMin());
-			this->ui->horizontalSliderZ1->setMaximum(this->actor->GetZMax());
-
-			// spins
-			this->ui->x0ROIPositionSpin->setMinimum(this->actor->GetXMin());
-			this->ui->x0ROIPositionSpin->setMaximum(this->actor->GetXMax());
-
-			this->ui->x1ROIPositionSpin->setMinimum(this->actor->GetXMin());
-			this->ui->x1ROIPositionSpin->setMaximum(this->actor->GetXMax());
-
-			this->ui->y0ROIPositionSpin->setMinimum(this->actor->GetYMin());
-			this->ui->y0ROIPositionSpin->setMaximum(this->actor->GetYMax());
-			
-			this->ui->y1ROIPositionSpin->setMinimum(this->actor->GetYMin());
-			this->ui->y1ROIPositionSpin->setMaximum(this->actor->GetYMax());
-
-			this->ui->z0ROIPositionSpin->setMinimum(this->actor->GetZMin());
-			this->ui->z0ROIPositionSpin->setMaximum(this->actor->GetZMax());
-			
-			this->ui->z1ROIPositionSpin->setMinimum(this->actor->GetZMin());
-			this->ui->z1ROIPositionSpin->setMaximum(this->actor->GetZMax());
-}
-
-// Get ROI Boundaries Set by the user
-void Crop3DPlugin::get3DROIBoundaries(int *bnd)
-{ 
-			 
-			bnd[0] = this->ui->horizontalSliderX0->value(); // * spacing
-			bnd[1] = this->ui->horizontalSliderX1->value(); 
-			bnd[2] = this->ui->horizontalSliderY0->value();
-		    bnd[3] = this->ui->horizontalSliderY1->value();
-			bnd[4] = this->ui->horizontalSliderZ0->value();
-	        bnd[5] = this->ui->horizontalSliderZ1->value();
-}
-
-void Crop3DPlugin::cropData()
-{
-	// Get the data sets of the DTI eigensystem image and the weighting image
-	//data::DataSet * dtiDS = this->dtiDataSets.at(this->ui->dtiVolumeCombo->currentIndex());
-	data::DataSet *weightDS = this->scalarVolumeDataSets.at(this->ui->dtiWeightCombo->currentIndex() - 1);
-	cout << "cropData" << endl;
-	if (weightDS == NULL)
-		return ;
-	this->roiBox = vtkBoxWidget2::New();	
-	this->roiBox->SetInteractor(this->fullCore()->canvas()->GetSubCanvas3D()->GetInteractor());
-	this->roiBox->RotationEnabledOff();
-	this->roiBox->ScalingEnabledOff();
-	this->roiBox->TranslationEnabledOff();
-	//this->roiBox->SetHandleSize(0.01);
-	// this->roiBox->SetPlaceFactor(0.3);
-	 //this->roiBox->SetProp3D(this->actor);
-	 //this->roiBox->PlaceWidget(;
-	this->roiBox->SetCurrentRenderer(this->fullCore()->canvas()->GetSubCanvas3D()->GetRenderer());
-	//m_pThreeDROI->SetTransform(m_pTransfrom);
-	this->roiBox->On();
-
-	
-	this->crop3DDataSet(weightDS);
-	//vtkImageData * dtiImage = dtiDS->getVtkImageData();
-	//vtkImageData * weightImage = weightDS->getVtkImageData();
-	// check the combo box indexes, understand which one is shown cut it by crop3DDataSet
-
-
-
-}
-
-void Crop3DPlugin::crop3DDataSet(data::DataSet * ds)
-{
-	qDebug() << "crop3DDataSet "<< ds->getKind() << endl;
-	// Scalar volume
-	if (ds->getKind() == "scalar volume" ) // DTI ??
+	// Set Slider limits to data dimensions
+	void Crop3DPlugin::set3DROISliderLimits()
 	{
-			vtkImageData * image   = ds->getVtkImageData();
+		//sliders
+		this->ui->horizontalSliderX0->setMinimum(this->actor->GetXMin());
+		this->ui->horizontalSliderX0->setMaximum(this->actor->GetXMax());
+		this->ui->horizontalSliderY0->setMinimum(this->actor->GetYMin());
+		this->ui->horizontalSliderY0->setMaximum(this->actor->GetYMax());
+		this->ui->horizontalSliderZ0->setMinimum(this->actor->GetZMin());
+		this->ui->horizontalSliderZ0->setMaximum(this->actor->GetZMax());
+
+		this->ui->horizontalSliderX1->setMinimum(this->actor->GetXMin());
+		this->ui->horizontalSliderX1->setMaximum(this->actor->GetXMax());
+		this->ui->horizontalSliderY1->setMinimum(this->actor->GetYMin());
+		this->ui->horizontalSliderY1->setMaximum(this->actor->GetYMax());
+		this->ui->horizontalSliderZ1->setMinimum(this->actor->GetZMin());
+		this->ui->horizontalSliderZ1->setMaximum(this->actor->GetZMax());
+
+		// spins
+		this->ui->x0ROIPositionSpin->setMinimum(this->actor->GetXMin());
+		this->ui->x0ROIPositionSpin->setMaximum(this->actor->GetXMax());
+
+		this->ui->x1ROIPositionSpin->setMinimum(this->actor->GetXMin());
+		this->ui->x1ROIPositionSpin->setMaximum(this->actor->GetXMax());
+
+		this->ui->y0ROIPositionSpin->setMinimum(this->actor->GetYMin());
+		this->ui->y0ROIPositionSpin->setMaximum(this->actor->GetYMax());
+
+		this->ui->y1ROIPositionSpin->setMinimum(this->actor->GetYMin());
+		this->ui->y1ROIPositionSpin->setMaximum(this->actor->GetYMax());
+
+		this->ui->z0ROIPositionSpin->setMinimum(this->actor->GetZMin());
+		this->ui->z0ROIPositionSpin->setMaximum(this->actor->GetZMax());
+
+		this->ui->z1ROIPositionSpin->setMinimum(this->actor->GetZMin());
+		this->ui->z1ROIPositionSpin->setMaximum(this->actor->GetZMax());
+	}
+
+	// Get ROI Boundaries Set by the user
+	void Crop3DPlugin::get3DROIBoundaries(int *bnd)
+	{ 
+
+		bnd[0] = this->ui->horizontalSliderX0->value(); // * spacing
+		bnd[1] = this->ui->horizontalSliderX1->value(); 
+		bnd[2] = this->ui->horizontalSliderY0->value();
+		bnd[3] = this->ui->horizontalSliderY1->value();
+		bnd[4] = this->ui->horizontalSliderZ0->value();
+		bnd[5] = this->ui->horizontalSliderZ1->value();
+	}
+
+	void Crop3DPlugin::cropData()
+	{
+		// Get the data sets of the DTI eigensystem image and the weighting image
+		//data::DataSet * dtiDS = this->dtiDataSets.at(this->ui->dtiVolumeCombo->currentIndex());
+		data::DataSet *weightDS = this->scalarVolumeDataSets.at(this->ui->dtiWeightCombo->currentIndex() - 1);
+		cout << "cropData" << endl;
+		if (weightDS == NULL)
+			return ;
+
+		//vtkSmartPointer<vtkBoxRepresentation> boxRep =
+		//122     vtkSmartPointer<vtkBoxRepresentation>::New();
+		//123   boxRep->SetPlaceFactor( 1.25 );
+		//124   boxRep->PlaceWidget(tf->GetOutput()->GetBounds());
+
+
+		this->roiBox = vtkBoxWidget2::New();	
+		this->roiBox->SetInteractor(this->fullCore()->canvas()->GetSubCanvas3D()->GetInteractor());
+		this->roiBox->RotationEnabledOff();
+		this->roiBox->ScalingEnabledOff();
+		this->roiBox->TranslationEnabledOff();
+
+
+		//this->roiBox->SetHandleSize(0.01);
+		// this->roiBox->SetPlaceFactor(0.3);
+		//this->roiBox->SetProp3D(this->actor);
+		//this->roiBox->PlaceWidget(;
+		this->roiBox->SetCurrentRenderer(this->fullCore()->canvas()->GetSubCanvas3D()->GetRenderer());
+		//m_pThreeDROI->SetTransform(m_pTransfrom);
+		this->roiBox->On();
+
+
+		this->crop3DDataSet(weightDS);
+		//vtkImageData * dtiImage = dtiDS->getVtkImageData();
+		//vtkImageData * weightImage = weightDS->getVtkImageData();
+		// check the combo box indexes, understand which one is shown cut it by crop3DDataSet
+
+
+
+	}
+
+	void Crop3DPlugin::crop3DDataSet(data::DataSet * ds)
+	{
+		qDebug() << "crop3DDataSet "<< ds->getKind() << endl;
+		vtkImageData * image ; 
+		// Scalar volume
+		if (ds->getKind() == "scalar volume" ) // DTI ??
+		{
+			image   = ds->getVtkImageData();
 			if(!image) return;
-			int* inputDims = image->GetDimensions();
-			std::cout << "Dims input: " << " x: " << inputDims[0]
-					<< " y: " << inputDims[1]
-					<< " z: " << inputDims[2] << std::endl;
-			//std::cout << "Number of points: " << image->GetNumberOfPoints() << std::endl;
-			//std::cout << "Number of cells: " << image->GetOutput()->GetNumberOfCells() << std::endl;
- 
-			 vtkExtractVOI *extractVOI = vtkExtractVOI::New();
-			 extractVOI->SetInputConnection(image->GetProducerPort());
-			 int bnd[6];
-			 this->get3DROIBoundaries(bnd);
-			extractVOI->SetVOI(bnd[0],bnd[1],bnd[2],bnd[3],bnd[4],bnd[5]);
-			extractVOI->Update();
- 
-			vtkImageData* extracted = extractVOI->GetOutput();
- 
-			int* extractedDims = extracted->GetDimensions();
-			std::cout << "Dims extracted: " << " x: " << extractedDims[0]
-					<< " y: " << extractedDims[1]
-					<< " z: " << extractedDims[2] << std::endl;
-			//std::cout << "Number of points: " << extracted->GetNumberOfPoints() << std::endl;
-			//std::cout << "Number of cells: " << extracted->GetNumberOfCells() << std::endl;  
+		}
+		else 
+		{
+
+			//this->core->out()->
+		}
+
+		int* inputDims = image->GetDimensions();
+		std::cout << "Dims input: " << " x: " << inputDims[0]
+		<< " y: " << inputDims[1]
+		<< " z: " << inputDims[2] << std::endl;
+		//std::cout << "Number of points: " << image->GetNumberOfPoints() << std::endl;
+		//std::cout << "Number of cells: " << image->GetOutput()->GetNumberOfCells() << std::endl;
+
+		vtkExtractVOI *extractVOI = vtkExtractVOI::New();
+		extractVOI->SetInputConnection(image->GetProducerPort());
+		int bnd[6];
+		this->get3DROIBoundaries(bnd);
+		extractVOI->SetVOI(bnd[0],bnd[1],bnd[2],bnd[3],bnd[4],bnd[5]);
+		extractVOI->Update();
+
+		vtkImageData* extracted = extractVOI->GetOutput();
+
+		int* extractedDims = extracted->GetDimensions();
+		std::cout << "Dims extracted: " << " x: " << extractedDims[0]
+		<< " y: " << extractedDims[1]
+		<< " z: " << extractedDims[2] << std::endl;
+		//std::cout << "Number of points: " << extracted->GetNumberOfPoints() << std::endl;
+		//std::cout << "Number of cells: " << extracted->GetNumberOfCells() << std::endl;  
+		vtkObject *obj = vtkObject::SafeDownCast(extracted);
+		QString croppedDataName= "Cropped-" + ds->getName();
+		if (obj)
+		{
+			data::DataSet *croppedDS = new data::DataSet( croppedDataName, ds->getKind(),obj);
+			//this->dataSetAdded(croppedDS);
+			vtkObject * obj;
+			if ((ds->getAttributes()->getAttribute("transformation matrix", obj)))
+				croppedDS->getAttributes()->addAttribute("transformation matrix", obj);
+			this->core()->data()->addDataSet(croppedDS); // to only this plugin or to all ?
+			this->core()->data()->dataSetChanged(croppedDS); // usefull?
+			this->core()->render(); // usefull?
+		}
 
 	}
-	else 
-	{
-		//this->core->out()->
-	}
 
-}
 } // namespace bmia
 
 
