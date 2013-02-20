@@ -285,6 +285,7 @@ namespace bmia {
 
 	void Crop3DPlugin::dataSetAdded(data::DataSet * ds)
 	{
+		cout << "Crop3DPlugin dataSetAdded " << ds->getName().toStdString() << " " << ds->getName().toStdString() << endl;
 		// Scalar volume
 		if (ds->getKind() == "scalar volume")
 		{
@@ -332,9 +333,37 @@ namespace bmia {
 			this->connectControls(true);
 		} 
 
-		// Eigensystem Data
+		
+		//else if (ds->getKind() == "DTI")
+		//{
+		//	 
+		//	this->connectControls(false);
+
+		//	// Add the eigensystem (DTI) data set to the list
+		//	this->dtiDataSets.append(ds);
+
+		//	// Enable the radio button for RGB coloring
+		//	this->ui->dtiRadio->setEnabled(true);
+
+		//	// Add the data set to the combo box
+		//	this->ui->dtiVolumeCombo->addItem(ds->getName());
+
+		//	// If this is the first DTI set, we switch to RGB coloring
+		//	if (this->ui->dtiVolumeCombo->count() == 1)
+		//	{
+		//		this->ui->dtiRadio->setChecked(true);
+		//		this->applyRGBColoring();
+
+		//		// Reset the camera of the 3D volume
+		//		this->fullCore()->canvas()->GetRenderer3D()->ResetCamera();
+		//	}
+
+		//	this->connectControls(true);
+		//}
+
 		else if (ds->getKind() == "eigen")
 		{
+			 
 			this->connectControls(false);
 
 			// Add the eigensystem (DTI) data set to the list
@@ -368,7 +397,7 @@ namespace bmia {
 		// General behavior: For each of the input data types, it updates the name in
 		// the GUI combo boxes, and if the data set is selected in one of these combo
 		// boxes, it also calls the corresponding update function ("changeX").
-
+		cout << "dataSetChanged" << ds->getName().toStdString() << endl;
 		// Scalar Volumes
 		if(ds->getKind() == "scalar volume" && this->scalarVolumeDataSets.contains(ds))
 		{
@@ -508,7 +537,7 @@ namespace bmia {
 	void Crop3DPlugin::changeScalarVolume(int index)
 	{
 
-		cout << "changeScalarVolume \n"; 
+		cout << "changeScalarVolume index" << index << endl ; 
 		// Only do this is we're currently scowing a scalar volume
 		if (!(this->ui->scalarVolumeRadio->isChecked()))
 			return;
@@ -516,6 +545,7 @@ namespace bmia {
 		// If the index is out of range, simply hide the actor
 		if (index < 0 || index >= this->scalarVolumeDataSets.size())
 		{
+			cout << "index is out of range";
 			this->actor->VisibilityOff();
 			this->actor->SetInput(NULL);
 			this->core()->render();
@@ -544,6 +574,9 @@ namespace bmia {
 			this->core()->data()->dataSetChanged(ds);
 		}
 
+		//this->actor->SetInput(NULL); // test 1
+		//this->actor->UpdateInput(); // test 1.5
+		//this->core()->render(); // tes 2
 		// Use the image as the input for the actor
 		this->actor->SetInput(ds->getVtkImageData());
 
@@ -559,6 +592,7 @@ namespace bmia {
 		this->actor->UpdateInput();
 		this->core()->enableRendering();
 		this->core()->render();
+		cout << "changeScalarVolume end index" << index << endl ; 
 	}
 
 
@@ -629,6 +663,7 @@ namespace bmia {
 
 	void Crop3DPlugin::changeDTIVolume(int index)
 	{
+		cout << "change DTI Volume end index" << index << endl ; 
 		// Do nothing if we're not using RGB coloring
 		if (!this->ui->dtiRadio->isChecked()) 
 			return;
@@ -699,6 +734,7 @@ namespace bmia {
 
 	void Crop3DPlugin::changeWeightVolume(int index)
 	{
+		cout << "changeWeightVolume  index" << index << endl ; 
 		// Do nothing if we're not using RGB coloring
 		if (!this->ui->dtiRadio->isChecked()) 
 			return;
@@ -877,6 +913,8 @@ namespace bmia {
 		this->core()->data()->dataSetChanged(this->seedDataSets[0]);
 		this->core()->data()->dataSetChanged(this->seedDataSets[1]);
 		this->core()->data()->dataSetChanged(this->seedDataSets[2]);
+
+		cout << "configureNewImage end" << endl;
 	}
 
 
@@ -1394,14 +1432,29 @@ namespace bmia {
 	}
 
 	void Crop3DPlugin::cropData()
-	{
-		// Get the data sets of the DTI eigensystem image and the weighting image
-		//data::DataSet * dtiDS = this->dtiDataSets.at(this->ui->dtiVolumeCombo->currentIndex());
-		data::DataSet *weightDS = this->scalarVolumeDataSets.at(this->ui->dtiWeightCombo->currentIndex() - 1);
+	{ 
 		cout << "cropData" << endl;
-		if (weightDS == NULL)
-			return ;
 
+		for (int i=0; i< this->scalarVolumeDataSets.size();i++)
+			qDebug() << i << " " << this->scalarVolumeDataSets.at(i)->getName() << " " << this->scalarVolumeDataSets.at(i)->getKind() << endl;
+
+		for ( int i=0; i< this->dtiDataSets.size();i++)
+			qDebug() << i << " " << this->dtiDataSets.at(i)->getName() << " " << this->dtiDataSets.at(i)->getKind() << endl;
+
+
+		data::DataSet * dataDS;
+		
+	    if (this->ui->dtiRadio->isChecked())
+		dataDS = this->dtiDataSets.at(this->ui->dtiVolumeCombo->currentIndex());
+		else 
+		dataDS = this->scalarVolumeDataSets.at(this->ui->scalarVolumeCombo->currentIndex());
+	
+		// Get the data sets of the DTI eigensystem image and the weighting image
+		//	data::DataSet * dtiDS = this->dtiDataSets.at(this->ui->dtiVolumeCombo->currentIndex());
+		//data::DataSet * weightDS = this->scalarVolumeDataSets.at(this->ui->dtiWeightCombo->currentIndex() - 1);
+		if(dataDS == NULL)
+			qDebug() << "dataDS == NULL" << endl;
+		
 		//vtkSmartPointer<vtkBoxRepresentation> boxRep =
 		//122     vtkSmartPointer<vtkBoxRepresentation>::New();
 		//123   boxRep->SetPlaceFactor( 1.25 );
@@ -1424,7 +1477,8 @@ namespace bmia {
 		this->roiBox->On();
 
 
-		this->crop3DDataSet(weightDS);
+		//this->crop3DDataSet(weightDS);
+		this->crop3DDataSet(dataDS);
 		//vtkImageData * dtiImage = dtiDS->getVtkImageData();
 		//vtkImageData * weightImage = weightDS->getVtkImageData();
 		// check the combo box indexes, understand which one is shown cut it by crop3DDataSet
@@ -1435,24 +1489,48 @@ namespace bmia {
 
 	void Crop3DPlugin::crop3DDataSet(data::DataSet * ds)
 	{
-		qDebug() << "crop3DDataSet "<< ds->getKind() << endl;
+		qDebug() << "crop3DDataSet "<< ds->getKind() << ds->getName() << endl;
 		vtkImageData * image ; 
 		// Scalar volume
-		if (ds->getKind() == "scalar volume" ) // DTI ??
+		if ((ds->getKind() == "scalar volume" ) || (ds->getKind() == "eigen") || (ds->getKind() == "DTI") ) // DTI ??
 		{
 			image   = ds->getVtkImageData();
-			if(!image) return;
+			if(!image) 	
+				{
+					qDebug() << "Not imagedata " << endl; 
+				return; }
 		}
 		else 
 		{
-
+			qDebug() << "Neither of the datasets " << endl;
+			return;
 			//this->core->out()->
 		}
 
 		int* inputDims = image->GetDimensions();
-		std::cout << "Dims input: " << " x: " << inputDims[0]
+	/*	std::cout << "Dims input: " << " x: " << inputDims[0]
 		<< " y: " << inputDims[1]
 		<< " z: " << inputDims[2] << std::endl;
+		*/
+		double* inputOrig = image->GetOrigin();
+		/*	std::cout << "Dims input origin: " << " x: " << inputOrig[0]
+		<< " y: " << inputOrig[1]
+		<< " z: " << inputOrig[2] << std::endl;
+		*/
+		int* inputExtent = image->GetExtent();
+	/*	std::cout << "Extends input: " << " x0: " << inputExtent[0]
+		<< " x1: " << inputExtent[1]
+		<< " y0: " << inputExtent[2]
+		<<  " y1: "    << inputExtent[3]
+		<< " z0: " << inputExtent[4]
+		<< " z1: " << inputExtent[5]
+		<< std::endl;
+		*/
+		double* inputSpacing = image->GetSpacing();
+	/*	std::cout << "Spacing input: " << " x: " << inputSpacing[0]
+		<< " y: " << inputSpacing[1]
+		<< " z: " << inputSpacing[2] << std::endl;
+		*/
 		//std::cout << "Number of points: " << image->GetNumberOfPoints() << std::endl;
 		//std::cout << "Number of cells: " << image->GetOutput()->GetNumberOfCells() << std::endl;
 
@@ -1461,28 +1539,60 @@ namespace bmia {
 		int bnd[6];
 		this->get3DROIBoundaries(bnd);
 		extractVOI->SetVOI(bnd[0],bnd[1],bnd[2],bnd[3],bnd[4],bnd[5]);
+ 
+		
 		extractVOI->Update();
-
 		vtkImageData* extracted = extractVOI->GetOutput();
+		//extracted->SetOrigin(bnd[0]+inputDims[0]*inputSpacing[0]/2.0, bnd[2]+inputDims[1]*inputSpacing[1]/2.0,bnd[4]+inputDims[2]*inputSpacing[2]/2.0  );
+	   
+		extracted->Update();
 
 		int* extractedDims = extracted->GetDimensions();
 		std::cout << "Dims extracted: " << " x: " << extractedDims[0]
 		<< " y: " << extractedDims[1]
 		<< " z: " << extractedDims[2] << std::endl;
+
+		 
+
+		double* ExtrOrig = extracted->GetOrigin();
+			std::cout << "Origin extracted origin: " << " x: " << ExtrOrig[0]
+		<< " y: " << ExtrOrig[1]
+		<< " z: " << ExtrOrig[2] << std::endl;
+
+		int* extractedExtent = extracted->GetExtent();
+		std::cout << "Extends extracted: " << " x0: " << extractedExtent[0]
+		<< " x1: " << extractedExtent[1]
+		<< " y0: " << extractedExtent[2]
+		<<  " y1: "    << extractedExtent[3]
+		<< " z0: " << extractedExtent[4]
+		<< " z1: " << extractedExtent[5]
+		<< std::endl;
+		
+		double* extractedSpacing = extracted->GetSpacing();
+		std::cout << "Spacing extracted: " << " x: " << extractedSpacing[0]
+		<< " y: " << extractedSpacing[1]
+		<< " z: " << extractedSpacing[2] << std::endl;
 		//std::cout << "Number of points: " << extracted->GetNumberOfPoints() << std::endl;
 		//std::cout << "Number of cells: " << extracted->GetNumberOfCells() << std::endl;  
 		vtkObject *obj = vtkObject::SafeDownCast(extracted);
+		
 		QString croppedDataName= "Cropped-" + ds->getName();
 		if (obj)
 		{
 			data::DataSet *croppedDS = new data::DataSet( croppedDataName, ds->getKind(),obj);
 			//this->dataSetAdded(croppedDS);
-			vtkObject * obj;
-			if ((ds->getAttributes()->getAttribute("transformation matrix", obj)))
-				croppedDS->getAttributes()->addAttribute("transformation matrix", obj);
+			vtkObject * objMatrix;
+			if ((ds->getAttributes()->getAttribute("transformation matrix", objMatrix)))
+				objMatrix->Print(cout);
+
+				croppedDS->getAttributes()->addAttribute("transformation matrix", objMatrix);
 			this->core()->data()->addDataSet(croppedDS); // to only this plugin or to all ?
-			this->core()->data()->dataSetChanged(croppedDS); // usefull?
+			//this->core()->data()->dataSetChanged(croppedDS); // usefull?
 			this->core()->render(); // usefull?
+		}
+		else
+		{
+			cout << "casting problem \n";
 		}
 
 	}
