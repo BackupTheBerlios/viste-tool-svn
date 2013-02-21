@@ -384,9 +384,36 @@ namespace bmia {
 				// Reset the camera of the 3D volume
 				this->fullCore()->canvas()->GetRenderer3D()->ResetCamera();
 			}
-
+			
 			this->connectControls(true);
 		}
+
+		//else if (ds->getKind() == "DTI")
+		//{
+		//	 
+		//	this->connectControls(false);
+
+		//	// Add the eigensystem (DTI) data set to the list
+		//	this->dtiDataSets.append(ds);
+
+		//	// Enable the radio button for RGB coloring
+		//	this->ui->dtiRadio->setEnabled(true);
+
+		//	// Add the data set to the combo box
+		//	this->ui->dtiVolumeCombo->addItem(ds->getName());
+
+		//	// If this is the first DTI set, we switch to RGB coloring
+		//	if (this->ui->dtiVolumeCombo->count() == 1)
+		//	{
+		//		this->ui->dtiRadio->setChecked(true);
+		//		this->applyRGBColoring();
+
+		//		// Reset the camera of the 3D volume
+		//		this->fullCore()->canvas()->GetRenderer3D()->ResetCamera();
+		//	}
+
+		//	this->connectControls(true);
+		//}
 	}
 
 
@@ -1445,7 +1472,7 @@ namespace bmia {
 		data::DataSet * dataDS;
 		
 	    if (this->ui->dtiRadio->isChecked())
-		dataDS = this->dtiDataSets.at(this->ui->dtiVolumeCombo->currentIndex());
+			dataDS = this->core()->data()->getDataSet(this->ui->dtiVolumeCombo->currentText(),"DTI"); //this->dtiDataSets.at(this->ui->dtiVolumeCombo->currentIndex());
 		else 
 		dataDS = this->scalarVolumeDataSets.at(this->ui->scalarVolumeCombo->currentIndex());
 	
@@ -1575,19 +1602,26 @@ namespace bmia {
 		//std::cout << "Number of points: " << extracted->GetNumberOfPoints() << std::endl;
 		//std::cout << "Number of cells: " << extracted->GetNumberOfCells() << std::endl;  
 		vtkObject *obj = vtkObject::SafeDownCast(extracted);
-		
+		cout << "casted " << endl; 
 		QString croppedDataName= "Cropped-" + ds->getName();
 		if (obj)
 		{
+			cout << "obj ok " << endl; 
 			data::DataSet *croppedDS = new data::DataSet( croppedDataName, ds->getKind(),obj);
 			//this->dataSetAdded(croppedDS);
+			cout << "cropped ok " << endl; 
 			vtkObject * objMatrix;
 			if ((ds->getAttributes()->getAttribute("transformation matrix", objMatrix)))
-				objMatrix->Print(cout);
 
+			{
+				objMatrix->Print(cout);
+				cout << "adding matrix " << endl; 
 				croppedDS->getAttributes()->addAttribute("transformation matrix", objMatrix);
-			this->core()->data()->addDataSet(croppedDS); // to only this plugin or to all ?
+				cout << "add to data set " << endl; 
+			}
+				this->core()->data()->addDataSet(croppedDS); // to only this plugin or to all ?
 			//this->core()->data()->dataSetChanged(croppedDS); // usefull?
+			cout << "render " << endl; 
 			this->core()->render(); // usefull?
 		}
 		else
