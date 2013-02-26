@@ -53,6 +53,12 @@
 #include "data/Attributes.h"
 #include "data/Consumer.h"
 
+//some data saved with a transformation matrix
+#include "Helpers/TransformationMatrixIO.h"
+
+//#include "NIfTI/nifti1.h"
+//#include "NIfTI/nifti1_io.h"
+
 /** Includes - Qt */
 
 #include <QDialog>
@@ -128,8 +134,17 @@ class SaveDialog : public QDialog, public data::Consumer
 
 		void saveSelectedItem();
 
-		/** Sets the clicked item of the data list */
+		/** Sets the clicked item of the data list 
+		@param treeWidget			Widget Item.  
+		@param index			Item Index. 
+		*/
 		void setClickedItem(QTreeWidgetItem*,int index);
+
+		/** Saves the transfer matrix of the selected data set which is actually the active component of the treewidget. If file name has an extention, it is changed to ".tfm".
+		@param saveFileName		fileName.   
+		@param ds		the DataSet.   
+		*/
+		void saveTransferMatrix(const QString saveFileName, data::DataSet * ds );
 
 	private:
 	
@@ -173,6 +188,8 @@ class SaveDialog : public QDialog, public data::Consumer
 			@param itemText		Text for the subitem. */
 
 		void addSubItem(QTreeWidgetItem * parentItem, QString itemText);
+
+//			void setNiftiFields(vtkImageData * image );
 
 }; // class SaveDialog
 

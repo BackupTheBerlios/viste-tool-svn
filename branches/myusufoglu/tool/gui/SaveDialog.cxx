@@ -38,7 +38,8 @@
 * SaveDialog.cxx
 *
 * 2013-02-08 Mehmet Yusufoglu	
-* Created for saving the data, a similar class of DataDialog.
+* Created for saving the data, a similar class of DataDialog. saveSelectedItem function 
+* is the main function. 
 * 
 */
 
@@ -446,7 +447,7 @@ namespace bmia {
 		void SaveDialog::saveSelectedItem()
 		{
 
-
+			bool isFiber(false);
 			//Get the selected item and save, if it is a child item return.
 			qDebug() << "Save selected item current row() index:"<< this->treeWidget->currentIndex().row() << endl;
 			foreach( QTreeWidgetItem *item, this->treeWidget->selectedItems() ) {
@@ -455,35 +456,52 @@ namespace bmia {
 					//qDebug() << "Item Text [" << col << "]: " << item->text( col ) << " Type:" << item->type() ;
 					if(item->childCount() ==0)   {	
 						qDebug() << "Item is a child, please select the data itself."<< endl;	
-					return; 
+						return; 
 					} 
 
 				}
 
 			}
 
+		
 
-			QString name(this->dataSets[this->treeWidget->currentIndex().row()]->getName()); // << endl;
-			QString kind(this->dataSets[this->treeWidget->currentIndex().row()]->getKind());// << endl;
+			DataSet * ds= this->dataSets[this->treeWidget->currentIndex().row()];
+			QString name(ds->getName()); // << endl;
+			QString kind(ds->getKind());// << endl;
 			QString fileName (name+"-"+kind);
 			QString saveFileName;
-
-			saveFileName = QFileDialog::getSaveFileName(this,
+			// fiber selection must be automaticly fbs.
+			if(kind!="fibers")
+			{
+			
+				saveFileName = QFileDialog::getSaveFileName(this,
 				"Save Data as...",
 				fileName,	
 				"VTK (*.vtk);;Fibers (*.fbs);; VTK Image (*.vti);;VTK Polydata (*.vtp)");
-			if(saveFileName==NULL)
+			}
+			else
+			{
+	              	isFiber = true;
+				saveFileName = QFileDialog::getSaveFileName(this,
+				"Save Data as...",
+				fileName,	
+				"Fibers (*.fbs);;VTK (*.vtk);;VTK Polydata (*.vtp)");
+			}
+				if(saveFileName==NULL)
 				return;
 
 			this->hide();
 
 
-			vtkImageData * image   = this->dataSets[this->treeWidget->currentIndex().row()]->getVtkImageData();
-			vtkPolyData * polyData =  this->dataSets[this->treeWidget->currentIndex().row()]->getVtkPolyData();
-			vtkObject * obj        =  this->dataSets[this->treeWidget->currentIndex().row()]->getVtkObject();
+			 
+			
+
+			vtkImageData * image   = ds->getVtkImageData();
+			vtkPolyData * polyData =  ds->getVtkPolyData();
+			vtkObject * obj        =  ds->getVtkObject();
 
 			vtkDataSetWriter *writer = vtkDataSetWriter::New();
-			
+
 			vtkPointSet * pointSet = NULL;
 
 			// Cast the VTK object to a point set pointer
@@ -493,33 +511,75 @@ namespace bmia {
 			}
 
 			if(image){
-					qDebug() << "Writing the image data" << endl;
-				//savefileName = fileName + ".vtk";
+				qDebug() << "Writing the image data" << endl;
 				writer->SetInput ( (vtkDataObject*)(image) );
 			}
-			else if(polyData){
-				//savefileName = fileName + ".vtk";
-					qDebug() << "Writing the polydata data" << endl;
+			else if(polyData){	 
+			 
+				qDebug() << "Writing the polydata data" << endl;
 				writer->SetInput( (vtkDataObject*)(polyData) );
+				if(isFiber) this->saveTransferMatrix(saveFileName, ds);
+
+				
 			}
 			else if(pointSet)
-			{
-				//savefileName = fileName + ".vtk";
-					qDebug() << "Writing the pointset data" << endl;
+			{		 
+				qDebug() << "Writing the pointset data" << endl;
 				writer->SetInput( (vtkDataObject*)(pointSet) );
 			}
 			else 
 			{
-			qDebug() << "The data can not be saved due to data type."<< endl;	
-					return; 
+				qDebug() << "The data can not be saved due to data type."<< endl;	
+				return; 
 			}
 			writer->SetFileTypeToASCII();
 			writer->SetFileName( saveFileName.toStdString().c_str() );
-		
 			writer->Write();
+			//writer->Delete();
+
+
+			
+			//image->Delete();
+			//polyData->Delete();
+			//obj->Delete();
+
+
 			//writer->Update();
 
 		}
+
+//--------------------------------[ saveTransferMatrix ]--------------------------------\\
+
+		void SaveDialog::saveTransferMatrix(const QString saveFileName, data::DataSet * ds )
+		{
+		 
+
+		    
+			vtkObject * attObject;
+
+			//remove if the name includes an extention
+			QStringRef fileNameRoot(&saveFileName, 0, saveFileName.lastIndexOf("."));
+
+			// Check if the current treewidget item ie the corresponding data set contains a transformation matrix
+			if (ds->getAttributes()->getAttribute("transformation matrix", attObject))
+			{
+				std::string err = "";
+				QString fileNameRootQStr = fileNameRoot.toString()  +".tfm";
+
+				// write the matrix to a ".tfm" file
+				cout << fileNameRootQStr.toStdString() << endl;
+				bool success = TransformationMatrixIO::writeMatrix(fileNameRootQStr.toStdString() , vtkMatrix4x4::SafeDownCast(attObject), err);
+
+				// Display error messages if necessary
+				if (!success)
+				{
+					qDebug() << err.c_str() ;
+				}
+			}
+
+		}
+
+
 		//--------------------------------[ close ]--------------------------------\\
 
 		void SaveDialog::close()
@@ -527,7 +587,24 @@ namespace bmia {
 			// Simply hide the dialog window
 			this->hide();
 		}
+		//--------------------------------[ setNiftiFields ]--------------------------------\\
 
+		/*void SaveDialog::setNiftiFields(vtkImageData * image )
+		{
+			nifti_image * outImage = new nifti_image;
+
+			outImage->dim[3] =     outImage->nz			= image->GetDimensions(2);
+			outImage->pixdim[3] = outImage->dz = static_cast<float>( image->GetSpacing(2) );
+			outImage->nvox *=     outImage->dim[3];
+
+			outImage->dim[2] =     outImage->ny = image->GetDimensions(1);
+			outImage->pixdim[2] =  outImage->dy = static_cast<float>( image->GetSpacing(1) );
+			outImage->nvox *= this->  outImage->dim[2];
+
+			outImage->dim[1] =     outImage->nx = image->GetDimensions(0);
+			outImage->pixdim[1] = outImage->dx = static_cast<float>( this->GetSpacing(0) );
+			outImage->nvox *=     outImage->dim[1];
+		}*/
 
 	} // namespace gui
 
