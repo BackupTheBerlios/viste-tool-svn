@@ -51,7 +51,7 @@
  * 2007-09-25	Tim Peeters
  * - Add SetMapper() and GetMapper() functions.
  *
- * 2013-02-20
+ * 2013-02-20 Mehmet Yusufoglu
  * - Change plane location calculation. In functions UpdateDisplayExtent and GetSliceLocation, slice-min used to be subtracted in calculation of sliceloc. It is removed because 
  * - if the extent does not start from zero, there is a problem of slice positioning.
  *

@@ -1519,7 +1519,7 @@ namespace bmia {
 		qDebug() << "crop3DDataSet "<< ds->getKind() << ds->getName() << endl;
 		vtkImageData * image ; 
 		// Scalar volume
-		if ((ds->getKind() == "scalar volume" ) || (ds->getKind() == "eigen") || (ds->getKind() == "DTI") ) // DTI ??
+		if ((ds->getKind() == "scalar volume" ) || (ds->getKind() == "eigen") || (ds->getKind() == "DTI") )  
 		{
 			image   = ds->getVtkImageData();
 			if(!image) 	

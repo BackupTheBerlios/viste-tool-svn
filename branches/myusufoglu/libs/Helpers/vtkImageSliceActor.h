@@ -45,6 +45,9 @@
  *
  * 2007-09-25	Tim Peeters
  * - Add SetMapper() function.
+ *
+ * 
+ *
  */
 
 #ifndef bmia_vtkImageSliceActor_h
