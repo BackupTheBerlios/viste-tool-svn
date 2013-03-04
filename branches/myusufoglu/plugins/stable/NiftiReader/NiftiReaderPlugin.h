@@ -134,6 +134,11 @@ class NiftiReaderPlugin : public plugin::Plugin, public data::Reader
 
 		void loadDataFromFile(QString filename);
 
+		void niftiStructure(data::DataSet *ds);
+
+		void createNiftiStructure(data::DataSet *ds);
+
+
 	private:
 
 		/** Add a data set to the data manager, with optional transformation matrix.
