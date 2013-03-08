@@ -128,7 +128,8 @@ void NiftiReaderPlugin::createNiftiStructure(data::DataSet *ds)
 	NiftiImage->dx =  image->GetSpacing()[0];
 	NiftiImage->dy = image->GetSpacing()[1];
 	NiftiImage->dz = image->GetSpacing()[2];
-		 
+	cout << "Write nifti \n" ; 
+	cin.get();
 	reader->writeNiftiFile("nifti-write.nii",  NiftiImage, false);
 
 }

@@ -198,7 +198,7 @@ int bmiaNiftiReader::CanReadFile(const char * filename)
 
 void bmiaNiftiReader::writeNiftiFile(const char * filename,  nifti_image *,  bool showProgress)
 {
-	
+	 
 
 }
 
