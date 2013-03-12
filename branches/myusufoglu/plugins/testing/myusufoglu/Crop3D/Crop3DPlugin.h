@@ -85,8 +85,10 @@
 #include <vtkMath.h>
 #include <vtkCommand.h>
 #include <vtkExtractVOI.h>
-#include <vtkBoxWidget2.h>
 
+#include <vtkBoxWidget2.h>
+#include <vtkBoxRepresentation.h>
+#include <vtkTransform.h>
 /** Includes - Qt */
 
 #include <QMessageBox>
@@ -282,6 +284,12 @@ class Crop3DPlugin : public plugin::AdvancedPlugin,
 			/** Call the cropping function  */
 		void cropData();
 
+		  /** Set the visibility of 3D ROI box */
+		void setRoiBoxVisible(bool v);
+
+		/** changeRoi Boundary */
+		void changeRoiBoundary(int value);
+
 	private:
 
 		/** Seed points of the X slice. */
@@ -376,6 +384,7 @@ class Crop3DPlugin : public plugin::AdvancedPlugin,
 
 		/** Box widget drawn for the selected bounding box which defines the region to be cropped out. */
 		vtkBoxWidget2	*roiBox;
+		 vtkWidgetRepresentation *boxRep;
 
 }; // class Crop3DPlugin
 

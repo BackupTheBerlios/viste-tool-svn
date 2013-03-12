@@ -82,6 +82,11 @@ namespace bmia {
 		this->defaultLUT->SetSaturationRange(0.0, 0.0);
 		this->defaultLUT->SetAlphaRange(1.0, 1.0);
 
+		//Create 3D roi box which w2ill be used for cropping
+		this->roiBox =  vtkBoxWidget2::New() ;
+		
+		this->ui->roiBoxVisibleCheckBox->setChecked(false);
+
 		// Turn actor interpolation on or off, depending on the default GUI settings
 		this->actor->SetInterpolate(this->ui->interpolationCheck->isChecked() ? 1 : 0);
 
@@ -150,6 +155,20 @@ namespace bmia {
 		// Add the callback to the canvas as an observer
 		this->fullCore()->canvas()->AddObserver(vtkCommand::UserEvent + 
 			BMIA_USER_EVENT_SUBCANVAS_CAMERA_RESET, this->callBack);
+		// 3D ROi interaction
+		this->roiBox->SetDefaultRenderer(this->fullCore()->canvas()->GetRenderer3D());
+		this->roiBox->SetCurrentRenderer(this->fullCore()->canvas()->GetRenderer3D());
+		this->roiBox->SetPriority(1);
+		this->roiBox->SetInteractor(this->fullCore()->canvas()->GetInteractor());
+		this->roiBox->SetEnabled(true);
+		this->roiBox->SetRotationEnabled(0);
+		
+         boxRep = this->roiBox->GetRepresentation();
+		 boxRep->SetPlaceFactor(1);
+		 boxRep->SetVisibility(0);
+		 boxRep->SetPickable(0);
+		 boxRep->SetDragable(0);
+
 	}
 
 
@@ -211,6 +230,9 @@ namespace bmia {
 			// 3D Crop ROI signals
 
 			connect(this->ui->cropButton,		SIGNAL(clicked()),			this , SLOT( cropData() ),	Qt::UniqueConnection		);
+			connect(this->ui->roiBoxVisibleCheckBox,	SIGNAL(toggled(bool)),				this, SLOT(setRoiBoxVisible(bool))	);
+			connect(this->ui->horizontalSliderX0 ,		SIGNAL(valueChanged(int)),	this, SLOT(changeROIBoundary(int))	);
+
 			// spin -> slider connection 
 			connect(this->ui->x0ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderX0 , SLOT(setValue(int) )			);
 			connect(this->ui->y0ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderY0 , SLOT(setValue(int) )			);
@@ -286,6 +308,11 @@ namespace bmia {
 	void Crop3DPlugin::dataSetAdded(data::DataSet * ds)
 	{
 		cout << "Crop3DPlugin dataSetAdded " << ds->getName().toStdString() << " " << ds->getName().toStdString() << endl;
+		
+		int isCropped(0);
+		ds->getAttributes()->getAttribute("isSubVolume",isCropped);
+		cout << "isCropped" << endl;
+
 		// Scalar volume
 		if (ds->getKind() == "scalar volume")
 		{
@@ -361,7 +388,7 @@ namespace bmia {
 		//	this->connectControls(true);
 		//}
 
-		else if (ds->getKind() == "eigen")
+		else if (ds->getKind() == "eigen" &&  isCropped)
 		{
 			 
 			this->connectControls(false);
@@ -426,6 +453,10 @@ namespace bmia {
 		// boxes, it also calls the corresponding update function ("changeX").
 		cout << "dataSetChanged" << ds->getName().toStdString() << endl;
 		// Scalar Volumes
+		//cin.get();
+		int isCropped(0);
+		ds->getAttributes()->getAttribute("isSubVolume",isCropped);
+		cout << "isCropped" << endl;
 		if(ds->getKind() == "scalar volume" && this->scalarVolumeDataSets.contains(ds))
 		{
 			this->connectControls(false);
@@ -558,6 +589,27 @@ namespace bmia {
 		}
 	}
 
+	void Crop3DPlugin::setRoiBoxVisible(bool v)
+	{
+		//this->roiBox->PlaceWidget(this->actor->GetBounds());
+		cout << "visibility:" << v << endl;
+		//this->boxRep->PlaceWidget(this->fullCore()->canvas()->GetRenderer3D()->GetActors()-);
+		// Take form the slice sliders 
+		this->boxRep->SetVisibility(v);
+		this->fullCore()->canvas()->GetRenderer3D()->Render();
+		// this->roiBox->SetHandleSize(0.02);
+		//this->roiBox->ProcessEventsOn();
+	}
+
+		void Crop3DPlugin::changeRoiBoundary(int value)
+	{
+		 
+		// this->roiBox->SetRotationEnabled();
+	 
+       //this->boxRep->PlaceWidget(bounds);
+
+	}
+
 
 	//--------------------------[ changeScalarVolume ]-------------------------\\
 
@@ -606,7 +658,7 @@ namespace bmia {
 		//this->core()->render(); // tes 2
 		// Use the image as the input for the actor
 		this->actor->SetInput(ds->getVtkImageData());
-
+		
 		// Set transformation matrix, reset slices
 		this->configureNewImage(ds);
 
@@ -886,18 +938,19 @@ namespace bmia {
 
 		// Check for a transformation matrix
 		vtkObject * obj = NULL;
+		
 		if (ds->getAttributes()->getAttribute("transformation matrix", obj))
 		{
 			// Cast the object to a transformation matrix
 			vtkMatrix4x4 * transformationMatrix = vtkMatrix4x4::SafeDownCast(obj);
-
+			
 			// Check if this went okay
 			if (!transformationMatrix)
 			{
 				this->core()->out()->logMessage("Not a valid transformation matrix!");
 				return;
 			}
-
+		
 			// Loop through all three dimensions
 			for (int i = 0; i < 3; ++i)
 			{
@@ -940,7 +993,9 @@ namespace bmia {
 		this->core()->data()->dataSetChanged(this->seedDataSets[0]);
 		this->core()->data()->dataSetChanged(this->seedDataSets[1]);
 		this->core()->data()->dataSetChanged(this->seedDataSets[2]);
-
+			
+		//roi box
+		this->boxRep->PlaceWidget(this->actor->GetBounds());
 		cout << "configureNewImage end" << endl;
 	}
 
@@ -1444,6 +1499,8 @@ namespace bmia {
 
 		this->ui->z1ROIPositionSpin->setMinimum(this->actor->GetZMin());
 		this->ui->z1ROIPositionSpin->setMaximum(this->actor->GetZMax());
+
+		 
 	}
 
 	// Get ROI Boundaries Set by the user
@@ -1482,35 +1539,12 @@ namespace bmia {
 		if(dataDS == NULL)
 			qDebug() << "dataDS == NULL" << endl;
 		
-		//vtkSmartPointer<vtkBoxRepresentation> boxRep =
-		//122     vtkSmartPointer<vtkBoxRepresentation>::New();
-		//123   boxRep->SetPlaceFactor( 1.25 );
-		//124   boxRep->PlaceWidget(tf->GetOutput()->GetBounds());
-
-
-		this->roiBox = vtkBoxWidget2::New();	
-		this->roiBox->SetInteractor(this->fullCore()->canvas()->GetSubCanvas3D()->GetInteractor());
-		this->roiBox->RotationEnabledOff();
-		this->roiBox->ScalingEnabledOff();
-		this->roiBox->TranslationEnabledOff();
-
-
-		//this->roiBox->SetHandleSize(0.01);
-		// this->roiBox->SetPlaceFactor(0.3);
-		//this->roiBox->SetProp3D(this->actor);
-		//this->roiBox->PlaceWidget(;
-		this->roiBox->SetCurrentRenderer(this->fullCore()->canvas()->GetSubCanvas3D()->GetRenderer());
-		//m_pThreeDROI->SetTransform(m_pTransfrom);
-		this->roiBox->On();
-
-
+		 
 		//this->crop3DDataSet(weightDS);
 		this->crop3DDataSet(dataDS);
 		//vtkImageData * dtiImage = dtiDS->getVtkImageData();
 		//vtkImageData * weightImage = weightDS->getVtkImageData();
 		// check the combo box indexes, understand which one is shown cut it by crop3DDataSet
-
-
 
 	}
 
@@ -1545,14 +1579,14 @@ namespace bmia {
 		<< " z: " << inputOrig[2] << std::endl;
 		*/
 		int* inputExtent = image->GetExtent();
-	/*	std::cout << "Extends input: " << " x0: " << inputExtent[0]
+		std::cout << "Extends input: " << " x0: " << inputExtent[0]
 		<< " x1: " << inputExtent[1]
 		<< " y0: " << inputExtent[2]
 		<<  " y1: "    << inputExtent[3]
 		<< " z0: " << inputExtent[4]
 		<< " z1: " << inputExtent[5]
 		<< std::endl;
-		*/
+		
 		double* inputSpacing = image->GetSpacing();
 	/*	std::cout << "Spacing input: " << " x: " << inputSpacing[0]
 		<< " y: " << inputSpacing[1]
@@ -1604,6 +1638,7 @@ namespace bmia {
 		vtkObject *obj = vtkObject::SafeDownCast(extracted);
 		cout << "casted " << endl; 
 		QString croppedDataName= "Cropped-" + ds->getName();
+
 		if (obj)
 		{
 			cout << "obj ok " << endl; 
@@ -1619,6 +1654,9 @@ namespace bmia {
 				croppedDS->getAttributes()->addAttribute("transformation matrix", objMatrix);
 				cout << "add to data set " << endl; 
 			}
+			int isCropped(1);
+			croppedDS->getAttributes()->addAttribute("isSubVolume", isCropped);
+
 				this->core()->data()->addDataSet(croppedDS); // to only this plugin or to all ?
 			//this->core()->data()->dataSetChanged(croppedDS); // usefull?
 			cout << "render " << endl; 
