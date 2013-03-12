@@ -248,6 +248,9 @@ namespace bmia {
 			connect(this->ui->horizontalSliderY1,		SIGNAL(valueChanged(int)),			this->ui->y1ROIPositionSpin, SLOT(setValue(int) )			);
 			connect(this->ui->horizontalSliderZ1,		SIGNAL(valueChanged(int)),			this->ui->z1ROIPositionSpin, SLOT(setValue(int) )			);
 
+			// spin to 3d roi box connections !!!
+			connect(this->ui->x0ROIPositionSpin,		SIGNAL(valueChanged(int)),  this, SLOT(changeRoiBoundary(int) ));
+
 		}
 		// Disconnect all signals
 		else
@@ -593,7 +596,7 @@ namespace bmia {
 	{
 		//this->roiBox->PlaceWidget(this->actor->GetBounds());
 		cout << "visibility:" << v << endl;
-		//this->boxRep->PlaceWidget(this->fullCore()->canvas()->GetRenderer3D()->GetActors()-);
+		 
 		// Take form the slice sliders 
 		this->boxRep->SetVisibility(v);
 		this->fullCore()->canvas()->GetRenderer3D()->Render();
@@ -603,12 +606,20 @@ namespace bmia {
 
 		void Crop3DPlugin::changeRoiBoundary(int value)
 	{
-		 
-		// this->roiBox->SetRotationEnabled();
-	 
-       //this->boxRep->PlaceWidget(bounds);
-
-	}
+		//int *bndSlices = new int[6];
+		//get3DROIBoundaries(bndSlices);
+		cout << value << " ";
+		double *bnd = new double[6];
+		bnd=this->actor->GetBounds();
+		bnd[4]=this->actor->GetSliceLocation(2,value);
+		cout << " bnd0:" << bnd[4] << endl;
+		this->boxRep->PlaceWidget(bnd);
+		//this->roiBox
+		//vtkBoundingBox *bBox = vtkBoundingBox::New();
+	   
+		//this->boxRep->PlaceWidget();
+	
+  }
 
 
 	//--------------------------[ changeScalarVolume ]-------------------------\\
@@ -1551,6 +1562,8 @@ namespace bmia {
 	void Crop3DPlugin::crop3DDataSet(data::DataSet * ds)
 	{
 		qDebug() << "crop3DDataSet "<< ds->getKind() << ds->getName() << endl;
+		
+
 		vtkImageData * image ; 
 		// Scalar volume
 		if ((ds->getKind() == "scalar volume" ) || (ds->getKind() == "eigen") || (ds->getKind() == "DTI") )  
@@ -1569,15 +1582,15 @@ namespace bmia {
 		}
 
 		int* inputDims = image->GetDimensions();
-	/*	std::cout << "Dims input: " << " x: " << inputDims[0]
+		std::cout << "Dims input: " << " x: " << inputDims[0]
 		<< " y: " << inputDims[1]
 		<< " z: " << inputDims[2] << std::endl;
-		*/
+		
 		double* inputOrig = image->GetOrigin();
-		/*	std::cout << "Dims input origin: " << " x: " << inputOrig[0]
+		std::cout << "Dims input origin: " << " x: " << inputOrig[0]
 		<< " y: " << inputOrig[1]
 		<< " z: " << inputOrig[2] << std::endl;
-		*/
+		
 		int* inputExtent = image->GetExtent();
 		std::cout << "Extends input: " << " x0: " << inputExtent[0]
 		<< " x1: " << inputExtent[1]
@@ -1588,12 +1601,38 @@ namespace bmia {
 		<< std::endl;
 		
 		double* inputSpacing = image->GetSpacing();
-	/*	std::cout << "Spacing input: " << " x: " << inputSpacing[0]
+		std::cout << "Spacing input: " << " x: " << inputSpacing[0]
 		<< " y: " << inputSpacing[1]
 		<< " z: " << inputSpacing[2] << std::endl;
-		*/
-		//std::cout << "Number of points: " << image->GetNumberOfPoints() << std::endl;
-		//std::cout << "Number of cells: " << image->GetOutput()->GetNumberOfCells() << std::endl;
+
+		
+
+		int* inputExtentW = image->GetWholeExtent();
+		std::cout << "Whole Extends input: " << " x0: " << inputExtentW[0]
+		<< " x1: " << inputExtentW[1]
+		<< " y0: " << inputExtentW[2]
+		<<  " y1: "    << inputExtentW[3]
+		<< " z0: " << inputExtentW[4]
+		<< " z1: " << inputExtentW[5]
+		<< std::endl;
+
+		double* inputBoundsW = image->GetWholeBoundingBox();
+		std::cout << "Whole BBox input: " << " x0: " << inputBoundsW[0]
+		<< " x1: " << inputBoundsW[1]
+		<< " y0: " << inputBoundsW[2]
+		<<  " y1: "    << inputBoundsW[3]
+		<< " z0: " << inputBoundsW[4]
+		<< " z1: " << inputBoundsW[5]
+		<< std::endl;
+
+			double* roiBounds = this->boxRep->GetBounds() ;
+		std::cout << "boxwidgetrep roiBounds: " << " x0: " << roiBounds[0]
+		<< " x1: " << roiBounds[1]
+		<< " y0: " << roiBounds[2]
+		<<  " y1: "    << roiBounds[3]
+		<< " z0: " << roiBounds[4]
+		<< " z1: " << roiBounds[5]
+		<< std::endl;
 
 		vtkExtractVOI *extractVOI = vtkExtractVOI::New();
 		extractVOI->SetInputConnection(image->GetProducerPort());

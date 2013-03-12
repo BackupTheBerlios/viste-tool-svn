@@ -89,6 +89,8 @@
 #include <vtkBoxWidget2.h>
 #include <vtkBoxRepresentation.h>
 #include <vtkTransform.h>
+#include <vtkBoundingBox.h>
+
 /** Includes - Qt */
 
 #include <QMessageBox>
@@ -289,6 +291,8 @@ class Crop3DPlugin : public plugin::AdvancedPlugin,
 
 		/** changeRoi Boundary */
 		void changeRoiBoundary(int value);
+
+		
 
 	private:
 
