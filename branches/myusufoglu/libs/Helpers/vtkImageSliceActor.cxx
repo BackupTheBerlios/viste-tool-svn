@@ -437,7 +437,7 @@ double vtkImageSliceActor::GetSliceLocation(int slice)
   double sliceloc = spacing[this->SliceOrientation]*(double)(slice); // - slice_min);
   //cout << "\n In getsliceloc function spacing:" << spacing[this->SliceOrientation] ;
 //   cout<<"slice_min = "<< slice_min << endl;
-   cout << "origin: " << origin[this->SliceOrientation] << endl;
+   //cout << "origin: " << origin[this->SliceOrientation] << endl;
 	  return sliceloc;
 }
 

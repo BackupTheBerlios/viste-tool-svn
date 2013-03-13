@@ -398,7 +398,7 @@ namespace bmia {
 		//	this->connectControls(true);
 		//}
 
-		else if (ds->getKind() == "eigen" &&  isCropped)
+		else if (ds->getKind() == "eigen") // &&  isCropped)
 		{
 			 
 			this->connectControls(false);
@@ -511,6 +511,7 @@ namespace bmia {
 
 			this->connectControls(true);
 		}
+		this->fullCore()->canvas()->GetRenderer3D()->ResetCamera();
 	}
 
 
@@ -633,10 +634,19 @@ namespace bmia {
 		//this->boxRep->GetActors(props);
 		//for(int i=0;i < props->GetNumberOfItems(); i++)
 		//	props->GetNextProp()->PokeMatrix(this->actor->GetUserMatrix());
-		if (!(this->ui->scalarVolumeRadio->isChecked()))
+		data::DataSet * ds;
+		if ((this->ui->scalarVolumeRadio->isChecked()))
+			
+		  ds = this->scalarVolumeDataSets.at( this->ui->scalarVolumeCombo->currentIndex());
+		else if(this->ui->dtiRadio->isChecked())
+		{
+			ds = this->dtiDataSets.at(this->ui->dtiVolumeCombo->currentIndex());
+		}
+		else
+		{
+			qDebug() << "Neither of the radio buttons is checked!"<< endl;
 			return;
-
-		data::DataSet * ds = this->scalarVolumeDataSets.at( this->ui->scalarVolumeCombo->currentIndex());
+		}
 
 		if (!ds)
 			return;
@@ -1290,6 +1300,7 @@ namespace bmia {
 	void Crop3DPlugin::setXSlice(int x, bool updateData)
 	{
 		// Set the slice position
+		cout << "set slice x" << endl;
 		this->actor->SetX(x);
 
 		// Get the input image of the slice

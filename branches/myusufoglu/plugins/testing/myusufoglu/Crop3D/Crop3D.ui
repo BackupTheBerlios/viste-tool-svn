@@ -727,5 +727,102 @@
   </layout>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>xPositionSlide</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>xPositionSpin</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>168</x>
+     <y>631</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>60</x>
+     <y>631</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>yPositionSlide</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>yPositionSpin</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>168</x>
+     <y>707</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>60</x>
+     <y>707</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>zPositionSlide</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>zPositionSpin</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>168</x>
+     <y>783</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>60</x>
+     <y>783</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>xPositionSpin</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>xPositionSlide</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>60</x>
+     <y>631</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>168</x>
+     <y>631</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>yPositionSpin</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>yPositionSlide</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>60</x>
+     <y>707</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>168</x>
+     <y>707</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>zPositionSpin</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>zPositionSlide</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>60</x>
+     <y>783</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>168</x>
+     <y>783</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>
