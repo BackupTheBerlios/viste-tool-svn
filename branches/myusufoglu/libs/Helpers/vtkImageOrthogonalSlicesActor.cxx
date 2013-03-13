@@ -136,6 +136,11 @@ void vtkImageOrthogonalSlicesActor::SetX(int x)
   this->ImageSliceActors[0]->SetSlice(x);
 }
 
+double vtkImageOrthogonalSlicesActor::GetSliceLocation(int orientation, int slice)
+{
+  return this->ImageSliceActors[orientation]->GetSliceLocation(slice);
+}
+
 void vtkImageOrthogonalSlicesActor::SetY(int y)
 {
   this->ImageSliceActors[1]->SetSlice(y);

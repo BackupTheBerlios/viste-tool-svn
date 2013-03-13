@@ -90,6 +90,7 @@
 #include <vtkBoxRepresentation.h>
 #include <vtkTransform.h>
 #include <vtkBoundingBox.h>
+#include <vtkPropCollection.h>
 
 /** Includes - Qt */
 
@@ -389,6 +390,7 @@ class Crop3DPlugin : public plugin::AdvancedPlugin,
 		/** Box widget drawn for the selected bounding box which defines the region to be cropped out. */
 		vtkBoxWidget2	*roiBox;
 		 vtkWidgetRepresentation *boxRep;
+		
 
 }; // class Crop3DPlugin
 

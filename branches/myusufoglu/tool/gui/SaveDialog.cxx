@@ -477,7 +477,7 @@ namespace bmia {
 				saveFileName = QFileDialog::getSaveFileName(this,
 				"Save Data as...",
 				fileName,	
-				"VTK (*.vtk);;Fibers (*.fbs);; VTK Image (*.vti);;VTK Polydata (*.vtp)");
+				"VTK (*.vtk);;Nifti (*.nii);; VTK Image (*.vti);;VTK Polydata (*.vtp)");
 			}
 			else
 			{
@@ -491,9 +491,9 @@ namespace bmia {
 				return;
 
 			this->hide();
-
-
-			 
+		
+			
+	
 			
 
 			vtkImageData * image   = ds->getVtkImageData();
@@ -512,7 +512,37 @@ namespace bmia {
 
 			if(image){
 				qDebug() << "Writing the image data" << endl;
-				writer->SetInput ( (vtkDataObject*)(image) );
+//				QStringRef fileNameExtention(&saveFileName, saveFileName.lastIndexOf("."), saveFileName.length());
+//				if(fileNameExtention.toString().compare(QString("vtk")) )
+//				{
+//					writer->SetInput ( (vtkDataObject*)(image) );
+//				    //save the transfer matrix along with the image
+//				    this->saveTransferMatrix(saveFileName, ds );
+//				}
+//				else(fileNameExtention.toString().compare(QString("nii")) )
+//				{
+//					        Reader* reader = NULL;
+//                          int i = 0;
+//                          QStringList ext1;
+//				        	while ((reader == NULL) )//&& i < this->readers. )
+//							
+//							{
+////								ext1 = this->manager->readers.at(i)->getSupportedFileExtensions();
+//								for (int j=0; j < ext1.size(); j++)
+//								{
+//									if ( saveFileName.fileName().endsWith( QString(ext1.at(j)) ) )
+//									{
+////										reader = this->manager->readers.at(i);
+//									}
+//								} // for j
+//								i++;
+//							} //  
+//								
+//							//reader->sa
+//				} 
+
+				
+
 			}
 			else if(polyData){	 
 			 

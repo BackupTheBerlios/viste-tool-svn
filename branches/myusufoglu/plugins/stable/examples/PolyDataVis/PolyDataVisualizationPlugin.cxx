@@ -138,7 +138,7 @@ void PolyDataVisualizationPlugin::dataSetAdded(data::DataSet* ds)
     this->ui->optionsFrame->setEnabled(true);
 
     // TODO: select the newly added dataset
-
+//		this->fullCore()->canvas()->GetRenderer3D()->ResetCamera();
     this->core()->render();
 }
 

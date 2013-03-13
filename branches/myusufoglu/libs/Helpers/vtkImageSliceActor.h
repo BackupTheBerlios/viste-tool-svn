@@ -46,6 +46,9 @@
  * 2007-09-25	Tim Peeters
  * - Add SetMapper() function.
  *
+ * 2013-03-12	Mehmet Yusufoglu
+ * - Add GetSliceLocation(int) function is added. Returns the location of any slice not the previously set one.
+ *
  * 
  *
  */
@@ -159,6 +162,11 @@ public:
    */
   virtual double GetSliceLocation();
 
+  /**
+   * Return the location of the any slice.
+   */
+  virtual double GetSliceLocation(int slice);
+
   // Description:
   // Set the current slice to the center of the dataset in the current orientation.
   virtual void CenterSlice();
@@ -172,7 +180,7 @@ public:
     { this->GetSliceRange(range[0], range[1]); }
   virtual void GetSliceRange(int &min, int &max);
   virtual int* GetSliceRange();
-
+ 
   // Description:
   // Get the center/normal of the plane that is being rendered.
   // Forwards these calls to the PlaneSource that is used.

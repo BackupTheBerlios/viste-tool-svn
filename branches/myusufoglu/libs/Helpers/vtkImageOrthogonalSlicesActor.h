@@ -39,6 +39,9 @@
  *
  * 2006-05-03	Tim Peeters
  * - First version
+ *
+ * 2013-03-12	Mehmet Yusufoglu
+ * - Add GetSliceLocation(int, int) function is added. Returns the location of any slice at any orientation.*
  */
 
 #ifndef bmia_vtkImageOrthogonalSlicesActor_h
@@ -164,7 +167,7 @@ public:
     { return this->GetSliceVisible(0); };
 
   virtual void SetVisibility(int show);
-
+  double  GetSliceLocation(int orientation, int slice);
 protected:
   vtkImageOrthogonalSlicesActor();
   ~vtkImageOrthogonalSlicesActor();

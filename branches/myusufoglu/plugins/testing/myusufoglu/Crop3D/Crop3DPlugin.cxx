@@ -162,13 +162,15 @@ namespace bmia {
 		this->roiBox->SetInteractor(this->fullCore()->canvas()->GetInteractor());
 		this->roiBox->SetEnabled(true);
 		this->roiBox->SetRotationEnabled(0);
-		
+		this->roiBox->SetMoveFacesEnabled(0);
+
          boxRep = this->roiBox->GetRepresentation();
 		 boxRep->SetPlaceFactor(1);
 		 boxRep->SetVisibility(0);
 		 boxRep->SetPickable(0);
 		 boxRep->SetDragable(0);
-
+		 boxRep->SetHandleSize(0);
+		 
 	}
 
 
@@ -250,6 +252,11 @@ namespace bmia {
 
 			// spin to 3d roi box connections !!!
 			connect(this->ui->x0ROIPositionSpin,		SIGNAL(valueChanged(int)),  this, SLOT(changeRoiBoundary(int) ));
+			connect(this->ui->x1ROIPositionSpin,		SIGNAL(valueChanged(int)),  this, SLOT(changeRoiBoundary(int) ));
+	        connect(this->ui->y0ROIPositionSpin,		SIGNAL(valueChanged(int)),  this, SLOT(changeRoiBoundary(int) ));
+			connect(this->ui->y1ROIPositionSpin,		SIGNAL(valueChanged(int)),  this, SLOT(changeRoiBoundary(int) ));
+			connect(this->ui->z0ROIPositionSpin,		SIGNAL(valueChanged(int)),  this, SLOT(changeRoiBoundary(int) ));
+			connect(this->ui->z1ROIPositionSpin,		SIGNAL(valueChanged(int)),  this, SLOT(changeRoiBoundary(int) ));
 
 		}
 		// Disconnect all signals
@@ -599,26 +606,103 @@ namespace bmia {
 		 
 		// Take form the slice sliders 
 		this->boxRep->SetVisibility(v);
-		this->fullCore()->canvas()->GetRenderer3D()->Render();
+		//this->fullCore()->canvas()->GetRenderer3D()->Render();
+		this->core()->render();  
 		// this->roiBox->SetHandleSize(0.02);
 		//this->roiBox->ProcessEventsOn();
 	}
 
 		void Crop3DPlugin::changeRoiBoundary(int value)
 	{
-		//int *bndSlices = new int[6];
-		//get3DROIBoundaries(bndSlices);
-		cout << value << " ";
+		int *bndSlices = new int[6];
+		get3DROIBoundaries(bndSlices);
+		//cout << value << " ";
 		double *bnd = new double[6];
-		bnd=this->actor->GetBounds();
-		bnd[4]=this->actor->GetSliceLocation(2,value);
-		cout << " bnd0:" << bnd[4] << endl;
-		this->boxRep->PlaceWidget(bnd);
-		//this->roiBox
-		//vtkBoundingBox *bBox = vtkBoundingBox::New();
-	   
-		//this->boxRep->PlaceWidget();
+		//bnd=this->actor->GetBounds();
+		bnd[0]=this->actor->GetSliceLocation(0,bndSlices[0]);
+		bnd[1]=this->actor->GetSliceLocation(0,bndSlices[1]);
+		bnd[2]=this->actor->GetSliceLocation(1,bndSlices[2]);
+		bnd[3]=this->actor->GetSliceLocation(1,bndSlices[3]);
+		bnd[4]=this->actor->GetSliceLocation(2,bndSlices[4]);
+		bnd[5]=this->actor->GetSliceLocation(2,bndSlices[5]);
+			
+		//cout << "bnd:" << bnd[0] << "  " << bnd[1] << "  " << bnd[2]<< "  " << bnd[3]<< "  " << bnd[4]<< "  " << bnd[5] << endl;
 	
+
+		//vtkPropCollection *props = vtkPropCollection::New();
+		//this->boxRep->GetActors(props);
+		//for(int i=0;i < props->GetNumberOfItems(); i++)
+		//	props->GetNextProp()->PokeMatrix(this->actor->GetUserMatrix());
+		if (!(this->ui->scalarVolumeRadio->isChecked()))
+			return;
+
+		data::DataSet * ds = this->scalarVolumeDataSets.at( this->ui->scalarVolumeCombo->currentIndex());
+
+		if (!ds)
+			return;
+
+		if (!(ds->getVtkImageData()))
+			return;
+
+        // Check for a transformation matrix
+		vtkObject * obj = NULL;
+		
+		if (ds->getAttributes()->getAttribute("transformation matrix", obj))
+		{
+			// Cast the object to a transformation matrix
+			vtkMatrix4x4 * transformationMatrix = vtkMatrix4x4::SafeDownCast(obj);
+			
+			// Check if this went okay
+			if (!transformationMatrix)
+			{
+				this->core()->out()->logMessage("Not a valid transformation matrix!");
+				return;
+			}
+		
+			// Loop through all three dimensions
+			//for (int i = 0; i < 3; ++i)
+			//{
+				// Copy the matrix to a new one, and apply it to the current slice actor
+				vtkMatrix4x4 * matrixCopy = vtkMatrix4x4::New();
+				matrixCopy->DeepCopy(transformationMatrix);
+				vtkMatrix4x4 * matrixCopy2 = vtkMatrix4x4::New();
+				matrixCopy2->DeepCopy(transformationMatrix);
+				double *bndVerticeLowerTranslated = new double[4];
+				double *bndVerticeUpperTranslated = new double[4];
+				double *bndTemp = new double[4]; 
+				double *bndTemp2 = new double[4]; 
+				bndTemp[0]=bnd[0];
+				bndTemp[1]=bnd[2];
+				bndTemp[2]=bnd[4];
+				bndTemp[3]=1;
+				bndVerticeLowerTranslated = matrixCopy->MultiplyDoublePoint(bndTemp);
+			//	cout << "vertice lower translated:" << bndVerticeLowerTranslated[0] << "  " << bndVerticeLowerTranslated[1] << "  " << bndVerticeLowerTranslated[2]<< "  " << endl;
+			
+				  bndTemp2[0]=bnd[1];
+				  bndTemp2[1]=bnd[3];
+				  bndTemp2[2]=bnd[5];
+				bndTemp2[3]=1;
+				bndVerticeUpperTranslated = matrixCopy2->MultiplyDoublePoint(bndTemp2);
+				//	cout << "vertice upper translated:" << bndVerticeUpperTranslated[0] << "  " << bndVerticeUpperTranslated[1] << "  " << bndVerticeUpperTranslated[2]<< "  " << endl;
+
+				//this->actor->GetSliceActor(i)->SetUserMatrix(matrixCopy);
+				//	matrixCopy->Print(cout);
+			
+					double A[6]; 
+				A[0]=bndVerticeLowerTranslated[0]; 
+				A[1]=bndVerticeUpperTranslated[0]; 
+
+				A[2]=bndVerticeLowerTranslated[1]; 
+				A[3]=bndVerticeUpperTranslated[1]; 
+				
+				A[4]=bndVerticeLowerTranslated[2]; 
+				A[5]=bndVerticeUpperTranslated[2]; 
+			//	cout << "translated:" << A[0] << "  " << A[1] << "  " << A[2]<< "  " << A[3]<< "  " << A[4]<< "  " << A[5] << endl;
+				this->boxRep->PlaceWidget((double *)A);
+		
+		} 
+		this->core()->render();
+
   }
 
 
@@ -899,6 +983,8 @@ namespace bmia {
 	void Crop3DPlugin::configureNewImage(data::DataSet * ds)
 	{
 		cout << "configureNewImage" << endl;
+		
+
 		// Check if the range of the image has changed
 		bool resetSlices = false;
 		if (this->actor->GetXMin() != this->ui->xPositionSpin->minimum())	resetSlices = true;
@@ -1477,7 +1563,7 @@ namespace bmia {
 	// Set Slider limits to data dimensions
 	void Crop3DPlugin::set3DROISliderLimits()
 	{
-		//sliders
+		//slider limits
 		this->ui->horizontalSliderX0->setMinimum(this->actor->GetXMin());
 		this->ui->horizontalSliderX0->setMaximum(this->actor->GetXMax());
 		this->ui->horizontalSliderY0->setMinimum(this->actor->GetYMin());
@@ -1492,6 +1578,18 @@ namespace bmia {
 		this->ui->horizontalSliderZ1->setMinimum(this->actor->GetZMin());
 		this->ui->horizontalSliderZ1->setMaximum(this->actor->GetZMax());
 
+
+		//slider set value
+		this->ui->horizontalSliderX0->setValue(this->actor->GetXMin());
+		this->ui->horizontalSliderY0->setValue(this->actor->GetYMin());
+		this->ui->horizontalSliderZ0->setValue(this->actor->GetZMin());
+		 
+
+		this->ui->horizontalSliderX1->setValue(this->actor->GetXMax());
+		this->ui->horizontalSliderY1->setValue(this->actor->GetYMax());
+		this->ui->horizontalSliderZ1->setValue(this->actor->GetZMax());
+	 
+		 
 		// spins
 		this->ui->x0ROIPositionSpin->setMinimum(this->actor->GetXMin());
 		this->ui->x0ROIPositionSpin->setMaximum(this->actor->GetXMax());
@@ -1510,6 +1608,17 @@ namespace bmia {
 
 		this->ui->z1ROIPositionSpin->setMinimum(this->actor->GetZMin());
 		this->ui->z1ROIPositionSpin->setMaximum(this->actor->GetZMax());
+
+		// set spins
+		this->ui->x0ROIPositionSpin->setValue(this->actor->GetXMin());
+		this->ui->x1ROIPositionSpin->setValue(this->actor->GetXMax());
+		 
+		this->ui->y0ROIPositionSpin->setValue(this->actor->GetYMin());	 
+		this->ui->y1ROIPositionSpin->setValue(this->actor->GetYMax());
+	
+		this->ui->z0ROIPositionSpin->setValue(this->actor->GetZMin());
+		this->ui->z1ROIPositionSpin->setValue(this->actor->GetZMax());
+
 
 		 
 	}
@@ -1530,6 +1639,13 @@ namespace bmia {
 	{ 
 		cout << "cropData" << endl;
 
+		if( (this->ui->horizontalSliderX0->value() >  this->ui->horizontalSliderX1->value()) ||
+			        (this->ui->horizontalSliderY0->value() >  this->ui->horizontalSliderY1->value()) || (this->ui->horizontalSliderZ0->value() >  this->ui->horizontalSliderZ1->value()))
+			{
+				this->core()->out()->showMessage("Initial border value must be less then the second border value along an axis.", "Boundary Problem");
+				return ;  
+		    }      
+					
 		for (int i=0; i< this->scalarVolumeDataSets.size();i++)
 			qDebug() << i << " " << this->scalarVolumeDataSets.at(i)->getName() << " " << this->scalarVolumeDataSets.at(i)->getKind() << endl;
 
@@ -1699,7 +1815,7 @@ namespace bmia {
 				this->core()->data()->addDataSet(croppedDS); // to only this plugin or to all ?
 			//this->core()->data()->dataSetChanged(croppedDS); // usefull?
 			cout << "render " << endl; 
-			this->core()->render(); // usefull?
+			this->core()->render();  
 		}
 		else
 		{
