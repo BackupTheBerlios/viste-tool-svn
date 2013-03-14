@@ -35,7 +35,7 @@
       </size>
      </property>
      <property name="title">
-      <string>Data</string>
+      <string>Crop3D Data</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
@@ -192,8 +192,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>270</width>
-        <height>248</height>
+        <width>253</width>
+        <height>277</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -369,30 +369,30 @@
             </item>
            </layout>
           </item>
+          <item>
+           <widget class="QPushButton" name="cropButton">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>23</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>25</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>CROP</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>
       </layout>
      </widget>
-    </widget>
-   </item>
-   <item>
-    <widget class="QPushButton" name="cropButton">
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>23</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>16777215</width>
-       <height>25</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>CROP</string>
-     </property>
     </widget>
    </item>
    <item>
@@ -431,7 +431,7 @@
           </size>
          </property>
          <property name="title">
-          <string>Plane Visualisation</string>
+          <string>Crop3D Plane Visualisation</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_5">
           <item>
@@ -486,7 +486,7 @@
                   <string>Visible</string>
                  </property>
                  <property name="checked">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                 </widget>
                </item>
@@ -567,7 +567,7 @@
                   <string>Visible</string>
                  </property>
                  <property name="checked">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                 </widget>
                </item>
@@ -648,7 +648,7 @@
                   <string>Visible</string>
                  </property>
                  <property name="checked">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                 </widget>
                </item>
@@ -729,66 +729,18 @@
  <resources/>
  <connections>
   <connection>
-   <sender>xPositionSlide</sender>
+   <sender>zPositionSpin</sender>
    <signal>valueChanged(int)</signal>
-   <receiver>xPositionSpin</receiver>
+   <receiver>zPositionSlide</receiver>
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>168</x>
-     <y>631</y>
-    </hint>
-    <hint type="destinationlabel">
      <x>60</x>
-     <y>631</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>yPositionSlide</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>yPositionSpin</receiver>
-   <slot>setValue(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>168</x>
-     <y>707</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>60</x>
-     <y>707</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>zPositionSlide</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>zPositionSpin</receiver>
-   <slot>setValue(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>168</x>
      <y>783</y>
     </hint>
     <hint type="destinationlabel">
-     <x>60</x>
-     <y>783</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>xPositionSpin</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>xPositionSlide</receiver>
-   <slot>setValue(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>60</x>
-     <y>631</y>
-    </hint>
-    <hint type="destinationlabel">
      <x>168</x>
-     <y>631</y>
+     <y>783</y>
     </hint>
    </hints>
   </connection>
@@ -809,18 +761,66 @@
    </hints>
   </connection>
   <connection>
-   <sender>zPositionSpin</sender>
+   <sender>xPositionSpin</sender>
    <signal>valueChanged(int)</signal>
-   <receiver>zPositionSlide</receiver>
+   <receiver>xPositionSlide</receiver>
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>60</x>
-     <y>783</y>
+     <y>631</y>
     </hint>
     <hint type="destinationlabel">
      <x>168</x>
+     <y>631</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>zPositionSlide</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>zPositionSpin</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>168</x>
      <y>783</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>60</x>
+     <y>783</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>yPositionSlide</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>yPositionSpin</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>168</x>
+     <y>707</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>60</x>
+     <y>707</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>xPositionSlide</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>xPositionSpin</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>168</x>
+     <y>631</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>60</x>
+     <y>631</y>
     </hint>
    </hints>
   </connection>

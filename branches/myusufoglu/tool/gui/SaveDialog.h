@@ -79,6 +79,10 @@
 #include <vtkDataSetWriter.h>
 #include <vtkAlgorithmOutput.h>
 
+/** Includes - NIfTI TODO: take to bmia nifti writer*/
+
+#include "NIfTI/nifti1_io.h"
+
 namespace bmia {
 
 
@@ -189,7 +193,7 @@ class SaveDialog : public QDialog, public data::Consumer
 
 		void addSubItem(QTreeWidgetItem * parentItem, QString itemText);
 
-//			void setNiftiFields(vtkImageData * image );
+		void setNiftiFields(vtkImageData * image, const QString saveFileName );
 
 }; // class SaveDialog
 

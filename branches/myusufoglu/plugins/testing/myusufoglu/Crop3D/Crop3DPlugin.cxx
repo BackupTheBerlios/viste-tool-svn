@@ -170,7 +170,9 @@ namespace bmia {
 		 boxRep->SetPickable(0);
 		 boxRep->SetDragable(0);
 		 boxRep->SetHandleSize(0);
-		 
+		 this->setZVisible(0);
+		 this->setXVisible(0);
+		 this->setYVisible(0);
 	}
 
 
@@ -1102,7 +1104,8 @@ namespace bmia {
 		this->core()->data()->dataSetChanged(this->seedDataSets[2]);
 			
 		//roi box
-		this->boxRep->PlaceWidget(this->actor->GetBounds());
+		//this->boxRep->PlaceWidget(this->actor->GetBounds()); // if planes are not visible does not work
+		this->changeRoiBoundary(0);
 		cout << "configureNewImage end" << endl;
 	}
 
@@ -1403,6 +1406,7 @@ namespace bmia {
 	{
 		// Hide or show the slice, and render the scene
 		this->actor->SetSliceVisible(0, v);
+		this->fullCore()->canvas()->GetSubCanvas2D(0)->GetRenderer()->RemoveActor(this->actor->GetSliceActor(0));
 		this->core()->render();
 	}
 
@@ -1412,6 +1416,8 @@ namespace bmia {
 	void Crop3DPlugin::setYVisible(bool v)
 	{
 		this->actor->SetSliceVisible(1, v);
+		//this->fullCore()->canvas()->GetRenderer3D()->GetAc
+		this->fullCore()->canvas()->GetSubCanvas2D(1)->GetRenderer()->RemoveActor(this->actor->GetSliceActor(1));
 		this->core()->render();
 	}
 
@@ -1421,6 +1427,7 @@ namespace bmia {
 	void Crop3DPlugin::setZVisible(bool v)
 	{
 		this->actor->SetSliceVisible(2, v);
+		this->fullCore()->canvas()->GetSubCanvas2D(2)->GetRenderer()->RemoveActor(this->actor->GetSliceActor(2));
 		this->core()->render();
 	}
 

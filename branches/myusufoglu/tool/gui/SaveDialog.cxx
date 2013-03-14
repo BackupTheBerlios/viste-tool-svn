@@ -489,7 +489,7 @@ namespace bmia {
 			}
 				if(saveFileName==NULL)
 				return;
-
+				QStringRef fileNameExtention(&saveFileName, saveFileName.lastIndexOf("."), saveFileName.length());
 			this->hide();
 		
 			
@@ -512,13 +512,13 @@ namespace bmia {
 
 			if(image){
 				qDebug() << "Writing the image data" << endl;
-//				QStringRef fileNameExtention(&saveFileName, saveFileName.lastIndexOf("."), saveFileName.length());
-//				if(fileNameExtention.toString().compare(QString("vtk")) )
-//				{
-//					writer->SetInput ( (vtkDataObject*)(image) );
-//				    //save the transfer matrix along with the image
-//				    this->saveTransferMatrix(saveFileName, ds );
-//				}
+				
+				if(fileNameExtention.toString().compare(QString("vtk")) )
+				{
+					writer->SetInput ( (vtkDataObject*)(image) );
+				    //save the transfer matrix along with the image
+				    this->saveTransferMatrix(saveFileName, ds );
+				}
 //				else(fileNameExtention.toString().compare(QString("nii")) )
 //				{
 //					        Reader* reader = NULL;
@@ -562,11 +562,17 @@ namespace bmia {
 				qDebug() << "The data can not be saved due to data type."<< endl;	
 				return; 
 			}
+			if(fileNameExtention.toString().compare(QString("nii")) && image )
+			{
+				this->setNiftiFields(image,saveFileName.toStdString().c_str());
+			}
+			else{
+//				{
 			writer->SetFileTypeToASCII();
 			writer->SetFileName( saveFileName.toStdString().c_str() );
 			writer->Write();
 			//writer->Delete();
-
+			}
 
 			
 			//image->Delete();
@@ -619,22 +625,33 @@ namespace bmia {
 		}
 		//--------------------------------[ setNiftiFields ]--------------------------------\\
 
-		/*void SaveDialog::setNiftiFields(vtkImageData * image )
+		void SaveDialog::setNiftiFields(vtkImageData * image, const QString saveFileName )
 		{
+			cout <<"set nifti fields" << endl;
 			nifti_image * outImage = new nifti_image;
 
-			outImage->dim[3] =     outImage->nz			= image->GetDimensions(2);
-			outImage->pixdim[3] = outImage->dz = static_cast<float>( image->GetSpacing(2) );
+			outImage->dim[3] =     outImage->nz			= image->GetDimensions()[2];
+			outImage->pixdim[3] = outImage->dz = static_cast<float>( image->GetSpacing()[2] );
 			outImage->nvox *=     outImage->dim[3];
 
-			outImage->dim[2] =     outImage->ny = image->GetDimensions(1);
-			outImage->pixdim[2] =  outImage->dy = static_cast<float>( image->GetSpacing(1) );
-			outImage->nvox *= this->  outImage->dim[2];
+			outImage->dim[2] =     outImage->ny = image->GetDimensions()[1];
+			outImage->pixdim[2] =  outImage->dy = static_cast<float>( image->GetSpacing()[1] );
+			outImage->nvox *=  outImage->dim[2];
 
-			outImage->dim[1] =     outImage->nx = image->GetDimensions(0);
-			outImage->pixdim[1] = outImage->dx = static_cast<float>( this->GetSpacing(0) );
+			outImage->dim[1] =     outImage->nx = image->GetDimensions()[0];
+			outImage->pixdim[1] = outImage->dx = static_cast<float>( image->GetSpacing()[0] );
 			outImage->nvox *=     outImage->dim[1];
-		}*/
+			QString HeaderFileName= "C:/Users/MYusufog/Desktop/test";
+			outImage->iname= (char *) saveFileName.toStdString().c_str() ;
+			outImage->fname = (char *) HeaderFileName.toStdString().c_str()  ;
+			outImage->data =  image->GetScalarPointer();
+			outImage->nbyper =  image->GetScalarSize();
+			outImage->datatype =   image->GetScalarType();
+			if (image->GetNumberOfScalarComponents() > 4    || image->GetNumberOfScalarComponents() == 2)
+				return;
+		cout <<"write nifti image:" << saveFileName.toStdString() <<  " " << image->GetScalarSize() << endl;
+			nifti_image_write( outImage );
+		}
 
 	} // namespace gui
 

@@ -132,9 +132,7 @@ class bmiaNiftiReader
 
 		QString readNIfTIFile(const char * filename, bool showProgress = true);
 
-		/**
-		*/
-		void writeNiftiFile(const char * filename,  nifti_image *,  bool showProgress);
+		 
 
 		/** Return supported file extensions. */
 

@@ -73,5 +73,5 @@ qt4_wrap_cpp(MocSrcs ${gui_h_moc})
 set_source_files_properties(${gui_cxx} PROPERTIES OBJECT_DEPENDS "${UiHeaders}")
 
 add_library(bmia_gui ${gui_cxx} ${gui_h_moc} ${gui_h_other} ${MocSrcs})
-target_link_libraries(bmia_gui QVTK ${QT_LIBRARIES} bmia_core vtkMetaCanvas vtkHelpers)
+target_link_libraries(bmia_gui QVTK ${QT_LIBRARIES} bmia_core vtkMetaCanvas vtkHelpers vtkNIfTI)
 

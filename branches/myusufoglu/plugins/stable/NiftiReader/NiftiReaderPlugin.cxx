@@ -112,27 +112,7 @@ QStringList NiftiReaderPlugin::getSupportedFileDescriptions()
 }
 
 
-void NiftiReaderPlugin::createNiftiStructure(data::DataSet *ds)
-{
-	// Create a new reader object and set the filename
-	bmiaNiftiReader * reader = new bmiaNiftiReader(this->core()->out());
-	vtkImageData * image;
-	if(ds->getKind() =="scalar volume")
-		 image   = ds->getVtkImageData();
-	nifti_image * NiftiImage = new nifti_image();
-	NiftiImage->dim[0] =  NiftiImage->ndim = 3;
-	NiftiImage->dim[1] =  NiftiImage->nx = image->GetDimensions()[0];
-	NiftiImage->dim[2] =  NiftiImage->ny = image->GetDimensions()[1];
-	NiftiImage->dim[3] =  NiftiImage->nz =image->GetDimensions()[2];
-
-	NiftiImage->dx =  image->GetSpacing()[0];
-	NiftiImage->dy = image->GetSpacing()[1];
-	NiftiImage->dz = image->GetSpacing()[2];
-	cout << "Write nifti \n" ; 
-	cin.get();
-	reader->writeNiftiFile("nifti-write.nii",  NiftiImage, false);
-
-}
+ 
 
 //--------------------------[ loadDataFromFile ]---------------------------\\
 

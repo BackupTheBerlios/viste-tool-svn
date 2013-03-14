@@ -136,8 +136,7 @@ class NiftiReaderPlugin : public plugin::Plugin, public data::Reader
 
 		void niftiStructure(data::DataSet *ds);
 
-		void createNiftiStructure(data::DataSet *ds);
-
+		 
 
 	private:
 
