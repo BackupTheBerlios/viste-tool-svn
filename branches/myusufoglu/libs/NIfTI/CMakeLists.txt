@@ -48,6 +48,8 @@ SET(NIFTILIB_SRC
 	nifti1.h
 	znzlib.c
 	znzlib.h
+	vtkNiftiWriter.cxx
+	vtkNiftiWriter.h
 )
 
 SET(NIFTI_NIFTILIB_NAME vtkNIfTI)

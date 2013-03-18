@@ -5133,7 +5133,7 @@ int nifti_write_all_data(znzFile fp, nifti_image * nim,
 {
    size_t ss;
    int    bnum;
-
+ 
    if( !NBL ){ /* just write one buffer and get out of here */
       if( nim->data == NULL ){
          fprintf(stderr,"** NWAD: no image data to write\n");
@@ -5615,7 +5615,7 @@ int nifti_extension_size(nifti_image *nim)
 void nifti_set_iname_offset(nifti_image *nim)
 {
    int offset;
-
+   printf( "NIFTI_FTYPE_NIFTI1_1 %d",NIFTI_FTYPE_NIFTI1_1) ;
    switch( nim->nifti_type ){
 
      default:  /* writing into 2 files */
@@ -5625,6 +5625,7 @@ void nifti_set_iname_offset(nifti_image *nim)
 
      /* NIFTI-1 single binary file - always update */
      case NIFTI_FTYPE_NIFTI1_1:
+		printf( "NIFTI_FTYPE_NIFTI1_1 %d",NIFTI_FTYPE_NIFTI1_1) ;
        offset = nifti_extension_size(nim)+sizeof(struct nifti_1_header)+4;
        /* be sure offset is aligned to a 16 byte boundary */
        if ( ( offset % 16 ) != 0 )  offset = ((offset + 0xf) & ~0xf);

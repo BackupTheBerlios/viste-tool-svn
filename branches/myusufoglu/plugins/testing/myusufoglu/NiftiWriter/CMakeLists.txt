@@ -31,5 +31,33 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-add_subdirectory( Crop3D )
-add_subdirectory( NiftiWriter )
+OPTION(PLUGINS_BUILD_NIFTIWRITER "Build NIfTI Writer Plugin" ON)
+
+if(PLUGINS_BUILD_NIFTIWRITER)
+
+set( BMIA_NIFTIWRITER_PLUGIN )
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${BMIA_LIBS_SOURCE_DIR})
+
+find_package(VTK REQUIRED)
+include(${VTK_USE_FILE})
+
+find_package(Qt4 REQUIRED)
+include(${QT_USE_FILE})
+
+set(SRCS
+    NiftiWriterPlugin.h
+    NiftiWriterPlugin.cxx
+    bmiaNiftiWriter.h
+    bmiaNiftiWriter.cxx
+)
+
+link_directories(${BMIA_LIBS_BINARY_DIR})
+
+qt4_wrap_cpp( MOC_SRCS NiftiWriterPlugin.h )
+
+add_library( NiftiWriterPlugin SHARED ${SRCS} ${MOC_SRCS} )
+target_link_libraries( NiftiWriterPlugin bmia_plugin bmia_data vtkIO vtkNIfTI vtkVolumeRendering vtkWidgets vtkGraphics vtkRendering bmia_libs )
+
+endif(PLUGINS_BUILD_NIFTIWRITER)

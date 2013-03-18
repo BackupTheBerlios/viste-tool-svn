@@ -34,31 +34,16 @@
  */
 
 /*
- * bmiaNiftiReader.cxx
+ * bmiaNiftiWriter.cxx
  *
- * 2011-04-04	Evert van Aart
- * - First version. This reader is based on the old "vtkNiftiReader" class by Tim
- *   Peeters, but with some changes. The reader now supports multiple types of 
- *   input data, including triangles ("NIFTI_INTENT_TRIANGLE"), which means that
- *   its output will not always be "vtkImageData". For this reason, the reader
- *   is no longer a child of "vtkImageDataReader2". Furthermore, the reader not
- *   includes support for MiNT extensions.
- *
- * 2011-05-10	Evert van Aart
- * - Added support for spherical harmonics using MiND. 
- *
- * 2011-08-22	Evert van Aart
- * - Which transformation matrix to use is now determined correctly based on the
- *   "qform_code" and "sform_code" of the NIfTI image.
- *
- * * 2013-01-28   Mehmet Yusufoglu
- * - Add a pointer parameter pointing the instance of UserOut class as an argument to the constructor.  
- * - Userout class pointer is used to ask which transfomation is used if both qform ans sform are larger than zero.
+ * * 2013-03-16   Mehmet Yusufoglu
+ * - Create the class. Writes the scalar data in Nifti format.
+ * - 
  */
 
 
-#ifndef bmia_NiftiReaderPlugin_bmiaNiftiReader_h
-#define bmia_NiftiReaderPlugin_bmiaNiftiReader_h
+#ifndef bmia_NiftiWriterPlugin_bmiaNiftiWriter_h
+#define bmia_NiftiWriterPlugin_bmiaNiftiWriter_h
 
 
 /** Includes - VTK */
@@ -102,21 +87,21 @@ namespace bmia {
 	if available. Since NIfTI files can contain data that cannot be expressed as
 	an image volume - such as a triangle array, which is represented with a
 	"vtkIntArray" object - a data output can be any child of "vtkObject". It is
-	up the "NiftiReaderPlugin" class to create the correct type of data set for
+	up the "NiftiWriterPlugin" class to create the correct type of data set for
 	the output objects. 
 */
 
-class bmiaNiftiReader
+class bmiaNiftiWriter
 {
 	public:
 
 		/** Constructor */
 
-		bmiaNiftiReader(UserOutput * rUserOut);
+		bmiaNiftiWriter(UserOutput * rUserOut);
 
 		/** Destructor */
 
-		~bmiaNiftiReader();
+		~bmiaNiftiWriter();
 
 		/** Check if we can read the input file. Returns one if we can, zero otherwise.
 			filename	Input filename. */
@@ -269,10 +254,10 @@ class bmiaNiftiReader
 
 		UserOutput * userOut;									// User output (for s_form q_form selection)
 
-}; // class bmiaNiftiReader
+}; // class bmiaNiftiWriter
 
 
 } // namespace bmia
 
 
-#endif // bmia_NiftiReaderPlugin_bmiaNiftiReader_h
+#endif // bmia_NiftiWriterPlugin_bmiaNiftiWriter_h

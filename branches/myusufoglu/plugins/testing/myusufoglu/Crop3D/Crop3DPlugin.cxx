@@ -141,7 +141,7 @@ namespace bmia {
 
 			// Add the planes to their respective 2D views
 			vtkImageSliceActor * sliceActor = this->actor->GetSliceActor(axis);
-			canvas->GetSubCanvas2D(axis)->GetRenderer()->AddActor(sliceActor);
+			//canvas->GetSubCanvas2D(axis)->GetRenderer()->AddActor(sliceActor);
 
 			// Add the slice actors to the data manager
 			this->sliceActorDataSets[axis] = new data::DataSet(sliceActorNames[axis], "sliceActor", sliceActor);
@@ -630,12 +630,6 @@ namespace bmia {
 		bnd[5]=this->actor->GetSliceLocation(2,bndSlices[5]);
 			
 		//cout << "bnd:" << bnd[0] << "  " << bnd[1] << "  " << bnd[2]<< "  " << bnd[3]<< "  " << bnd[4]<< "  " << bnd[5] << endl;
-	
-
-		//vtkPropCollection *props = vtkPropCollection::New();
-		//this->boxRep->GetActors(props);
-		//for(int i=0;i < props->GetNumberOfItems(); i++)
-		//	props->GetNextProp()->PokeMatrix(this->actor->GetUserMatrix());
 		data::DataSet * ds;
 		if ((this->ui->scalarVolumeRadio->isChecked()))
 			
@@ -689,7 +683,7 @@ namespace bmia {
 				bndTemp[3]=1;
 				bndVerticeLowerTranslated = matrixCopy->MultiplyDoublePoint(bndTemp);
 			//	cout << "vertice lower translated:" << bndVerticeLowerTranslated[0] << "  " << bndVerticeLowerTranslated[1] << "  " << bndVerticeLowerTranslated[2]<< "  " << endl;
-			
+		 
 				  bndTemp2[0]=bnd[1];
 				  bndTemp2[1]=bnd[3];
 				  bndTemp2[2]=bnd[5];
@@ -711,6 +705,8 @@ namespace bmia {
 				A[5]=bndVerticeUpperTranslated[2]; 
 			//	cout << "translated:" << A[0] << "  " << A[1] << "  " << A[2]<< "  " << A[3]<< "  " << A[4]<< "  " << A[5] << endl;
 				this->boxRep->PlaceWidget((double *)A);
+				matrixCopy->FastDelete();
+				matrixCopy2->FastDelete();
 		
 		} 
 		this->core()->render();
@@ -1406,7 +1402,6 @@ namespace bmia {
 	{
 		// Hide or show the slice, and render the scene
 		this->actor->SetSliceVisible(0, v);
-		this->fullCore()->canvas()->GetSubCanvas2D(0)->GetRenderer()->RemoveActor(this->actor->GetSliceActor(0));
 		this->core()->render();
 	}
 
@@ -1416,8 +1411,6 @@ namespace bmia {
 	void Crop3DPlugin::setYVisible(bool v)
 	{
 		this->actor->SetSliceVisible(1, v);
-		//this->fullCore()->canvas()->GetRenderer3D()->GetAc
-		this->fullCore()->canvas()->GetSubCanvas2D(1)->GetRenderer()->RemoveActor(this->actor->GetSliceActor(1));
 		this->core()->render();
 	}
 
@@ -1427,7 +1420,6 @@ namespace bmia {
 	void Crop3DPlugin::setZVisible(bool v)
 	{
 		this->actor->SetSliceVisible(2, v);
-		this->fullCore()->canvas()->GetSubCanvas2D(2)->GetRenderer()->RemoveActor(this->actor->GetSliceActor(2));
 		this->core()->render();
 	}
 

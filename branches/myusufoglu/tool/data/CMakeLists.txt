@@ -38,6 +38,7 @@ DataSet.h
 DataSet.cxx
 Consumer.h
 Reader.h
+Writer.h
 Manager.h
 Manager.cxx
 )

@@ -45,6 +45,7 @@
 
 
 #include "SaveDialog.h"
+#include  "D:\vISTe\subversion\myusufoglu\libs\NIfTI\vtkNiftiWriter.h"
 
 
 namespace bmia {
@@ -477,7 +478,7 @@ namespace bmia {
 				saveFileName = QFileDialog::getSaveFileName(this,
 				"Save Data as...",
 				fileName,	
-				"VTK (*.vtk);;Nifti (*.nii);; VTK Image (*.vti);;VTK Polydata (*.vtp)");
+				"VTK (*.vtk);;Nifti (*.nii);; Nifti (*.nii.gz);; VTK Image (*.vti);;VTK Polydata (*.vtp)");
 			}
 			else
 			{
@@ -562,7 +563,7 @@ namespace bmia {
 				qDebug() << "The data can not be saved due to data type."<< endl;	
 				return; 
 			}
-			if(fileNameExtention.toString().compare(QString("nii")) && image )
+			if(fileNameExtention.toString().compare(QString("nii")) || fileNameExtention.toString().compare(QString("nii.gz")) && image )
 			{
 				this->setNiftiFields(image,saveFileName.toStdString().c_str());
 			}
@@ -627,7 +628,19 @@ namespace bmia {
 
 		void SaveDialog::setNiftiFields(vtkImageData * image, const QString saveFileName )
 		{
-			cout <<"set nifti fields" << endl;
+			
+			cout << "write file nifti " << saveFileName.toStdString() <<  endl;
+			vtkNIfTIWriter *writer = vtkNIfTIWriter::New();
+			std::ofstream *file = new std::ofstream();
+			writer->SetFileType(1);
+			writer->SetInputConnection(image->GetProducerPort());
+			writer->SetFileName(saveFileName.toStdString().c_str());
+			writer->SetFileDimensionality(3);
+			writer->WriteFile(file,image,image->GetExtent(),image->GetWholeExtent());
+			//writer->Update();
+			//writer->Update();
+			writer->Delete();
+			/*
 			nifti_image * outImage = new nifti_image;
 
 			outImage->dim[3] =     outImage->nz			= image->GetDimensions()[2];
@@ -649,8 +662,10 @@ namespace bmia {
 			outImage->datatype =   image->GetScalarType();
 			if (image->GetNumberOfScalarComponents() > 4    || image->GetNumberOfScalarComponents() == 2)
 				return;
-		cout <<"write nifti image:" << saveFileName.toStdString() <<  " " << image->GetScalarSize() << endl;
-			nifti_image_write( outImage );
+		
+
+			*/
+
 		}
 
 	} // namespace gui

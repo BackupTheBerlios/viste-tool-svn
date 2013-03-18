@@ -45,13 +45,14 @@
 /** Includes */
 
 #include "data/Reader.h"
+#include "data/Writer.h"
 #include "data/Consumer.h"
 
 
 #ifndef bmia_plugin_DataInterfaces_h
 #define bmia_plugin_DataInterfaces_h
 
-
+Q_DECLARE_INTERFACE(bmia::data::Writer,   "bmia.data.Writer")
 Q_DECLARE_INTERFACE(bmia::data::Reader,   "bmia.data.Reader")
 Q_DECLARE_INTERFACE(bmia::data::Consumer, "bmia.data.Consumer")
 
