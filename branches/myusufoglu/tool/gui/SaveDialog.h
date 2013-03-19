@@ -193,7 +193,7 @@ class SaveDialog : public QDialog, public data::Consumer
 
 		void addSubItem(QTreeWidgetItem * parentItem, QString itemText);
 
-		void setNiftiFields(vtkImageData * image, const QString saveFileName );
+		void setNiftiFields(vtkImageData * image, const QString saveFileName,data::DataSet *ds );
 
 }; // class SaveDialog
 

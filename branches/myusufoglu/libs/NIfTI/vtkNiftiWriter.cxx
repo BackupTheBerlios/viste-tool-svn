@@ -545,7 +545,7 @@ void vtkNIfTIWriter::WriteFileHeader(ofstream * vtkNotUsed(file),
   iname_offset = m_NiftiImage->iname_offset;
 
   if( write_data ) {
-    //nifti_write_all_data(fp,m_NiftiImage,NBL);
+    nifti_write_all_data(fp,m_NiftiImage,0);
     }
   if( ! leave_open )  znzclose(fp);
 

@@ -563,9 +563,9 @@ namespace bmia {
 				qDebug() << "The data can not be saved due to data type."<< endl;	
 				return; 
 			}
-			if(fileNameExtention.toString().compare(QString("nii")) || fileNameExtention.toString().compare(QString("nii.gz")) && image )
+			if(fileNameExtention.toString().compare(QString("nii")) || fileNameExtention.toString().compare(QString("gz")) && image )
 			{
-				this->setNiftiFields(image,saveFileName.toStdString().c_str());
+				this->setNiftiFields(image,saveFileName.toStdString().c_str(),ds);
 			}
 			else{
 //				{
@@ -626,24 +626,31 @@ namespace bmia {
 		}
 		//--------------------------------[ setNiftiFields ]--------------------------------\\
 
-		void SaveDialog::setNiftiFields(vtkImageData * image, const QString saveFileName )
+		void SaveDialog::setNiftiFields(vtkImageData * image, const QString saveFileName, data::DataSet *ds )
 		{
 			
-			cout << "write file nifti " << saveFileName.toStdString() <<  endl;
-			vtkNIfTIWriter *writer = vtkNIfTIWriter::New();
-			std::ofstream *file = new std::ofstream();
-			writer->SetFileType(1);
-			writer->SetInputConnection(image->GetProducerPort());
-			writer->SetFileName(saveFileName.toStdString().c_str());
-			writer->SetFileDimensionality(3);
-			writer->WriteFile(file,image,image->GetExtent(),image->GetWholeExtent());
-			//writer->Update();
-			//writer->Update();
-			writer->Delete();
-			/*
-			nifti_image * outImage = new nifti_image;
+			//cout << "write file nifti " << saveFileName.toStdString() << image->GetDataDimension() << endl;
+			//vtkNIfTIWriter *writer = vtkNIfTIWriter::New();
+			//std::ofstream *file = new std::ofstream();
+			//std::ofstream *file2 = new std::ofstream();
+			//writer->SetFileType(1);
+			//writer->SetInputConnection(image->GetProducerPort());
+			//writer->SetFileName(saveFileName.toStdString().c_str());
+			//writer->SetFileDimensionality(image->GetDataDimension());
+	 
+			//
 
-			outImage->dim[3] =     outImage->nz			= image->GetDimensions()[2];
+			//writer->WriteFileHeader(file,image,image->GetWholeExtent());
+			////cin.get();
+			////writer->WriteFile(file2,image,image->GetExtent(),image->GetWholeExtent());
+			// 
+
+			////writer->Update();
+			////writer->Update();
+			//writer->Delete();
+			
+		
+			/*outImage->dim[3] =     outImage->nz			= image->GetDimensions()[2];
 			outImage->pixdim[3] = outImage->dz = static_cast<float>( image->GetSpacing()[2] );
 			outImage->nvox *=     outImage->dim[3];
 
@@ -662,10 +669,174 @@ namespace bmia {
 			outImage->datatype =   image->GetScalarType();
 			if (image->GetNumberOfScalarComponents() > 4    || image->GetNumberOfScalarComponents() == 2)
 				return;
+			outImage->nifti_type=1;*/
+
+		    nifti_image * m_NiftiImage = new nifti_image;
+			m_NiftiImage = nifti_simple_init_nim();
+
+
+			 double dataTypeSize = 1.0;
+			int dim[3];
+			int wholeExtent[6];
+			double spacing[3];
+			 double origin[3];
+  int numComponents = image->GetNumberOfScalarComponents();
+  int imageDataType = image->GetScalarType();
+ 
+  image->GetOrigin(origin);
+			image->GetSpacing(spacing);
+			image->GetDimensions(dim);
+			image->GetWholeExtent(wholeExtent);
+			  m_NiftiImage->dt = 0;
+
+  m_NiftiImage->ndim = 3;
+  m_NiftiImage->dim[1] = wholeExtent[1] + 1;
+  m_NiftiImage->dim[2] = wholeExtent[3] + 1;
+  m_NiftiImage->dim[3] = wholeExtent[5] + 1;
+  m_NiftiImage->dim[4] = 1;
+  m_NiftiImage->dim[5] = 1;
+  m_NiftiImage->dim[6] = 1;
+  m_NiftiImage->dim[7] = 1;
+  m_NiftiImage->nx =  m_NiftiImage->dim[1];
+  m_NiftiImage->ny =  m_NiftiImage->dim[2];
+  m_NiftiImage->nz =  m_NiftiImage->dim[3];
+  m_NiftiImage->nt =  m_NiftiImage->dim[4];
+  m_NiftiImage->nu =  m_NiftiImage->dim[5];
+  m_NiftiImage->nv =  m_NiftiImage->dim[6];
+  m_NiftiImage->nw =  m_NiftiImage->dim[7];
+
+  //nhdr.pixdim[0] = 0.0 ;
+  m_NiftiImage->pixdim[1] = spacing[0];
+  m_NiftiImage->pixdim[2] = spacing[1];
+  m_NiftiImage->pixdim[3] = spacing[2];
+  m_NiftiImage->pixdim[4] = 0;
+  m_NiftiImage->pixdim[5] = 1;
+  m_NiftiImage->pixdim[6] = 1;
+  m_NiftiImage->pixdim[7] = 1;
+  m_NiftiImage->dx = m_NiftiImage->pixdim[1];
+  m_NiftiImage->dy = m_NiftiImage->pixdim[2];
+  m_NiftiImage->dz = m_NiftiImage->pixdim[3];
+  m_NiftiImage->dt = m_NiftiImage->pixdim[4];
+  m_NiftiImage->du = m_NiftiImage->pixdim[5];
+  m_NiftiImage->dv = m_NiftiImage->pixdim[6];
+  m_NiftiImage->dw = m_NiftiImage->pixdim[7];
+
+  int numberOfVoxels = m_NiftiImage->nx;
+
+  if(m_NiftiImage->ny>0){
+    numberOfVoxels*=m_NiftiImage->ny;
+    }
+  if(m_NiftiImage->nz>0){
+    numberOfVoxels*=m_NiftiImage->nz;
+    }
+  if(m_NiftiImage->nt>0){
+    numberOfVoxels*=m_NiftiImage->nt;
+    }
+  if(m_NiftiImage->nu>0){
+    numberOfVoxels*=m_NiftiImage->nu;
+    }
+  if(m_NiftiImage->nv>0){
+    numberOfVoxels*=m_NiftiImage->nv;
+    }
+  if(m_NiftiImage->nw>0){
+    numberOfVoxels*=m_NiftiImage->nw;
+    }
 		
+   m_NiftiImage->nvox = numberOfVoxels;
 
-			*/
+  if(numComponents==1){
+    switch(imageDataType)
+      {
+    case VTK_BIT://DT_BINARY:
+      m_NiftiImage->datatype = DT_BINARY;
+      m_NiftiImage->nbyper = 0;
+      dataTypeSize = 0.125;
+      break;
+    case VTK_UNSIGNED_CHAR://DT_UNSIGNED_CHAR:
+      m_NiftiImage->datatype = DT_UNSIGNED_CHAR;
+      m_NiftiImage->nbyper = 1;
+      dataTypeSize = m_NiftiImage->nbyper;
+      break;
+    case VTK_SIGNED_CHAR://DT_INT8:
+      m_NiftiImage->datatype = DT_INT8;
+      m_NiftiImage->nbyper = 1;
+      dataTypeSize = m_NiftiImage->nbyper;
+      break;
+    case VTK_SHORT://DT_SIGNED_SHORT:
+      m_NiftiImage->datatype = DT_SIGNED_SHORT;
+      m_NiftiImage->nbyper = 2;
+      dataTypeSize = m_NiftiImage->nbyper;
+      break;
+    case VTK_UNSIGNED_SHORT://DT_UINT16:
+      m_NiftiImage->datatype = DT_UINT16;
+      m_NiftiImage->nbyper = 2;
+      dataTypeSize = m_NiftiImage->nbyper;
+      break;
+    case VTK_INT://DT_SIGNED_INT:
+      m_NiftiImage->datatype = DT_SIGNED_INT;
+      m_NiftiImage->nbyper = 4;
+      dataTypeSize = m_NiftiImage->nbyper;
+      break;
+    case VTK_UNSIGNED_INT://DT_UINT32:
+      m_NiftiImage->datatype = DT_UINT32;
+      m_NiftiImage->nbyper = 4;
+      dataTypeSize = m_NiftiImage->nbyper;
+      break;
+    case VTK_FLOAT://DT_FLOAT:
+      m_NiftiImage->datatype = DT_FLOAT;
+      m_NiftiImage->nbyper = 4;
+      dataTypeSize = m_NiftiImage->nbyper;
+      break;
+    case VTK_DOUBLE://DT_DOUBLE:
+      m_NiftiImage->datatype = DT_DOUBLE;
+      m_NiftiImage->nbyper = 8;
+      dataTypeSize = m_NiftiImage->nbyper;
+      break;
+    case VTK_LONG://DT_INT64:
+      m_NiftiImage->datatype = DT_INT64;
+      m_NiftiImage->nbyper = 8;
+      dataTypeSize = m_NiftiImage->nbyper;
+      break;
+    case VTK_UNSIGNED_LONG://DT_UINT64:
+      m_NiftiImage->datatype = DT_UINT64;
+      m_NiftiImage->nbyper = 8;
+      dataTypeSize = m_NiftiImage->nbyper;
+      break;
+    default:
+      cout << "cannot handle this type" << endl ;
+      break;
+      }
+  }
+ // m_NiftiImage->data = image->GetPointData( // scalar pointer i ekle buraya !!!! yer ac? 
+   m_NiftiImage->nifti_type = NIFTI_FTYPE_NIFTI1_1;
+   m_NiftiImage->data=const_cast<void *>( image->GetScalarPointer());
 
+	  m_NiftiImage->fname = nifti_makehdrname( saveFileName.toStdString().c_str(), m_NiftiImage->nifti_type,false,0);
+ m_NiftiImage->iname = nifti_makeimgname(saveFileName.toStdString().c_str(), m_NiftiImage->nifti_type,false,0); // 0 is compressed
+  
+
+ //Transformation and quaternion
+ 	vtkObject * attObject;
+
+ ds->getAttributes()->getAttribute("transformation matrix", attObject);
+ vtkMatrix4x4 *matrix =  vtkMatrix4x4::SafeDownCast(attObject);
+ matrix->Print(cout);
+ mat44 matrixf;
+ for(int i=0;i<4;i++)
+	  for(int j=0;j<4;j++)
+		 {
+			 matrixf.m[i][j] = matrix->GetElement(i,j);
+	        cout <<  matrixf.m[i][j] << endl;
+	  }
+ nifti_mat44_to_quatern(matrixf, &( m_NiftiImage->quatern_b), &( m_NiftiImage->quatern_c), &( m_NiftiImage->quatern_d), 
+	 &( m_NiftiImage->qoffset_x), &(m_NiftiImage->qoffset_y), &(m_NiftiImage->qoffset_z), 0, 0, 0, &(m_NiftiImage->qfac));
+
+ m_NiftiImage->qform_code = 2;
+
+
+  nifti_set_iname_offset(m_NiftiImage);
+			
+   nifti_image_write( m_NiftiImage );
 		}
 
 	} // namespace gui

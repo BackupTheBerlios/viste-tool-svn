@@ -483,7 +483,7 @@ QString bmiaNiftiReader::readNIfTIFile(const char * filename, bool showProgress)
 	// Create a VTK matrix
 	m = vtkMatrix4x4::New();
 	m->DeepCopy(tM);
-
+	
 	this->transformMatrix = m;
 
 	if (this->progress)

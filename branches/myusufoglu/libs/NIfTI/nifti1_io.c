@@ -5133,13 +5133,13 @@ int nifti_write_all_data(znzFile fp, nifti_image * nim,
 {
    size_t ss;
    int    bnum;
- 
+ printf(" Nifti write data all \n");
    if( !NBL ){ /* just write one buffer and get out of here */
       if( nim->data == NULL ){
          fprintf(stderr,"** NWAD: no image data to write\n");
          return -1;
       }
-
+	   printf(" Nifti write data all 1.1\n");
       ss = nifti_write_buffer(fp,nim->data,nim->nbyper * nim->nvox);
       if (ss < nim->nbyper * nim->nvox){
          fprintf(stderr,
@@ -5147,7 +5147,7 @@ int nifti_write_all_data(znzFile fp, nifti_image * nim,
             (unsigned)ss, (unsigned)(nim->nbyper * nim->nvox));
          return -1;
       }
-
+	   printf(" Nifti write data all 1.2\n");
       if( g_opts.debug > 1 )
          fprintf(stderr,"+d wrote single image of %u bytes\n", (unsigned)ss);
    } else {
@@ -5183,7 +5183,7 @@ static int nifti_write_extensions(znzFile fp, nifti_image *nim)
    nifti1_extension * list;
    char               extdr[4] = { 0, 0, 0, 0 };
    int                c, size, ok = 1;
-
+    printf(" nifti_write_extensions \n");
    if( znz_isnull(fp) || !nim || nim->num_ext < 0 ){
       if( g_opts.debug > 0 )
          fprintf(stderr,"** nifti_write_extensions, bad params\n");
@@ -5615,7 +5615,7 @@ int nifti_extension_size(nifti_image *nim)
 void nifti_set_iname_offset(nifti_image *nim)
 {
    int offset;
-   printf( "NIFTI_FTYPE_NIFTI1_1 %d",NIFTI_FTYPE_NIFTI1_1) ;
+   printf( "NIFTI_FTYPE_NIFTI1_1 %d %d", NIFTI_FTYPE_NIFTI1_1, nim->nifti_type) ;
    switch( nim->nifti_type ){
 
      default:  /* writing into 2 files */
@@ -5625,7 +5625,6 @@ void nifti_set_iname_offset(nifti_image *nim)
 
      /* NIFTI-1 single binary file - always update */
      case NIFTI_FTYPE_NIFTI1_1:
-		printf( "NIFTI_FTYPE_NIFTI1_1 %d",NIFTI_FTYPE_NIFTI1_1) ;
        offset = nifti_extension_size(nim)+sizeof(struct nifti_1_header)+4;
        /* be sure offset is aligned to a 16 byte boundary */
        if ( ( offset % 16 ) != 0 )  offset = ((offset + 0xf) & ~0xf);
@@ -5660,6 +5659,7 @@ void nifti_set_iname_offset(nifti_image *nim)
 znzFile nifti_image_write_hdr_img( nifti_image *nim , int write_data , 
                                           const char* opts )
 {
+	printf("nifti_image_write_hdr_img \n");
   return nifti_image_write_hdr_img2(nim,write_data,opts,NULL,NULL);
 }
 
@@ -5703,7 +5703,7 @@ znzFile nifti_image_write_hdr_img2(nifti_image *nim, int write_opts,
    size_t                ss ;
    int                   write_data, leave_open;
    char                  func[] = { "nifti_image_write_hdr_img2" };
-
+    printf("nifti_image_write_hdr_img2 \n");
    write_data = write_opts & 1;  /* just separate the bits now */
    leave_open = write_opts & 2;
 
@@ -5755,7 +5755,7 @@ znzFile nifti_image_write_hdr_img2(nifti_image *nim, int write_opts,
    }
 
    /* write the header and extensions */
-
+    printf("write the header and extensions znzwrite \n");
    ss = znzwrite(&nhdr , 1 , sizeof(nhdr) , fp); /* write header */
    if( ss < sizeof(nhdr) ){
       LNI_FERR(func,"bad header write to output file",nim->fname);
