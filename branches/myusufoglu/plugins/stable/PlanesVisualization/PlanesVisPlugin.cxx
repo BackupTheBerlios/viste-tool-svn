@@ -531,7 +531,7 @@ void PlanesVisPlugin::changeScalarVolume(int index)
 
 	// Use the image as the input for the actor
 	this->actor->SetInput(ds->getVtkImageData());
-
+	qDebug() << ds->getName() << " : " << ds->getKind() << "#ofComponents: " << ds->getVtkImageData()->GetNumberOfScalarComponents() << endl; 
 	// Set transformation matrix, reset slices
 	this->configureNewImage(ds);
 
