@@ -45,8 +45,9 @@
 
 
 #include "SaveDialog.h"
+// temporary
 #include  "D:\vISTe\subversion\myusufoglu\libs\NIfTI\vtkNiftiWriter.h"
-
+#include "vtkTransform.h"
 
 namespace bmia {
 
@@ -211,7 +212,7 @@ namespace bmia {
 			// VTK image data
 			if (image)
 			{
-				
+
 
 
 				// Why derivatices of DTI like FA is listed as being 0 byte. lets update
@@ -224,6 +225,8 @@ namespace bmia {
 				this->addSubItem(dsItem, "Type: Image (" + QString::number(image->GetDataDimension()) + "D)");
 				this->addSubItem(dsItem, "Components Per Voxel: " + QString::number(image->GetNumberOfScalarComponents()) + "");
 				this->addSubItem(dsItem, "Scalar Type: " + QString::number(image->GetScalarType()) + "");
+				if(image->GetDataDimension() == 3)
+					this->addSubItem(dsItem, "Spacing: " + QString::number(image->GetSpacing()[0]) + " "+ QString::number(image->GetSpacing()[1]) + " " + QString::number(image->GetSpacing()[2]));
 				dataSize = image->GetActualMemorySize();
 				dataSizeAvailable = true;
 
@@ -512,7 +515,7 @@ namespace bmia {
 			{
 				qDebug() << "Writing the image data. No of scalar components is:" << image->GetNumberOfScalarComponents() << endl;
 				//image->Print(cout);
-				
+
 				if((fileNameExtention.toString()==".vtk") || fileNameExtention.toString()==".vti" )
 				{
 					cout << "saving vtk or vti" << endl;
@@ -543,9 +546,9 @@ namespace bmia {
 			{		 
 				qDebug() << "Writing the pointset data" << endl;
 				writer->SetInput( (vtkDataObject*)(pointSet) );
-					writer->SetFileTypeToASCII();
-			writer->SetFileName( saveFileName.toStdString().c_str() );
-			writer->Write();
+				writer->SetFileTypeToASCII();
+				writer->SetFileName( saveFileName.toStdString().c_str() );
+				writer->Write();
 			}
 			else 
 			{
@@ -555,7 +558,7 @@ namespace bmia {
 
 
 
-		
+
 
 
 			//image->Delete();
@@ -796,30 +799,63 @@ namespace bmia {
 
 			m_NiftiImage->fname = nifti_makehdrname( saveFileName.toStdString().c_str(), m_NiftiImage->nifti_type,false,0);
 			m_NiftiImage->iname = nifti_makeimgname(saveFileName.toStdString().c_str(), m_NiftiImage->nifti_type,false,0); // 0 is compressed
-
+			m_NiftiImage->qform_code = 1;
 
 			//Transformation and quaternion
-			vtkObject * attObject;
-
+			vtkObject * attObject = vtkObject::New();
+			cout << "Get attribute transf mat. "<< endl;
 			ds->getAttributes()->getAttribute("transformation matrix", attObject);
-			vtkMatrix4x4 *matrix =  vtkMatrix4x4::SafeDownCast(attObject);
-			matrix->Print(cout);
-			mat44 matrixf;
-			for(int i=0;i<4;i++)
-				for(int j=0;j<4;j++)
+			cout << "Get attribute transf mat. OK "<< endl;
+			if(attObject)
+			{
+				cout << "attObject"  << endl;
+				vtkMatrix4x4 *matrix =  vtkMatrix4x4::New();
+					matrix = vtkMatrix4x4::SafeDownCast(attObject);
+				if(matrix)
 				{
-					matrixf.m[i][j] = matrix->GetElement(i,j);
-					cout <<  matrixf.m[i][j] << endl;
+				matrix->Print(cout);
+				cout << "attObject 1.1"  << endl;
+				mat44 matrixf;
+				for(int i=0;i<4;i++)
+					for(int j=0;j<4;j++)
+					{
+						matrixf.m[i][j] = matrix->GetElement(i,j);
+						cout <<  matrixf.m[i][j] << endl;
+					}
+					cout << "attObject 1.2"  << endl;
+					nifti_mat44_to_quatern(matrixf, &( m_NiftiImage->quatern_b), &( m_NiftiImage->quatern_c), &( m_NiftiImage->quatern_d), 
+						&( m_NiftiImage->qoffset_x), &(m_NiftiImage->qoffset_y), &(m_NiftiImage->qoffset_z), &(m_NiftiImage->dx) , &(m_NiftiImage->dy) ,&(m_NiftiImage->dz) , &(m_NiftiImage->qfac));
+
+
+					cout << m_NiftiImage->quatern_b << " " << m_NiftiImage->quatern_c << " " << m_NiftiImage->quatern_d << " " << m_NiftiImage->qfac << " " << endl;
+					cout << m_NiftiImage->qoffset_x << " " << m_NiftiImage->qoffset_y << " " << m_NiftiImage->qoffset_z <<endl;
+
+					// in case the matrix is not pure transform, quaternion can not include scaling part. Therefore if the matris is not a pure transform matrix use scaling factor in spacing?
+					float scaling[3];
+					if(matrix->Determinant() != 1)
+					{
+						cout << "Determinant not 1. Find scaling." << endl;
+						vtkTransform *transform = vtkTransform::New();
+						transform->SetMatrix(matrix);
+						transform->Scale(scaling);
+
+						m_NiftiImage->pixdim[1] = spacing[0]*scaling[0];
+						m_NiftiImage->pixdim[2] = spacing[1]*scaling[1];
+						m_NiftiImage->pixdim[3] = spacing[2]*scaling[2];
+						transform->Delete();
+					}
 				}
-				nifti_mat44_to_quatern(matrixf, &( m_NiftiImage->quatern_b), &( m_NiftiImage->quatern_c), &( m_NiftiImage->quatern_d), 
-					&( m_NiftiImage->qoffset_x), &(m_NiftiImage->qoffset_y), &(m_NiftiImage->qoffset_z), 0, 0, 0, &(m_NiftiImage->qfac));
-
-				m_NiftiImage->qform_code = 2;
-
-
-				nifti_set_iname_offset(m_NiftiImage);
-
-				nifti_image_write( m_NiftiImage );
+				else {
+					cout << "Invalid   matrix \n";
+				}
+			}
+			else
+			{
+				cout << "Invalid transformation object \n";
+			}
+			nifti_set_iname_offset(m_NiftiImage);
+			// Write the image fiel 
+			nifti_image_write( m_NiftiImage );
 		}
 
 	} // namespace gui

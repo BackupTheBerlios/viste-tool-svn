@@ -463,12 +463,12 @@ namespace bmia {
 		// General behavior: For each of the input data types, it updates the name in
 		// the GUI combo boxes, and if the data set is selected in one of these combo
 		// boxes, it also calls the corresponding update function ("changeX").
-		cout << "dataSetChanged" << ds->getName().toStdString() << endl;
+		//cout << "dataSetChanged" << ds->getName().toStdString() << endl;
 		// Scalar Volumes
 		//cin.get();
 		int isCropped(0);
 		ds->getAttributes()->getAttribute("isSubVolume",isCropped);
-		cout << "isCropped" << endl;
+		//cout << "isCropped" << endl;
 		if(ds->getKind() == "scalar volume" && this->scalarVolumeDataSets.contains(ds))
 		{
 			this->connectControls(false);
