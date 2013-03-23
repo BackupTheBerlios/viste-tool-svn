@@ -34,3 +34,4 @@
 add_subdirectory( avilanova )
 add_subdirectory( rbrecheisen )
 add_subdirectory( bknippenberg )
+add_subdirectory( smeesters )
