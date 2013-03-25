@@ -226,7 +226,7 @@ protected slots:
     void inputMaximumThresholdChanged(double value);
     void inputMinimumThresholdChanged(double value);
     void inputSmoothingChanged(double value);
-    void inputColorChanged(QString value);
+    void inputColorChanged();
     void inputAlphaChanged(double value);
     void inputReductionChanged(double value);
     void inputSpecularChanged(double value);
@@ -352,7 +352,7 @@ private:
      */
     void updateClippingPlaneEnabled(int direction, bool checked);
 
-	vtkActor2D* IsosurfaceVisualization::GenerateLabels(vtkSmartPointer<vtkPoints> points, vtkSmartPointer<vtkStringArray> labels);
+	vtkActor2D* GenerateLabels(vtkSmartPointer<vtkPoints> points, vtkSmartPointer<vtkStringArray> labels);
 
     /** Position picker */
     void setupClippingPlanesPicker();

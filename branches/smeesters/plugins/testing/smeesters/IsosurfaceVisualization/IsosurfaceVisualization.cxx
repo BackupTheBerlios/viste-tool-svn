@@ -91,7 +91,7 @@ void IsosurfaceVisualization::init()
 
         vtkSmartPointer<vtkSphereSource> diskSource =
             vtkSmartPointer<vtkSphereSource>::New();
-        diskSource->SetRadius(2);
+        diskSource->SetRadius(1);
 
         vtkSmartPointer<vtkPolyDataMapper> diskMapper =
             vtkSmartPointer<vtkPolyDataMapper>::New();
@@ -713,31 +713,33 @@ vtkActor2D* IsosurfaceVisualization::GenerateLabels(vtkSmartPointer<vtkPoints> p
 {
 	VTK_CREATE(vtkPolyData, polydata);
 	polydata->SetPoints(points);
- 
+
 	VTK_CREATE(vtkVertexGlyphFilter, glyphFilter);
 	glyphFilter->SetInputConnection(polydata->GetProducerPort());
 	glyphFilter->Update();
 
 	// Add label array.
 	glyphFilter->GetOutput()->GetPointData()->AddArray(labels);
- 
+
 	// Create a mapper and actor for the points.
 	VTK_CREATE(vtkPolyDataMapper,pointMapper);
 	pointMapper->SetInputConnection(glyphFilter->GetOutputPort());
- 
+
 	VTK_CREATE(vtkActor, pointActor);
 	pointActor->SetMapper(pointMapper);
- 
+
 	// Generate the label hierarchy.
 	VTK_CREATE(vtkPointSetToLabelHierarchy, pointSetToLabelHierarchyFilter);
 	pointSetToLabelHierarchyFilter->SetInputConnection(
 	glyphFilter->GetOutputPort());
 	pointSetToLabelHierarchyFilter->SetLabelArrayName("labels");
 	pointSetToLabelHierarchyFilter->Update();
- 
+
 	// Create a mapper and actor for the labels.
 	VTK_CREATE(vtkLabelPlacementMapper, labelMapper);
 	labelMapper->SetInputConnection(pointSetToLabelHierarchyFilter->GetOutputPort());
+	labelMapper->UseDepthBufferOff();
+	labelMapper->PlaceAllLabelsOn();
 
 	vtkActor2D* labelActor = vtkActor2D::New();
 	labelActor->SetMapper(labelMapper);
@@ -1000,7 +1002,7 @@ void IsosurfaceVisualization::connectAll()
     connect(this->form->inputMaximumThreshold,SIGNAL(valueChanged(double)),this,SLOT(inputMaximumThresholdChanged(double)));
     connect(this->form->inputMinimumThreshold,SIGNAL(valueChanged(double)),this,SLOT(inputMinimumThresholdChanged(double)));
     connect(this->form->inputSmoothing,SIGNAL(valueChanged(double)),this,SLOT(inputSmoothingChanged(double)));
-    connect(this->form->inputColor,SIGNAL(textChanged(QString)),this,SLOT(inputColorChanged(QString)));
+    connect(this->form->inputColor,SIGNAL(clicked()),this,SLOT(inputColorChanged()));
     connect(this->form->inputAlpha,SIGNAL(valueChanged(double)),this,SLOT(inputAlphaChanged(double)));
     connect(this->form->inputReduction,SIGNAL(valueChanged(double)),this,SLOT(inputReductionChanged(double)));
     connect(this->form->inputSpecular,SIGNAL(valueChanged(double)),this,SLOT(inputSpecularChanged(double)));
@@ -1029,7 +1031,7 @@ void IsosurfaceVisualization::connectAll()
     connect(this->form->buttonSetPointB,SIGNAL(clicked()),this,SLOT(buttonSetPointBClicked()));
 
     connect(this->form->buttonSetLineColor,SIGNAL(clicked()),this,SLOT(buttonSetLineColorClicked()));
-    connect(this->form->buttonSaveMeasurement,SIGNAL(clicked()),this,SLOT(buttonSaveMeasurementClicked()));
+    //connect(this->form->buttonSaveMeasurement,SIGNAL(clicked()),this,SLOT(buttonSaveMeasurementClicked()));
 
 	connect(this->form->lineEditNamePointA,SIGNAL(textChanged(QString)),this,SLOT(lineEditNamePointAChanged(QString)));
 	connect(this->form->lineEditNamePointB,SIGNAL(textChanged(QString)),this,SLOT(lineEditNamePointBChanged(QString)));
@@ -1112,7 +1114,6 @@ void IsosurfaceVisualization::comboBoxDataChanged()
 
         this->form->inputAlpha->setValue(current_modelInfo->alpha);
         this->form->inputSmoothing->setValue(current_modelInfo->smoothing);
-        this->form->inputColor->setText(current_modelInfo->colorString);
         this->form->inputSpecular->setValue(current_modelInfo->specular);
         this->form->checkBoxVisible->setChecked(current_modelInfo->visible);
         this->form->inputReduction->setValue(current_modelInfo->reduction);
@@ -1331,13 +1332,21 @@ void IsosurfaceVisualization::inputSmoothingChanged(double value)
 
 //------------------[ Change color ]-----------------------\
 
-void IsosurfaceVisualization::inputColorChanged(QString value)
+void IsosurfaceVisualization::inputColorChanged()
 {
-    int color_hex = value.toInt(0,16);
+    /*int color_hex = value.toInt(0,16);
     current_modelInfo->color[0] = ((color_hex >> 16) & 0xff) / 255.0; // red
     current_modelInfo->color[1] = ((color_hex >> 8) & 0xff) / 255.0; // green
     current_modelInfo->color[2] = (color_hex & 0xff) / 255.0; // blue
-    current_modelInfo->colorString = value;
+    current_modelInfo->colorString = value;*/
+
+    QColor oldColor;
+    oldColor.setRgbF(current_modelInfo->color[0], current_modelInfo->color[1], current_modelInfo->color[2]);
+    QColor newColor = QColorDialog::getColor(oldColor, 0);
+
+    current_modelInfo->color[0] = newColor.redF();
+    current_modelInfo->color[1] = newColor.greenF();
+    current_modelInfo->color[2] = newColor.blueF();
 }
 
 //------------------[ Change alpha ]-----------------------\
@@ -1595,14 +1604,23 @@ void IsosurfaceVisualization::calculateDistance()
 	measuredLabelStrings->InsertNextValue(this->form->lineEditNamePointB->text().toLocal8Bit().constData());
 
 	measuredLabelPoints->InsertNextPoint(pointA->x + (pointB->x-pointA->x)/2.0,
-							pointA->y + (pointA->y-pointB->y)/2.0,
+							pointA->y + (pointB->y-pointA->y)/2.0,
 							pointA->z + (pointB->z-pointA->z)/2.0+5);
 	measuredLabelStrings->InsertNextValue(labeltext_short.toLocal8Bit().constData());
+
+    if(measuredLabels != NULL)
+        this->assembly->RemovePart(measuredLabels);
 
 	measuredLabels = this->GenerateLabels(measuredLabelPoints,measuredLabelStrings);
 	this->assembly->AddPart(measuredLabels);
 
 
+    if (this->currentElectrodesColor.isValid())
+    {
+        measuredLine->GetProperty()->SetColor(this->currentElectrodesColor.redF(), this->currentElectrodesColor.greenF(), this->currentElectrodesColor.blueF());
+        pointA->sphere->GetProperty()->SetColor(this->currentElectrodesColor.redF(), this->currentElectrodesColor.greenF(), this->currentElectrodesColor.blueF());
+        pointB->sphere->GetProperty()->SetColor(this->currentElectrodesColor.redF(), this->currentElectrodesColor.greenF(), this->currentElectrodesColor.blueF());
+    }
 
 
     // remove old blobs
@@ -1650,17 +1668,24 @@ void IsosurfaceVisualization::calculateDistance()
 
 void IsosurfaceVisualization::buttonSetLineColorClicked()
 {
-    /*double oldColorRGB[3];
+    double oldColorRGB[3];
     QColor oldColor;
-    vtkActor* electrodeActor = depthElectrodeBlobs.at(0);
-    electrodeActor->GetProperty()->GetColor(oldColorRGB);
+    //vtkActor* electrodeActor = depthElectrodeBlobs.at(0);
+    measuredLine->GetProperty()->GetColor(oldColorRGB);
     oldColor.setRgbF(oldColorRGB[0], oldColorRGB[1], oldColorRGB[2]);
 
     // Use a color dialog to get the new color
     this->currentElectrodesColor = QColorDialog::getColor(oldColor, 0);
 
+    measuredLine->GetProperty()->SetColor(this->currentElectrodesColor.redF(), this->currentElectrodesColor.greenF(), this->currentElectrodesColor.blueF());
+
+    MeasuredPoint* pointA = this->measuredPointList.at(0);
+    MeasuredPoint* pointB = this->measuredPointList.at(1);
+    pointA->sphere->GetProperty()->SetColor(this->currentElectrodesColor.redF(), this->currentElectrodesColor.greenF(), this->currentElectrodesColor.blueF());
+    pointB->sphere->GetProperty()->SetColor(this->currentElectrodesColor.redF(), this->currentElectrodesColor.greenF(), this->currentElectrodesColor.blueF());
+
     // set current electrodes to that color
-    QList<vtkActor*>::iterator i;
+    /*QList<vtkActor*>::iterator i;
     for(i = this->depthElectrodeBlobs.begin(); i!=this->depthElectrodeBlobs.end(); i++)
     {
         if (this->currentElectrodesColor.isValid())

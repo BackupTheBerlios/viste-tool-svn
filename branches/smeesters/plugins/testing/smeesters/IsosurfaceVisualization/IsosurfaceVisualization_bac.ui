@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>290</width>
-    <height>774</height>
+    <width>321</width>
+    <height>858</height>
    </rect>
   </property>
   <property name="acceptDrops">
@@ -16,8 +16,8 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout_2">
-   <item row="0" column="0">
+  <layout class="QVBoxLayout" name="verticalLayout_6">
+   <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
       <widget class="QLabel" name="label">
@@ -40,7 +40,7 @@
      </item>
     </layout>
    </item>
-   <item row="1" column="0">
+   <item>
     <widget class="QToolBox" name="toolBox">
      <property name="enabled">
       <bool>true</bool>
@@ -52,15 +52,15 @@
       </sizepolicy>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="page">
       <property name="geometry">
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>272</width>
-        <height>593</height>
+        <width>246</width>
+        <height>377</height>
        </rect>
       </property>
       <attribute name="label">
@@ -207,6 +207,13 @@
            </property>
           </widget>
          </item>
+         <item row="6" column="1">
+          <widget class="QLineEdit" name="inputColor">
+           <property name="text">
+            <string>0xFFFFFF</string>
+           </property>
+          </widget>
+         </item>
          <item row="7" column="0">
           <widget class="QLabel" name="label_9">
            <property name="text">
@@ -244,13 +251,6 @@
            </property>
            <property name="value">
             <double>1.000000000000000</double>
-           </property>
-          </widget>
-         </item>
-         <item row="6" column="1">
-          <widget class="QPushButton" name="inputColor">
-           <property name="text">
-            <string>Open picker</string>
            </property>
           </widget>
          </item>
@@ -293,8 +293,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>272</width>
-        <height>593</height>
+        <width>196</width>
+        <height>428</height>
        </rect>
       </property>
       <attribute name="label">
@@ -595,8 +595,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>272</width>
-        <height>593</height>
+        <width>129</width>
+        <height>51</height>
        </rect>
       </property>
       <attribute name="label">
@@ -630,8 +630,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>272</width>
-        <height>593</height>
+        <width>303</width>
+        <height>835</height>
        </rect>
       </property>
       <attribute name="label">
@@ -639,7 +639,29 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_7">
        <item>
+        <widget class="QListWidget" name="savedMeasurementsList">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="autoScrollMargin">
+          <number>16</number>
+         </property>
+         <property name="batchSize">
+          <number>100</number>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QLabel" name="measuredDistanceLabel">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="text">
           <string>No distance measured</string>
          </property>
@@ -654,7 +676,7 @@
           <bool>true</bool>
          </property>
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+          <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -787,7 +809,7 @@
        <item>
         <widget class="QGroupBox" name="groupBox_2">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -917,7 +939,7 @@
           <bool>true</bool>
          </property>
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -925,8 +947,52 @@
          <property name="title">
           <string>Visuals</string>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_6">
-          <item>
+         <layout class="QGridLayout" name="gridLayout_7">
+          <item row="0" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_15">
+            <item>
+             <widget class="QLabel" name="label_17">
+              <property name="text">
+               <string>Style</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="distanceLineStyle">
+              <item>
+               <property name="text">
+                <string>Line</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Striped line</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Dots</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="1" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_17">
+            <item>
+             <widget class="QLabel" name="label_18">
+              <property name="text">
+               <string>Seperation</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QDoubleSpinBox" name="distanceLineSeperation"/>
+            </item>
+           </layout>
+          </item>
+          <item row="2" column="0">
            <layout class="QHBoxLayout" name="horizontalLayout_16">
             <item>
              <widget class="QLabel" name="label_19">
@@ -942,23 +1008,37 @@
               </property>
              </widget>
             </item>
+            <item>
+             <widget class="QPushButton" name="buttonSetLineColorAutomatic">
+              <property name="text">
+               <string>Automatic</string>
+              </property>
+             </widget>
+            </item>
            </layout>
-          </item>
-          <item>
-           <spacer name="verticalSpacer_4">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
           </item>
          </layout>
         </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="buttonSaveMeasurement">
+         <property name="text">
+          <string>Save to list</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_4">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>285</width>
+           <height>48</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>
