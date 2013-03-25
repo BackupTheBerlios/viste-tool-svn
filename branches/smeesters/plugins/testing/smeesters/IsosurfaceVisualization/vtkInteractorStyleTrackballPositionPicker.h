@@ -68,14 +68,14 @@
 
 #include "data/DataSet.h"
 
-#include "TestPlugin.h"
+#include "IsosurfaceVisualization.h"
 #include <vtkImageSlice.h>
 #include <vtkProp3D.h>
 
 #include <vtkTexture.h>
 
 // Forward declariation
-class TestPlugin;
+class IsosurfaceVisualization;
 
 namespace bmia
 {
@@ -130,7 +130,7 @@ class vtkInteractorStyleTrackballPositionPicker : public vtkInteractorStyleTrack
 		/**
 		Reference to parent class for passing through position data
 		*/
-        TestPlugin * parentClass;
+        IsosurfaceVisualization * parentClass;
 };
 
 }//namespace bmia

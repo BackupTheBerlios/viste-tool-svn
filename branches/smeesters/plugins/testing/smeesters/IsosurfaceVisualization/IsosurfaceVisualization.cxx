@@ -1,4 +1,4 @@
-#include "TestPlugin.h"
+#include "IsosurfaceVisualization.h"
 
 #define VTK_CREATE(type, name) \
   vtkSmartPointer<type> name = vtkSmartPointer<type>::New()
@@ -17,7 +17,7 @@ namespace bmia
 
 //------------------------[ Plugin constructor ]-----------------------\\
 
-TestPlugin::TestPlugin() : plugin::AdvancedPlugin("TestPlugin")
+IsosurfaceVisualization::IsosurfaceVisualization() : plugin::AdvancedPlugin("IsosurfaceVisualization")
 {
     this->widget = NULL;
     this->form   = NULL;
@@ -25,7 +25,7 @@ TestPlugin::TestPlugin() : plugin::AdvancedPlugin("TestPlugin")
 
 //------------------------[ Plugin destructor ]-----------------------\\
 
-TestPlugin::~TestPlugin()
+IsosurfaceVisualization::~IsosurfaceVisualization()
 {
     delete this->widget;
     delete this->form;
@@ -33,10 +33,10 @@ TestPlugin::~TestPlugin()
 
 //------------------------[ Initialization ]-----------------------\\
 
-void TestPlugin::init()
+void IsosurfaceVisualization::init()
 {
     this->widget = new QWidget();
-    this->form = new Ui::TestPluginForm();
+    this->form = new Ui::IsosurfaceVisualizationForm();
     this->form->setupUi(this->widget);
 
     // Link events in the GUI to function calls
@@ -118,7 +118,7 @@ void TestPlugin::init()
 
 //------------[ Setup pointer interactor for clipping planes ]----------------\\
 
-void TestPlugin::setupClippingPlanesPicker()
+void IsosurfaceVisualization::setupClippingPlanesPicker()
 {
     // Create a new styleTrackballPP
     this->styleTrackballPP = vtkInteractorStyleTrackballPositionPicker::New();
@@ -145,7 +145,7 @@ void TestPlugin::setupClippingPlanesPicker()
 
 //------------------------[ Dataset added ]-----------------------\\
 
-void TestPlugin::dataSetAdded(data::DataSet * d)
+void IsosurfaceVisualization::dataSetAdded(data::DataSet * d)
 {
     // Assert the data set pointer (should never be NULL)
     Q_ASSERT(d);
@@ -188,7 +188,7 @@ void TestPlugin::dataSetAdded(data::DataSet * d)
 
 //------------------------[ Dataset changed ]-----------------------\\
 
-void TestPlugin::dataSetChanged(data::DataSet * d)
+void IsosurfaceVisualization::dataSetChanged(data::DataSet * d)
 {
     // Assert the data set pointer (should never be NULL)
     Q_ASSERT(d);
@@ -228,7 +228,7 @@ void TestPlugin::dataSetChanged(data::DataSet * d)
 
 //------------------------[ Dataset removed ]-----------------------\\
 
-void TestPlugin::dataSetRemoved(data::DataSet * d)
+void IsosurfaceVisualization::dataSetRemoved(data::DataSet * d)
 {
     // Assert the data set pointer (should never be NULL)
     Q_ASSERT(d);
@@ -271,7 +271,7 @@ void TestPlugin::dataSetRemoved(data::DataSet * d)
 
 //------------------------[ Create model info ]-----------------------\\
 
-void TestPlugin::createModelInfo(data::DataSet * d)
+void IsosurfaceVisualization::createModelInfo(data::DataSet * d)
 {
     // Create model info struct for new dataset
     ModelInfo* modelInfo = new ModelInfo;
@@ -394,7 +394,7 @@ void TestPlugin::createModelInfo(data::DataSet * d)
 
 //    // Add to dataset manager so that it shows up in the PolyData list
 //    // Set the default name for the new ROI
-//	QString newDataName = QString("TestPlugin: ").append(d->getName());
+//	QString newDataName = QString("IsosurfaceVisualization: ").append(d->getName());
 //
 //	// Create an empty polydata object
 //	vtkPolyData * polyData = vtkPolyData::New();
@@ -408,7 +408,7 @@ void TestPlugin::createModelInfo(data::DataSet * d)
 
 //------------------------[ Process transfer function ]-----------------------\\
 
-void TestPlugin::createLookupTable(data::DataSet * d, int index)
+void IsosurfaceVisualization::createLookupTable(data::DataSet * d, int index)
 {
 	 // get color transfer function
     vtkColorTransferFunction* ctf = vtkColorTransferFunction::SafeDownCast(d->getVtkObject());
@@ -529,7 +529,7 @@ void TestPlugin::createLookupTable(data::DataSet * d, int index)
 
 //------------------------[ Create or update the mesh ]-----------------------\\
 
-void TestPlugin::updateRenderingModels()
+void IsosurfaceVisualization::updateRenderingModels()
 {
     // recalculate model
     if(bModelDirty)
@@ -554,7 +554,11 @@ void TestPlugin::updateRenderingModels()
         mcubes->SetNumberOfContours(1);
         mcubes->SetComputeScalars(0);
         mcubes->GenerateValues(1,current_modelInfo->minimumThreshold,current_modelInfo->maximumThreshold);
-        //mcubes->GetOutput()->GetBounds(current_modelInfo->prop_bounds);
+
+		// marching cubes progress bar
+		this->core()->out()->createProgressBarForAlgorithm(mcubes, "Isosurface Visualization", "Creating isosurface mesh...");
+		mcubes->Update();
+		this->core()->out()->deleteProgressBarForAlgorithm(mcubes);
 
         // select largest component
         VTK_CREATE(vtkPolyDataConnectivityFilter, connectivity);
@@ -584,6 +588,11 @@ void TestPlugin::updateRenderingModels()
             deci->SetTargetReduction(current_modelInfo->reduction);
             deci->PreserveTopologyOn();
             deci->AccumulateErrorOn();
+
+			// decimator progress bar
+			this->core()->out()->createProgressBarForAlgorithm(deci, "Isosurface Visualization", "Decimating the mesh...");
+			deci->Update();
+			this->core()->out()->deleteProgressBarForAlgorithm(deci);
         }
 
         vtkExtractPolyDataGeometry* clipper = vtkExtractPolyDataGeometry::New();
@@ -698,13 +707,52 @@ void TestPlugin::updateRenderingModels()
     //vtkDebugLeaks::PrintCurrentLeaks();
 }
 
+//------------------------[ Create text labels ]-----------------------\\
+
+vtkActor2D* IsosurfaceVisualization::GenerateLabels(vtkSmartPointer<vtkPoints> points, vtkSmartPointer<vtkStringArray> labels)
+{
+	VTK_CREATE(vtkPolyData, polydata);
+	polydata->SetPoints(points);
+ 
+	VTK_CREATE(vtkVertexGlyphFilter, glyphFilter);
+	glyphFilter->SetInputConnection(polydata->GetProducerPort());
+	glyphFilter->Update();
+
+	// Add label array.
+	glyphFilter->GetOutput()->GetPointData()->AddArray(labels);
+ 
+	// Create a mapper and actor for the points.
+	VTK_CREATE(vtkPolyDataMapper,pointMapper);
+	pointMapper->SetInputConnection(glyphFilter->GetOutputPort());
+ 
+	VTK_CREATE(vtkActor, pointActor);
+	pointActor->SetMapper(pointMapper);
+ 
+	// Generate the label hierarchy.
+	VTK_CREATE(vtkPointSetToLabelHierarchy, pointSetToLabelHierarchyFilter);
+	pointSetToLabelHierarchyFilter->SetInputConnection(
+	glyphFilter->GetOutputPort());
+	pointSetToLabelHierarchyFilter->SetLabelArrayName("labels");
+	pointSetToLabelHierarchyFilter->Update();
+ 
+	// Create a mapper and actor for the labels.
+	VTK_CREATE(vtkLabelPlacementMapper, labelMapper);
+	labelMapper->SetInputConnection(pointSetToLabelHierarchyFilter->GetOutputPort());
+
+	vtkActor2D* labelActor = vtkActor2D::New();
+	labelActor->SetMapper(labelMapper);
+	labelActor->SetLayerNumber(5);
+
+	return labelActor;
+}
+
 ///
 ///     CALLBACKS
 ///
 
 //------------[ Callback of clipping planes position from picker ]----------------\\
 
-void TestPlugin::setClippingPlanesPosition(double* pos)
+void IsosurfaceVisualization::setClippingPlanesPosition(double* pos)
 {
     if(this->current_modelInfo != NULL)
     {
@@ -855,7 +903,7 @@ void TestPlugin::setClippingPlanesPosition(double* pos)
 
 //-----------[ Update clipping plane slider effects on mesh ]-----------------------\\
 
-void TestPlugin::updateClippingPlaneSlider(int direction, int value, bool render)
+void IsosurfaceVisualization::updateClippingPlaneSlider(int direction, int value, bool render)
 {
     // return if no model is chosen
     if(current_modelInfo == NULL)
@@ -919,7 +967,7 @@ void TestPlugin::updateClippingPlaneSlider(int direction, int value, bool render
 
 //-----------[ Update clipping plane enabled checkbox action ]-----------------------\\
 
-void TestPlugin::updateClippingPlaneEnabled(int direction, bool checked)
+void IsosurfaceVisualization::updateClippingPlaneEnabled(int direction, bool checked)
 {
     current_modelInfo->planesActivated[direction] = checked;
 
@@ -944,7 +992,7 @@ void TestPlugin::updateClippingPlaneEnabled(int direction, bool checked)
 
 //------------------------[ Connect Qt elements ]-----------------------\\
 
-void TestPlugin::connectAll()
+void IsosurfaceVisualization::connectAll()
 {
     connect(this->form->comboBoxDataset,SIGNAL(currentIndexChanged(int)),this,SLOT(comboBoxDataChanged()));
     connect(this->form->checkBoxVisible,SIGNAL(toggled(bool)),this,SLOT(checkBoxVisibleChanged(bool)));
@@ -983,12 +1031,13 @@ void TestPlugin::connectAll()
     connect(this->form->buttonSetLineColor,SIGNAL(clicked()),this,SLOT(buttonSetLineColorClicked()));
     connect(this->form->buttonSaveMeasurement,SIGNAL(clicked()),this,SLOT(buttonSaveMeasurementClicked()));
 
-
+	connect(this->form->lineEditNamePointA,SIGNAL(textChanged(QString)),this,SLOT(lineEditNamePointAChanged(QString)));
+	connect(this->form->lineEditNamePointB,SIGNAL(textChanged(QString)),this,SLOT(lineEditNamePointBChanged(QString)));
 }
 
 //------------------------[ Disconnect Qt elements ]-----------------------\\
 
-void TestPlugin::disconnectAll()
+void IsosurfaceVisualization::disconnectAll()
 {
     disconnect(this->form->comboBoxDataset,SIGNAL(currentIndexChanged(int)),this,SLOT(comboBoxDataChanged()));
     disconnect(this->form->checkBoxVisible,SIGNAL(toggled(bool)),this,SLOT(checkBoxVisibleChanged(bool)));
@@ -1021,7 +1070,7 @@ void TestPlugin::disconnectAll()
 
 //------------------------[ Select another dataset from combobox ]-----------------------\\
 
-void TestPlugin::comboBoxDataChanged()
+void IsosurfaceVisualization::comboBoxDataChanged()
 {
     // select model info matching the dataset
     int index = this->form->comboBoxDataset->currentIndex() - 1;
@@ -1030,71 +1079,12 @@ void TestPlugin::comboBoxDataChanged()
     if(index < 0)
     {
         // disable gui
-        this->form->checkBoxVisible->setEnabled(false);
-        this->form->buttonUpdate->setEnabled(false);
-        this->form->inputAlpha->setEnabled(false);
-        this->form->inputColor->setEnabled(false);
-        this->form->inputMaximumThreshold->setEnabled(false);
-        this->form->inputMinimumThreshold->setEnabled(false);
-        this->form->inputSmoothing->setEnabled(false);
-        this->form->inputSpecular->setEnabled(false);
-        this->form->checkBoxX->setEnabled(false);
-        this->form->checkBoxY->setEnabled(false);
-        this->form->checkBoxZ->setEnabled(false);
-        this->form->inputReduction->setEnabled(false);
-        this->form->comboBoxStyle->setEnabled(false);
-        this->form->comboBoxOverlay->setEnabled(false);
-        this->form->comboBoxOverlayLUT->setEnabled(false);
-        this->form->horizontalSliderX->setEnabled(false);
-        this->form->horizontalSliderY->setEnabled(false);
-        this->form->horizontalSliderZ->setEnabled(false);
-        this->form->checkBoxFlipX->setEnabled(false);
-        this->form->checkBoxFlipY->setEnabled(false);
-        this->form->checkBoxFlipZ->setEnabled(false);
-        this->form->buttonApplySettingsToAll->setEnabled(false);
-        this->form->comboBoxBaseLayer->setEnabled(false);
-        this->form->comboBoxBaseLayerLUT->setEnabled(false);
-        this->form->spinX->setEnabled(false);
-        this->form->spinY->setEnabled(false);
-        this->form->spinZ->setEnabled(false);
-        this->form->buttonSaveMesh->setEnabled(false);
-        this->form->checkBoxLargestComponent->setEnabled(false);
-        this->form->checkBoxInvertClipping->setEnabled(false);
-        this->form->checkBoxAlignPlanesToPick->setEnabled(false);
+		this->form->toolBox->setEnabled(false);
     }
     else
     {
         // enable gui
-        this->form->checkBoxVisible->setEnabled(true);
-        this->form->buttonUpdate->setEnabled(true);
-        this->form->inputAlpha->setEnabled(true);
-        this->form->inputColor->setEnabled(true);
-        this->form->inputMaximumThreshold->setEnabled(true);
-        this->form->inputMinimumThreshold->setEnabled(true);
-        this->form->inputSmoothing->setEnabled(true);
-        this->form->inputSpecular->setEnabled(true);
-        this->form->checkBoxX->setEnabled(true);
-        this->form->checkBoxY->setEnabled(true);
-        this->form->checkBoxZ->setEnabled(true);
-        this->form->inputReduction->setEnabled(true);
-        this->form->comboBoxStyle->setEnabled(true);
-        this->form->comboBoxOverlay->setEnabled(true);
-        this->form->comboBoxOverlayLUT->setEnabled(true);
-        this->form->horizontalSliderX->setEnabled(true);
-        this->form->horizontalSliderY->setEnabled(true);
-        this->form->horizontalSliderZ->setEnabled(true);
-        this->form->checkBoxFlipX->setEnabled(true);
-        this->form->checkBoxFlipY->setEnabled(true);
-        this->form->checkBoxFlipZ->setEnabled(true);
-        this->form->buttonApplySettingsToAll->setEnabled(true);
-        this->form->comboBoxBaseLayerLUT->setEnabled(true);
-        this->form->spinX->setEnabled(true);
-        this->form->spinY->setEnabled(true);
-        this->form->spinZ->setEnabled(true);
-        this->form->buttonSaveMesh->setEnabled(true);
-        this->form->checkBoxLargestComponent->setEnabled(true);
-        this->form->checkBoxInvertClipping->setEnabled(true);
-        this->form->checkBoxAlignPlanesToPick->setEnabled(true);
+		this->form->toolBox->setEnabled(true);
 
         // select model info struct
         this->current_modelInfo = this->modelInfoList.at(index);
@@ -1165,19 +1155,14 @@ void TestPlugin::comboBoxDataChanged()
         this->form->comboBoxBaseLayer->setCurrentIndex(index);
         this->form->comboBoxBaseLayerLUT->setCurrentIndex(this->current_modelInfo->baseLayerLUTIndex);
 
-        // update overlay
-        //this->comboBoxOverlayChanged();
-
         // mark model update required
 		bModelDirty = true;
-
-
     }
 }
 
 //---------------[ Select overlay dataset for clipping planes ]-----------------\\
 
-void TestPlugin::comboBoxOverlayChanged()
+void IsosurfaceVisualization::comboBoxOverlayChanged()
 {
     // select model info matching the dataset
     int index = this->form->comboBoxOverlay->currentIndex();
@@ -1202,7 +1187,7 @@ void TestPlugin::comboBoxOverlayChanged()
 
 //---------------[ Select overlay LUT for clipping planes ]-----------------\\
 
-void TestPlugin::comboBoxOverlayLUTChanged()
+void IsosurfaceVisualization::comboBoxOverlayLUTChanged()
 {
     // select model info matching the dataset
     int index = this->form->comboBoxOverlayLUT->currentIndex();
@@ -1235,7 +1220,7 @@ void TestPlugin::comboBoxOverlayLUTChanged()
 
 //---------------[ Select base layer LUT for clipping planes ]-----------------\\
 
-void TestPlugin::comboBoxBaseLayerLUTChanged()
+void IsosurfaceVisualization::comboBoxBaseLayerLUTChanged()
 {
     // select model info matching the dataset
     int index = this->form->comboBoxBaseLayerLUT->currentIndex();
@@ -1268,7 +1253,7 @@ void TestPlugin::comboBoxBaseLayerLUTChanged()
 
 //------------------------[ Change visibility of model ]-----------------------\\
 
-void TestPlugin::checkBoxVisibleChanged(bool checked)
+void IsosurfaceVisualization::checkBoxVisibleChanged(bool checked)
 {
     current_modelInfo->visible = checked;
     if(current_modelInfo->prop)
@@ -1280,7 +1265,7 @@ void TestPlugin::checkBoxVisibleChanged(bool checked)
 
 //------------------------[ Change rendering style of model ]-----------------------\\
 
-void TestPlugin::comboBoxStyleChanged()
+void IsosurfaceVisualization::comboBoxStyleChanged()
 {
     // select model info matching the dataset
     int index = this->form->comboBoxStyle->currentIndex();
@@ -1308,7 +1293,7 @@ void TestPlugin::comboBoxStyleChanged()
 
 //------------------[ Click on the update button to start processing mesh ]-----------------------\\
 
-void TestPlugin::buttonUpdateClicked()
+void IsosurfaceVisualization::buttonUpdateClicked()
 {
     if(this->form->inputMinimumThreshold->value() > this->form->inputMaximumThreshold->value())
     {
@@ -1320,7 +1305,7 @@ void TestPlugin::buttonUpdateClicked()
 
 //------------------[ Change maximum threshold ]-----------------------\\
 
-void TestPlugin::inputMaximumThresholdChanged(double value)
+void IsosurfaceVisualization::inputMaximumThresholdChanged(double value)
 {
     current_modelInfo->maximumThreshold = value;
     bModelDirty = true;
@@ -1329,7 +1314,7 @@ void TestPlugin::inputMaximumThresholdChanged(double value)
 
 //------------------[ Change minimum threshold ]-----------------------\\
 
-void TestPlugin::inputMinimumThresholdChanged(double value)
+void IsosurfaceVisualization::inputMinimumThresholdChanged(double value)
 {
     current_modelInfo->minimumThreshold = value;
     bModelDirty = true;
@@ -1338,7 +1323,7 @@ void TestPlugin::inputMinimumThresholdChanged(double value)
 
 //------------------[ Change smoothing value ]-----------------------\\
 
-void TestPlugin::inputSmoothingChanged(double value)
+void IsosurfaceVisualization::inputSmoothingChanged(double value)
 {
     current_modelInfo->smoothing = value;
     bModelDirty = true;
@@ -1346,7 +1331,7 @@ void TestPlugin::inputSmoothingChanged(double value)
 
 //------------------[ Change color ]-----------------------\
 
-void TestPlugin::inputColorChanged(QString value)
+void IsosurfaceVisualization::inputColorChanged(QString value)
 {
     int color_hex = value.toInt(0,16);
     current_modelInfo->color[0] = ((color_hex >> 16) & 0xff) / 255.0; // red
@@ -1357,21 +1342,21 @@ void TestPlugin::inputColorChanged(QString value)
 
 //------------------[ Change alpha ]-----------------------\
 
-void TestPlugin::inputAlphaChanged(double value)
+void IsosurfaceVisualization::inputAlphaChanged(double value)
 {
     current_modelInfo->alpha = value;
 }
 
 //------------------[ Change specularity ]-----------------------\
 
-void TestPlugin::inputSpecularChanged(double value)
+void IsosurfaceVisualization::inputSpecularChanged(double value)
 {
     current_modelInfo->specular = value;
 }
 
 //------------------[ Change mesh reduction ]-----------------------\
 
-void TestPlugin::inputReductionChanged(double value)
+void IsosurfaceVisualization::inputReductionChanged(double value)
 {
     current_modelInfo->reduction = value;
     bModelDirty = true;
@@ -1379,7 +1364,7 @@ void TestPlugin::inputReductionChanged(double value)
 
 //---------------[ Change clipping plane slider in x direction ]-------------------\
 
-void TestPlugin::horizontalSliderXChanged(int value)
+void IsosurfaceVisualization::horizontalSliderXChanged(int value)
 {
     this->form->spinX->setValue(value);
     this->updateClippingPlaneSlider(0,value);
@@ -1387,7 +1372,7 @@ void TestPlugin::horizontalSliderXChanged(int value)
 
 //---------------[ Change clipping plane slider in y direction ]-------------------\
 
-void TestPlugin::horizontalSliderYChanged(int value)
+void IsosurfaceVisualization::horizontalSliderYChanged(int value)
 {
     this->form->spinY->setValue(value);
     this->updateClippingPlaneSlider(1,value);
@@ -1395,7 +1380,7 @@ void TestPlugin::horizontalSliderYChanged(int value)
 
 //---------------[ Change clipping plane slider in z direction ]-------------------\
 
-void TestPlugin::horizontalSliderZChanged(int value)
+void IsosurfaceVisualization::horizontalSliderZChanged(int value)
 {
     this->form->spinZ->setValue(value);
     this->updateClippingPlaneSlider(2,value);
@@ -1403,28 +1388,28 @@ void TestPlugin::horizontalSliderZChanged(int value)
 
 //---------------[ Change clipping plane checkbox in x direction ]-------------------\
 
-void TestPlugin::checkBoxXChanged(bool checked)
+void IsosurfaceVisualization::checkBoxXChanged(bool checked)
 {
     this->updateClippingPlaneEnabled(0,checked);
 }
 
 //---------------[ Change clipping plane checkbox in y direction ]-------------------\
 
-void TestPlugin::checkBoxYChanged(bool checked)
+void IsosurfaceVisualization::checkBoxYChanged(bool checked)
 {
     this->updateClippingPlaneEnabled(1,checked);
 }
 
 //---------------[ Change clipping plane checkbox in z direction ]-------------------\
 
-void TestPlugin::checkBoxZChanged(bool checked)
+void IsosurfaceVisualization::checkBoxZChanged(bool checked)
 {
     this->updateClippingPlaneEnabled(2,checked);
 }
 
 //---------------[ Change clipping plane flip checkbox in x direction ]-------------------\
 
-void TestPlugin::checkBoxFlipXChanged(bool checked)
+void IsosurfaceVisualization::checkBoxFlipXChanged(bool checked)
 {
     current_modelInfo->flipped[0] = checked;
     this->updateClippingPlaneSlider(0,current_modelInfo->clippingValues[0]);
@@ -1432,7 +1417,7 @@ void TestPlugin::checkBoxFlipXChanged(bool checked)
 
 //---------------[ Change clipping plane flip checkbox in y direction ]-------------------\
 
-void TestPlugin::checkBoxFlipYChanged(bool checked)
+void IsosurfaceVisualization::checkBoxFlipYChanged(bool checked)
 {
     current_modelInfo->flipped[1] = checked;
     this->updateClippingPlaneSlider(1,current_modelInfo->clippingValues[1]);
@@ -1440,7 +1425,7 @@ void TestPlugin::checkBoxFlipYChanged(bool checked)
 
 //---------------[ Change clipping plane flip checkbox in z direction ]-------------------\
 
-void TestPlugin::checkBoxFlipZChanged(bool checked)
+void IsosurfaceVisualization::checkBoxFlipZChanged(bool checked)
 {
     current_modelInfo->flipped[2] = checked;
     this->updateClippingPlaneSlider(2,current_modelInfo->clippingValues[2]);
@@ -1448,7 +1433,7 @@ void TestPlugin::checkBoxFlipZChanged(bool checked)
 
 //---------------[ Change clipping plane spin value in X direction ]-------------------\
 
-void TestPlugin::spinXChanged(int value)
+void IsosurfaceVisualization::spinXChanged(int value)
 {
     this->form->horizontalSliderX->setValue(value);
     this->updateClippingPlaneSlider(0,value);
@@ -1456,7 +1441,7 @@ void TestPlugin::spinXChanged(int value)
 
 //---------------[ Change clipping plane spin value in Y direction ]-------------------\
 
-void TestPlugin::spinYChanged(int value)
+void IsosurfaceVisualization::spinYChanged(int value)
 {
     this->form->horizontalSliderY->setValue(value);
     this->updateClippingPlaneSlider(1,value);
@@ -1464,7 +1449,7 @@ void TestPlugin::spinYChanged(int value)
 
 //---------------[ Change clipping plane spin value in Z direction ]-------------------\
 
-void TestPlugin::spinZChanged(int value)
+void IsosurfaceVisualization::spinZChanged(int value)
 {
     this->form->horizontalSliderZ->setValue(value);
     this->updateClippingPlaneSlider(2,value);
@@ -1472,7 +1457,7 @@ void TestPlugin::spinZChanged(int value)
 
 //---------------[ Save 3D mesh ]-------------------\
 
-void TestPlugin::buttonSaveMeshClicked()
+void IsosurfaceVisualization::buttonSaveMeshClicked()
 {
     if(current_modelInfo->polydata != NULL)
     {
@@ -1492,7 +1477,7 @@ void TestPlugin::buttonSaveMeshClicked()
     }
 }
 
-void TestPlugin::checkBoxInvertClippingChanged(bool checked)
+void IsosurfaceVisualization::checkBoxInvertClippingChanged(bool checked)
 {
     if(current_modelInfo->extractPolyFunc != NULL)
     {
@@ -1507,28 +1492,28 @@ void TestPlugin::checkBoxInvertClippingChanged(bool checked)
     }
 }
 
-void TestPlugin::checkBoxLargestComponentChanged(bool checked)
+void IsosurfaceVisualization::checkBoxLargestComponentChanged(bool checked)
 {
     current_modelInfo->selectLargestComponent = checked;
     bModelDirty = true;
 }
 
-void TestPlugin::checkBoxAlignPlanesToPickChanged(bool checked)
+void IsosurfaceVisualization::checkBoxAlignPlanesToPickChanged(bool checked)
 {
     current_modelInfo->alignPlanesToPick = checked;
 }
 
-void TestPlugin::buttonSetPointAClicked()
+void IsosurfaceVisualization::buttonSetPointAClicked()
 {
     setMeasuredPoint(0);
 }
 
-void TestPlugin::buttonSetPointBClicked()
+void IsosurfaceVisualization::buttonSetPointBClicked()
 {
     setMeasuredPoint(1);
 }
 
-void TestPlugin::setMeasuredPoint(int id)
+void IsosurfaceVisualization::setMeasuredPoint(int id)
 {
     MeasuredPoint* point = this->measuredPointList.at(id);
 
@@ -1563,7 +1548,7 @@ void TestPlugin::setMeasuredPoint(int id)
     this->core()->render();
 }
 
-void TestPlugin::calculateDistance()
+void IsosurfaceVisualization::calculateDistance()
 {
     MeasuredPoint* pointA = this->measuredPointList.at(0);
     MeasuredPoint* pointB = this->measuredPointList.at(1);
@@ -1574,14 +1559,15 @@ void TestPlugin::calculateDistance()
     double distance =   sqrt( (pointA->x - pointB->x)*(pointA->x - pointB->x) +
                         (pointA->y - pointB->y)*(pointA->y - pointB->y) +
                         (pointA->z - pointB->z)*(pointA->z - pointB->z) );
-    QString labeltext = QString("Measured distance: %1").arg(distance,0,'f',4);
+    QString labeltext = QString("Measured distance: %1 mm").arg(distance,0,'f',2);
+	QString labeltext_short = QString("%1 mm").arg(distance,0,'f',2);
     this->form->measuredDistanceLabel->setText(labeltext);
 
     // renew line
-    /*vtkSmartPointer<vtkLineSource> lineSource =
+    vtkSmartPointer<vtkLineSource> lineSource =
         vtkSmartPointer<vtkLineSource>::New();
     lineSource->SetPoint1(pointA->x,pointA->y,pointA->z);
-    lineSource->SetPoint2(pointB->x,pointB->y,pointB->z)
+    lineSource->SetPoint2(pointB->x,pointB->y,pointB->z);
     vtkSmartPointer<vtkPolyDataMapper> lineMapper =
         vtkSmartPointer<vtkPolyDataMapper>::New();
     lineMapper->SetInputConnection(lineSource->GetOutputPort());
@@ -1594,10 +1580,33 @@ void TestPlugin::calculateDistance()
     this->assembly->AddPart(lineActor);
     if(measuredLine != NULL)
         this->assembly->RemovePart(measuredLine);
-    measuredLine = lineActor;*/
+    measuredLine = lineActor;
+
+
+
+	measuredLabelPoints = vtkPoints::New();
+	measuredLabelStrings = vtkStringArray::New();
+
+	measuredLabelStrings->SetName("labels");
+	measuredLabelPoints->InsertNextPoint(pointA->x,pointA->y,pointA->z+5);
+	measuredLabelStrings->InsertNextValue(this->form->lineEditNamePointA->text().toLocal8Bit().constData());
+
+	measuredLabelPoints->InsertNextPoint(pointB->x,pointB->y,pointB->z+5);
+	measuredLabelStrings->InsertNextValue(this->form->lineEditNamePointB->text().toLocal8Bit().constData());
+
+	measuredLabelPoints->InsertNextPoint(pointA->x + (pointB->x-pointA->x)/2.0,
+							pointA->y + (pointA->y-pointB->y)/2.0,
+							pointA->z + (pointB->z-pointA->z)/2.0+5);
+	measuredLabelStrings->InsertNextValue(labeltext_short.toLocal8Bit().constData());
+
+	measuredLabels = this->GenerateLabels(measuredLabelPoints,measuredLabelStrings);
+	this->assembly->AddPart(measuredLabels);
+
+
+
 
     // remove old blobs
-    QList<vtkActor*>::iterator i;
+    /*QList<vtkActor*>::iterator i;
     for(i = this->depthElectrodeBlobs.begin(); i!=this->depthElectrodeBlobs.end(); i++)
     {
         this->assembly->RemovePart((*i));
@@ -1636,12 +1645,12 @@ void TestPlugin::calculateDistance()
 
         this->assembly->AddPart(diskActor);
         this->depthElectrodeBlobs.append(diskActor);
-    }
+    }*/
 }
 
-void TestPlugin::buttonSetLineColorClicked()
+void IsosurfaceVisualization::buttonSetLineColorClicked()
 {
-    double oldColorRGB[3];
+    /*double oldColorRGB[3];
     QColor oldColor;
     vtkActor* electrodeActor = depthElectrodeBlobs.at(0);
     electrodeActor->GetProperty()->GetColor(oldColorRGB);
@@ -1658,12 +1667,24 @@ void TestPlugin::buttonSetLineColorClicked()
         {
             (*i)->GetProperty()->SetColor(this->currentElectrodesColor.redF(), this->currentElectrodesColor.greenF(), this->currentElectrodesColor.blueF());
         }
-    }
+    }*/
 }
 
-void TestPlugin::buttonSaveMeasurementClicked()
+void IsosurfaceVisualization::buttonSaveMeasurementClicked()
 {
     this->depthElectrodeBlobs.clear();
+}
+
+void IsosurfaceVisualization::lineEditNamePointAChanged(QString value)
+{
+	this->measuredLabelStrings->SetValue(0,value.toLocal8Bit().constData());
+	this->core()->render();
+}
+
+void IsosurfaceVisualization::lineEditNamePointBChanged(QString value)
+{
+	this->measuredLabelStrings->SetValue(1,value.toLocal8Bit().constData());
+	this->core()->render();
 }
 
 ///
@@ -1672,18 +1693,18 @@ void TestPlugin::buttonSaveMeasurementClicked()
 
 //-----------[ Returns visualization component as VTK object ]---------------\\
 //
-vtkProp * TestPlugin::getVtkProp()
+vtkProp * IsosurfaceVisualization::getVtkProp()
 {
     return this->assembly;
 }
 
 //-----------------[ Returns GUI component as Qt widget ]---------------\\
 //
-QWidget * TestPlugin::getGUI()
+QWidget * IsosurfaceVisualization::getGUI()
 {
     return this->widget;
 }
 
 }
 
-Q_EXPORT_PLUGIN2(libTestPlugin, bmia::TestPlugin)
+Q_EXPORT_PLUGIN2(libIsosurfaceVisualization, bmia::IsosurfaceVisualization)

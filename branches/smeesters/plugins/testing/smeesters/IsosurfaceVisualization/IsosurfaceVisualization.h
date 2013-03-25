@@ -1,8 +1,8 @@
-#ifndef bmia_TestPlugin_h
-#define bmia_TestPlugin_h
+#ifndef bmia_IsosurfaceVisualization_h
+#define bmia_IsosurfaceVisualization_h
 
 #include "DTITool.h"
-#include "ui_TestPlugin.h"
+#include "ui_IsosurfaceVisualization.h"
 
 #include <vtkPropAssembly.h>
 #include <vtkActor.h>
@@ -67,11 +67,17 @@
 
 #include "Helpers/vtkImageSliceActor.h"
 
+// labels
+#include "vtkStringArray.h"
+#include "vtkVertexGlyphFilter.h"
+#include "vtkPointSetToLabelHierarchy.h"
+#include "vtkLabelPlacementMapper.h"
+
 class vtkInteractorStyleTrackballPositionPicker;
 
 namespace Ui
 {
-    class TestPluginForm;
+    class IsosurfaceVisualizationForm;
 }
 
 namespace bmia
@@ -148,7 +154,7 @@ typedef struct
     double z;
 } vec3;
 
-class TestPlugin :  public plugin::AdvancedPlugin,
+class IsosurfaceVisualization :  public plugin::AdvancedPlugin,
                     public plugin::Visualization,
                     public plugin::GUI,
                     public data::Consumer
@@ -167,8 +173,8 @@ public:
         return "1.0.0";
     }
 
-    TestPlugin();
-    ~TestPlugin();
+    IsosurfaceVisualization();
+    ~IsosurfaceVisualization();
 
     virtual void init();
 
@@ -253,13 +259,16 @@ protected slots:
     void buttonSetLineColorClicked();
     void buttonSaveMeasurementClicked();
 
+	void lineEditNamePointAChanged(QString value);
+	void lineEditNamePointBChanged(QString value);
+
 private:
 
     /** If plugin inherits from plugin::GUI */
     QWidget * widget;
 
     /** QT form */
-    Ui::TestPluginForm * form;
+    Ui::IsosurfaceVisualizationForm * form;
 
     /** Holds the scalar volume data sets */
     QList<data::DataSet *> datasets;
@@ -294,6 +303,9 @@ private:
     double clickedPoint[3];
     QList<MeasuredPoint*> measuredPointList;
     vtkActor* measuredLine;
+	vtkActor2D* measuredLabels;
+	vtkPoints* measuredLabelPoints;
+	vtkStringArray* measuredLabelStrings;
 
     QList<vtkActor*> depthElectrodeBlobs; // temporary
     QColor currentElectrodesColor; // temporary
@@ -340,6 +352,8 @@ private:
      */
     void updateClippingPlaneEnabled(int direction, bool checked);
 
+	vtkActor2D* IsosurfaceVisualization::GenerateLabels(vtkSmartPointer<vtkPoints> points, vtkSmartPointer<vtkStringArray> labels);
+
     /** Position picker */
     void setupClippingPlanesPicker();
     vtkInteractorStyleTrackballPositionPicker * styleTrackballPP;
@@ -350,4 +364,4 @@ private:
 
 }
 
-#endif  // bmia_TestPlugin_h
+#endif  // bmia_IsosurfaceVisualization_h

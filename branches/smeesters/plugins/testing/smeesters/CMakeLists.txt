@@ -1,3 +1,2 @@
-add_subdirectory( TestPlugin )
 add_subdirectory( CameraTools )
-add_subdirectory( CompareTool)
+add_subdirectory( IsosurfaceVisualization )

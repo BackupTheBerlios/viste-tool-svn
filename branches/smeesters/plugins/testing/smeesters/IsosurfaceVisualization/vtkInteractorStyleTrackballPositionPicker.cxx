@@ -75,7 +75,7 @@ void vtkInteractorStyleTrackballPositionPicker::SetRenderProcess(vtkRenderer * r
 void vtkInteractorStyleTrackballPositionPicker::SetParentClass(void* parentClass)
 {
 	// Get the parent class
-	this->parentClass = static_cast<TestPlugin*>(parentClass);
+	this->parentClass = static_cast<IsosurfaceVisualization*>(parentClass);
 }
 
 
