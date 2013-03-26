@@ -150,6 +150,8 @@ class SaveDialog : public QDialog, public data::Consumer
 		*/
 		void saveTransferMatrix(const QString saveFileName, data::DataSet * ds );
 
+		data::Manager *getManager() { return this->manager; }
+
 	private:
 	
 		/** Update the contents of the dialog. */

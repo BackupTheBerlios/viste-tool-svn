@@ -202,6 +202,7 @@ bool Manager::load(int i)
 	// Handle the different plugin types by casting the plugin and running the appropriate function. 
 	// If a plugin is not of a casted type, the cast will return NULL, which causes the function to return.
 
+	this->loadWriter(qobject_cast<data::Writer *>(loadedPlugin));
 	this->loadReader(qobject_cast<data::Reader *>(loadedPlugin));
 	this->loadConsumer(qobject_cast<data::Consumer *>(loadedPlugin));
 	this->loadVisualization(loadedPlugin, qobject_cast<plugin::Visualization *>(loadedPlugin));
@@ -414,6 +415,33 @@ void Manager::unloadReader(data::Reader * reader)
 
 	// Remove the plugin from the list of readers
 	this->core->data()->removeReader(reader);
+}
+
+//------------------------------[ loadReader ]-----------------------------\\
+
+void Manager::loadWriter(data::Writer * writer)
+{
+	if (!writer) 
+		return;
+
+	qDebug()<<"Loaded plugin has data::Reader functionality.";
+
+	// Add the plugin to the list of readers
+	this->core->data()->addWriter(writer);
+}
+
+
+//-----------------------------[ unloadReader ]----------------------------\\
+
+void Manager::unloadWriter(data::Writer * writer)
+{
+	if (!writer) 
+		return;
+
+	qDebug()<<"Unloading plugin that has data::Reader functionality.";
+
+	// Remove the plugin from the list of readers
+	this->core->data()->removeWriter(writer);
 }
 
 

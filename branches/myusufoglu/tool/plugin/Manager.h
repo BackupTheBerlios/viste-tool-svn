@@ -209,6 +209,7 @@ class Manager {
 			which will instead add the pointer to a list of available readers. */
 
 		void loadReader(data::Reader * reader);
+		void loadWriter(data::Writer *writer);
 		void loadConsumer(data::Consumer * consumer);
 		void loadVisualization(plugin::Plugin * plugin, plugin::Visualization * vis);
 		void loadGUI(plugin::Plugin * plugin, plugin::GUI * gui);
@@ -221,6 +222,7 @@ class Manager {
 			these functions immediately return; otherwise, the pointer is removed from the corresponding
 			list of plugins. */
 
+		void unloadWriter(data::Writer *writer);
 		void unloadReader(data::Reader * reader);
 		void unloadConsumer(data::Consumer * consumer);
 		void unloadVisualization(plugin::Visualization * vis);

@@ -184,304 +184,7 @@ int bmiaNiftiWriter::CanReadFile(const char * filename)
 
 
 
-//----------------------------[ readNIfTIFile ]----------------------------\\
-
-QString bmiaNiftiWriter::readNIfTIFile(const char * filename, bool showProgress)
-{
-	// Check if the filename is set
-	if (!filename)
-	{
-		return "Input filename has not been set.";
-	}
-
-	// Store filename
-	this->filenameQ = QString(filename);
-
-	// Delete existing NIfTI image
-	if (this->NiftiImage)
-	{
-		nifti_image_free(this->NiftiImage);
-		this->NiftiImage = NULL;
-	}
-
-	this->progress = NULL;
-
-	if (showProgress)
-	{
-		// Create a progress dialog
-		this->progress = new QProgressDialog;
-		this->progress->setLabelText("Reading NIfTI file...");
-		this->progress->setWindowTitle("NIfTI Reader");
-		this->progress->setMaximum(100);
-		this->progress->setMinimum(0);
-		this->progress->setMinimumDuration(500);
-		this->progress->setValue(25);
-	}
-
-	// Read the specified NIfTI file
-	this->NiftiImage = nifti_image_read(filename, 1);
-
-	if (!(this->NiftiImage))
-	{
-		this->cleanUp();
-		return "Failed to read the NIfTI file.";
-	}
-
-	if (this->progress)
-	{
-		// Update progress bar
-		this->progress->setValue(50);
-		this->progress->setLabelText("Parsing NIfTI data...");
-	}
-
-	// Warn the user if we could not determine the data type
-	if (!(this->determineDataType()))
-	{
-		this->cleanUp();
-		return "Failed to determine the NIfTI data format!";
-	}
-
-	vtkObject * obj = NULL;
-
-	// Switch based on the data type of the NIfTI file
-	switch(this->imageDataType)
-	{
-		// Scalar Volumes: Create one "vtkImageData" object with one-component scalar array
-
-		case NDT_ScalarVolume:
-			obj = vtkObject::SafeDownCast(this->parseScalarVolume());
-
-			if (obj)
-			{
-				this->outData.append(obj);
-			}
-			else
-			{
-				this->cleanUp();
-				return "Failed to parse scalar volume!";
-			}
-
-			break;
-
-		// DTI Tensors: Create one "vtkImageData" object with six-component tensor array
-
-		case NDT_DTITensors:
-			obj = vtkObject::SafeDownCast(this->parseDTIVolume());
-
-			if (obj)
-			{
-				this->outData.append(obj);
-			}
-			else
-			{
-				this->cleanUp();
-				return "Failed to parse DTI tensor volume!";
-			}
-
-			break;
-
-		// Discrete Sphere: Create one "vtkImageData" object with n-component vector
-		// array (with n the number of vertices on the sphere), and a double array
-		// with two components and n tuples describing the sphere directions.
-
-		case NDT_DiscreteSphere:
-			obj = vtkObject::SafeDownCast(this->parseDiscreteSphereVolume());
-
-			if (obj)
-			{
-				this->outData.append(obj);
-			}
-			else
-			{
-				this->cleanUp();
-				return "Failed to parse discrete sphere volume!";
-			}
-
-			break;
-
-		// Spherical harmonics
-		case NDT_SphericalHarm:
-			obj = vtkObject::SafeDownCast(this->parseSphericalHarmonicsVolume());
-
-			if (obj)
-			{
-				this->outData.append(obj);
-			}
-			else
-			{
-				this->cleanUp();
-				return "Failed to parse spherical harmonics volume!";
-			}
-
-			break;
-
-		// Triangles: Create one "vtkIntArray" object with three components
-
-		case NDT_Triangles:
-			obj = vtkObject::SafeDownCast(this->parseTriangles());
-
-			if (obj)
-			{
-				this->outData.append(obj);
-			}
-			else
-			{
-				this->cleanUp();
-				return "Failed to parse triangles!";
-			}
-
-			break;
-
-		// Generic Vector: Create n "vtkImageData" arrays, each with a one-component
-		// scalar array, where n is the vector length of the NIfTI file.
-
-		case NDT_GenericVector:
-			
-			for (int i = 0; i < this->NiftiImage->dim[5]; ++i)
-			{
-				obj = vtkObject::SafeDownCast(this->parseScalarVolume(i));
-
-				if (obj)
-				{
-					this->outData.append(obj);
-				}
-				else
-				{
-					this->cleanUp();
-					return "Failed to parse scalar volume!";
-				}
-			}
-
-			break;
-
-		// This shouldn't happen, since we already check for successful determination
-		// of data type above.
-
-		default:
-
-			this->cleanUp();
-			return "Unsupported file type!";
-	}
-
-	if (progress)
-	{
-		// Update progress bar
-		progress->setValue(75);
-		progress->setLabelText("Parsing transformation matrix...");
-	}
-
-	// Delete the old transformation matrix
-	if (this->transformMatrix)
-	{
-		this->transformMatrix->Delete();
-	}
-
-	this->transformMatrix = NULL;
-
-	// Output VTK matrix
-	vtkMatrix4x4 * m = NULL;
-
-	// Temporary matrix array
-	double tM[16];
-
-	//If both qform_code and sform_code larger than 0, ask to the user. 
-	QString selectedItem("");
-	if (this->NiftiImage->qform_code > 0 && this->NiftiImage->sform_code > 0)
-	{
-		this->userOut->selectItemDialog("Select Transformation Matrix", "Qform-code and Sform-code are positive. Select one of the matrices.", "QForm,SForm",selectedItem);
-	}
-	
-     
-	// Use the QForm matrix if available
-	if (this->NiftiImage->qform_code > 0 && selectedItem!="SForm")
-	{
-		// Get the transformation matrix
-		tM[ 0] = (double) this->NiftiImage->qto_xyz.m[0][0];	
-		tM[ 1] = (double) this->NiftiImage->qto_xyz.m[0][1];	
-		tM[ 2] = (double) this->NiftiImage->qto_xyz.m[0][2];	
-		tM[ 3] = (double) this->NiftiImage->qto_xyz.m[0][3];	
-
-		tM[ 4] = (double) this->NiftiImage->qto_xyz.m[1][0];	
-		tM[ 5] = (double) this->NiftiImage->qto_xyz.m[1][1];	
-		tM[ 6] = (double) this->NiftiImage->qto_xyz.m[1][2];	
-		tM[ 7] = (double) this->NiftiImage->qto_xyz.m[1][3];	
-
-		tM[ 8] = (double) this->NiftiImage->qto_xyz.m[2][0];	
-		tM[ 9] = (double) this->NiftiImage->qto_xyz.m[2][1];	
-		tM[10] = (double) this->NiftiImage->qto_xyz.m[2][2];	
-		tM[11] = (double) this->NiftiImage->qto_xyz.m[2][3];	
-
-		tM[12] = (double) this->NiftiImage->qto_xyz.m[3][0];	
-		tM[13] = (double) this->NiftiImage->qto_xyz.m[3][1];	
-		tM[14] = (double) this->NiftiImage->qto_xyz.m[3][2];	
-		tM[15] = (double) this->NiftiImage->qto_xyz.m[3][3];	
-	}
-	
-	// Otherwise, use the SForm matrix
-	else if (this->NiftiImage->sform_code)
-	{
-		// Get the transformation matrix
-		tM[ 0] = (double) this->NiftiImage->sto_xyz.m[0][0];	
-		tM[ 1] = (double) this->NiftiImage->sto_xyz.m[0][1];	
-		tM[ 2] = (double) this->NiftiImage->sto_xyz.m[0][2];	
-		tM[ 3] = (double) this->NiftiImage->sto_xyz.m[0][3];	
-
-		tM[ 4] = (double) this->NiftiImage->sto_xyz.m[1][0];	
-		tM[ 5] = (double) this->NiftiImage->sto_xyz.m[1][1];	
-		tM[ 6] = (double) this->NiftiImage->sto_xyz.m[1][2];	
-		tM[ 7] = (double) this->NiftiImage->sto_xyz.m[1][3];	
-
-		tM[ 8] = (double) this->NiftiImage->sto_xyz.m[2][0];	
-		tM[ 9] = (double) this->NiftiImage->sto_xyz.m[2][1];	
-		tM[10] = (double) this->NiftiImage->sto_xyz.m[2][2];	
-		tM[11] = (double) this->NiftiImage->sto_xyz.m[2][3];	
-
-		tM[12] = (double) this->NiftiImage->sto_xyz.m[3][0];	
-		tM[13] = (double) this->NiftiImage->sto_xyz.m[3][1];	
-		tM[14] = (double) this->NiftiImage->sto_xyz.m[3][2];	
-		tM[15] = (double) this->NiftiImage->sto_xyz.m[3][3];	
-	}
-
-	// Otherwise, just use the voxel spacing
-	else
-	{
-		tM[ 0] = (double) this->NiftiImage->dx;
-		tM[ 1] = 0.0;
-		tM[ 2] = 0.0;
-		tM[ 3] = 0.0;
-
-		tM[ 4] = 0.0;
-		tM[ 5] = (double) this->NiftiImage->dy;	
-		tM[ 6] = 0.0;
-		tM[ 7] = 0.0;
-
-		tM[ 8] = 0.0;	
-		tM[ 9] = 0.0;
-		tM[10] = (double) this->NiftiImage->dz;	
-		tM[11] = 0.0;
-
-		tM[12] = 0.0;	
-		tM[13] = 0.0;	
-		tM[14] = 0.0;
-		tM[15] = 1.0;	
-	}
-
-	// Create a VTK matrix
-	m = vtkMatrix4x4::New();
-	m->DeepCopy(tM);
-
-	this->transformMatrix = m;
-
-	if (this->progress)
-	{
-		// Finalize the progress bar
-		this->progress->setValue(100);
-	}
-
-	return "";
-}
-
-
+ 
 //--------------------------[ determineDataType ]--------------------------\\
 
 bool bmiaNiftiWriter::determineDataType()
@@ -614,429 +317,255 @@ nifti1_extension * bmiaNiftiWriter::findExtension(int targetID, int & extPos)
 
 //--------------------------[ parseScalarVolume ]--------------------------\\
 
-vtkImageData * bmiaNiftiWriter::parseScalarVolume(int component)
+void bmiaNiftiWriter::writeScalarVolume(int component, vtkImageData *image, QString saveFileName, vtkObject * attObject)
 {
-	// Create an output array with one scalar per voxel
-	int arraySize = this->NiftiImage->dim[1] * this->NiftiImage->dim[2] * this->NiftiImage->dim[3];
-	double * outDoubleArray = new double[arraySize];
+	
 
-	// Copy the "component"-th component of the input to the array
-	switch (this->NiftiImage->datatype)
-	{
-		case DT_UNSIGNED_CHAR:	createDoubleScalarArrayMacro(unsigned char,  component);		break;
-		case DT_SIGNED_SHORT:	createDoubleScalarArrayMacro(unsigned short, component);		break;
-		case DT_UINT16:			createDoubleScalarArrayMacro(unsigned short, component);		break;
-		case DT_SIGNED_INT:		createDoubleScalarArrayMacro(int,            component);		break;
-		case DT_FLOAT:			createDoubleScalarArrayMacro(float,			 component);		break;
-		case DT_DOUBLE:			createDoubleScalarArrayMacro(double,		 component);		break;
+			nifti_image * m_NiftiImage = new nifti_image;
+			m_NiftiImage = nifti_simple_init_nim();
+			//print for debug
+			image->Print(cout);
+			double dataTypeSize = 1.0;
+			int dim[3];
+			int wholeExtent[6];
+			double spacing[3];
+			double origin[3];
+			image->Update();
+			int numComponents = image->GetNumberOfScalarComponents();
+			int imageDataType = image->GetScalarType();
 
-		default:
-			delete [] outDoubleArray;
-			return NULL;
-	}
+			image->GetOrigin(origin);
+			image->GetSpacing(spacing);
+			image->GetDimensions(dim);
+			image->GetWholeExtent(wholeExtent);
+			m_NiftiImage->dt = 0;
 
+			m_NiftiImage->ndim = 3;
+			m_NiftiImage->dim[1] = wholeExtent[1] + 1;
+			m_NiftiImage->dim[2] = wholeExtent[3] + 1;
+			m_NiftiImage->dim[3] = wholeExtent[5] + 1;
+			m_NiftiImage->dim[4] = 1;
+			m_NiftiImage->dim[5] = 1;
+			m_NiftiImage->dim[6] = 1;
+			m_NiftiImage->dim[7] = 1;
+			m_NiftiImage->nx =  m_NiftiImage->dim[1];
+			m_NiftiImage->ny =  m_NiftiImage->dim[2];
+			m_NiftiImage->nz =  m_NiftiImage->dim[3];
+			m_NiftiImage->nt =  m_NiftiImage->dim[4];
+			m_NiftiImage->nu =  m_NiftiImage->dim[5];
+			m_NiftiImage->nv =  m_NiftiImage->dim[6];
+			m_NiftiImage->nw =  m_NiftiImage->dim[7];
+
+			//nhdr.pixdim[0] = 0.0 ;
+			m_NiftiImage->pixdim[1] = spacing[0];
+			m_NiftiImage->pixdim[2] = spacing[1];
+			m_NiftiImage->pixdim[3] = spacing[2];
+			m_NiftiImage->pixdim[4] = 0;
+			m_NiftiImage->pixdim[5] = 1;
+			m_NiftiImage->pixdim[6] = 1;
+			m_NiftiImage->pixdim[7] = 1;
+			m_NiftiImage->dx = m_NiftiImage->pixdim[1];
+			m_NiftiImage->dy = m_NiftiImage->pixdim[2];
+			m_NiftiImage->dz = m_NiftiImage->pixdim[3];
+			m_NiftiImage->dt = m_NiftiImage->pixdim[4];
+			m_NiftiImage->du = m_NiftiImage->pixdim[5];
+			m_NiftiImage->dv = m_NiftiImage->pixdim[6];
+			m_NiftiImage->dw = m_NiftiImage->pixdim[7];
+
+			int numberOfVoxels = m_NiftiImage->nx;
+
+			if(m_NiftiImage->ny>0){
+				numberOfVoxels*=m_NiftiImage->ny;
+			}
+			if(m_NiftiImage->nz>0){
+				numberOfVoxels*=m_NiftiImage->nz;
+			}
+			if(m_NiftiImage->nt>0){
+				numberOfVoxels*=m_NiftiImage->nt;
+			}
+			if(m_NiftiImage->nu>0){
+				numberOfVoxels*=m_NiftiImage->nu;
+			}
+			if(m_NiftiImage->nv>0){
+				numberOfVoxels*=m_NiftiImage->nv;
+			}
+			if(m_NiftiImage->nw>0){
+				numberOfVoxels*=m_NiftiImage->nw;
+			}
+
+			m_NiftiImage->nvox = numberOfVoxels;
+
+			if(numComponents==1 || numComponents==6 ){
+				switch(imageDataType)
+				{
+				case VTK_BIT://DT_BINARY:
+					m_NiftiImage->datatype = DT_BINARY;
+					m_NiftiImage->nbyper = 0;
+					dataTypeSize = 0.125;
+					break;
+				case VTK_UNSIGNED_CHAR://DT_UNSIGNED_CHAR:
+					m_NiftiImage->datatype = DT_UNSIGNED_CHAR;
+					m_NiftiImage->nbyper = 1;
+					dataTypeSize = m_NiftiImage->nbyper;
+					break;
+				case VTK_SIGNED_CHAR://DT_INT8:
+					m_NiftiImage->datatype = DT_INT8;
+					m_NiftiImage->nbyper = 1;
+					dataTypeSize = m_NiftiImage->nbyper;
+					break;
+				case VTK_SHORT://DT_SIGNED_SHORT:
+					m_NiftiImage->datatype = DT_SIGNED_SHORT;
+					m_NiftiImage->nbyper = 2;
+					dataTypeSize = m_NiftiImage->nbyper;
+					break;
+				case VTK_UNSIGNED_SHORT://DT_UINT16:
+					m_NiftiImage->datatype = DT_UINT16;
+					m_NiftiImage->nbyper = 2;
+					dataTypeSize = m_NiftiImage->nbyper;
+					break;
+				case VTK_INT://DT_SIGNED_INT:
+					m_NiftiImage->datatype = DT_SIGNED_INT;
+					m_NiftiImage->nbyper = 4;
+					dataTypeSize = m_NiftiImage->nbyper;
+					break;
+				case VTK_UNSIGNED_INT://DT_UINT32:
+					m_NiftiImage->datatype = DT_UINT32;
+					m_NiftiImage->nbyper = 4;
+					dataTypeSize = m_NiftiImage->nbyper;
+					break;
+				case VTK_FLOAT://DT_FLOAT:
+					m_NiftiImage->datatype = DT_FLOAT;
+					m_NiftiImage->nbyper = 4;
+					dataTypeSize = m_NiftiImage->nbyper;
+					break;
+				case VTK_DOUBLE://DT_DOUBLE:
+					m_NiftiImage->datatype = DT_DOUBLE;
+					m_NiftiImage->nbyper = 8;
+					dataTypeSize = m_NiftiImage->nbyper;
+					break;
+				case VTK_LONG://DT_INT64:
+					m_NiftiImage->datatype = DT_INT64;
+					m_NiftiImage->nbyper = 8;
+					dataTypeSize = m_NiftiImage->nbyper;
+					break;
+				case VTK_UNSIGNED_LONG://DT_UINT64:
+					m_NiftiImage->datatype = DT_UINT64;
+					m_NiftiImage->nbyper = 8;
+					dataTypeSize = m_NiftiImage->nbyper;
+					break;
+				default:
+					cout << "cannot handle this type" << endl ;
+					break;
+				}
+			}
+			// m_NiftiImage->data = image->GetPointData( // scalar pointer i ekle buraya !!!! yer ac? 
+			m_NiftiImage->nifti_type = NIFTI_FTYPE_NIFTI1_1;
+			m_NiftiImage->data=const_cast<void *>( image->GetScalarPointer());
+
+			m_NiftiImage->fname = nifti_makehdrname( saveFileName.toStdString().c_str(), m_NiftiImage->nifti_type,false,0);
+			m_NiftiImage->iname = nifti_makeimgname(saveFileName.toStdString().c_str(), m_NiftiImage->nifti_type,false,0); // 0 is compressed
+			m_NiftiImage->qform_code = 1;
+
+			//Transformation and quaternion
+			//vtkObject * attObject = vtkObject::New();
+			cout << "Get attribute transf mat. "<< endl;
+			//ds->getAttributes()->getAttribute("transformation matrix", attObject);
+			cout << "Get attribute transf mat. OK "<< endl;
+			if(attObject)
+			{
+				cout << "attObject"  << endl;
+				vtkMatrix4x4 *matrix =  vtkMatrix4x4::New();
+					matrix = vtkMatrix4x4::SafeDownCast(attObject);
+				if(matrix)
+				{
+				matrix->Print(cout);
+				cout << "attObject 1.1"  << endl;
+				mat44 matrixf;
+				for(int i=0;i<4;i++)
+					for(int j=0;j<4;j++)
+					{
+						matrixf.m[i][j] = matrix->GetElement(i,j);
+						cout <<  matrixf.m[i][j] << endl;
+					}
+					cout << "attObject 1.2"  << endl;
+					nifti_mat44_to_quatern(matrixf, &( m_NiftiImage->quatern_b), &( m_NiftiImage->quatern_c), &( m_NiftiImage->quatern_d), 
+						&( m_NiftiImage->qoffset_x), &(m_NiftiImage->qoffset_y), &(m_NiftiImage->qoffset_z), &(m_NiftiImage->dx) , &(m_NiftiImage->dy) ,&(m_NiftiImage->dz) , &(m_NiftiImage->qfac));
+
+
+					cout << m_NiftiImage->quatern_b << " " << m_NiftiImage->quatern_c << " " << m_NiftiImage->quatern_d << " " << m_NiftiImage->qfac << " " << endl;
+					cout << m_NiftiImage->qoffset_x << " " << m_NiftiImage->qoffset_y << " " << m_NiftiImage->qoffset_z <<endl;
+
+					// in case the matrix is not pure transform, quaternion can not include scaling part. Therefore if the matris is not a pure transform matrix use scaling factor in spacing?
+					float scaling[3];
+					if(matrix->Determinant() != 1)
+					{
+						cout << "Determinant not 1. Find scaling." << endl;
+						vtkTransform *transform = vtkTransform::New();
+						transform->SetMatrix(matrix);
+						transform->Scale(scaling);
+
+						m_NiftiImage->pixdim[1] = spacing[0]*scaling[0];
+						m_NiftiImage->pixdim[2] = spacing[1]*scaling[1];
+						m_NiftiImage->pixdim[3] = spacing[2]*scaling[2];
+						transform->Delete();
+					}
+				}
+				else {
+					cout << "Invalid   matrix \n";
+				}
+			}
+			else
+			{
+				cout << "Invalid transformation object \n";
+			}
+			nifti_set_iname_offset(m_NiftiImage);
+			// Write the image fiel 
+			nifti_image_write( m_NiftiImage );
+	 
+	 
 	// Create an image using the new array
-	return this->createimageData(outDoubleArray, 1, "Scalars");
+	//return this->createimageData(outDoubleArray, 1, "Scalars");
 }
 
 
 //----------------------------[ parseDTIVolume ]---------------------------\\
 
-vtkImageData * bmiaNiftiWriter::parseDTIVolume()
+void bmiaNiftiWriter::writeDTIVolume()
 {
 	// Default index map. By default, NIfTI stores symmetrical tensors like this:
 	//
 	// a[0]
-	// a[1] a[2]
-	// a[3] a[4] a[5],
-	//
-	// while we use the following format:
-	// 
-	// b[0] b[1] b[2]
-	//      b[3] b[4]
-	//           b[5]
-	// 
-	// The default index map thus converts from "a" to "b".
-
-	int indexMap[6] = {0, 1, 3, 2, 4, 5};
-
-	// Check if we've got a MiND extension
-	int extPos = 0;
-	nifti1_extension * ext = this->findExtension(NIFTI_ECODE_MIND_IDENT, extPos);
-	int firstExtPos = extPos;
-
-	// If not, no big deal, we just use the default index map
-	if (ext)
-	{
-		// If we do have a MiND extension, check if 1) it's identifier is "DTENSOR",
-		// and 2) if we've got at least six extensions after the current one.
-
-		if (this->compareMiNDID(ext->edata, (char*) "DTENSOR", ext->esize - 8) && (extPos + 6) < this->NiftiImage->num_ext)
-		{
-			// If so, loop through the next six extensions
-			for (int i = 0; i < 6; ++i)
-			{
-				ext = &(this->NiftiImage->ext_list[++extPos]);
-
-				// Check if the extension code is correct
-				if (ext->ecode != NIFTI_ECODE_DT_COMPONENT)
-					continue;
-
-				// The two integer values of the i-th extension after the "DTENSOR"
-				// extension determine the 2D tensor position of the i-th vector element.
-				// This position starts at one (i.e., D11 is the top-left element
-				// of a tensor, NOT D00).
-
-				int * indices = (int *) ext->edata;
-
-				// Swap the bytes of the extension data
-				if (this->NiftiImage->byteorder == 2)
-				{
-					nifti_swap_4bytes(1, &(indices[0]));
-					nifti_swap_4bytes(1, &(indices[1]));
-				}
-
-				if (indices[0] == 1 && indices[1] == 1)		indexMap[0] = extPos - firstExtPos - 1;
-				if (indices[0] == 1 && indices[1] == 2)		indexMap[1] = extPos - firstExtPos - 1;
-				if (indices[0] == 2 && indices[1] == 1)		indexMap[1] = extPos - firstExtPos - 1;
-				if (indices[0] == 1 && indices[1] == 3)		indexMap[2] = extPos - firstExtPos - 1;
-				if (indices[0] == 3 && indices[1] == 1)		indexMap[2] = extPos - firstExtPos - 1;
-				if (indices[0] == 2 && indices[1] == 2)		indexMap[3] = extPos - firstExtPos - 1;
-				if (indices[0] == 2 && indices[1] == 3)		indexMap[4] = extPos - firstExtPos - 1;
-				if (indices[0] == 3 && indices[1] == 2)		indexMap[4] = extPos - firstExtPos - 1;
-				if (indices[0] == 3 && indices[1] == 3)		indexMap[5] = extPos - firstExtPos - 1;
-			}
-		}
-	}
-
-	// Create an output array for the six unique tensor elements
-	int arraySize = this->NiftiImage->dim[1] * this->NiftiImage->dim[2] * this->NiftiImage->dim[3];
-	double * outDoubleArray = new double[arraySize * 6];
-
-	// Copy the input array to the output array, using the specified index mapping
-	switch (this->NiftiImage->datatype)
-	{
-		case DT_UNSIGNED_CHAR:	createDoubleMappedArrayMacro(unsigned char,  6);		break;
-		case DT_SIGNED_SHORT:	createDoubleMappedArrayMacro(unsigned short, 6);		break;
-		case DT_UINT16:			createDoubleMappedArrayMacro(unsigned short, 6);		break;
-		case DT_SIGNED_INT:		createDoubleMappedArrayMacro(int,            6);		break;
-		case DT_FLOAT:			createDoubleMappedArrayMacro(float,			 6);		break;
-		case DT_DOUBLE:			createDoubleMappedArrayMacro(double,		 6);		break;
-
-		default:
-			delete [] outDoubleArray;
-			return NULL;
-	}
-
-	// Create an image using the new data array
-	return this->createimageData(outDoubleArray, 6, "Tensors");
+ 
 }
 
 
 //----------------------[ parseDiscreteSphereVolume ]----------------------\\
 
-vtkImageData * bmiaNiftiWriter::parseDiscreteSphereVolume()
+void bmiaNiftiWriter::writeDiscreteSphereVolume()
 {
-	// Check if we've got a MiND extension
-	int extPos = 0;
-	nifti1_extension * ext = this->findExtension(NIFTI_ECODE_MIND_IDENT, extPos);
-
-	// The MiND extension is not optional in this case
-	if (!ext)
-		return NULL;
-
-	// The MiND extension should have the "DISCSPHFUNC" code
-	if (!(this->compareMiNDID(ext->edata, (char*) "DISCSPHFUNC", ext->esize - 8)))
-		return NULL;
-
-	// Create an array for the spherical angles
-	vtkDoubleArray * angleArray = vtkDoubleArray::New();
-	angleArray->SetNumberOfComponents(2);
-	angleArray->SetName("Spherical Directions");
-	
-	// Loop through the remainder of the extensions
-	while (extPos < this->NiftiImage->num_ext)
-	{
-		ext = &(this->NiftiImage->ext_list[++extPos]);
-
-		// Break if an extension with an incorrect code is found
-		if (ext->ecode != NIFTI_ECODE_SPHERICAL_DIRECTION)
-			break;
-
-		// Add the two angles to the array
-		float * angles = (float *) ext->edata;
-
-		// Swap the bytes of the input
-		if (this->NiftiImage->byteorder == 2)
-		{
-			nifti_swap_4bytes(1, &(angles[0]));
-			nifti_swap_4bytes(1, &(angles[1]));
-		}
-
-		angleArray->InsertNextTuple2(angles[0], angles[1]);
-	}
-
-	// The number of angle sets should match the vector length of the NIfTI image
-	if (angleArray->GetNumberOfTuples() != this->NiftiImage->dim[5])
-	{
-		angleArray->Delete();
-		return NULL;
-	}
-
-	// Create a new double array with the correct vector length
-	int arraySize = this->NiftiImage->dim[1] * this->NiftiImage->dim[2] * this->NiftiImage->dim[3];
-	double * outDoubleArray = new double[arraySize * this->NiftiImage->dim[5]];
-
-	// Copy the input array to the output
-	switch (this->NiftiImage->datatype)
-	{
-		case DT_UNSIGNED_CHAR:	createDoubleVectorArrayMacro(unsigned char,  this->NiftiImage->dim[5]);		break;
-		case DT_SIGNED_SHORT:	createDoubleVectorArrayMacro(unsigned short, this->NiftiImage->dim[5]);		break;
-		case DT_UINT16:			createDoubleVectorArrayMacro(unsigned short, this->NiftiImage->dim[5]);		break;
-		case DT_SIGNED_INT:		createDoubleVectorArrayMacro(int,            this->NiftiImage->dim[5]);		break;
-		case DT_FLOAT:			createDoubleVectorArrayMacro(float,		     this->NiftiImage->dim[5]);		break;
-		case DT_DOUBLE:			createDoubleVectorArrayMacro(double,		 this->NiftiImage->dim[5]);		break;
-
-		default:
-			delete [] outDoubleArray;
-			angleArray->Delete();
-			return NULL;
-	}
-
-	// Append "_topo" to the filename
-	QString geoFileName = this->filenameQ.insert(this->filenameQ.lastIndexOf("."), "_topo");
-
-	vtkIntArray * triangleArray = NULL;
-	bmiaNiftiWriter * geoReader = new bmiaNiftiWriter(this->userOut);
-	
-	// Check if the topology file exists
-	if (geoReader->CanReadFile(geoFileName.toLatin1().data()))
-	{
-		// Try to read the topology file
-		QString err = geoReader->readNIfTIFile(geoFileName.toLatin1().data(), false);
-
-		if (err.isEmpty() && geoReader->outData.size() > 0 && geoReader->imageDataType == NDT_Triangles)
-		{
-			triangleArray = vtkIntArray::SafeDownCast(geoReader->outData.at(0));
-		}
-	}
-
-	// If the triangle array could not be constructed from the topology file (either
-	// because this file does not exist, or because there was an error while reading),
-	// we use out own sphere triangulator to compute this array.
-
-	if (triangleArray == NULL)
-	{
-		triangleArray = vtkIntArray::New();
-		triangleArray->SetName("Triangles");
-		SphereTriangulator * triangulator = new SphereTriangulator;
-		triangulator->triangulateFromAnglesArray(angleArray, triangleArray);
-		delete triangulator;
-	}
-
-	// Create an image for the sphere radii
-	vtkImageData * discreteSphereImage = this->createimageData(outDoubleArray, this->NiftiImage->dim[5], "Vectors");
-
-	// Add the angles array to this image
-	discreteSphereImage->GetPointData()->AddArray(angleArray);
-	angleArray->Delete();
-
-	// If available, add the triangle array
-	if (triangleArray)
-	{
-		discreteSphereImage->GetPointData()->AddArray(triangleArray);
-	}
-
-	// Delete the triangles reader
-	delete geoReader;
-
-	// Done!
-	return discreteSphereImage;
+ 
+ 
 }
 
 
 //--------------------[ parseSphericalHarmonicsVolume ]--------------------\\
 
-vtkImageData * bmiaNiftiWriter::parseSphericalHarmonicsVolume()
+void bmiaNiftiWriter::writeSphericalHarmonicsVolume()
 {
-	// Check if we've got a MiND extension
-	int extPos = 0;
-	nifti1_extension * ext = this->findExtension(NIFTI_ECODE_MIND_IDENT, extPos);
-
-	// The MiND extension is not optional in this case
-	if (!ext)
-		return NULL;
-
-	// The MiND extension should have the "REALSPHARMCOEFFS" code
-	if (!(this->compareMiNDID(ext->edata, (char*) "REALSPHARMCOEFFS", ext->esize - 8)))
-		return NULL;
-
-	// Get the number of components
-	int numberOfComponents = this->NiftiImage->num_ext - extPos - 1;
-
-	// Number of components should match for 0, 2, 4, 6, or 8-th order SH
-	if (numberOfComponents !=  1 && numberOfComponents !=  6 && numberOfComponents != 15 &&
-		numberOfComponents != 28 && numberOfComponents != 45)
-		return NULL;
-
-	// Number of components should match the vector length
-	if (numberOfComponents != this->NiftiImage->dim[5])
-		return NULL;
-
-	// Allocate the index map
-	int * indexMap = new int[numberOfComponents];
-
-	// Index for the index map
-	int currentIndex = 0;
-
-	// Loop through the remainder of the extensions
-	while (extPos < this->NiftiImage->num_ext - 1)
-	{
-		ext = &(this->NiftiImage->ext_list[++extPos]);
-
-		// Break if an extension with an incorrect code is found
-		if (ext->ecode != NIFTI_ECODE_SHC_DEGREEORDER)
-		{
-			delete[] indexMap;
-			return NULL;
-		}
-
-		// Add the two angles to the array
-		int * order = (int *) ext->edata;
-
-		// Swap the bytes of the input
-		if (this->NiftiImage->byteorder == 2)
-		{
-			nifti_swap_4bytes(1, &(order[0]));
-			nifti_swap_4bytes(1, &(order[1]));
-		}
-
-		int targetIndex = 0;
-
-		// Compute starting index for this value of "l" (order[0])
-		for (int i = 0; i < order[0]; i += 2)		
-			targetIndex += (i * 2) + 1;
-
-		// Convert "m" (order[1]), which is in the range "-l" to "l", to the range
-		// 0 to "2 * l + 1", by adding "l", and add this to the starting index.
-
-		targetIndex += order[1] + order[0];
-
-		// Double-check that the index is in the right range
-		if (targetIndex < 0 || targetIndex >= numberOfComponents)
-		{
-			delete[] indexMap;
-			return NULL;
-		}
-
-		// Set the index
-		indexMap[currentIndex++] = targetIndex;
-	}
-
-	// Create a new double array with the correct vector length
-	int arraySize = this->NiftiImage->dim[1] * this->NiftiImage->dim[2] * this->NiftiImage->dim[3];
-	double * outDoubleArray = new double[arraySize * this->NiftiImage->dim[5]];
-
-	// Copy the input array to the output
-	switch (this->NiftiImage->datatype)
-	{
-		case DT_UNSIGNED_CHAR:	createDoubleMappedArrayMacro(unsigned char,  this->NiftiImage->dim[5]);		break;
-		case DT_SIGNED_SHORT:	createDoubleMappedArrayMacro(unsigned short, this->NiftiImage->dim[5]);		break;
-		case DT_UINT16:			createDoubleMappedArrayMacro(unsigned short, this->NiftiImage->dim[5]);		break;
-		case DT_SIGNED_INT:		createDoubleMappedArrayMacro(int,            this->NiftiImage->dim[5]);		break;
-		case DT_FLOAT:			createDoubleMappedArrayMacro(float,		     this->NiftiImage->dim[5]);		break;
-		case DT_DOUBLE:			createDoubleMappedArrayMacro(double,		 this->NiftiImage->dim[5]);		break;
-
-	default:
-		delete [] outDoubleArray;
-		delete [] indexMap;
-		return NULL;
-	}
-
-	// Create an image for the sphere radii
-	vtkImageData * shImage = this->createimageData(outDoubleArray, this->NiftiImage->dim[5], "Scalars");
-
-	// Done!
-	return shImage;
+	 
+	 
 }
 
 
 //----------------------------[ parseTriangles ]---------------------------\\
 
-vtkIntArray * bmiaNiftiWriter::parseTriangles()
+void bmiaNiftiWriter::writeTriangles()
 {
-	// We should have three elements per vector
-	if (this->NiftiImage->dim[5] != 3)
-		return NULL;
-
-	// Create an array for the point indices of the triangles (i.e., three indices
-	// per triangle, for a total of "dim[1]" triangles.
-
-	int arraySize = this->NiftiImage->dim[1];
-	int * outIntArray = new int[arraySize * 3];
-
-	// Copy the input array to the output array
-
-	switch (this->NiftiImage->datatype)
-	{
-		case DT_UNSIGNED_CHAR:	createIntVectorArrayMacro(unsigned char,  3);		break;
-		case DT_SIGNED_SHORT:	createIntVectorArrayMacro(unsigned short, 3);		break;
-		case DT_UINT16:			createIntVectorArrayMacro(unsigned short, 3);		break;
-		case DT_SIGNED_INT:		createIntVectorArrayMacro(int,			  3);		break;
-		case DT_FLOAT:			createIntVectorArrayMacro(float,		  3);		break;
-		case DT_DOUBLE:			createIntVectorArrayMacro(double,		  3);		break;
-
-		default:
-			delete [] outIntArray;
-			return NULL;
-	}
-
-	// Create a VTK array for these indices
-	vtkIntArray * trianglesArray = vtkIntArray::New();
-	trianglesArray->SetNumberOfComponents(3);
-	trianglesArray->SetNumberOfTuples(this->NiftiImage->dim[1]);
-	trianglesArray->SetArray(outIntArray, arraySize, 1);
-	trianglesArray->SetName("Triangles");
-
-	return trianglesArray;
-}
+	 
+ 
 
 
-//---------------------------[ createimageData ]---------------------------\\
-
-vtkImageData * bmiaNiftiWriter::createimageData(double * data, int numberOfComponents, const char * arrayName)
-{
-	// Create a new volume
-	vtkImageData * newVolume = vtkImageData::New();
-	newVolume->SetNumberOfScalarComponents(numberOfComponents);
-	newVolume->SetScalarTypeToDouble();
-
-	// Spacing is set to 1.0 isotropically for NIfTI images. This is done because
-	// in most cases, the spacing is also part of the transformation matrix, and
-	// if we were to use the provided spacing values, this spacing would
-	// essentially be applied twice. A more elegant solution to this problem
-	// should be created in the future.
-
-	newVolume->SetSpacing(1.0, 1.0, 1.0);
-
-	newVolume->SetExtent(	0, this->NiftiImage->dim[1] - 1, 
-							0, this->NiftiImage->dim[2] - 1, 
-							0, this->NiftiImage->dim[3] - 1);
-	newVolume->GetDimensions();
-
-	vtkPointData * newPD = newVolume->GetPointData();
-
-	// Setup the scalar array. We use doubles by default.
-	vtkDoubleArray * newScalars = vtkDoubleArray::New();
-	newScalars->SetNumberOfComponents(numberOfComponents);
-	newScalars->SetNumberOfTuples(this->NiftiImage->dim[1] * this->NiftiImage->dim[2] * this->NiftiImage->dim[3]);
-	newScalars->SetArray(data, newScalars->GetNumberOfTuples() * numberOfComponents, 1);
-	newScalars->SetName(arrayName);
-
-	newPD->SetScalars(newScalars);
-
-	return newVolume;
-}
-
+ 
 
 } // namespace bmia
+}

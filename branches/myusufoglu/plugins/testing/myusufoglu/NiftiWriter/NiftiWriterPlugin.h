@@ -110,25 +110,18 @@ class NiftiWriterPlugin : public plugin::Plugin, public data::Writer
 
 		QStringList getSupportedFileDescriptions();
 
-		/** Read the NIfTI file and make it available to the data manager.
-			@param filename		Filename of the NIfTI file. */
-
-		void loadDataFromFile(QString filename);
+ 
 
 		void niftiStructure(data::DataSet *ds);
 
-		 
+		 void writeDataToFile(QString filename, data::DataSet *ds);
+
 
 	private:
 
-		/** Add a data set to the data manager, with optional transformation matrix.
-			@param ds			New data set.
-			@param m			Optional transformation matrix. */
+ 
 
-		void addDataSet(data::DataSet * ds, vtkMatrix4x4 * m);
-
-		void writeDataToFile(QString filename, vtkImageData *image);
-
+		
 }; // class NiftiWriterPlugin
 
 

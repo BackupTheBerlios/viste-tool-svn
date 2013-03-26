@@ -59,6 +59,7 @@
 #include <vtkFloatArray.h>
 #include <vtkDoubleArray.h>
 #include <vtkMatrix4x4.h>
+#include <vtkTransform.h>
 
 /** Includes - Qt */
 
@@ -108,15 +109,7 @@ class bmiaNiftiWriter
 
 		virtual int CanReadFile(const char * filename);
 
-		/** Read a NIfTI file. If successful, the data read from the NIfTI file
-			is stored in the "outData" list, and its type is stored in the 
-			"imageDataType" variable. On success, an empty string is returned;
-			otherwise, the return string contains an error message.
-			@param filename		Name of the NIfTI file.
-			@param showProgress	Should the reader create a progress bar? */
-
-		QString readNIfTIFile(const char * filename, bool showProgress = true);
-
+	 
 		 
 
 		/** Return supported file extensions. */
@@ -168,7 +161,7 @@ class bmiaNiftiWriter
 
 	protected:
 
-		/** The NIfTI image object constructed when reading the ".nii" file. */
+		/** The NIfTI image object constructed when writing the ".nii" file. */
 
 		nifti_image * NiftiImage;
 
@@ -189,11 +182,12 @@ class bmiaNiftiWriter
 			should be used to construct the scalar image volume. 
 			@param component	Target output component. */
 
-		vtkImageData * parseScalarVolume(int component = 0);
+		void writeScalarVolume(int component = 0);
+		void writeScalarVolume(int component, vtkImageData *image, QString saveFileName, vtkObject * attObject);
 
 		/** Create an image containing second-order DTI tensors. */
 
-		vtkImageData * parseDTIVolume();
+		void writeDTIVolume();
 
 		/** Create an image containing, per voxel, the radius for each of the
 			spherical directions. These spherical directions, which are read
@@ -204,7 +198,7 @@ class bmiaNiftiWriter
 			or, failing that, constructed here. In either case, an array describing 
 			the topology (triangles) is also attached to the output image. */
 
-		vtkImageData * parseDiscreteSphereVolume();
+		void writeDiscreteSphereVolume();
 
 		/** Create an image containing, for each voxel, a set of Spherical Harmonics
 			coefficients. The number of coefficients (i.e., the vector length) should
@@ -212,14 +206,14 @@ class bmiaNiftiWriter
 			are stored in ascending order: First the coefficient for l = 0, then the
 			five coefficients for l = 2, and so on. Uses the MiND extensions. */
 
-		vtkImageData * parseSphericalHarmonicsVolume();
+		void writeSphericalHarmonicsVolume();
 
 		/** Create an array of 3-element integer vectors. These integers represent
 			point indices of the vertices of a discrete sphere function. Each set
 			of three point indices describes a triangle; these triangles can later
 			be used to create the geometry glyphs. */
 
-		vtkIntArray * parseTriangles();
+		void writeTriangles();
 
 		/** Compare one string to a target string. Used for the MiND identifiers. 
 			@param id			Input string.
@@ -237,13 +231,7 @@ class bmiaNiftiWriter
 
 		nifti1_extension * findExtension(int targetID, int & extPos);
 
-		/** Create an image using a specified double array.
-			@param data			Double array containing the image data.
-			@param numberOfComponents	Number of components in the output image. 
-			@param arrayName	Desired name for the scalar array. */
-
-		vtkImageData * createimageData(double * data, int numberOfComponents, const char * arrayName);
-
+	 
 		/** Copy of the input filename. */
 
 		QString filenameQ;

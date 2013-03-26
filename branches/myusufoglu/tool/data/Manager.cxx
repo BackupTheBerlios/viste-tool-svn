@@ -58,6 +58,7 @@
 #include "DataSet.h"
 #include "Consumer.h"
 #include "Reader.h"
+#include "Writer.h"
 
 #include <QFile>
 #include <QTextStream>
@@ -76,6 +77,7 @@ Manager::Manager()
     Q_ASSERT(this->dataSets.size() == 0);
     Q_ASSERT(this->consumers.size() == 0);
     Q_ASSERT(this->readers.size() == 0);
+	 Q_ASSERT(this->writers.size() == 0);
 }
 
 Manager::~Manager()
@@ -240,11 +242,22 @@ void Manager::addReader(Reader* reader)
     if (!this->readers.contains(reader)) this->readers.push_back(reader);
 }
 
+void Manager::addWriter(Writer *writer)
+{
+    if (!this->writers.contains(writer)) this->writers.push_back(writer);
+}
+
 void Manager::removeReader(Reader* reader)
 {
     int i = this->readers.indexOf(reader);
     if (i == -1) return;
     this->readers.removeAt(i);
+}
+void Manager::removeWriter(Writer* writer)
+{
+    int i = this->writers.indexOf(writer);
+    if (i == -1) return;
+    this->writers.removeAt(i);
 }
 
 QStringList Manager::getSupportedFileExtensions()
@@ -321,6 +334,80 @@ QStringList Manager::getSupportedFileExtensionsWithDescriptions()
 
 	return output;
 }
+QStringList Manager::getSupportedFileWriteExtensions()
+{
+    QStringList ext1;	// extensions per reader
+    QStringList extAll;	// concatenation of all ext1's
+
+    Writer* r;
+    for (int i=0; i < this->writers.size(); i++)
+	{
+	r = this->writers.at(i);
+	ext1 = r->getSupportedFileExtensions();
+	for (int j = 0; j < ext1.size(); j++)
+	    {
+	    extAll.push_back(ext1.at(j));
+	    } // for j
+	} // for i
+    return extAll;
+}
+
+
+QStringList Manager::getSupportedFileWriteExtensionsWithDescriptions()
+{
+	// List of extensions for one reader
+	QStringList extensions;
+
+	// List of file descriptions for one reader
+	QStringList descriptions;
+
+	// Combined output
+	QStringList output;
+
+	// One string containing all supported file types (default selection)
+	QString allFiles = "All (";
+
+	Writer * r;
+
+	// Loop through all readers
+	for (int i = 0; i < this->readers.size(); ++i)
+	{
+		// Get the current reader
+		r = this->writers.at(i);
+
+		// Get the supported extensions and descriptions
+		extensions   = r->getSupportedFileExtensions();
+		descriptions = r->getSupportedFileDescriptions();
+
+		// Extension list and description list should have the same size. If you're
+		// coding a new plugin and you triggered this assert, you have probably hard-
+		// coded extension/description lists of different sizes.
+
+		assert(extensions.size() == descriptions.size());
+		
+		// Loop through all supported file types for this reader
+		for (int j = 0; j < extensions.size(); ++j)
+		{
+			// Create the combined output
+			output.push_back(descriptions.at(j) + " (*." + extensions.at(j) + ")");
+
+			// Append extension to the filter for all supported file types
+			allFiles.append("*." + extensions.at(j) + " ");
+		}
+	}
+
+	// Remove the last character (space), and add the closing parenthesis
+	allFiles.resize(allFiles.length() - 1);
+	allFiles.append(")");
+
+	// Sort the list by alphabetic order
+	output.sort();
+
+	// Add the "allFiles" string to the front (default option)
+	output.push_front(allFiles);
+
+	return output;
+}
 
 
 void Manager::loadDataFromFile(QString filename)
@@ -359,6 +446,41 @@ void Manager::loadDataFromFile(QString filename)
     
     reader->loadDataFromFile(filename);
 }
+
+
+void Manager::writeDataToFile(QString filename, DataSet *ds)  
+{
+    QTextStream out(stdout);
+    out<<"Writing data to file "<<filename<<endl;
+    QFile file;
+    file.setFileName(filename);
+     
+
+    Writer* writer = NULL;
+    int i = 0;
+    QStringList ext1;
+    while ((writer == NULL) && i < this->writers.size())
+	{
+	ext1 = this->writers.at(i)->getSupportedFileExtensions();
+	for (int j=0; j < ext1.size(); j++)
+	    {
+	    if (file.fileName().endsWith(QString(ext1.at(j))))
+		{
+		writer = this->writers.at(i);
+		}
+	    } // for j
+	    i++;
+	} // while
+
+    if (!writer)
+	{
+	out<<"No reader found that supports the requested file extension for file "<<filename<<endl;
+	return;
+	} // if
+    
+    writer->writeDataToFile(filename, ds); 
+}
+
 
 } // namespace data
 }  //namespace bmia

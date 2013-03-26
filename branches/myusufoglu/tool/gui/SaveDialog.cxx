@@ -46,7 +46,6 @@
 
 #include "SaveDialog.h"
 // temporary
-#include  "D:\vISTe\subversion\myusufoglu\libs\NIfTI\vtkNiftiWriter.h"
 #include "vtkTransform.h"
 
 namespace bmia {
@@ -529,7 +528,12 @@ namespace bmia {
 				else if( fileNameExtention.toString()==".nii" || fileNameExtention.toString()==".gz"  )
 				{
 					cout << "saving nifti" << endl;
+					vtkObject * attObject = vtkObject::New();
+			cout << "Get attribute transf mat. "<< endl;
+			ds->getAttributes()->getAttribute("transformation matrix", attObject);
+			 
 					this->setNiftiFields(image,saveFileName.toStdString().c_str(),ds);
+				//	this->getManager()->writeDataToFile(saveFileName, ds); // who will decide the data type supported extention writer can decide. Niftiwriter can decide.
 				}
 
 
@@ -614,47 +618,6 @@ namespace bmia {
 		void SaveDialog::setNiftiFields(vtkImageData * image, const QString saveFileName, data::DataSet *ds )
 		{
 
-			//cout << "write file nifti " << saveFileName.toStdString() << image->GetDataDimension() << endl;
-			//vtkNIfTIWriter *writer = vtkNIfTIWriter::New();
-			//std::ofstream *file = new std::ofstream();
-			//std::ofstream *file2 = new std::ofstream();
-			//writer->SetFileType(1);
-			//writer->SetInputConnection(image->GetProducerPort());
-			//writer->SetFileName(saveFileName.toStdString().c_str());
-			//writer->SetFileDimensionality(image->GetDataDimension());
-
-			//
-
-			//writer->WriteFileHeader(file,image,image->GetWholeExtent());
-			////cin.get();
-			////writer->WriteFile(file2,image,image->GetExtent(),image->GetWholeExtent());
-			// 
-
-			////writer->Update();
-			////writer->Update();
-			//writer->Delete();
-
-
-			/*outImage->dim[3] =     outImage->nz			= image->GetDimensions()[2];
-			outImage->pixdim[3] = outImage->dz = static_cast<float>( image->GetSpacing()[2] );
-			outImage->nvox *=     outImage->dim[3];
-
-			outImage->dim[2] =     outImage->ny = image->GetDimensions()[1];
-			outImage->pixdim[2] =  outImage->dy = static_cast<float>( image->GetSpacing()[1] );
-			outImage->nvox *=  outImage->dim[2];
-
-			outImage->dim[1] =     outImage->nx = image->GetDimensions()[0];
-			outImage->pixdim[1] = outImage->dx = static_cast<float>( image->GetSpacing()[0] );
-			outImage->nvox *=     outImage->dim[1];
-			QString HeaderFileName= "C:/Users/MYusufog/Desktop/test";
-			outImage->iname= (char *) saveFileName.toStdString().c_str() ;
-			outImage->fname = (char *) HeaderFileName.toStdString().c_str()  ;
-			outImage->data =  image->GetScalarPointer();
-			outImage->nbyper =  image->GetScalarSize();
-			outImage->datatype =   image->GetScalarType();
-			if (image->GetNumberOfScalarComponents() > 4    || image->GetNumberOfScalarComponents() == 2)
-			return;
-			outImage->nifti_type=1;*/
 
 			nifti_image * m_NiftiImage = new nifti_image;
 			m_NiftiImage = nifti_simple_init_nim();
