@@ -159,6 +159,17 @@ class bmiaNiftiWriter
 
 		QList<vtkObject *> outData;
 
+		/** Create an image with one scalar value per voxel. Used for both 
+			"NDT_ScalarVolume" and "NDT_GenericVector"; in the latter case, the
+			"component" value describes which component of the input vector
+			should be used to construct the scalar image volume. 
+			@param component	Target output component. */
+
+		void writeScalarVolume(int component = 0);
+			void writeScalarVolume( vtkImageData *image, QString saveFileName, vtkObject * attObject);
+		void writeScalarVolume(int component, vtkImageData *image, QString saveFileName, vtkObject * attObject);
+
+
 	protected:
 
 		/** The NIfTI image object constructed when writing the ".nii" file. */
@@ -176,15 +187,7 @@ class bmiaNiftiWriter
 
 		bool determineDataType();
 
-		/** Create an image with one scalar value per voxel. Used for both 
-			"NDT_ScalarVolume" and "NDT_GenericVector"; in the latter case, the
-			"component" value describes which component of the input vector
-			should be used to construct the scalar image volume. 
-			@param component	Target output component. */
-
-		void writeScalarVolume(int component = 0);
-		void writeScalarVolume(int component, vtkImageData *image, QString saveFileName, vtkObject * attObject);
-
+		
 		/** Create an image containing second-order DTI tensors. */
 
 		void writeDTIVolume();

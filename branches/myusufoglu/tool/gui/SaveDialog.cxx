@@ -532,8 +532,8 @@ namespace bmia {
 			cout << "Get attribute transf mat. "<< endl;
 			ds->getAttributes()->getAttribute("transformation matrix", attObject);
 			 
-					this->setNiftiFields(image,saveFileName.toStdString().c_str(),ds);
-				//	this->getManager()->writeDataToFile(saveFileName, ds); // who will decide the data type supported extention writer can decide. Niftiwriter can decide.
+					//this->setNiftiFields(image,saveFileName.toStdString().c_str(),ds);
+					this->getManager()->writeDataToFile(saveFileName, ds); // who will decide the data type supported extention writer can decide. Niftiwriter can decide.
 				}
 
 

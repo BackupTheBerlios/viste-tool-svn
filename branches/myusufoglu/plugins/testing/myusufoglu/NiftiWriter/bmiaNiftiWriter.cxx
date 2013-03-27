@@ -317,7 +317,7 @@ nifti1_extension * bmiaNiftiWriter::findExtension(int targetID, int & extPos)
 
 //--------------------------[ parseScalarVolume ]--------------------------\\
 
-void bmiaNiftiWriter::writeScalarVolume(int component, vtkImageData *image, QString saveFileName, vtkObject * attObject)
+void bmiaNiftiWriter::writeScalarVolume(vtkImageData *image, QString saveFileName, vtkObject * transform)
 {
 	
 
@@ -467,19 +467,15 @@ void bmiaNiftiWriter::writeScalarVolume(int component, vtkImageData *image, QStr
 			m_NiftiImage->qform_code = 1;
 
 			//Transformation and quaternion
-			//vtkObject * attObject = vtkObject::New();
-			cout << "Get attribute transf mat. "<< endl;
-			//ds->getAttributes()->getAttribute("transformation matrix", attObject);
-			cout << "Get attribute transf mat. OK "<< endl;
-			if(attObject)
+			if(transform)
 			{
-				cout << "attObject"  << endl;
+				cout << "transform"  << endl;
 				vtkMatrix4x4 *matrix =  vtkMatrix4x4::New();
-					matrix = vtkMatrix4x4::SafeDownCast(attObject);
+					matrix = vtkMatrix4x4::SafeDownCast(transform);
 				if(matrix)
 				{
 				matrix->Print(cout);
-				cout << "attObject 1.1"  << endl;
+				cout << "transform 1.1"  << endl;
 				mat44 matrixf;
 				for(int i=0;i<4;i++)
 					for(int j=0;j<4;j++)
@@ -487,13 +483,14 @@ void bmiaNiftiWriter::writeScalarVolume(int component, vtkImageData *image, QStr
 						matrixf.m[i][j] = matrix->GetElement(i,j);
 						cout <<  matrixf.m[i][j] << endl;
 					}
-					cout << "attObject 1.2"  << endl;
+					
+					// convert transformation matrix to quaternion
 					nifti_mat44_to_quatern(matrixf, &( m_NiftiImage->quatern_b), &( m_NiftiImage->quatern_c), &( m_NiftiImage->quatern_d), 
 						&( m_NiftiImage->qoffset_x), &(m_NiftiImage->qoffset_y), &(m_NiftiImage->qoffset_z), &(m_NiftiImage->dx) , &(m_NiftiImage->dy) ,&(m_NiftiImage->dz) , &(m_NiftiImage->qfac));
 
 
-					cout << m_NiftiImage->quatern_b << " " << m_NiftiImage->quatern_c << " " << m_NiftiImage->quatern_d << " " << m_NiftiImage->qfac << " " << endl;
-					cout << m_NiftiImage->qoffset_x << " " << m_NiftiImage->qoffset_y << " " << m_NiftiImage->qoffset_z <<endl;
+					//cout << m_NiftiImage->quatern_b << " " << m_NiftiImage->quatern_c << " " << m_NiftiImage->quatern_d << " " << m_NiftiImage->qfac << " " << endl;
+					//cout << m_NiftiImage->qoffset_x << " " << m_NiftiImage->qoffset_y << " " << m_NiftiImage->qoffset_z <<endl;
 
 					// in case the matrix is not pure transform, quaternion can not include scaling part. Therefore if the matris is not a pure transform matrix use scaling factor in spacing?
 					float scaling[3];
@@ -522,9 +519,6 @@ void bmiaNiftiWriter::writeScalarVolume(int component, vtkImageData *image, QStr
 			// Write the image fiel 
 			nifti_image_write( m_NiftiImage );
 	 
-	 
-	// Create an image using the new array
-	//return this->createimageData(outDoubleArray, 1, "Scalars");
 }
 
 
@@ -539,7 +533,7 @@ void bmiaNiftiWriter::writeDTIVolume()
 }
 
 
-//----------------------[ parseDiscreteSphereVolume ]----------------------\\
+//----------------------[ writeDiscreteSphereVolume ]----------------------\\
 
 void bmiaNiftiWriter::writeDiscreteSphereVolume()
 {
@@ -548,7 +542,7 @@ void bmiaNiftiWriter::writeDiscreteSphereVolume()
 }
 
 
-//--------------------[ parseSphericalHarmonicsVolume ]--------------------\\
+//--------------------[ writeSphericalHarmonicsVolume ]--------------------\\
 
 void bmiaNiftiWriter::writeSphericalHarmonicsVolume()
 {
@@ -557,7 +551,7 @@ void bmiaNiftiWriter::writeSphericalHarmonicsVolume()
 }
 
 
-//----------------------------[ parseTriangles ]---------------------------\\
+//----------------------------[ writeTriangles ]---------------------------\\
 
 void bmiaNiftiWriter::writeTriangles()
 {
