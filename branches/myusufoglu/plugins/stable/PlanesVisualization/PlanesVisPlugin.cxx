@@ -302,7 +302,10 @@ void PlanesVisPlugin::dataSetAdded(data::DataSet * ds)
 			this->ui->dtiWeightCombo->setCurrentIndex(1);
 			this->changeWeightVolume(1);
 		}
-
+			//stephen remove
+		//ds->getAttributes()->addAttribute("SlicePosX",0);
+		//ds->getAttributes()->addAttribute("SlicePosY",0);
+		//ds->getAttributes()->addAttribute("SlicePosZ",0);
 		this->connectControls(true);
 
 	} // if [scalar volume]
@@ -370,8 +373,17 @@ void PlanesVisPlugin::dataSetChanged(data::DataSet * ds)
 		
 		if (this->ui->dtiWeightCombo->currentIndex() == dsIndex + 1)
 			this->changeWeightVolume(dsIndex + 1);
-
+	
 		this->connectControls(true);
+		//stephen
+		//int pos[3];
+		//ds->getAttributes()->getAttribute("SlicePosX",pos[0]);
+		//ds->getAttributes()->getAttribute("SlicePosY",pos[1]);
+		//ds->getAttributes()->getAttribute("SlicePosZ",pos[2]);
+		//cout << pos[0] << " " << pos[1] << " " << pos[2] << endl;
+		//emit this->setXSlice(pos[0]);
+		//emit this->setYSlice(pos[1]);
+		//emit this->setZSlice(pos[2]);
 	}
 
 	// Transfer Functions

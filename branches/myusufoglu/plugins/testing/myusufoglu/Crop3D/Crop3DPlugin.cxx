@@ -690,11 +690,8 @@ namespace bmia {
 				bndTemp2[3]=1;
 				bndVerticeUpperTranslated = matrixCopy2->MultiplyDoublePoint(bndTemp2);
 				//	cout << "vertice upper translated:" << bndVerticeUpperTranslated[0] << "  " << bndVerticeUpperTranslated[1] << "  " << bndVerticeUpperTranslated[2]<< "  " << endl;
-
-				//this->actor->GetSliceActor(i)->SetUserMatrix(matrixCopy);
-				//	matrixCopy->Print(cout);
-			
-					double A[6]; 
+                
+				double A[6]; 
 				A[0]=bndVerticeLowerTranslated[0]; 
 				A[1]=bndVerticeUpperTranslated[0]; 
 
@@ -1299,10 +1296,17 @@ namespace bmia {
 	void Crop3DPlugin::setXSlice(int x, bool updateData)
 	{
 		// Set the slice position
-		cout << "set slice x" << endl;
+		//cout << "set slice x" << endl;
 		this->actor->SetX(x);
-
-		// Get the input image of the slice
+		 //stephens plugin
+		//data::DataSet * ds = this->scalarVolumeDataSets.at(this->ui->scalarVolumeCombo->currentIndex());
+		//if(ds->getAttributes()->hasAttribute("SlicePosX"))
+		//{
+		//	ds->getAttributes()->addAttribute("SlicePosX",x);
+		//   cout << "Added attribute \n";
+		//	this->core()->data()->dataSetChanged(ds);
+		//}
+			// Get the input image of the slice
 		vtkImageData * input = this->actor->GetInput();
 
 		if (input)
@@ -1331,6 +1335,8 @@ namespace bmia {
 			this->core()->data()->dataSetChanged(this->sliceActorDataSets[0]);
 			this->core()->render();
 		}
+	 
+
 	}
 
 
