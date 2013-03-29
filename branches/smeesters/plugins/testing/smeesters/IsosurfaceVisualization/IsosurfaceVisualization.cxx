@@ -803,7 +803,7 @@ void IsosurfaceVisualization::setClippingPlanesPosition(double* pos)
             switch(i)
             {
                 case 0: // sagittal
-                    pointer->SetPosition(frac_pos[0]*18,frac_pos[1]*217,frac_pos[2]*181);
+                    pointer->SetPosition(frac_pos[0]*181,frac_pos[1]*217,frac_pos[2]*181);
                     break;
 
                 case 1: // coronal
@@ -815,6 +815,12 @@ void IsosurfaceVisualization::setClippingPlanesPosition(double* pos)
                     break;
             }
         }
+
+        // set medical canvas positions
+        this->current_modelInfo->ds->getAttributes()->addAttribute("SlicePosX", (int)(frac_pos[0]*181));
+        this->current_modelInfo->ds->getAttributes()->addAttribute("SlicePosY", (int)(frac_pos[1]*217));
+        this->current_modelInfo->ds->getAttributes()->addAttribute("SlicePosZ", (int)(frac_pos[2]*181));
+        this->core()->data()->dataSetChanged(this->current_modelInfo->ds);
 
         if(!current_modelInfo->alignPlanesToPick)
             return;
