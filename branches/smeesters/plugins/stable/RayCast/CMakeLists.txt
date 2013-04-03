@@ -42,7 +42,7 @@ include(${VTK_USE_FILE})
 
 find_package(Qt4 REQUIRED)
 include(${QT_USE_FILE})
-
+find_package(OpenGL)
 set(SRCS
     RayCastPlugin.h
     RayCastPlugin.cxx
@@ -73,6 +73,6 @@ qt4_wrap_cpp( MOC_SRCS RayCastPlugin.h RayCastVolumeMapper.h)
 set_source_files_properties(RayCastPlugin.cxx PROPERTIES OBJECT_DEPENDS "${UiHeaders}")
 
 add_library( RayCastPlugin SHARED ${SRCS} ${MOC_SRCS} vtkShaderBase.h vtkShaderRayDirections.h vtkShaderDVR.h vtkShaderMIP.h vtkShaderIsosurface.h vtkShaderToon.h vtkClippingPlane.h)
-target_link_libraries( RayCastPlugin bmia_plugin vtkIO vtkGraphics vtkVolumeRendering vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering)
+target_link_libraries( RayCastPlugin bmia_plugin vtkIO vtkGraphics vtkVolumeRendering vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering ${OPENGL_LIBRARIES})
 
 endif(PLUGINS_BUILD_RAYCASTING)

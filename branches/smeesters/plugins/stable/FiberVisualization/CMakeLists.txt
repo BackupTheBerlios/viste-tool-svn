@@ -42,7 +42,7 @@ include(${VTK_USE_FILE})
 
 find_package(Qt4 REQUIRED)
 include(${QT_USE_FILE})
-
+find_package(OpenGL) 
 #subdirs(HWShading)
 
 set(SRCS
@@ -74,6 +74,6 @@ set_source_files_properties(FiberVisualizationPlugin.cxx PROPERTIES OBJECT_DEPEN
 
 link_directories(${BMIA_LIBS_BINARY_DIR})
 add_library( FiberVisualizationPlugin SHARED ${SRCS} ${MOC_SRCS} )
-target_link_libraries( FiberVisualizationPlugin bmia_libs vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering ) #bmia_plugin bmia_data vtkHWShadingFibers vtkIO vtkGraphics )
+target_link_libraries( FiberVisualizationPlugin bmia_libs vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering ${OPENGL_LIBRARIES}) #bmia_plugin bmia_data vtkHWShadingFibers vtkIO vtkGraphics )
 
 endif(PLUGINS_BUILD_FIBERVISUALIZATION)

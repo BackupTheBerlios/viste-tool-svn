@@ -67,7 +67,9 @@ are required:
  - use znz_isnull rather than any (pointer == NULL) comparisons in the code
  
 NB: seeks for writable files with compression are quite restricted
-
+  
+  2013-04-02	Mehmet Yusufoglu (viste team)
+added #define HAVE_ZLIB 1  for nii.gz readability.
 */
 
 
@@ -88,7 +90,8 @@ extern "C" {
    compiler options
 */
 /* #define HAVE_FDOPEN */
-
+	
+#define HAVE_ZLIB 1 // added by viste-team
 
 #ifdef HAVE_ZLIB
 #if defined(ITKZLIB)
