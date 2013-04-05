@@ -199,7 +199,9 @@ void PolyDataReaderPlugin::loadDataFromFile(QString filename)
 	// additional steps.
 	if (kind == "fibers" || kind == "polydata")
 	{
+		
 		ds = new data::DataSet(name, kind, reader->GetOutput());
+		 
 	}
 	// For ROIs, we need to check if the ROI polydata has been stored
 	// in the correct format (i.e., one line per polygon, instead of one
@@ -229,7 +231,6 @@ void PolyDataReaderPlugin::loadDataFromFile(QString filename)
 
 	// Add the new DataSet to the data manager:
 	this->core()->data()->addDataSet(ds);
-
 	// Delete the reader that was used to read the data.
 	reader->Delete(); reader = NULL;
 }

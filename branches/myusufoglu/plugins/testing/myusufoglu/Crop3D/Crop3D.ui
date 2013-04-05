@@ -181,7 +181,7 @@
      <property name="maximumSize">
       <size>
        <width>16777215</width>
-       <height>280</height>
+       <height>250</height>
       </size>
      </property>
      <property name="widgetResizable">
@@ -191,7 +191,7 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>0</y>
+        <y>-29</y>
         <width>253</width>
         <height>277</height>
        </rect>
@@ -203,7 +203,7 @@
           <bool>true</bool>
          </property>
          <property name="title">
-          <string>3D CROP ROI</string>
+          <string>Determine ROI and Crop Selected Volume</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout">
           <item>
@@ -397,10 +397,10 @@
    </item>
    <item>
     <widget class="QScrollArea" name="scrollArea_2">
-     <property name="minimumSize">
+     <property name="maximumSize">
       <size>
-       <width>0</width>
-       <height>100</height>
+       <width>16777215</width>
+       <height>110</height>
       </size>
      </property>
      <property name="widgetResizable">
@@ -411,11 +411,11 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>270</width>
+        <width>253</width>
         <height>301</height>
        </rect>
       </property>
-      <layout class="QVBoxLayout" name="verticalLayout_6">
+      <layout class="QHBoxLayout" name="horizontalLayout_13">
        <item>
         <widget class="QGroupBox" name="groupBox_2">
          <property name="minimumSize">
@@ -431,7 +431,7 @@
           </size>
          </property>
          <property name="title">
-          <string>Crop3D Plane Visualisation</string>
+          <string>Visualise Selected Volume</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_5">
           <item>
@@ -727,102 +727,5 @@
   </layout>
  </widget>
  <resources/>
- <connections>
-  <connection>
-   <sender>zPositionSpin</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>zPositionSlide</receiver>
-   <slot>setValue(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>60</x>
-     <y>783</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>168</x>
-     <y>783</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>yPositionSpin</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>yPositionSlide</receiver>
-   <slot>setValue(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>60</x>
-     <y>707</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>168</x>
-     <y>707</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>xPositionSpin</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>xPositionSlide</receiver>
-   <slot>setValue(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>60</x>
-     <y>631</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>168</x>
-     <y>631</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>zPositionSlide</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>zPositionSpin</receiver>
-   <slot>setValue(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>168</x>
-     <y>783</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>60</x>
-     <y>783</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>yPositionSlide</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>yPositionSpin</receiver>
-   <slot>setValue(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>168</x>
-     <y>707</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>60</x>
-     <y>707</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>xPositionSlide</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>xPositionSpin</receiver>
-   <slot>setValue(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>168</x>
-     <y>631</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>60</x>
-     <y>631</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

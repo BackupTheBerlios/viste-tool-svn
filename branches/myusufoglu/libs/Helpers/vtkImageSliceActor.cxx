@@ -256,7 +256,7 @@ void vtkImageSliceActor::CenterSlice()
     }
   
   int *w_ext = input->GetWholeExtent();
-cout<<"centerslices===================================================================================================================="<<endl;
+ 
 //cout<<"w_ext = "<<w_ext[0]<<", "<<w_ext[1]<<", "<<w_ext[2]<<", "<<w_ext[3]<<", "<<w_ext[4]<<", "<<w_ext[5]<<endl;
   int slice_min = w_ext[this->SliceOrientation * 2];
 //cout<<"SliceOrientation = "<<SliceOrientation<<endl;

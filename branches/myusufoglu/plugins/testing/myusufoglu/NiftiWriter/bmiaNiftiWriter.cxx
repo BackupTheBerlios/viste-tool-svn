@@ -119,7 +119,7 @@ bmiaNiftiWriter::~bmiaNiftiWriter()
 	// will have been registered to new data sets, which means that they will not 
 	// really be deleted in the "cleanUp" function.
 
-	this->cleanUp();
+	this->cleanUp(); 
 }
 
 
@@ -496,7 +496,7 @@ void bmiaNiftiWriter::writeScalarVolume(vtkImageData *image, QString saveFileNam
 					float scaling[3];
 					if(matrix->Determinant() != 1)
 					{
-						cout << "Determinant not 1. Find scaling." << endl;
+                        // If determinant is not 1 find scaling
 						vtkTransform *transform = vtkTransform::New();
 						transform->SetMatrix(matrix);
 						transform->Scale(scaling);
@@ -516,7 +516,7 @@ void bmiaNiftiWriter::writeScalarVolume(vtkImageData *image, QString saveFileNam
 				cout << "Invalid transformation object \n";
 			}
 			nifti_set_iname_offset(m_NiftiImage);
-			// Write the image fiel 
+			// Write the image file
 			nifti_image_write( m_NiftiImage );
 	 
 }
@@ -526,10 +526,28 @@ void bmiaNiftiWriter::writeScalarVolume(vtkImageData *image, QString saveFileNam
 
 void bmiaNiftiWriter::writeDTIVolume()
 {
-	// Default index map. By default, NIfTI stores symmetrical tensors like this:
-	//
-	// a[0]
- 
+	 //dim[5]= 6 
+	 //there must be 6 extentions
+	nifti_image * m_NiftiImage = new nifti_image;
+			m_NiftiImage = nifti_simple_init_nim();
+
+ strcpy( m_NiftiImage->intent_name ,   "MIND");
+  m_NiftiImage->num_ext=7; // or 6
+
+  nifti1_extension *extentions = new nifti1_extension[m_NiftiImage->num_ext];
+  m_NiftiImage->ext_list[0].esize=16;
+   m_NiftiImage->ext_list[0].ecode=18;
+   strcpy(m_NiftiImage->ext_list[0].edata,"DTENSOR");
+
+    m_NiftiImage->ext_list[1].esize=16;
+   m_NiftiImage->ext_list[1].ecode=24;
+   int edata[2] = { 1,1};
+   m_NiftiImage->ext_list[1].edata = (char *) edata; // control
+
+    m_NiftiImage->ext_list[1].esize=16;
+   m_NiftiImage->ext_list[1].ecode=24;
+  //edata
+   m_NiftiImage->ext_list[1].edata =(char *) edata; // control
 }
 
 

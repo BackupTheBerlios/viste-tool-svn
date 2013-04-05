@@ -96,7 +96,7 @@ QStringList NiftiReaderPlugin::getSupportedFileExtensions()
 {
 	QStringList list;
 	list.push_back("nii");
-	//list.push_back("nii.gz");
+	list.push_back("nii.gz");
 	return list;
 }
 
@@ -107,7 +107,7 @@ QStringList NiftiReaderPlugin::getSupportedFileDescriptions()
 {
 	QStringList list;
 	list.push_back("NIfTI Files");
-	//list.push_back("GZipped NIfTI Files");
+	list.push_back("GZipped NIfTI Files");
 	return list;
 }
 

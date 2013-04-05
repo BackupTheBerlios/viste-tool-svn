@@ -116,9 +116,9 @@ namespace bmia {
 		pointSetZ->SetPoints(this->seedsZ);
 
 		// Create data sets for the seed points
-		this->seedDataSets[0] = new data::DataSet("Plane X", "seed points", pointSetX);
-		this->seedDataSets[1] = new data::DataSet("Plane Y", "seed points", pointSetY);
-		this->seedDataSets[2] = new data::DataSet("Plane Z", "seed points", pointSetZ);
+		this->seedDataSets[0] = new data::DataSet("CropPlane X", "seed points", pointSetX);
+		this->seedDataSets[1] = new data::DataSet("CropPlane Y", "seed points", pointSetY);
+		this->seedDataSets[2] = new data::DataSet("CropPlane Z", "seed points", pointSetZ);
 
 		// Reduce reference count of the point sets to one
 		pointSetX->Delete();
@@ -129,18 +129,20 @@ namespace bmia {
 		vtkMedicalCanvas * canvas = this->fullCore()->canvas();
 
 		QString sliceActorNames[3];
-		sliceActorNames[0] = "X Plane";
-		sliceActorNames[1] = "Y Plane";
-		sliceActorNames[2] = "Z Plane";
+		sliceActorNames[0] = "Crop X Plane";
+		sliceActorNames[1] = "Crop Y Plane";
+		sliceActorNames[2] = "Crop Z Plane";
 
 		// Loop through all three axes
 		for(int axis = 0; axis < 3; ++axis)
 		{
 			// Add the seed point data set to the data manager
-			this->core()->data()->addDataSet(this->seedDataSets[axis]);
+			// the seeds can be added just after the crop, otherwise they wil be same with the seed of planes plugin.
+			//this->core()->data()->addDataSet(this->seedDataSets[axis]);
 
 			// Add the planes to their respective 2D views
 			vtkImageSliceActor * sliceActor = this->actor->GetSliceActor(axis);
+			//remove 2d planes for cropped volume
 			//canvas->GetSubCanvas2D(axis)->GetRenderer()->AddActor(sliceActor);
 
 			// Add the slice actors to the data manager
@@ -235,7 +237,7 @@ namespace bmia {
 
 			connect(this->ui->cropButton,		SIGNAL(clicked()),			this , SLOT( cropData() ),	Qt::UniqueConnection		);
 			connect(this->ui->roiBoxVisibleCheckBox,	SIGNAL(toggled(bool)),				this, SLOT(setRoiBoxVisible(bool))	);
-			connect(this->ui->horizontalSliderX0 ,		SIGNAL(valueChanged(int)),	this, SLOT(changeROIBoundary(int))	);
+			//connect(this->ui->horizontalSliderX0 ,		SIGNAL(valueChanged(int)),	this, SLOT(changeROIBoundary(int))	);
 
 			// spin -> slider connection 
 			connect(this->ui->x0ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderX0 , SLOT(setValue(int) )			);
@@ -260,6 +262,9 @@ namespace bmia {
 			connect(this->ui->z0ROIPositionSpin,		SIGNAL(valueChanged(int)),  this, SLOT(changeRoiBoundary(int) ));
 			connect(this->ui->z1ROIPositionSpin,		SIGNAL(valueChanged(int)),  this, SLOT(changeRoiBoundary(int) ));
 
+			connect(this->ui->xPositionSlide,SIGNAL(valueChanged(int)), this->ui->xPositionSpin, SLOT(setValue(int)));
+			connect(this->ui->yPositionSlide,SIGNAL(valueChanged(int)), this->ui->yPositionSpin, SLOT(setValue(int)));
+			connect(this->ui->zPositionSlide,SIGNAL(valueChanged(int)), this->ui->zPositionSpin, SLOT(setValue(int)));
 		}
 		// Disconnect all signals
 		else
@@ -295,6 +300,10 @@ namespace bmia {
 			disconnect(this->ui->horizontalSliderY1,		SIGNAL(valueChanged(int)),			this->ui->y1ROIPositionSpin, SLOT(setValue(int) )			);
 			disconnect(this->ui->horizontalSliderZ1,		SIGNAL(valueChanged(int)),			this->ui->z1ROIPositionSpin, SLOT(setValue(int) )			);
 
+			disconnect(this->ui->xPositionSlide,SIGNAL(valueChanged(int)), this->ui->xPositionSpin, SLOT(setValue(int)));
+			disconnect(this->ui->yPositionSlide,SIGNAL(valueChanged(int)), this->ui->yPositionSpin, SLOT(setValue(int)));
+			disconnect(this->ui->zPositionSlide,SIGNAL(valueChanged(int)), this->ui->zPositionSpin, SLOT(setValue(int)));
+
 		}
 	}
 
@@ -319,11 +328,11 @@ namespace bmia {
 
 	void Crop3DPlugin::dataSetAdded(data::DataSet * ds)
 	{
-		cout << "Crop3DPlugin dataSetAdded " << ds->getName().toStdString() << " " << ds->getName().toStdString() << endl;
+		//cout << "Crop3DPlugin dataSetAdded " << ds->getName().toStdString() << " " << ds->getName().toStdString() << endl;
 		
 		int isCropped(0);
 		ds->getAttributes()->getAttribute("isSubVolume",isCropped);
-		cout << "isCropped" << endl;
+	 
 
 		// Scalar volume
 		if (ds->getKind() == "scalar volume")
@@ -468,7 +477,7 @@ namespace bmia {
 		//cin.get();
 		int isCropped(0);
 		ds->getAttributes()->getAttribute("isSubVolume",isCropped);
-		//cout << "isCropped" << endl;
+	 
 		if(ds->getKind() == "scalar volume" && this->scalarVolumeDataSets.contains(ds))
 		{
 			this->connectControls(false);
@@ -605,13 +614,12 @@ namespace bmia {
 	void Crop3DPlugin::setRoiBoxVisible(bool v)
 	{
 		//this->roiBox->PlaceWidget(this->actor->GetBounds());
-		cout << "visibility:" << v << endl;
+	
 		 
 		// Take form the slice sliders 
 		this->boxRep->SetVisibility(v);
 		//this->fullCore()->canvas()->GetRenderer3D()->Render();
 		this->core()->render();  
-		// this->roiBox->SetHandleSize(0.02);
 		//this->roiBox->ProcessEventsOn();
 	}
 
@@ -716,7 +724,7 @@ namespace bmia {
 	void Crop3DPlugin::changeScalarVolume(int index)
 	{
 
-		cout << "changeScalarVolume index" << index << endl ; 
+		 
 		// Only do this is we're currently scowing a scalar volume
 		if (!(this->ui->scalarVolumeRadio->isChecked()))
 			return;
@@ -771,7 +779,7 @@ namespace bmia {
 		this->actor->UpdateInput();
 		this->core()->enableRendering();
 		this->core()->render();
-		cout << "changeScalarVolume end index" << index << endl ; 
+		 
 	}
 
 
@@ -913,7 +921,7 @@ namespace bmia {
 
 	void Crop3DPlugin::changeWeightVolume(int index)
 	{
-		cout << "changeWeightVolume  index" << index << endl ; 
+		 
 		// Do nothing if we're not using RGB coloring
 		if (!this->ui->dtiRadio->isChecked()) 
 			return;
@@ -987,8 +995,7 @@ namespace bmia {
 
 	void Crop3DPlugin::configureNewImage(data::DataSet * ds)
 	{
-		cout << "configureNewImage" << endl;
-		
+		 
 
 		// Check if the range of the image has changed
 		bool resetSlices = false;
@@ -1099,7 +1106,7 @@ namespace bmia {
 		//roi box
 		//this->boxRep->PlaceWidget(this->actor->GetBounds()); // if planes are not visible does not work
 		this->changeRoiBoundary(0);
-		cout << "configureNewImage end" << endl;
+		 
 	}
 
 
@@ -1653,7 +1660,7 @@ namespace bmia {
 
 	void Crop3DPlugin::cropData()
 	{ 
-		cout << "cropData" << endl;
+		 
 
 		if( (this->ui->horizontalSliderX0->value() >  this->ui->horizontalSliderX1->value()) ||
 			        (this->ui->horizontalSliderY0->value() >  this->ui->horizontalSliderY1->value()) || (this->ui->horizontalSliderZ0->value() >  this->ui->horizontalSliderZ1->value()))
@@ -1685,6 +1692,14 @@ namespace bmia {
 		 
 		//this->crop3DDataSet(weightDS);
 		this->crop3DDataSet(dataDS);
+
+		for(int axis = 0; axis < 3; ++axis)
+		{
+			// Add the seed point data set to the data manager
+			// The line below was at the initialization function, but that creates confision. If there is no volume crapped there also exists a crop seed plane which is same with original uncur plane.
+			 this->core()->data()->addDataSet(this->seedDataSets[axis]);
+
+		}
 		//vtkImageData * dtiImage = dtiDS->getVtkImageData();
 		//vtkImageData * weightImage = weightDS->getVtkImageData();
 		// check the combo box indexes, understand which one is shown cut it by crop3DDataSet
@@ -1693,9 +1708,7 @@ namespace bmia {
 
 	void Crop3DPlugin::crop3DDataSet(data::DataSet * ds)
 	{
-		qDebug() << "crop3DDataSet "<< ds->getKind() << ds->getName() << endl;
-		
-
+		// qDebug() << "crop3DDataSet "<< ds->getKind() << ds->getName() << endl;
 		vtkImageData * image ; 
 		// Scalar volume
 		if ((ds->getKind() == "scalar volume" ) || (ds->getKind() == "eigen") || (ds->getKind() == "DTI") )  
@@ -1713,129 +1726,46 @@ namespace bmia {
 			//this->core->out()->
 		}
 
-		int* inputDims = image->GetDimensions();
-		std::cout << "Dims input: " << " x: " << inputDims[0]
-		<< " y: " << inputDims[1]
-		<< " z: " << inputDims[2] << std::endl;
-		
-		double* inputOrig = image->GetOrigin();
-		std::cout << "Dims input origin: " << " x: " << inputOrig[0]
-		<< " y: " << inputOrig[1]
-		<< " z: " << inputOrig[2] << std::endl;
-		
-		int* inputExtent = image->GetExtent();
-		std::cout << "Extends input: " << " x0: " << inputExtent[0]
-		<< " x1: " << inputExtent[1]
-		<< " y0: " << inputExtent[2]
-		<<  " y1: "    << inputExtent[3]
-		<< " z0: " << inputExtent[4]
-		<< " z1: " << inputExtent[5]
-		<< std::endl;
-		
-		double* inputSpacing = image->GetSpacing();
-		std::cout << "Spacing input: " << " x: " << inputSpacing[0]
-		<< " y: " << inputSpacing[1]
-		<< " z: " << inputSpacing[2] << std::endl;
-
-		
-
-		int* inputExtentW = image->GetWholeExtent();
-		std::cout << "Whole Extends input: " << " x0: " << inputExtentW[0]
-		<< " x1: " << inputExtentW[1]
-		<< " y0: " << inputExtentW[2]
-		<<  " y1: "    << inputExtentW[3]
-		<< " z0: " << inputExtentW[4]
-		<< " z1: " << inputExtentW[5]
-		<< std::endl;
-
-		double* inputBoundsW = image->GetWholeBoundingBox();
-		std::cout << "Whole BBox input: " << " x0: " << inputBoundsW[0]
-		<< " x1: " << inputBoundsW[1]
-		<< " y0: " << inputBoundsW[2]
-		<<  " y1: "    << inputBoundsW[3]
-		<< " z0: " << inputBoundsW[4]
-		<< " z1: " << inputBoundsW[5]
-		<< std::endl;
-
-			double* roiBounds = this->boxRep->GetBounds() ;
-		std::cout << "boxwidgetrep roiBounds: " << " x0: " << roiBounds[0]
-		<< " x1: " << roiBounds[1]
-		<< " y0: " << roiBounds[2]
-		<<  " y1: "    << roiBounds[3]
-		<< " z0: " << roiBounds[4]
-		<< " z1: " << roiBounds[5]
-		<< std::endl;
 
 		vtkExtractVOI *extractVOI = vtkExtractVOI::New();
 		extractVOI->SetInputConnection(image->GetProducerPort());
 		int bnd[6];
 		this->get3DROIBoundaries(bnd);
-		extractVOI->SetVOI(bnd[0],bnd[1],bnd[2],bnd[3],bnd[4],bnd[5]);
- 
-		
+		extractVOI->SetVOI(bnd[0],bnd[1],bnd[2],bnd[3],bnd[4],bnd[5]);		
 		extractVOI->Update();
 		vtkImageData* extracted = extractVOI->GetOutput();
 		//extracted->SetOrigin(bnd[0]+inputDims[0]*inputSpacing[0]/2.0, bnd[2]+inputDims[1]*inputSpacing[1]/2.0,bnd[4]+inputDims[2]*inputSpacing[2]/2.0  );
 	   
-		extracted->Update();
-
-		int* extractedDims = extracted->GetDimensions();
-		std::cout << "Dims extracted: " << " x: " << extractedDims[0]
-		<< " y: " << extractedDims[1]
-		<< " z: " << extractedDims[2] << std::endl;
-
-		 
-
-		double* ExtrOrig = extracted->GetOrigin();
-			std::cout << "Origin extracted origin: " << " x: " << ExtrOrig[0]
-		<< " y: " << ExtrOrig[1]
-		<< " z: " << ExtrOrig[2] << std::endl;
-
-		int* extractedExtent = extracted->GetExtent();
-		std::cout << "Extends extracted: " << " x0: " << extractedExtent[0]
-		<< " x1: " << extractedExtent[1]
-		<< " y0: " << extractedExtent[2]
-		<<  " y1: "    << extractedExtent[3]
-		<< " z0: " << extractedExtent[4]
-		<< " z1: " << extractedExtent[5]
-		<< std::endl;
-		
-		double* extractedSpacing = extracted->GetSpacing();
-		std::cout << "Spacing extracted: " << " x: " << extractedSpacing[0]
-		<< " y: " << extractedSpacing[1]
-		<< " z: " << extractedSpacing[2] << std::endl;
-		//std::cout << "Number of points: " << extracted->GetNumberOfPoints() << std::endl;
-		//std::cout << "Number of cells: " << extracted->GetNumberOfCells() << std::endl;  
+		extracted->Update();	 
 		vtkObject *obj = vtkObject::SafeDownCast(extracted);
-		cout << "casted " << endl; 
 		QString croppedDataName= "Cropped-" + ds->getName();
 
 		if (obj)
 		{
-			cout << "obj ok " << endl; 
+			 
 			data::DataSet *croppedDS = new data::DataSet( croppedDataName, ds->getKind(),obj);
-			//this->dataSetAdded(croppedDS);
-			cout << "cropped ok " << endl; 
+			 
+			 
 			vtkObject * objMatrix;
 			if ((ds->getAttributes()->getAttribute("transformation matrix", objMatrix)))
 
 			{
-				objMatrix->Print(cout);
-				cout << "adding matrix " << endl; 
+				//objMatrix->Print(cout);
+				//cout << "adding matrix " << endl; 
 				croppedDS->getAttributes()->addAttribute("transformation matrix", objMatrix);
-				cout << "add to data set " << endl; 
+			 
 			}
 			int isCropped(1);
 			croppedDS->getAttributes()->addAttribute("isSubVolume", isCropped);
 
 				this->core()->data()->addDataSet(croppedDS); // to only this plugin or to all ?
-			//this->core()->data()->dataSetChanged(croppedDS); // usefull?
-			cout << "render " << endl; 
+			 
+			 
 			this->core()->render();  
 		}
 		else
 		{
-			cout << "casting problem \n";
+			qDebug() << "casting problem \n";
 		}
 
 	}

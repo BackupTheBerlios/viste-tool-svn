@@ -89,7 +89,7 @@ extern "C" {
 */
 /* #define HAVE_FDOPEN */
 
-
+#define HAVE_ZLIB 1 // added by viste-team
 #ifdef HAVE_ZLIB
 #if defined(ITKZLIB)
 #include "itk_zlib.h"
