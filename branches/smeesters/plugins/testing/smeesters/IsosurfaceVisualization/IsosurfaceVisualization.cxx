@@ -114,6 +114,7 @@ void IsosurfaceVisualization::init()
 
 	this->measuredLine = NULL;
 
+	
 }
 
 //------------[ Setup pointer interactor for clipping planes ]----------------\\
@@ -552,7 +553,8 @@ void IsosurfaceVisualization::updateRenderingModels()
         VTK_CREATE(vtkMarchingCubes, mcubes);
         mcubes->SetInputConnection(smoother->GetOutputPort());
         mcubes->SetNumberOfContours(1);
-        mcubes->SetComputeScalars(0);
+        mcubes->SetComputeScalars(1);
+		//mcubes->SetComputeNormals(1);
         mcubes->GenerateValues(1,current_modelInfo->minimumThreshold,current_modelInfo->maximumThreshold);
 
 		// marching cubes progress bar
@@ -567,15 +569,6 @@ void IsosurfaceVisualization::updateRenderingModels()
             connectivity->SetInputConnection(mcubes->GetOutputPort());
             connectivity->SetExtractionModeToLargestRegion();
         }
-
-        // depth sort for correct alpha display
-//        VTK_CREATE(vtkDepthSortPolyData, depthSort);
-//        depthSort->SetInputConnection(connectivity->GetOutputPort());
-//        depthSort->SetDirectionToBackToFront();
-//        depthSort->SetVector(1,1,1);
-//        depthSort->SetCamera(this->fullCore()->canvas()->GetRenderer3D()->GetActiveCamera());
-//        depthSort->SortScalarsOn();
-//        depthSort->Update();
 
         // decimate
         VTK_CREATE(vtkDecimatePro, deci);
@@ -609,13 +602,99 @@ void IsosurfaceVisualization::updateRenderingModels()
         clipper->ExtractInsideOn();
         current_modelInfo->extractPolyFunc = clipper;
 
-        // Create a mapper and actor
+		// curvature
+		vtkSmartPointer<vtkCurvatures> curvaturesFilter = 
+		vtkSmartPointer<vtkCurvatures>::New();
+		curvaturesFilter->SetInputConnection(clipper->GetOutputPort());
+		//curvaturesFilter->SetCurvatureTypeToMinimum();
+		//curvaturesFilter->SetCurvatureTypeToMaximum();
+		//curvaturesFilter->SetCurvatureTypeToGaussian();
+		curvaturesFilter->SetCurvatureTypeToMean();
+
+		// compute normals
+		//VTK_CREATE(vtkPolyDataNormals, surfaceNormals);
+		//surfaceNormals->SetInputConnection(curvaturesFilter->GetOutputPort());
+		//surfaceNormals->SetComputePointNormals(1);
+		//surfaceNormals->SetComputePointNormals(1);
+		
+		// create lookup table
+		double scalarRange[2];
+		curvaturesFilter->GetOutput()->GetScalarRange(scalarRange);
+
+		std::cout << "SCALAR RANGE: " << scalarRange[0] << " - " << scalarRange[1] << std::endl;
+
+		vtkLookupTable* convLUT = vtkLookupTable::New();
+		//convLUT->SetScaleToLinear();
+		//convLUT->SetValueRange(0,1);
+		//convLUT->SetNumberOfTableValues(128);
+		//convLUT->SetTableRange(0,128);
+		//convLUT->Build();
+
+		//for(int j = 0; j<128; j++)
+		//{
+		//	if(j < 64)
+		//	{
+		//		convLUT->SetTableValue(j,
+		//						   1.0,
+		//						   1.0,
+		//						   1.0,
+		//						   0.0);
+		//	}
+		//	else
+		//	{
+		//		convLUT->SetTableValue(j,
+		//						   1.0,
+		//						   0.0,
+		//						   1.0,
+		//						   1.0);
+		//	}
+
+		//	/*convLUT->SetTableValue(j,
+		//						   1.0,
+		//						   1.0,
+		//						   1.0,
+		//						   std::max(0.0,(j-64)/128.0));*/
+		//}
+
+		//convLUT->SetHueRange(0.0,0.6);		//Red to Blue
+		//convLUT->SetAlphaRange(1.0,1.0);
+		//convLUT->SetValueRange(1.0,1.0);
+		//convLUT->SetSaturationRange(1.0,1.0);
+		convLUT->SetNumberOfTableValues(100);
+		convLUT->SetRange(0,100);
+		convLUT->Build();
+
+		convLUT->Print(std::cout);
+		
+		for(int j = 0; j<100; j++)
+		{
+			double* bbb = convLUT->GetTableValue(j);
+
+			if( j > 0 && j < 80)
+				convLUT->SetTableValue(j,1.0,1.0,1.0,1.0);
+			else if(j >= 80 && j < 100)
+				convLUT->SetTableValue(j,1-(j-80)/20.0*0.25,1-(j-80)/20.0*0.25,1-(j-80)/20.0*0.25,1.0);
+			else
+				convLUT->SetTableValue(j,0.75,0.75,0.75,1.0);
+					
+			//std::cout << "j: " << j << " " << bbb[0] << " " << bbb[1] << " " << bbb[2] << " " << bbb[3] << std::endl;
+		}
+		convLUT->SetRampToSCurve();
+
+
+		// Create a mapper and actor
         VTK_CREATE(vtkPolyDataMapper,polyMapper);
-        polyMapper->SetInputConnection(clipper->GetOutputPort());
+		polyMapper->SetInputConnection(curvaturesFilter->GetOutputPort());
+		polyMapper->SetLookupTable(convLUT);
+		//polyMapper->SetScalarRange(0,1533);
+
+        // Create a mapper and actor
+        //VTK_CREATE(vtkPolyDataMapper,polyMapper);
+        //polyMapper->SetInputConnection(clipper->GetOutputPort());
 
         VTK_CREATE(vtkLODActor,actor);
         actor->SetMapper(polyMapper);
-        actor->GetProperty()->SetColor(current_modelInfo->color);
+        //actor->GetProperty()->SetColor(current_modelInfo->color);
         if(current_modelInfo->alpha < 1.0)
         {
             actor->GetProperty()->SetOpacity(current_modelInfo->alpha);
@@ -780,7 +859,6 @@ void IsosurfaceVisualization::setClippingPlanesPosition(double* pos)
         sliceActorNames[1] = "Y Plane";
         sliceActorNames[2] = "Z Plane";
 
-        double sliceActorRanges[3];
         for(int axis = 0; axis < 3; ++axis)
         {
             std::cout << "AXIS: " << axis << std::endl;

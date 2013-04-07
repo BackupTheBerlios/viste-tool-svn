@@ -25,6 +25,6 @@ if(PLUGINS_BUILD_ISOSURFACEVISUALIZATION)
 	QT4_WRAP_CPP(MOC_SRCS IsosurfaceVisualization.h)
 	ADD_LIBRARY(IsosurfaceVisualization SHARED ${SRCS} ${MOC_SRCS})
 
-	TARGET_LINK_LIBRARIES(IsosurfaceVisualization bmia_core bmia_plugin bmia_data)
+	TARGET_LINK_LIBRARIES(IsosurfaceVisualization bmia_core bmia_plugin bmia_data vtkHybrid)
 
 endif(PLUGINS_BUILD_ISOSURFACEVISUALIZATION)

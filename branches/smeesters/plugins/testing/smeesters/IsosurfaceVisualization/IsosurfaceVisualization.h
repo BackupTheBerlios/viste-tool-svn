@@ -73,6 +73,13 @@
 #include "vtkPointSetToLabelHierarchy.h"
 #include "vtkLabelPlacementMapper.h"
 
+// curvature
+#include <vtkCurvatures.h>
+#include <vtkColorSeries.h>
+#include <vtkThreshold.h>
+#include <algorithm>
+#include <vtkPolyDataNormals.h>
+
 class vtkInteractorStyleTrackballPositionPicker;
 
 namespace Ui

@@ -68,7 +68,7 @@ vtkMedicalCanvas::vtkMedicalCanvas()
     // set the background of the subcanvas
 	this->SubCanvas3D->GetRenderer()->SetBackground(0.0, 0.0, 0.0);
     this->SubCanvas3D->GetRenderer()->SetBackground2(0.25, 0.25, 0.25);
-    this->SubCanvas3D->GetRenderer()->GradientBackgroundOn();
+    //this->SubCanvas3D->GetRenderer()->GradientBackgroundOn();
 
     // add the subcanvas to the metacanvas and set
     // its viewport to the full metacanvas.
@@ -83,7 +83,7 @@ vtkMedicalCanvas::vtkMedicalCanvas()
 	is->Delete(); is = NULL;
 	this->SubCanvas2D[axis]->GetRenderer()->SetBackground(0.0, 0.0, 0.0);
 	this->SubCanvas2D[axis]->GetRenderer()->SetBackground2(0.2, 0.2, 0.2);
-	this->SubCanvas2D[axis]->GetRenderer()->GradientBackgroundOn();
+	//this->SubCanvas2D[axis]->GetRenderer()->GradientBackgroundOn();
 	this->AddSubCanvas(this->SubCanvas2D[axis]);
 	//this->SubCanvas2D[axis]->SetViewport(1.0/3.0*(float)axis+0.001, 0.0, 1.0/3.0*(float)(axis+1)-0.001, 0.3);
 	this->SubCanvas2D[axis]->SetViewport(0.0, 1.0/3.0*(float)axis, 0.2, 1.0/3.0*(float)(axis+1));
@@ -126,7 +126,7 @@ void vtkMedicalCanvas::setBackgroundColor(double r, double g, double b)
 	for (int axis = 0; axis < 3; axis++)
 	{
 		this->SubCanvas2D[axis]->GetRenderer()->SetBackground(r, g, b);
-		this->SubCanvas2D[axis]->GetRenderer()->GradientBackgroundOff();
+		//this->SubCanvas2D[axis]->GetRenderer()->GradientBackgroundOff();
 	}
 
 	this->GetRenderWindow()->Render();
@@ -145,7 +145,7 @@ void vtkMedicalCanvas::setGradientBackground(	double r1, double g1, double b1,
 	{
 		this->SubCanvas2D[axis]->GetRenderer()->SetBackground(r1, g1, b1);
 		this->SubCanvas2D[axis]->GetRenderer()->SetBackground2(r2, g2, b2);
-		this->SubCanvas2D[axis]->GetRenderer()->GradientBackgroundOn();
+		//this->SubCanvas2D[axis]->GetRenderer()->GradientBackgroundOn();
 	}
 
 	this->GetRenderWindow()->Render();
