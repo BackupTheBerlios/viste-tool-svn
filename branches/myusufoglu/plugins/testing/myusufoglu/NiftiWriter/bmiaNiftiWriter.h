@@ -168,7 +168,9 @@ class bmiaNiftiWriter
 		void writeScalarVolume(int component = 0);
 			void writeScalarVolume( vtkImageData *image, QString saveFileName, vtkObject * attObject);
 		void writeScalarVolume(int component, vtkImageData *image, QString saveFileName, vtkObject * attObject);
+			/** Create an image containing second-order DTI tensors. */
 
+		void writeDTIVolume(vtkImageData *image, QString saveFileName);
 
 	protected:
 
@@ -188,9 +190,7 @@ class bmiaNiftiWriter
 		bool determineDataType();
 
 		
-		/** Create an image containing second-order DTI tensors. */
-
-		void writeDTIVolume();
+	
 
 		/** Create an image containing, per voxel, the radius for each of the
 			spherical directions. These spherical directions, which are read

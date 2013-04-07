@@ -522,32 +522,214 @@ void bmiaNiftiWriter::writeScalarVolume(vtkImageData *image, QString saveFileNam
 }
 
 
-//----------------------------[ parseDTIVolume ]---------------------------\\
+//----------------------------[ writeDTIVolume ]---------------------------\\
 
-void bmiaNiftiWriter::writeDTIVolume()
+void bmiaNiftiWriter::writeDTIVolume(vtkImageData *image, QString saveFileName)
 {
 	 //dim[5]= 6 
 	 //there must be 6 extentions
+	cout << "writeDTIVolume" << endl;
 	nifti_image * m_NiftiImage = new nifti_image;
 			m_NiftiImage = nifti_simple_init_nim();
 
- strcpy( m_NiftiImage->intent_name ,   "MIND");
-  m_NiftiImage->num_ext=7; // or 6
 
-  nifti1_extension *extentions = new nifti1_extension[m_NiftiImage->num_ext];
-  m_NiftiImage->ext_list[0].esize=16;
-   m_NiftiImage->ext_list[0].ecode=18;
-   strcpy(m_NiftiImage->ext_list[0].edata,"DTENSOR");
 
-    m_NiftiImage->ext_list[1].esize=16;
-   m_NiftiImage->ext_list[1].ecode=24;
-   int edata[2] = { 1,1};
-   m_NiftiImage->ext_list[1].edata = (char *) edata; // control
 
-    m_NiftiImage->ext_list[1].esize=16;
-   m_NiftiImage->ext_list[1].ecode=24;
-  //edata
-   m_NiftiImage->ext_list[1].edata =(char *) edata; // control
+	image->Print(cout);
+	cout << "writeDTIVolume 1.2" << endl;
+			double dataTypeSize = 1.0;
+			int dim[3];
+			int wholeExtent[6];
+			double spacing[3];
+			double origin[3];
+			image->Update();
+			int numComponents = image->GetNumberOfScalarComponents();
+			int imageDataType = image->GetScalarType();
+
+			image->GetOrigin(origin);
+			image->GetSpacing(spacing);
+			image->GetDimensions(dim);
+			image->GetWholeExtent(wholeExtent);
+			 
+cout << "writeDTIVolume 1.3" << endl;
+
+  m_NiftiImage->byteorder		= nifti_short_order();
+			m_NiftiImage->ndim = 5;
+			m_NiftiImage->dim[0] = 5;
+			m_NiftiImage->dim[1] = wholeExtent[1] + 1;
+			m_NiftiImage->dim[2] = wholeExtent[3] + 1;
+			m_NiftiImage->dim[3] = wholeExtent[5] + 1;
+			m_NiftiImage->dim[4] = 1;
+			m_NiftiImage->dim[5] = 6; // 6 *2 ???
+			m_NiftiImage->dim[6] = 1;
+			m_NiftiImage->dim[7] = 1;
+			m_NiftiImage->nx =  m_NiftiImage->dim[1];
+			m_NiftiImage->ny =  m_NiftiImage->dim[2];
+			m_NiftiImage->nz =  m_NiftiImage->dim[3];
+			m_NiftiImage->nt =  m_NiftiImage->dim[4];
+			m_NiftiImage->nu =  m_NiftiImage->dim[5];
+			m_NiftiImage->nv =  m_NiftiImage->dim[6];
+			m_NiftiImage->nw =  m_NiftiImage->dim[7];
+
+			m_NiftiImage->pixdim[0] = 0.0 ;
+			m_NiftiImage->pixdim[1] = spacing[0];
+			m_NiftiImage->pixdim[2] = spacing[1];
+			m_NiftiImage->pixdim[3] = spacing[2];
+			m_NiftiImage->pixdim[4] = 1;
+			m_NiftiImage->pixdim[5] = 1;
+			m_NiftiImage->pixdim[6] = 1;
+			m_NiftiImage->pixdim[7] = 1;
+			m_NiftiImage->dx = m_NiftiImage->pixdim[1];
+			m_NiftiImage->dy = m_NiftiImage->pixdim[2];
+			m_NiftiImage->dz = m_NiftiImage->pixdim[3];
+			m_NiftiImage->dt = m_NiftiImage->pixdim[4];
+			m_NiftiImage->du = m_NiftiImage->pixdim[5];
+			m_NiftiImage->dv = m_NiftiImage->pixdim[6];
+			m_NiftiImage->dw = m_NiftiImage->pixdim[7];
+cout << "writeDTIVolume 1.4" << endl;
+			int numberOfVoxels = m_NiftiImage->nx;
+
+			if(m_NiftiImage->ny>0){
+				numberOfVoxels*=m_NiftiImage->ny;
+			}
+			if(m_NiftiImage->nz>0){
+				numberOfVoxels*=m_NiftiImage->nz;
+			}
+			if(m_NiftiImage->nt>0){
+				numberOfVoxels*=m_NiftiImage->nt;
+			}
+			if(m_NiftiImage->nu>0){
+				numberOfVoxels*=m_NiftiImage->nu;
+			}
+			 
+
+			m_NiftiImage->nvox = numberOfVoxels;
+
+			if(numComponents==6 ){
+				cout << "writeDTIVolume 1.3 coponenets:" << numComponents<< " voxels: " <<  numberOfVoxels << "imagedatatype"<<  imageDataType << endl;
+				switch(imageDataType)
+				{
+				case VTK_BIT://DT_BINARY:
+					m_NiftiImage->datatype = DT_BINARY;
+					m_NiftiImage->nbyper = 0;
+					dataTypeSize = 0.125;
+					break;
+				case VTK_UNSIGNED_CHAR://DT_UNSIGNED_CHAR:
+					m_NiftiImage->datatype = DT_UNSIGNED_CHAR;
+					m_NiftiImage->nbyper = 1;
+					dataTypeSize = m_NiftiImage->nbyper;
+					break;
+				case VTK_SIGNED_CHAR://DT_INT8:
+					m_NiftiImage->datatype = DT_INT8;
+					m_NiftiImage->nbyper = 1;
+					dataTypeSize = m_NiftiImage->nbyper;
+					break;
+				case VTK_SHORT://DT_SIGNED_SHORT:
+					m_NiftiImage->datatype = DT_SIGNED_SHORT;
+					m_NiftiImage->nbyper = 2;
+					dataTypeSize = m_NiftiImage->nbyper;
+					break;
+				case VTK_UNSIGNED_SHORT://DT_UINT16:
+					m_NiftiImage->datatype = DT_UINT16;
+					m_NiftiImage->nbyper = 2;
+					dataTypeSize = m_NiftiImage->nbyper;
+					break;
+				case VTK_INT://DT_SIGNED_INT:
+					m_NiftiImage->datatype = DT_SIGNED_INT;
+					m_NiftiImage->nbyper = 4;
+					dataTypeSize = m_NiftiImage->nbyper;
+					break;
+				case VTK_UNSIGNED_INT://DT_UINT32:
+					m_NiftiImage->datatype = DT_UINT32;
+					m_NiftiImage->nbyper = 4;
+					dataTypeSize = m_NiftiImage->nbyper;
+					break;
+				case VTK_FLOAT://DT_FLOAT:
+					m_NiftiImage->datatype = DT_FLOAT;
+					m_NiftiImage->nbyper = 4;
+					dataTypeSize = m_NiftiImage->nbyper;
+					break;
+				case VTK_DOUBLE://DT_DOUBLE:
+					m_NiftiImage->datatype = DT_DOUBLE;
+					m_NiftiImage->nbyper = 8;
+					dataTypeSize = m_NiftiImage->nbyper;
+					break;
+				case VTK_LONG://DT_INT64:
+					m_NiftiImage->datatype = DT_INT64;
+					m_NiftiImage->nbyper = 8;
+					dataTypeSize = m_NiftiImage->nbyper;
+					break;
+				case VTK_UNSIGNED_LONG://DT_UINT64:
+					m_NiftiImage->datatype = DT_UINT64;
+					m_NiftiImage->nbyper = 8;
+					dataTypeSize = m_NiftiImage->nbyper;
+					break;
+				default:
+					cout << "cannot handle this type" << endl ;
+					break;
+				}
+			}
+			 
+			m_NiftiImage->nifti_type = NIFTI_FTYPE_NIFTI1_1;//??
+			cout << " writeDTIVolume1.7 "<< endl;
+			m_NiftiImage->fname = nifti_makehdrname( saveFileName.toStdString().c_str(), m_NiftiImage->nifti_type,false,0);
+			cout << " 1.71 "<< endl;
+			m_NiftiImage->iname = nifti_makeimgname(saveFileName.toStdString().c_str(), m_NiftiImage->nifti_type,false,0); // 0 is compressed
+		 
+
+			cout << " writeDTIVolume1.8 "<< endl;
+
+		 
+		 
+			// Using the "Vector" intent code
+	m_NiftiImage->intent_code = NIFTI_INTENT_VECTOR;
+	m_NiftiImage->intent_p1   = 0.0f;
+	m_NiftiImage->intent_p2   = 0.0f;
+	m_NiftiImage->intent_p3   = 0.0f;
+	// The kernel NIfTI image does not have a transformation matrix
+	m_NiftiImage->qform_code		= 0;
+	m_NiftiImage->quatern_b			= 0.0f;
+	m_NiftiImage->quatern_c			= 0.0f;
+	m_NiftiImage->quatern_d			= 0.0f;
+	m_NiftiImage->qoffset_x			= 0.0f;
+	m_NiftiImage->qoffset_y			= 0.0f;
+	m_NiftiImage->qoffset_z			= 0.0f;
+	m_NiftiImage->qfac				= 0.0f;
+
+	m_NiftiImage->sform_code = 0;
+	m_NiftiImage->sto_xyz.m[0][0] = m_NiftiImage->sto_xyz.m[1][1] = m_NiftiImage->sto_xyz.m[2][2] = m_NiftiImage->sto_xyz.m[3][3] = 1.0f;
+	m_NiftiImage->sto_xyz.m[0][1] = m_NiftiImage->sto_xyz.m[0][2] = m_NiftiImage->sto_xyz.m[0][3] = 0.0f;
+	m_NiftiImage->sto_xyz.m[1][0] = m_NiftiImage->sto_xyz.m[1][2] = m_NiftiImage->sto_xyz.m[1][3] = 0.0f;
+	m_NiftiImage->sto_xyz.m[2][0] = m_NiftiImage->sto_xyz.m[2][1] = m_NiftiImage->sto_xyz.m[2][3] = 0.0f;
+	m_NiftiImage->sto_xyz.m[3][0] = m_NiftiImage->sto_xyz.m[3][1] = m_NiftiImage->sto_xyz.m[3][2] = 0.0f;
+	// Set the intent name to "MiND"
+	char * intentName = (char*) "MiND";
+#ifdef _WIN32
+	strcpy_s(&(m_NiftiImage->intent_name[0]), 5, intentName);
+#else
+	strcpy(&(m_NiftiImage->intent_name[0]), intentName);
+#endif
+  // Initialize the extension list
+	m_NiftiImage->num_ext  = 0;
+	m_NiftiImage->ext_list = NULL;
+	cout << " writeDTIVolume 1.9 "<< endl;
+	// Add the main MiND extension
+	nifti_add_extension(m_NiftiImage, "DTENSOR", 8, NIFTI_ECODE_MIND_IDENT);
+     cout << " writeDTIVolume 2.0 "<< endl;
+	for(int i=1;  i<=3; i++)
+		for(int j=1;j<=3; j++)
+       if(j<=i) {
+		int index[2];
+		index[0]=i;
+		index[1]=j; 
+		cout << i << "," << j << endl;
+	   nifti_add_extension(m_NiftiImage, (char *) &(index[0]), 2 * sizeof(int), NIFTI_ECODE_DT_COMPONENT);	 
+	   }
+	   m_NiftiImage->data=(void *)(image->GetPointData()->GetArray(0)->GetVoidPointer(0) );//image->GetScalarPointer());
+		// Add the two angles to the NIfTI file as an extension
+		cout << " writeDTIVolume 2.1 "<< endl;
+			nifti_image_write( m_NiftiImage );
+     
 }
 
 

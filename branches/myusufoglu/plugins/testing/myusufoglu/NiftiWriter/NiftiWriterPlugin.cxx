@@ -93,6 +93,7 @@ namespace bmia {
 
 	void NiftiWriterPlugin::writeDataToFile(QString saveFileName,  data::DataSet *ds)
 	{
+		cout << "writeDataToFile"<< endl; 
 		// Create a new reader object and set the filename
 		bmiaNiftiWriter * writer = new bmiaNiftiWriter(this->core()->out());
 
@@ -107,13 +108,14 @@ namespace bmia {
 		QStringRef fileNameExtention(&saveFileName,saveFileName.lastIndexOf(QString(".")),4 );
 
 
-		cout << "saveFileName:" << saveFileName.toStdString() << endl;
+		cout << "saveFileName and kind" << saveFileName.toStdString() << " " << kind.toStdString() << endl;
 		// cout << fileNameExtention.toString().toStdString() << endl;
-		//cin.get();
+		cin.get();
 
-
+		 
 		vtkImageData * image   = ds->getVtkImageData();
-	 
+	   
+		if(!image) cout << "Not image"<< endl;
 		if( fileNameExtention.toString()==".nii" || fileNameExtention.toString()==".gz"  )
 			{
 				
@@ -130,9 +132,15 @@ namespace bmia {
 				//QString err =
 				writer->writeScalarVolume(image, saveFileName,attObject);
 			}
+
+		else if(image && ( kind.contains("DTI") || kind.contains("Eigen") ) )
+		{
+			writer->writeDTIVolume(image, saveFileName);
+		}
+
 		    else 
 		{
-			qDebug() << "The data can not be saved due to data type."<< endl;	
+			qDebug() << "The data can not be saved due to data type2."<< endl;	
 			return; 
 		}
 
