@@ -65,7 +65,7 @@
 #include <QDebug>
 
 #include <assert.h>
-
+#include <iostream>
 using namespace std;
 
 namespace bmia {
@@ -474,10 +474,10 @@ void Manager::writeDataToFile(QString filename, DataSet *ds)
 
     if (!writer)
 	{
-	out<<"No reader found that supports the requested file extension for file "<<filename<<endl;
+	out<<"No writer found that supports the requested file extension for file "<<filename<<endl;
 	return;
 	} // if
-    
+	 cout << "in manager" << ds->getKind().toStdString() << endl;
     writer->writeDataToFile(filename, ds); 
 }
 
