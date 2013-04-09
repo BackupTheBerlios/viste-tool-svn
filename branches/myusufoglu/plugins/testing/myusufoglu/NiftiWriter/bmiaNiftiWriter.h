@@ -170,8 +170,8 @@ class bmiaNiftiWriter
 		void writeScalarVolume(int component, vtkImageData *image, QString saveFileName, vtkObject * attObject);
 			/** Create an image containing second-order DTI tensors. */
 
-		void writeDTIVolume(vtkImageData *image, QString saveFileName);
-
+		void writeDTIVolume(vtkImageData *image, QString saveFileName, vtkObject * transform);
+		void writeDTIMindVolume(vtkImageData *image, QString saveFileName);
 	protected:
 
 		/** The NIfTI image object constructed when writing the ".nii" file. */

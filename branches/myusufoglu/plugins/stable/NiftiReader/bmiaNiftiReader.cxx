@@ -256,7 +256,7 @@ QString bmiaNiftiReader::readNIfTIFile(const char * filename, bool showProgress)
 	}
 
 	vtkObject * obj = NULL;
-	cout << "In read nifti file this->imageDataType:" << this->imageDataType << endl;
+	cout << "In read nifti file function this->imageDataType: (DTI or SH or Scalar:)" << this->imageDataType << endl;
 	// Switch based on the data type of the NIfTI file
 	switch(this->imageDataType)
 	{
@@ -730,7 +730,7 @@ vtkImageData * bmiaNiftiReader::parseDTIVolume()
 	// Create an output array for the six unique tensor elements
 	int arraySize = this->NiftiImage->dim[1] * this->NiftiImage->dim[2] * this->NiftiImage->dim[3];
 	double * outDoubleArray = new double[arraySize * 6];
-	cout << "data type" << this->NiftiImage->datatype << endl;
+	cout << "parseDTIVolume NiftiImage->datatype" << this->NiftiImage->datatype << endl;
 	// Copy the input array to the output array, using the specified index mapping
 	switch (this->NiftiImage->datatype)
 	{
@@ -1035,7 +1035,7 @@ vtkImageData * bmiaNiftiReader::createimageData(double * data, int numberOfCompo
 	// essentially be applied twice. A more elegant solution to this problem
 	// should be created in the future.
 
-	newVolume->SetSpacing(1.0, 1.0, 1.0);
+	newVolume->SetSpacing(1.0, 1.0, 1.0); // nifti spacing
 
 	newVolume->SetExtent(	0, this->NiftiImage->dim[1] - 1, 
 							0, this->NiftiImage->dim[2] - 1, 

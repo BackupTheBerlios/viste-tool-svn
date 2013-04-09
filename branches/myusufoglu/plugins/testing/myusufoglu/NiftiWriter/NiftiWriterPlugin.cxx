@@ -110,7 +110,7 @@ namespace bmia {
 
 		cout << "saveFileName and kind" << saveFileName.toStdString() << " " << kind.toStdString() << endl;
 		// cout << fileNameExtention.toString().toStdString() << endl;
-		cin.get();
+		//cin.get();
 
 		 
 		vtkImageData * image   = ds->getVtkImageData();
@@ -130,12 +130,17 @@ namespace bmia {
 
 				// Write the data to file 
 				//QString err =
+
 				writer->writeScalarVolume(image, saveFileName,attObject);
 			}
 
 		else if(image && ( kind.contains("DTI") || kind.contains("Eigen") ) )
 		{
-			writer->writeDTIVolume(image, saveFileName);
+			vtkObject * attObject = vtkObject::New();
+				cout << "Get attribute transf mat. "<< endl;
+				ds->getAttributes()->getAttribute("transformation matrix", attObject);
+
+			writer->writeDTIVolume(image, saveFileName, attObject);
 		}
 
 		    else 
