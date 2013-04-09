@@ -161,6 +161,18 @@ typedef struct
     double z;
 } vec3;
 
+typedef struct
+{
+    QList< QList< QList<double> > > data;
+    int anteriorPointIndex;
+} FiberData;
+
+typedef struct
+{
+    data::DataSet* ds;
+    QList<FiberData*> selectedLines;
+} SortedFibers;
+
 class IsosurfaceVisualization :  public plugin::AdvancedPlugin,
                     public plugin::Visualization,
                     public plugin::GUI,
@@ -269,6 +281,8 @@ protected slots:
 	void lineEditNamePointAChanged(QString value);
 	void lineEditNamePointBChanged(QString value);
 
+	void comboBoxFiberDataChanged();
+
 private:
 
     /** If plugin inherits from plugin::GUI */
@@ -284,9 +298,10 @@ private:
     QList<data::DataSet *> tf_datasets;
 
     /** Transfer functions for orthogonal planes */
-    //QList<vtkColorTransferFunction*> transferFunctions;
-    //QList<vtkPiecewiseFunction*> opacityFunctions;
     QList<vtkLookupTable*> lookUpTables;
+
+    /** Fiber information structs */
+    QList<SortedFibers*> sortedFibersList;
 
     /** The collection of all the actors that this plugin can render.
     		This is the object that will be returned by getVtkProp().  */
@@ -319,6 +334,8 @@ private:
 
     void setMeasuredPoint(int id);
     void calculateDistance();
+
+    int findInputDataSet(data::DataSet * ds);
 
     /** Connect GUI controls to their respective "SLOT" functions. */
     void connectAll();
@@ -367,6 +384,7 @@ private:
 
     QList<vtkActor*> pointer2DList;
 
+    void processFiberAnteriorSorting(int index);
 };
 
 }

@@ -114,7 +114,7 @@ void IsosurfaceVisualization::init()
 
 	this->measuredLine = NULL;
 
-	
+
 }
 
 //------------[ Setup pointer interactor for clipping planes ]----------------\\
@@ -184,6 +184,26 @@ void IsosurfaceVisualization::dataSetAdded(data::DataSet * d)
 
         // Create the lookup table from the transfer function
         createLookupTable(d);
+	}
+
+	// Add fibers
+	else if (kind == "fibers")
+	{
+	    // Check if fiber has polydata
+	    if (d->getVtkPolyData() == NULL)
+			return;
+
+        // Create new fiber struct
+        SortedFibers* sortedFibers = new SortedFibers;
+
+        // Initialize struct
+        sortedFibers->ds = d;
+
+        // Add the new data set to the list of currently available fiber sets
+        this->sortedFibersList.append(sortedFibers);
+
+        // Add to UI combobox for distance measurements to fibers
+        this->form->comboBoxFiberData->addItem(d->getName());
 	}
 }
 
@@ -262,9 +282,39 @@ void IsosurfaceVisualization::dataSetRemoved(data::DataSet * d)
 	{
 
 	}
+
+	// Fibers
+	else if (kind == "fibers")
+	{
+	    // Check if the data set exists
+		int dsIndex = this->findInputDataSet(d);
+
+        // Does not exist, return
+		if (dsIndex == -1)
+			return;
+
+        // Remove from UI combobox for selection of overlay
+        this->form->comboBoxFiberData->removeItem(dsIndex);
+
+        // Remove from collection
+        this->sortedFibersList.removeAt(dsIndex);
+	}
 }
 
+int IsosurfaceVisualization::findInputDataSet(data::DataSet * ds)
+{
+	int index = 0;
 
+	// Loop through all input fiber data sets
+	for (QList<SortedFibers*>::iterator i = this->sortedFibersList.begin(); i != this->sortedFibersList.end(); ++i, ++index)
+	{
+		// Return the index if we've found the target data set
+		if ((*i)->ds == ds)
+			return index;
+	}
+
+	return -1;
+}
 
 ///
 ///      PROCESSING
@@ -603,7 +653,7 @@ void IsosurfaceVisualization::updateRenderingModels()
         current_modelInfo->extractPolyFunc = clipper;
 
 		// curvature
-		vtkSmartPointer<vtkCurvatures> curvaturesFilter = 
+		vtkSmartPointer<vtkCurvatures> curvaturesFilter =
 		vtkSmartPointer<vtkCurvatures>::New();
 		curvaturesFilter->SetInputConnection(clipper->GetOutputPort());
 		//curvaturesFilter->SetCurvatureTypeToMinimum();
@@ -616,7 +666,7 @@ void IsosurfaceVisualization::updateRenderingModels()
 		//surfaceNormals->SetInputConnection(curvaturesFilter->GetOutputPort());
 		//surfaceNormals->SetComputePointNormals(1);
 		//surfaceNormals->SetComputePointNormals(1);
-		
+
 		// create lookup table
 		double scalarRange[2];
 		curvaturesFilter->GetOutput()->GetScalarRange(scalarRange);
@@ -665,7 +715,7 @@ void IsosurfaceVisualization::updateRenderingModels()
 		convLUT->Build();
 
 		convLUT->Print(std::cout);
-		
+
 		for(int j = 0; j<100; j++)
 		{
 			double* bbb = convLUT->GetTableValue(j);
@@ -676,7 +726,7 @@ void IsosurfaceVisualization::updateRenderingModels()
 				convLUT->SetTableValue(j,1-(j-80)/20.0*0.25,1-(j-80)/20.0*0.25,1-(j-80)/20.0*0.25,1.0);
 			else
 				convLUT->SetTableValue(j,0.75,0.75,0.75,1.0);
-					
+
 			//std::cout << "j: " << j << " " << bbb[0] << " " << bbb[1] << " " << bbb[2] << " " << bbb[3] << std::endl;
 		}
 		convLUT->SetRampToSCurve();
@@ -1119,6 +1169,8 @@ void IsosurfaceVisualization::connectAll()
 
 	connect(this->form->lineEditNamePointA,SIGNAL(textChanged(QString)),this,SLOT(lineEditNamePointAChanged(QString)));
 	connect(this->form->lineEditNamePointB,SIGNAL(textChanged(QString)),this,SLOT(lineEditNamePointBChanged(QString)));
+
+	connect(this->form->comboBoxFiberData,SIGNAL(currentIndexChanged(int)),this,SLOT(comboBoxFiberDataChanged()));
 }
 
 //------------------------[ Disconnect Qt elements ]-----------------------\\
@@ -1794,6 +1846,162 @@ void IsosurfaceVisualization::lineEditNamePointBChanged(QString value)
 {
 	this->measuredLabelStrings->SetValue(1,value.toLocal8Bit().constData());
 	this->core()->render();
+}
+
+void IsosurfaceVisualization::comboBoxFiberDataChanged()
+{
+    // select model info matching the dataset
+    int index = this->form->comboBoxFiberData->currentIndex() - 1;
+
+    // "None" value
+    if(index < 0)
+    {
+        // disable gui
+        this->form->sliderFiberChoice->setEnabled(false);
+        this->form->spinFiberChoice->setEnabled(false);
+    }
+    else
+    {
+        // enable gui
+        this->form->sliderFiberChoice->setEnabled(true);
+        this->form->spinFiberChoice->setEnabled(true);
+
+        processFiberAnteriorSorting(index);
+    }
+}
+
+void IsosurfaceVisualization::processFiberAnteriorSorting(int index)
+{
+    // Get data struct
+    SortedFibers* sortedFibers = this->sortedFibersList.at(index);
+
+    // Look if dataset is already processed ...
+    if(sortedFibers->selectedLines.length() != 0)
+        return;
+
+    // Get the polydata from the data set
+    vtkPolyData * polydata = sortedFibers->ds->getVtkPolyData();
+
+    // Get fiber tracts
+    vtkCellArray * fibers = polydata->GetLines();
+    vtkIdType numberOfFibers = fibers->GetNumberOfCells();
+
+    // Map used to store fiber indices (value) and their anterior point (key)
+	QMap<double, vtkIdType> fiberMap;
+
+    vtkIdType numberOfPoints;
+	vtkIdType * pointList;
+	double currentPoint[3];
+    fibers->InitTraversal();
+
+    // Loop through all fibers
+	for (vtkIdType fiberId = 0; fiberId < numberOfFibers; ++fiberId)
+	{
+		// Get the number of points and the list of point IDs of the current fiber
+		fibers->GetNextCell(numberOfPoints, pointList);
+
+		// Do nothing if the fiber is empty
+		if (numberOfPoints == 0)
+			continue;
+
+        double mostAnteriorPoint = -1e32; // low value
+
+        // Create fiber data struct
+        FiberData* fiberData = new FiberData;
+
+		// Loop through all points of the current fiber
+		for (vtkIdType pointId = 0; pointId < numberOfPoints; ++pointId)
+		{
+            // Get the coordinates of the current point
+            polydata->GetPoint(pointList[pointId], currentPoint);
+
+			/*std::cout << "pointId: " << pointId
+			<< "   " << currentPoint[0]
+			<< "   " << currentPoint[1]
+			<< "   " << currentPoint[2] << std::endl;*/
+
+            if(currentPoint[1] > mostAnteriorPoint)
+                mostAnteriorPoint = currentPoint[1];
+
+            QList<double> point;
+            point[0] = currentPoint[0];
+            point[1] = currentPoint[1];
+            point[2] = currentPoint[2];
+
+            fiberData->data.append(point);
+		}
+
+        // Set anterior point index in struct
+        fiberData->anteriorPointIndex = fiberId;
+
+        // Add fiber data in QMap for sorting
+		fiberMap.insert(mostAnteriorPoint, fiberData);
+	}
+
+    // Select most anterior fibers
+    int rFiberIndex = 0;
+    int numberOfOutputFibers = 100;
+    QMap<double, vtkIdType>::iterator rIter = fiberMap.end();
+    while (rIter != fiberMap.begin())
+	{
+		// Decrement the iterator
+		rIter--;
+
+        // Add the fiber data struct to the sorted fibers list
+        sortedFibers->selectedLines.append(rIter.value());
+
+		/*// Get the ID of the current fiber
+		vtkIdType currentFiberId = rIter.value();
+
+		// Get the cell representing the fiber
+		vtkCell * currentCell = fibers->GetCell(currentFiberId);
+        int numberOfFiberPoints = currentCell->GetNumberOfPoints();
+
+
+        // Create an ID list for the output fiber
+		vtkIdList * newFiberList = vtkIdList::New();
+
+		// Current point coordinates
+		double p[3];
+
+		// Loop through all points in the fiber
+		for (int pointId = 0; pointId < numberOfFiberPoints; ++pointId)
+		{
+			// Get the point ID of the current fiber point
+			vtkIdType currentPointId = currentCell->GetPointId(pointId);
+
+			// Copy the point coordinates to the output
+			inputPoints->GetPoint(currentPointId, p);
+			vtkIdType newPointId = outputPoints->InsertNextPoint(p);
+			newFiberList->InsertNextId(newPointId);
+		}
+
+
+
+        // Insert fiber into new set
+        outputLines->InsertNextCell(newFiberList);
+        newFiberList->Delete();
+		//outputLines->InsertNextCell(currentCell);*/
+
+		// Break if we've reached the desired number of fibers
+		if (++rFiberIndex == numberOfOutputFibers)
+			break;
+	}
+
+    // test
+    /*vtkPolyData * newPoly = vtkPolyData::New();
+    newPoly->SetLines(outputLines);
+
+    data::DataSet * outDS = new data::DataSet("TEST FIBERS", "fibers", newPoly);
+
+    // Fibers should be visible, and the visualization pipeline should be updated
+    outDS->getAttributes()->addAttribute("isVisible", 1.0);
+    outDS->getAttributes()->addAttribute("updatePipeline", 1.0);
+
+    // Copy the transformation matrix to the output
+    outDS->getAttributes()->copyTransformationMatrix(sortedFibers->ds);
+
+    this->core()->data()->addDataSet(outDS);*/
 }
 
 ///
