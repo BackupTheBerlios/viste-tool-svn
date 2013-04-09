@@ -545,14 +545,14 @@ void bmiaNiftiWriter::writeDTIVolume(vtkImageData *image, QString saveFileName)
 			image->Update();
 			int numComponents = image->GetNumberOfScalarComponents();
 			int imageDataType = image->GetScalarType();
-
+			
 			image->GetOrigin(origin);
 			image->GetSpacing(spacing);
 			image->GetDimensions(dim);
 			image->GetWholeExtent(wholeExtent);
 			 
-cout << "writeDTIVolume 1.3" << endl;
-
+cout << "writeDTIVolume 1.3 image scalar datatype" <<  imageDataType << "pointdata type:" << image->GetPointData()->GetScalars()->GetDataType() << endl;
+cin.get();
   m_NiftiImage->byteorder		= nifti_short_order();
 			m_NiftiImage->ndim = 5;
 			m_NiftiImage->dim[0] = 5;
@@ -561,8 +561,8 @@ cout << "writeDTIVolume 1.3" << endl;
 			m_NiftiImage->dim[3] = wholeExtent[5] + 1;
 			m_NiftiImage->dim[4] = 1;
 			m_NiftiImage->dim[5] = 6; // 6 *2 ???
-			m_NiftiImage->dim[6] = 1;
-			m_NiftiImage->dim[7] = 1;
+			m_NiftiImage->dim[6] = 0;
+			m_NiftiImage->dim[7] = 0;
 			m_NiftiImage->nx =  m_NiftiImage->dim[1];
 			m_NiftiImage->ny =  m_NiftiImage->dim[2];
 			m_NiftiImage->nz =  m_NiftiImage->dim[3];
@@ -575,10 +575,10 @@ cout << "writeDTIVolume 1.3" << endl;
 			m_NiftiImage->pixdim[1] = spacing[0];
 			m_NiftiImage->pixdim[2] = spacing[1];
 			m_NiftiImage->pixdim[3] = spacing[2];
-			m_NiftiImage->pixdim[4] = 1;
-			m_NiftiImage->pixdim[5] = 1;
-			m_NiftiImage->pixdim[6] = 1;
-			m_NiftiImage->pixdim[7] = 1;
+			m_NiftiImage->pixdim[4] = 0;
+			m_NiftiImage->pixdim[5] = 0;
+			m_NiftiImage->pixdim[6] = 0;
+			m_NiftiImage->pixdim[7] = 0;
 			m_NiftiImage->dx = m_NiftiImage->pixdim[1];
 			m_NiftiImage->dy = m_NiftiImage->pixdim[2];
 			m_NiftiImage->dz = m_NiftiImage->pixdim[3];
@@ -650,8 +650,8 @@ cout << "writeDTIVolume 1.4" << endl;
 					dataTypeSize = m_NiftiImage->nbyper;
 					break;
 				case VTK_DOUBLE://DT_DOUBLE:
-					m_NiftiImage->datatype = DT_DOUBLE;
-					m_NiftiImage->nbyper = 8;
+					m_NiftiImage->datatype = DT_DOUBLE;  
+					m_NiftiImage->nbyper = 8; 
 					dataTypeSize = m_NiftiImage->nbyper;
 					break;
 				case VTK_LONG://DT_INT64:
@@ -725,9 +725,25 @@ cout << "writeDTIVolume 1.4" << endl;
 		cout << i << "," << j << endl;
 	   nifti_add_extension(m_NiftiImage, (char *) &(index[0]), 2 * sizeof(int), NIFTI_ECODE_DT_COMPONENT);	 
 	   }
-	   m_NiftiImage->data=(void *)(image->GetPointData()->GetArray(0)->GetVoidPointer(0) );//image->GetScalarPointer());
+	  
+	   vtkDataArray * inTensors = image->GetPointData()->GetArray("Tensors");
+
+	if (!inTensors)
+	{
+		cout <<"Input data has no tensors!";
+		return;
+	}
+	m_NiftiImage->data= (double *) calloc(image->GetPointData()->GetArray("Tensors")->GetNumberOfTuples(), sizeof(double)*6);
+	m_NiftiImage->data = inTensors->GetVoidPointer(0);
+	/*for(int i=0; i< image->GetPointData()->GetArray("Tensors")->GetNumberOfTuples(); i++)
+	{
+		double tuple[6];
+		image->GetPointData()->GetArray("Tensors")->GetTuple(i,tuple);
+		for(int j=0;j<6;j++)
+		m_NiftiImage->(data[6*i+j])=(double)( tuple[j]);
+	}*/
 		// Add the two angles to the NIfTI file as an extension
-		cout << " writeDTIVolume 2.1 "<< endl;
+		cout << " writeDTIVolume 2.1 num extentions:"<< m_NiftiImage->num_ext <<  endl;
 			nifti_image_write( m_NiftiImage );
      
 }
@@ -759,7 +775,7 @@ void bmiaNiftiWriter::writeTriangles()
  
 
 
- 
+
 
 } // namespace bmia
 }
