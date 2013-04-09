@@ -985,8 +985,13 @@ cout << "writeDTIVolume 1.4" << endl;
 	m_NiftiImage->num_ext  = 0;
 	m_NiftiImage->ext_list = NULL;
 	 
+	if (!vtkAbstractArray::SafeDownCast(image->GetPointData()->GetArray("Tensors")))
+    {
+    cout << "ERROR: Age array missing or not converted to int" << endl;
+    }
+	cout << image->GetPointData()->GetArray("Tensors")->GetNumberOfTuples() << " " << image->GetPointData()->GetArray("Tensors")->GetNumberOfComponents() << endl;
 	//m_NiftiImage->data= (double *) calloc(image->GetPointData()->GetArray("Tensors")->GetNumberOfTuples(), sizeof(double)*6);
-	m_NiftiImage->data = image->GetScalarPointer();
+	//m_NiftiImage->data = (double *) vtkDoubleArray::SafeDownCast(image->GetPointData()->GetArray("Tensors"))->GetDa=
 		cout << " writeDTIVolume 2.1 num extentions:"<< m_NiftiImage->num_ext <<  endl;
 			nifti_image_write( m_NiftiImage );
      
