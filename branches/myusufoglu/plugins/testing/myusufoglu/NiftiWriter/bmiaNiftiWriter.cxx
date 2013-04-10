@@ -464,9 +464,10 @@ void bmiaNiftiWriter::writeScalarVolume(vtkImageData *image, QString saveFileNam
 
 			m_NiftiImage->fname = nifti_makehdrname( saveFileName.toStdString().c_str(), m_NiftiImage->nifti_type,false,0);
 			m_NiftiImage->iname = nifti_makeimgname(saveFileName.toStdString().c_str(), m_NiftiImage->nifti_type,false,0); // 0 is compressed
-			m_NiftiImage->qform_code = 1;
-
-			//Transformation and quaternion
+			// qform code
+			
+			
+			//Transformation and quaternion; quaternion has no scaling but viste uses spacing=1 and scaling parameter of the user transform of the actor is changed with spacing because of the transform.
 			if(transform)
 			{
 				cout << "transform"  << endl;
@@ -474,14 +475,23 @@ void bmiaNiftiWriter::writeScalarVolume(vtkImageData *image, QString saveFileNam
 					matrix = vtkMatrix4x4::SafeDownCast(transform);
 				if(matrix)
 				{
+               // sform matrix or qform quaternion, which one will be used. Both can also be used if bothcodes are > 0.
+				m_NiftiImage->qform_code = 0; // Decided to use only sform code. If this is set > 0 then qform quaternion or sform matrix is used.
+       			m_NiftiImage->sform_code = 2; // sform matrix is used only if sform_code > 0.
+
+
 				matrix->Print(cout);
 				cout << "transform 1.1"  << endl;
 				mat44 matrixf;
 				for(int i=0;i<4;i++)
 					for(int j=0;j<4;j++)
 					{
+						if(m_NiftiImage->qform_code > 0)
 						matrixf.m[i][j] = matrix->GetElement(i,j);
 						cout <<  matrixf.m[i][j] << endl;
+						// sform code
+		                if(m_NiftiImage->sform_code >0 )
+			            m_NiftiImage->sto_xyz.m[i][j]= matrix->GetElement(i,j);
 					}
 					
 					// convert transformation matrix to quaternion
@@ -494,7 +504,7 @@ void bmiaNiftiWriter::writeScalarVolume(vtkImageData *image, QString saveFileNam
 
 					// in case the matrix is not pure transform, quaternion can not include scaling part. Therefore if the matris is not a pure transform matrix use scaling factor in spacing?
 					float scaling[3];
-					if(matrix->Determinant() != 1)
+					if(matrix->Determinant() != 1 && (m_NiftiImage->qform_code > 0) )
 					{
                         // If determinant is not 1 find scaling
 						vtkTransform *transform = vtkTransform::New();
@@ -515,6 +525,9 @@ void bmiaNiftiWriter::writeScalarVolume(vtkImageData *image, QString saveFileNam
 			{
 				cout << "Invalid transformation object \n";
 			}
+
+			
+
 			nifti_set_iname_offset(m_NiftiImage);
 			// Write the image file
 			nifti_image_write( m_NiftiImage );
@@ -775,7 +788,7 @@ void bmiaNiftiWriter::writeDTIVolume(vtkImageData *image, QString saveFileName, 
 			
 			image->GetOrigin(origin);
 			image->GetSpacing(spacing);
-			image->GetDimensions(dim);
+			image->GetDimensions(dim);  
 			image->GetWholeExtent(wholeExtent);
 			 
 cout << "writeDTIVolume 1.3 image scalar datatype" <<  imageDataType << "pointdata type:" << image->GetPointData()->GetScalars()->GetDataType() << endl;
@@ -802,7 +815,7 @@ cout << "writeDTIVolume 1.3 image scalar datatype" <<  imageDataType << "pointda
 			//m_NiftiImage->cal_min
 
 			m_NiftiImage->pixdim[0] = 1 ;
-			m_NiftiImage->pixdim[1] = spacing[0];
+			m_NiftiImage->pixdim[1] = spacing[0]; 
 			m_NiftiImage->pixdim[2] = spacing[1];
 			m_NiftiImage->pixdim[3] = spacing[2];
 			m_NiftiImage->pixdim[4] = 1;
@@ -905,8 +918,7 @@ cout << "writeDTIVolume 1.4" << endl;
 			m_NiftiImage->fname = nifti_makehdrname( saveFileName.toStdString().c_str(), m_NiftiImage->nifti_type,false,0);
 			cout << " 1.71 "<< endl;
 			m_NiftiImage->iname = nifti_makeimgname(saveFileName.toStdString().c_str(), m_NiftiImage->nifti_type,false,0); // 0 is compressed
-		 	m_NiftiImage->qform_code = 2;
-			m_NiftiImage->sform_code = 2;
+		 	
 			cout << " writeDTIVolume1.8 "<< endl;
 
 		 
@@ -919,21 +931,30 @@ cout << "writeDTIVolume 1.4" << endl;
 
 
 
-	//Transformation and quaternion
-			if(transform)
+		if(transform)
 			{
 				cout << "transform"  << endl;
 				vtkMatrix4x4 *matrix =  vtkMatrix4x4::New();
 					matrix = vtkMatrix4x4::SafeDownCast(transform);
 				if(matrix)
 				{
+               // sform matrix or qform quaternion, which one will be used. Both can also be used if bothcodes are > 0.
+				m_NiftiImage->qform_code = 0; // Decided to use only sform code. If this is set > 0 then qform quaternion or sform matrix is used.
+       			m_NiftiImage->sform_code = 2; // sform matrix is used only if sform_code > 0.
+
+
 				matrix->Print(cout);
 				cout << "transform 1.1"  << endl;
 				mat44 matrixf;
 				for(int i=0;i<4;i++)
 					for(int j=0;j<4;j++)
 					{
+						if(m_NiftiImage->qform_code > 0)
 						matrixf.m[i][j] = matrix->GetElement(i,j);
+						cout <<  matrixf.m[i][j] << endl;
+						// sform code
+		                if(m_NiftiImage->sform_code >0 )
+			            m_NiftiImage->sto_xyz.m[i][j]= matrix->GetElement(i,j);
 					}
 					
 					// convert transformation matrix to quaternion
@@ -946,16 +967,16 @@ cout << "writeDTIVolume 1.4" << endl;
 
 					// in case the matrix is not pure transform, quaternion can not include scaling part. Therefore if the matris is not a pure transform matrix use scaling factor in spacing?
 					float scaling[3];
-					if(matrix->Determinant() != 1)
+					if(matrix->Determinant() != 1 && (m_NiftiImage->qform_code > 0) )
 					{
                         // If determinant is not 1 find scaling
 						vtkTransform *transform = vtkTransform::New();
 						transform->SetMatrix(matrix);
 						transform->Scale(scaling);
 
-						m_NiftiImage->pixdim[1] = 2; //spacing[0]*scaling[0]; cout  << "m_NiftiImage->pixdim[1]" << m_NiftiImage->pixdim[1] << endl;
-						m_NiftiImage->pixdim[2] = 2; //spacing[1]*scaling[1];
-						m_NiftiImage->pixdim[3] = 2; //spacing[2]*scaling[2];
+						m_NiftiImage->pixdim[1] = spacing[0]*scaling[0];
+						m_NiftiImage->pixdim[2] = spacing[1]*scaling[1];
+						m_NiftiImage->pixdim[3] = spacing[2]*scaling[2];
 						transform->Delete();
 					}
 				}
@@ -967,16 +988,6 @@ cout << "writeDTIVolume 1.4" << endl;
 			{
 				cout << "Invalid transformation object \n";
 			}
-
-
-
-
-
-
-
-
-
-
 	// Set the intent name to "MiND"
 	char * intentName = (char*) "DTI";
 #ifdef _WIN32
