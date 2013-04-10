@@ -780,7 +780,8 @@ void bmiaNiftiWriter::writeDTIVolume(vtkImageData *image, QString saveFileName, 
 			 
 cout << "writeDTIVolume 1.3 image scalar datatype" <<  imageDataType << "pointdata type:" << image->GetPointData()->GetScalars()->GetDataType() << endl;
 //cin.get();
-  m_NiftiImage->byteorder		= nifti_short_order();
+//m_NiftiImage->swapsize  = 16; 
+	//		= nifti_short_order();
 			m_NiftiImage->ndim = 5;
 			m_NiftiImage->dim[0] = 5;
 			m_NiftiImage->dim[1] = wholeExtent[1] + 1;
@@ -788,8 +789,8 @@ cout << "writeDTIVolume 1.3 image scalar datatype" <<  imageDataType << "pointda
 			m_NiftiImage->dim[3] = wholeExtent[5] + 1;
 			m_NiftiImage->dim[4] = 1;
 			m_NiftiImage->dim[5] = 6; // 6 *2 ???
-			m_NiftiImage->dim[6] = 0;
-			m_NiftiImage->dim[7] = 0;
+			m_NiftiImage->dim[6] = 1;
+			m_NiftiImage->dim[7] = 1;
 			m_NiftiImage->nx =  m_NiftiImage->dim[1];
 			m_NiftiImage->ny =  m_NiftiImage->dim[2];
 			m_NiftiImage->nz =  m_NiftiImage->dim[3];
@@ -797,15 +798,17 @@ cout << "writeDTIVolume 1.3 image scalar datatype" <<  imageDataType << "pointda
 			m_NiftiImage->nu =  m_NiftiImage->dim[5];
 			m_NiftiImage->nv =  m_NiftiImage->dim[6];
 			m_NiftiImage->nw =  m_NiftiImage->dim[7];
+			//m_NiftiImage->cal_max = 0.00747808;
+			//m_NiftiImage->cal_min
 
-			m_NiftiImage->pixdim[0] = 0.0 ;
+			m_NiftiImage->pixdim[0] = 1 ;
 			m_NiftiImage->pixdim[1] = spacing[0];
 			m_NiftiImage->pixdim[2] = spacing[1];
 			m_NiftiImage->pixdim[3] = spacing[2];
-			m_NiftiImage->pixdim[4] = 0;
-			m_NiftiImage->pixdim[5] = 0;
+			m_NiftiImage->pixdim[4] = 1;
+			m_NiftiImage->pixdim[5] = 1;
 			m_NiftiImage->pixdim[6] = 0;
-			m_NiftiImage->pixdim[7] = 0;
+			m_NiftiImage->pixdim[7] = 1;
 			m_NiftiImage->dx = m_NiftiImage->pixdim[1];
 			m_NiftiImage->dy = m_NiftiImage->pixdim[2];
 			m_NiftiImage->dz = m_NiftiImage->pixdim[3];
@@ -902,8 +905,8 @@ cout << "writeDTIVolume 1.4" << endl;
 			m_NiftiImage->fname = nifti_makehdrname( saveFileName.toStdString().c_str(), m_NiftiImage->nifti_type,false,0);
 			cout << " 1.71 "<< endl;
 			m_NiftiImage->iname = nifti_makeimgname(saveFileName.toStdString().c_str(), m_NiftiImage->nifti_type,false,0); // 0 is compressed
-		 
-
+		 	m_NiftiImage->qform_code = 2;
+			m_NiftiImage->sform_code = 2;
 			cout << " writeDTIVolume1.8 "<< endl;
 
 		 
@@ -950,9 +953,9 @@ cout << "writeDTIVolume 1.4" << endl;
 						transform->SetMatrix(matrix);
 						transform->Scale(scaling);
 
-						m_NiftiImage->pixdim[1] = spacing[0]*scaling[0];
-						m_NiftiImage->pixdim[2] = spacing[1]*scaling[1];
-						m_NiftiImage->pixdim[3] = spacing[2]*scaling[2];
+						m_NiftiImage->pixdim[1] = 2; //spacing[0]*scaling[0]; cout  << "m_NiftiImage->pixdim[1]" << m_NiftiImage->pixdim[1] << endl;
+						m_NiftiImage->pixdim[2] = 2; //spacing[1]*scaling[1];
+						m_NiftiImage->pixdim[3] = 2; //spacing[2]*scaling[2];
 						transform->Delete();
 					}
 				}
@@ -993,6 +996,8 @@ cout << "writeDTIVolume 1.4" << endl;
 	//m_NiftiImage->data= (double *) calloc(image->GetPointData()->GetArray("Tensors")->GetNumberOfTuples(), sizeof(double)*6);
 	//m_NiftiImage->data = (double *) vtkDoubleArray::SafeDownCast(image->GetPointData()->GetArray("Tensors"))->GetDa=
 		cout << " writeDTIVolume 2.1 num extentions:"<< m_NiftiImage->num_ext <<  endl;
+		//int num=image->GetPointData()->GetArray("Tensors")->GetNumberOfTuples();
+		m_NiftiImage->data = static_cast<double*>(image->GetPointData()->GetArray("Tensors")->GetVoidPointer(0)); 
 			nifti_image_write( m_NiftiImage );
      
 }
