@@ -802,8 +802,8 @@ cout << "writeDTIVolume 1.3 image scalar datatype" <<  imageDataType << "pointda
 			m_NiftiImage->dim[3] = wholeExtent[5] + 1;
 			m_NiftiImage->dim[4] = 1;
 			m_NiftiImage->dim[5] = 6; // 6 *2 ???
-			m_NiftiImage->dim[6] = 1;
-			m_NiftiImage->dim[7] = 1;
+			m_NiftiImage->dim[6] = 0;
+			m_NiftiImage->dim[7] = 0;
 			m_NiftiImage->nx =  m_NiftiImage->dim[1];
 			m_NiftiImage->ny =  m_NiftiImage->dim[2];
 			m_NiftiImage->nz =  m_NiftiImage->dim[3];
@@ -814,14 +814,14 @@ cout << "writeDTIVolume 1.3 image scalar datatype" <<  imageDataType << "pointda
 			//m_NiftiImage->cal_max = 0.00747808;
 			//m_NiftiImage->cal_min
 
-			m_NiftiImage->pixdim[0] = 1 ;
-			m_NiftiImage->pixdim[1] = spacing[0]; 
-			m_NiftiImage->pixdim[2] = spacing[1];
-			m_NiftiImage->pixdim[3] = spacing[2];
-			m_NiftiImage->pixdim[4] = 1;
-			m_NiftiImage->pixdim[5] = 1;
+			m_NiftiImage->pixdim[0] = -1 ;
+			m_NiftiImage->pixdim[1] = spacing[0]; cout << "spacing[0] " << spacing[0] << endl;
+			m_NiftiImage->pixdim[2] = spacing[1]; cout << "spacing[1] " << spacing[1] << endl;
+			m_NiftiImage->pixdim[3] = spacing[2];cout << "spacing[2] " << spacing[2] << endl;
+			m_NiftiImage->pixdim[4] = 0;
+			m_NiftiImage->pixdim[5] = 0;
 			m_NiftiImage->pixdim[6] = 0;
-			m_NiftiImage->pixdim[7] = 1;
+			m_NiftiImage->pixdim[7] = 0;
 			m_NiftiImage->dx = m_NiftiImage->pixdim[1];
 			m_NiftiImage->dy = m_NiftiImage->pixdim[2];
 			m_NiftiImage->dz = m_NiftiImage->pixdim[3];
@@ -928,8 +928,8 @@ cout << "writeDTIVolume 1.4" << endl;
 	m_NiftiImage->intent_p1   = 0.0f;
 	m_NiftiImage->intent_p2   = 0.0f;
 	m_NiftiImage->intent_p3   = 0.0f;
-
-
+	m_NiftiImage->scl_slope = 1;
+	m_NiftiImage->scl_inter = 0;
 
 		if(transform)
 			{
@@ -950,14 +950,17 @@ cout << "writeDTIVolume 1.4" << endl;
 					for(int j=0;j<4;j++)
 					{
 						if(m_NiftiImage->qform_code > 0)
+						{
 						matrixf.m[i][j] = matrix->GetElement(i,j);
 						cout <<  matrixf.m[i][j] << endl;
+						}
 						// sform code
 		                if(m_NiftiImage->sform_code >0 )
 			            m_NiftiImage->sto_xyz.m[i][j]= matrix->GetElement(i,j);
 					}
 					
 					// convert transformation matrix to quaternion
+					if(m_NiftiImage->qform_code > 0)
 					nifti_mat44_to_quatern(matrixf, &( m_NiftiImage->quatern_b), &( m_NiftiImage->quatern_c), &( m_NiftiImage->quatern_d), 
 						&( m_NiftiImage->qoffset_x), &(m_NiftiImage->qoffset_y), &(m_NiftiImage->qoffset_z), &(m_NiftiImage->dx) , &(m_NiftiImage->dy) ,&(m_NiftiImage->dz) , &(m_NiftiImage->qfac));
 
@@ -996,8 +999,8 @@ cout << "writeDTIVolume 1.4" << endl;
 	strcpy(&(m_NiftiImage->intent_name[0]), intentName);
 #endif
   // Initialize the extension list
-	m_NiftiImage->num_ext  = 0;
-	m_NiftiImage->ext_list = NULL;
+//	m_NiftiImage->num_ext  = 0;
+//	m_NiftiImage->ext_list = NULL;
 	 
 	if (!vtkAbstractArray::SafeDownCast(image->GetPointData()->GetArray("Tensors")))
     {
