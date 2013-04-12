@@ -43,6 +43,8 @@ include(${VTK_USE_FILE})
 find_package(Qt4 REQUIRED)
 include(${QT_USE_FILE})
 
+find_package(OpenGL)
+
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${BMIA_LIBS_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/GPUGlyphs)
@@ -63,6 +65,6 @@ set_source_files_properties(GpuGlyphsPlugin.cxx PROPERTIES OBJECT_DEPENDS "${UiH
 link_directories(${BMIA_LIBS_BINARY_DIR})
 
 add_library( GpuGlyphsPlugin SHARED ${SRCS} ${MOC_SRCS} )
-target_link_libraries( GpuGlyphsPlugin bmia_plugin bmia_data vtkGPUGlyphs vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering vtkHWShading )
+target_link_libraries( GpuGlyphsPlugin bmia_plugin bmia_data vtkGPUGlyphs vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering vtkHWShading  ${OPENGL_LIBRARIES})
 
 endif(PLUGINS_BUILD_GPUGLYPHS)

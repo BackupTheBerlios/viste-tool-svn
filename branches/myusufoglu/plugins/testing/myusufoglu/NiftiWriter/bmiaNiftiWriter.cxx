@@ -1012,9 +1012,11 @@ cin.get();
 	int comp = image->GetPointData()->GetArray("Tensors")->GetNumberOfComponents();
 	cout << arraySize << " " << comp << endl;
 	 	double *outDoubleArray = static_cast<double*>(image->GetPointData()->GetArray("Tensors")->GetVoidPointer(0));
+		
+		image->GetPointData()->GetArray("Tensors")->Print(cout);
 		cout << "size of outDoubleArray:" << sizeof(outDoubleArray) << endl; 
 		cout << "transform 1.91"  << endl;
-		double * niftiImageData =  new double[arraySize*comp+arraySize];
+		double * niftiImageData =  new double[arraySize*comp];
 		//this->NiftiImage->data = (void *) new double[arraySize*comp+arraySize];
 		cout << "transform 1.92"  << endl;
 		for (int i = 0; i < arraySize; ++i) 
@@ -1024,7 +1026,7 @@ cin.get();
 			niftiImageData[i + indexMap[j] * arraySize]  = (double) outDoubleArray[j + comp * i];	
 			}
 			cout << "transform 1.93"  << endl;
-	       this->NiftiImage->data =  (void *) niftiImageData;
+	       m_NiftiImage->data =  (void *) niftiImageData;
 	//m_NiftiImage->data= (double *) calloc(image->GetPointData()->GetArray("Tensors")->GetNumberOfTuples(), sizeof(double)*6);
 	//m_NiftiImage->data = (double *) vtkDoubleArray::SafeDownCast(image->GetPointData()->GetArray("Tensors"))->GetDa=
 //C_TYPE * inArrayCasted = (C_TYPE *) this->NiftiImage->data;				 
