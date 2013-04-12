@@ -140,7 +140,8 @@ namespace bmia {
 				cout << "Get attribute transf mat. "<< endl;
 				ds->getAttributes()->getAttribute("transformation matrix", attObject);
 
-			writer->writeDTIVolume(image, saveFileName, attObject);
+			// writer->writeDTIVolume(image, saveFileName, attObject); // works ok
+			writer->writeDTIMindVolume(image,saveFileName, attObject);
 		}
 
 		    else 

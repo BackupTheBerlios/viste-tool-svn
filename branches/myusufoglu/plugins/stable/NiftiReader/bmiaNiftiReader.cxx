@@ -734,7 +734,7 @@ vtkImageData * bmiaNiftiReader::parseDTIVolume()
 	// Copy the input array to the output array, using the specified index mapping
 	switch (this->NiftiImage->datatype)
 	{
-		case DT_UNSIGNED_CHAR:	createDoubleMappedArrayMacro(unsigned char,  6);		break;
+		case DT_UNSIGNED_CHAR:	createDoubleMappedArrayMacro(unsigned char,  6);		break; 
 		case DT_SIGNED_SHORT:	createDoubleMappedArrayMacro(unsigned short, 6);		break;
 		case DT_UINT16:			createDoubleMappedArrayMacro(unsigned short, 6);		break;
 		case DT_SIGNED_INT:		createDoubleMappedArrayMacro(int,            6);		break;

@@ -168,10 +168,13 @@ class bmiaNiftiWriter
 		void writeScalarVolume(int component = 0);
 			void writeScalarVolume( vtkImageData *image, QString saveFileName, vtkObject * attObject);
 		void writeScalarVolume(int component, vtkImageData *image, QString saveFileName, vtkObject * attObject);
-			/** Create an image containing second-order DTI tensors. */
+	/** Create an image containing second-order DTI tensors.  DTI saved as standart nifti, without MIND extentions */
 
 		void writeDTIVolume(vtkImageData *image, QString saveFileName, vtkObject * transform);
-		void writeDTIMindVolume(vtkImageData *image, QString saveFileName);
+
+		/** Create an image containing second-order DTI tensors.  DTI saved as Loni-Mind nifti, ie. with MIND extentions */
+
+		void writeDTIMindVolume(vtkImageData *image, QString saveFileName,vtkObject * transform);
 	protected:
 
 		/** The NIfTI image object constructed when writing the ".nii" file. */
