@@ -814,12 +814,12 @@ cout << "writeDTIVolume 1.3 image scalar datatype" <<  imageDataType << "pointda
 			//m_NiftiImage->cal_max = 0.00747808;
 			//m_NiftiImage->cal_min
 
-			m_NiftiImage->pixdim[0] = -1 ;
+		//	m_NiftiImage->pixdim[0] = -1 ;
 			m_NiftiImage->pixdim[1] = spacing[0]; cout << "spacing[0] " << spacing[0] << endl;
 			m_NiftiImage->pixdim[2] = spacing[1]; cout << "spacing[1] " << spacing[1] << endl;
 			m_NiftiImage->pixdim[3] = spacing[2];cout << "spacing[2] " << spacing[2] << endl;
-			m_NiftiImage->pixdim[4] = 0;
-			m_NiftiImage->pixdim[5] = 0;
+			m_NiftiImage->pixdim[4] = 1;
+			m_NiftiImage->pixdim[5] = 1;
 			m_NiftiImage->pixdim[6] = 0;
 			m_NiftiImage->pixdim[7] = 0;
 			m_NiftiImage->dx = m_NiftiImage->pixdim[1];
@@ -830,6 +830,7 @@ cout << "writeDTIVolume 1.3 image scalar datatype" <<  imageDataType << "pointda
 			m_NiftiImage->dv = m_NiftiImage->pixdim[6];
 			m_NiftiImage->dw = m_NiftiImage->pixdim[7];
 cout << "writeDTIVolume 1.4" << endl;
+cin.get();
 			int numberOfVoxels = m_NiftiImage->nx;
 
 			if(m_NiftiImage->ny>0){
@@ -925,11 +926,11 @@ cout << "writeDTIVolume 1.4" << endl;
 		 
 			// Using the "Vector" intent code
 	m_NiftiImage->intent_code = NIFTI_INTENT_SYMMATRIX;
-	m_NiftiImage->intent_p1   = 0.0f;
+	m_NiftiImage->intent_p1   = 0.0f; // CHECK !!!!
 	m_NiftiImage->intent_p2   = 0.0f;
 	m_NiftiImage->intent_p3   = 0.0f;
-	m_NiftiImage->scl_slope = 1;
-	m_NiftiImage->scl_inter = 0;
+	//m_NiftiImage->scl_slope = 1;
+	//m_NiftiImage->scl_inter = 0;
 
 		if(transform)
 			{
@@ -940,7 +941,7 @@ cout << "writeDTIVolume 1.4" << endl;
 				{
                // sform matrix or qform quaternion, which one will be used. Both can also be used if bothcodes are > 0.
 				m_NiftiImage->qform_code = 0; // Decided to use only sform code. If this is set > 0 then qform quaternion or sform matrix is used.
-       			m_NiftiImage->sform_code = 2; // sform matrix is used only if sform_code > 0.
+       			m_NiftiImage->sform_code = 1; // sform matrix is used only if sform_code > 0.
 
 
 				matrix->Print(cout);
@@ -1004,16 +1005,38 @@ cout << "writeDTIVolume 1.4" << endl;
 	 
 	if (!vtkAbstractArray::SafeDownCast(image->GetPointData()->GetArray("Tensors")))
     {
-    cout << "ERROR: Age array missing or not converted to int" << endl;
+    cout << "ERROR: Tensors array missing or not converted to int" << endl;
     }
-	cout << image->GetPointData()->GetArray("Tensors")->GetNumberOfTuples() << " " << image->GetPointData()->GetArray("Tensors")->GetNumberOfComponents() << endl;
+	int indexMap[6] = {0, 1, 3, 2, 4, 5};
+	int arraySize = image->GetPointData()->GetArray("Tensors")->GetNumberOfTuples();
+	int comp = image->GetPointData()->GetArray("Tensors")->GetNumberOfComponents();
+	cout << arraySize << " " << comp << endl;
+	 	double *outDoubleArray = static_cast<double*>(image->GetPointData()->GetArray("Tensors")->GetVoidPointer(0));
+		cout << "size of outDoubleArray:" << sizeof(outDoubleArray) << endl; 
+		cout << "transform 1.91"  << endl;
+		double * niftiImageData =  new double[arraySize*comp+arraySize];
+		//this->NiftiImage->data = (void *) new double[arraySize*comp+arraySize];
+		cout << "transform 1.92"  << endl;
+		for (int i = 0; i < arraySize; ++i) 
+			for (int j = 0; j < comp; ++j)
+			{
+				
+			niftiImageData[i + indexMap[j] * arraySize]  = (double) outDoubleArray[j + comp * i];	
+			}
+			cout << "transform 1.93"  << endl;
+	       this->NiftiImage->data =  (void *) niftiImageData;
 	//m_NiftiImage->data= (double *) calloc(image->GetPointData()->GetArray("Tensors")->GetNumberOfTuples(), sizeof(double)*6);
 	//m_NiftiImage->data = (double *) vtkDoubleArray::SafeDownCast(image->GetPointData()->GetArray("Tensors"))->GetDa=
-		cout << " writeDTIVolume 2.1 num extentions:"<< m_NiftiImage->num_ext <<  endl;
+//C_TYPE * inArrayCasted = (C_TYPE *) this->NiftiImage->data;				 
+//		for (int i = 0; i < arraySize; ++i) 									 
+//			outDoubleArray[i] = (double) inArrayCasted[i + COMP * arraySize];	 	
+
+	cout << " writeDTIVolume 2.1 num extentions:"<< m_NiftiImage->num_ext <<  endl;
 		//int num=image->GetPointData()->GetArray("Tensors")->GetNumberOfTuples();
-		m_NiftiImage->data = static_cast<double*>(image->GetPointData()->GetArray("Tensors")->GetVoidPointer(0)); 
+		//m_NiftiImage->data = outDoubleArray; 
 			nifti_image_write( m_NiftiImage );
-     
+     delete  outDoubleArray;
+	 delete niftiImageData;
 }
 
 
