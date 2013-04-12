@@ -141,6 +141,9 @@ typedef struct
     int overlayIndex;
     int overlayLUTIndex;
 
+    // fiber selection
+    int selectedFiberData;
+
 } ModelInfo;
 
 typedef struct
@@ -159,11 +162,11 @@ typedef struct
     double x;
     double y;
     double z;
-} vec3;
+} Vec3;
 
 typedef struct
 {
-    QList< QList< QList<double> > > data;
+    QList< Vec3* > data;
     int anteriorPointIndex;
 } FiberData;
 
@@ -171,6 +174,8 @@ typedef struct
 {
     data::DataSet* ds;
     QList<FiberData*> selectedLines;
+    int userSelectedLine;
+    int userPointRefinement;
 } SortedFibers;
 
 class IsosurfaceVisualization :  public plugin::AdvancedPlugin,
@@ -283,6 +288,8 @@ protected slots:
 
 	void comboBoxFiberDataChanged();
 
+	void fiberSelectUpdate(int value);
+
 private:
 
     /** If plugin inherits from plugin::GUI */
@@ -384,7 +391,7 @@ private:
 
     QList<vtkActor*> pointer2DList;
 
-    void processFiberAnteriorSorting(int index);
+    void processFiberAnteriorSorting(SortedFibers* sortedFibers);
 };
 
 }
