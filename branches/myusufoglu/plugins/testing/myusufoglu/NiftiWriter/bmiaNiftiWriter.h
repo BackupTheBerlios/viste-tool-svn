@@ -172,9 +172,9 @@ class bmiaNiftiWriter
 
 		void writeDTIVolume(vtkImageData *image, QString saveFileName, vtkObject * transform);
 
-		/** Create an image containing second-order DTI tensors.  DTI saved as Loni-Mind nifti, ie. with MIND extentions */
+		/** Create an image containing second-order DTI tensors, spherical harmonics or discrete sphere.  Data saved as Loni-Mind nifti, ie. with MIND extentions */
 
-		void writeDTIMindVolume(vtkImageData *image, QString saveFileName,vtkObject * transform);
+		void writeMindData(vtkImageData *image, QString saveFileName,vtkObject * transform, QString dataStructure);
 	protected:
 
 		/** The NIfTI image object constructed when writing the ".nii" file. */

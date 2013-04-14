@@ -510,7 +510,7 @@ namespace bmia {
 				pointSet = vtkPointSet::SafeDownCast(obj);
 			}
 
-			if(image && (kind.contains("scalar volume") || kind.contains("eigen") || kind.contains("DTI") ))// && (ds->getVtkImageData()->GetNumberOfScalarComponents() ==1 ))
+			if(image && (kind.contains("scalar volume") || kind.contains("eigen") || kind.contains("DTI") || kind.contains("discrete sphere")  ))// && (ds->getVtkImageData()->GetNumberOfScalarComponents() ==1 ))
 			{
 				qDebug() << "Writing the image data. No of scalar components is:" << image->GetNumberOfScalarComponents() << endl;
 				//image->Print(cout);

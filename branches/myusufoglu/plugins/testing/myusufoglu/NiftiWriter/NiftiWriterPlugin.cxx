@@ -112,18 +112,19 @@ namespace bmia {
 		// cout << fileNameExtention.toString().toStdString() << endl;
 		//cin.get();
 
-		 
+
 		vtkImageData * image   = ds->getVtkImageData();
-	   
+
 		if(!image) cout << "Not image"<< endl;
 		if( fileNameExtention.toString()==".nii" || fileNameExtention.toString()==".gz"  )
-			{
-				
-		if(image && kind.contains("scalar volume"))// && (ds->getVtkImageData()->GetNumberOfScalarComponents() ==1 ))
 		{
-			qDebug() << "Writing the image data. No of scalar components is:" << image->GetNumberOfScalarComponents() << endl;
+			cout << "kind" << kind.toStdString() << endl;
 
-			cout << "saving nifti" << endl;
+			if(image && kind.contains("scalar volume"))// && (ds->getVtkImageData()->GetNumberOfScalarComponents() ==1 ))
+			{
+				qDebug() << "Writing the image data. No of scalar components is:" << image->GetNumberOfScalarComponents() << endl;
+
+				cout << "saving nifti" << endl;
 				vtkObject * attObject = vtkObject::New();
 				cout << "Get attribute transf mat. "<< endl;
 				ds->getAttributes()->getAttribute("transformation matrix", attObject);
@@ -134,21 +135,21 @@ namespace bmia {
 				writer->writeScalarVolume(image, saveFileName,attObject);
 			}
 
-		else if(image && ( kind.contains("DTI") || kind.contains("Eigen") ) )
-		{
-			vtkObject * attObject = vtkObject::New();
+			else if(image && ( kind.contains("DTI") || kind.contains("Eigen") ||  kind.contains("discrete sphere") ) )
+			{
+				vtkObject * attObject = vtkObject::New();
 				cout << "Get attribute transf mat. "<< endl;
 				ds->getAttributes()->getAttribute("transformation matrix", attObject);
 
-			// writer->writeDTIVolume(image, saveFileName, attObject); // works ok
-			writer->writeDTIMindVolume(image,saveFileName, attObject);
-		}
+				// writer->writeDTIVolume(image, saveFileName, attObject); // works ok, not mind standart nifti
+				writer->writeMindData(image,saveFileName, attObject, ds->getKind());
+			}
 
-		    else 
-		{
-			qDebug() << "The data can not be saved due to data type2."<< endl;	
-			return; 
-		}
+			else 
+			{
+				qDebug() << "The data can not be saved due to data type2."<< endl;	
+				return; 
+			}
 
 		}
 		else 
@@ -157,7 +158,7 @@ namespace bmia {
 			return; 
 		}
 
-		
+
 
 
 	}
