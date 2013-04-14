@@ -198,6 +198,8 @@ void IsosurfaceVisualization::dataSetAdded(data::DataSet * d)
 
         // Initialize struct
         sortedFibers->ds = d;
+		sortedFibers->userPointRefinement = 0;
+		sortedFibers->userSelectedLine = 0;
 
         // Add the new data set to the list of currently available fiber sets
         this->sortedFibersList.append(sortedFibers);
@@ -1897,6 +1899,7 @@ void IsosurfaceVisualization::processFiberAnteriorSorting(SortedFibers* sortedFi
     // Get the polydata from the data set
     vtkPolyData * polydata = sortedFibers->ds->getVtkPolyData();
 
+	// Get the transformation matrix
     vtkObject* tfm;
     vtkMatrix4x4* transformationMatrix;
     if (sortedFibers->ds->getAttributes()->getAttribute("transformation matrix", tfm ))
@@ -1943,17 +1946,14 @@ void IsosurfaceVisualization::processFiberAnteriorSorting(SortedFibers* sortedFi
             // Get the coordinates of the current point
             polydata->GetPoint(pointList[pointId], currentPoint);
 
-			/*std::cout << "pointId: " << pointId
-			<< "   " << currentPoint[0]
-			<< "   " << currentPoint[1]
-			<< "   " << currentPoint[2] << std::endl;*/
-
+			// Update most anterior point
             if(currentPoint[1] > mostAnteriorPoint)
             {
                 mostAnteriorPoint = currentPoint[1];
                 anteriorPointIndex = pointId;
             }
 
+			// Save fiber point to struct for easier management
             double vec[4] = {currentPoint[0],currentPoint[1],currentPoint[2],0};
 
 			transformationMatrix->MultiplyPoint(vec,vec);
@@ -1993,37 +1993,6 @@ void IsosurfaceVisualization::processFiberAnteriorSorting(SortedFibers* sortedFi
 		if (++rFiberIndex == numberOfOutputFibers)
 			break;
 	}
-
-    // test
-    /*for ( int i = 0; i<sortedFibers->selectedLines.length(); i++)
-    {
-        QList< Vec3* > fiberPoints = sortedFibers->selectedLines.at(i)->data;
-
-        //double* vec = fiberPoints.at(sortedFibers->selectedLines.at(i)->anteriorPointIndex);
-        Vec3* vec = fiberPoints.at(sortedFibers->selectedLines.at(i)->anteriorPointIndex);
-
-        std::cout << "anteriorindex:" << sortedFibers->selectedLines.at(i)->anteriorPointIndex << " vec : " << vec->x << " " << vec->y << " " << vec->z << std::endl;
-
-        vtkSmartPointer<vtkSphereSource> diskSource =
-            vtkSmartPointer<vtkSphereSource>::New();
-        diskSource->SetRadius(1);
-
-        vtkSmartPointer<vtkPolyDataMapper> diskMapper =
-            vtkSmartPointer<vtkPolyDataMapper>::New();
-        diskMapper->SetInputConnection(diskSource->GetOutputPort());
-
-        vtkActor* diskActor =
-            vtkActor::New();
-        diskActor->SetMapper(diskMapper);
-
-        diskActor->SetPosition(vec->x, vec->y, vec->z);
-
-        diskActor->GetProperty()->SetColor(1,1,1);
-
-        this->assembly->AddPart(diskActor);
-
-        return;
-    }*/
 }
 
 void IsosurfaceVisualization::fiberSelectUpdate(int value)
