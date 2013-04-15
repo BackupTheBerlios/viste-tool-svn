@@ -80,6 +80,8 @@
 #include <algorithm>
 #include <vtkPolyDataNormals.h>
 
+#include <vtkPointData.h>
+
 class vtkInteractorStyleTrackballPositionPicker;
 
 namespace Ui
@@ -168,6 +170,7 @@ typedef struct
 {
     QList< Vec3* > data;
     int anteriorPointIndex;
+    double userPointRefinement;
 } FiberData;
 
 typedef struct
@@ -175,7 +178,6 @@ typedef struct
     data::DataSet* ds;
     QList<FiberData*> selectedLines;
     int userSelectedLine;
-    int userPointRefinement;
 } SortedFibers;
 
 class IsosurfaceVisualization :  public plugin::AdvancedPlugin,
@@ -289,6 +291,8 @@ protected slots:
 	void comboBoxFiberDataChanged();
 
 	void fiberSelectUpdate(int value);
+	void fiberRefinementUpdate(int value);
+	void fiberRefinementUpdate(double value);
 
 private:
 
@@ -392,6 +396,8 @@ private:
     QList<vtkActor*> pointer2DList;
 
     void processFiberAnteriorSorting(SortedFibers* sortedFibers);
+
+    void fiberPointSelect();
 };
 
 }

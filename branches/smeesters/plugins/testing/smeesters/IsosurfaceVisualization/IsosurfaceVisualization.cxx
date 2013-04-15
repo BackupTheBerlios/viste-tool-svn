@@ -198,7 +198,6 @@ void IsosurfaceVisualization::dataSetAdded(data::DataSet * d)
 
         // Initialize struct
         sortedFibers->ds = d;
-		sortedFibers->userPointRefinement = 0;
 		sortedFibers->userSelectedLine = 0;
 
         // Add the new data set to the list of currently available fiber sets
@@ -1132,50 +1131,62 @@ void IsosurfaceVisualization::updateClippingPlaneEnabled(int direction, bool che
 
 void IsosurfaceVisualization::connectAll()
 {
+    // Select data set
     connect(this->form->comboBoxDataset,SIGNAL(currentIndexChanged(int)),this,SLOT(comboBoxDataChanged()));
+
+    // Generation
     connect(this->form->checkBoxVisible,SIGNAL(toggled(bool)),this,SLOT(checkBoxVisibleChanged(bool)));
-    connect(this->form->buttonUpdate,SIGNAL(clicked()),this,SLOT(buttonUpdateClicked()));
-    connect(this->form->inputMaximumThreshold,SIGNAL(valueChanged(double)),this,SLOT(inputMaximumThresholdChanged(double)));
-    connect(this->form->inputMinimumThreshold,SIGNAL(valueChanged(double)),this,SLOT(inputMinimumThresholdChanged(double)));
-    connect(this->form->inputSmoothing,SIGNAL(valueChanged(double)),this,SLOT(inputSmoothingChanged(double)));
-    connect(this->form->inputColor,SIGNAL(clicked()),this,SLOT(inputColorChanged()));
-    connect(this->form->inputAlpha,SIGNAL(valueChanged(double)),this,SLOT(inputAlphaChanged(double)));
-    connect(this->form->inputReduction,SIGNAL(valueChanged(double)),this,SLOT(inputReductionChanged(double)));
-    connect(this->form->inputSpecular,SIGNAL(valueChanged(double)),this,SLOT(inputSpecularChanged(double)));
-    connect(this->form->horizontalSliderX,SIGNAL(valueChanged(int)),this,SLOT(horizontalSliderXChanged(int)));
-    connect(this->form->horizontalSliderY,SIGNAL(valueChanged(int)),this,SLOT(horizontalSliderYChanged(int)));
-    connect(this->form->horizontalSliderZ,SIGNAL(valueChanged(int)),this,SLOT(horizontalSliderZChanged(int)));
-    connect(this->form->checkBoxX,SIGNAL(toggled(bool)),this,SLOT(checkBoxXChanged(bool)));
-    connect(this->form->checkBoxY,SIGNAL(toggled(bool)),this,SLOT(checkBoxYChanged(bool)));
-    connect(this->form->checkBoxZ,SIGNAL(toggled(bool)),this,SLOT(checkBoxZChanged(bool)));
     connect(this->form->comboBoxStyle,SIGNAL(currentIndexChanged(int)),this,SLOT(comboBoxStyleChanged()));
+    connect(this->form->inputSmoothing,SIGNAL(valueChanged(double)),this,SLOT(inputSmoothingChanged(double)));
+    connect(this->form->inputReduction,SIGNAL(valueChanged(double)),this,SLOT(inputReductionChanged(double)));
+    connect(this->form->inputMinimumThreshold,SIGNAL(valueChanged(double)),this,SLOT(inputMinimumThresholdChanged(double)));
+    connect(this->form->inputMaximumThreshold,SIGNAL(valueChanged(double)),this,SLOT(inputMaximumThresholdChanged(double)));
+    connect(this->form->inputColor,SIGNAL(clicked()),this,SLOT(inputColorChanged()));
+    connect(this->form->inputSpecular,SIGNAL(valueChanged(double)),this,SLOT(inputSpecularChanged(double)));
+    connect(this->form->inputAlpha,SIGNAL(valueChanged(double)),this,SLOT(inputAlphaChanged(double)));
+    connect(this->form->checkBoxLargestComponent,SIGNAL(toggled(bool)),this,SLOT(checkBoxLargestComponentChanged(bool)));
+    connect(this->form->buttonUpdate,SIGNAL(clicked()),this,SLOT(buttonUpdateClicked()));
+
+    // Clipping planes
+    connect(this->form->checkBoxX,SIGNAL(toggled(bool)),this,SLOT(checkBoxXChanged(bool)));
+    connect(this->form->checkBoxFlipX,SIGNAL(toggled(bool)),this,SLOT(checkBoxFlipXChanged(bool)));
+    connect(this->form->spinX,SIGNAL(valueChanged(int)),this,SLOT(spinXChanged(int)));
+    connect(this->form->horizontalSliderX,SIGNAL(valueChanged(int)),this,SLOT(horizontalSliderXChanged(int)));
+
+    connect(this->form->checkBoxY,SIGNAL(toggled(bool)),this,SLOT(checkBoxYChanged(bool)));
+    connect(this->form->checkBoxFlipY,SIGNAL(toggled(bool)),this,SLOT(checkBoxFlipYChanged(bool)));
+    connect(this->form->spinY,SIGNAL(valueChanged(int)),this,SLOT(spinYChanged(int)));
+    connect(this->form->horizontalSliderY,SIGNAL(valueChanged(int)),this,SLOT(horizontalSliderYChanged(int)));
+
+    connect(this->form->checkBoxZ,SIGNAL(toggled(bool)),this,SLOT(checkBoxZChanged(bool)));
+    connect(this->form->checkBoxFlipZ,SIGNAL(toggled(bool)),this,SLOT(checkBoxFlipZChanged(bool)));
+    connect(this->form->spinZ,SIGNAL(valueChanged(int)),this,SLOT(spinZChanged(int)));
+    connect(this->form->horizontalSliderZ,SIGNAL(valueChanged(int)),this,SLOT(horizontalSliderZChanged(int)));
+
+    connect(this->form->checkBoxAlignPlanesToPick,SIGNAL(toggled(bool)),this,SLOT(checkBoxAlignPlanesToPickChanged(bool)));
+    connect(this->form->checkBoxInvertClipping,SIGNAL(toggled(bool)),this,SLOT(checkBoxInvertClippingChanged(bool)));
+
+    connect(this->form->comboBoxBaseLayerLUT,SIGNAL(currentIndexChanged(int)),this,SLOT(comboBoxBaseLayerLUTChanged()));
     connect(this->form->comboBoxOverlay,SIGNAL(currentIndexChanged(int)),this,SLOT(comboBoxOverlayChanged()));
     connect(this->form->comboBoxOverlayLUT,SIGNAL(currentIndexChanged(int)),this,SLOT(comboBoxOverlayLUTChanged()));
-    connect(this->form->comboBoxBaseLayerLUT,SIGNAL(currentIndexChanged(int)),this,SLOT(comboBoxBaseLayerLUTChanged()));
-    connect(this->form->checkBoxFlipX,SIGNAL(toggled(bool)),this,SLOT(checkBoxFlipXChanged(bool)));
-    connect(this->form->checkBoxFlipY,SIGNAL(toggled(bool)),this,SLOT(checkBoxFlipYChanged(bool)));
-    connect(this->form->checkBoxFlipZ,SIGNAL(toggled(bool)),this,SLOT(checkBoxFlipZChanged(bool)));
-    connect(this->form->buttonSaveMesh,SIGNAL(clicked()),this,SLOT(buttonSaveMeshClicked()));
-    connect(this->form->spinX,SIGNAL(valueChanged(int)),this,SLOT(spinXChanged(int)));
-    connect(this->form->spinY,SIGNAL(valueChanged(int)),this,SLOT(spinYChanged(int)));
-    connect(this->form->spinZ,SIGNAL(valueChanged(int)),this,SLOT(spinZChanged(int)));
-    connect(this->form->checkBoxInvertClipping,SIGNAL(toggled(bool)),this,SLOT(checkBoxInvertClippingChanged(bool)));
-    connect(this->form->checkBoxLargestComponent,SIGNAL(toggled(bool)),this,SLOT(checkBoxLargestComponentChanged(bool)));
-    connect(this->form->checkBoxAlignPlanesToPick,SIGNAL(toggled(bool)),this,SLOT(checkBoxAlignPlanesToPickChanged(bool)));
 
+    // Export
+    connect(this->form->buttonSaveMesh,SIGNAL(clicked()),this,SLOT(buttonSaveMeshClicked()));
+
+    // Measurement
     connect(this->form->buttonSetPointA,SIGNAL(clicked()),this,SLOT(buttonSetPointAClicked()));
+    connect(this->form->lineEditNamePointA,SIGNAL(textChanged(QString)),this,SLOT(lineEditNamePointAChanged(QString)));
+
     connect(this->form->buttonSetPointB,SIGNAL(clicked()),this,SLOT(buttonSetPointBClicked()));
+    connect(this->form->lineEditNamePointB,SIGNAL(textChanged(QString)),this,SLOT(lineEditNamePointBChanged(QString)));
+    connect(this->form->comboBoxFiberData,SIGNAL(currentIndexChanged(int)),this,SLOT(comboBoxFiberDataChanged()));
+    connect(this->form->spinFiberChoice,SIGNAL(valueChanged(int)),this,SLOT(fiberSelectUpdate(int)));
+	connect(this->form->sliderFiberChoice,SIGNAL(valueChanged(int)),this,SLOT(fiberSelectUpdate(int)));
+	connect(this->form->spinFiberRefinement,SIGNAL(valueChanged(double)),this,SLOT(fiberRefinementUpdate(double)));
+	connect(this->form->sliderFiberRefinement,SIGNAL(valueChanged(int)),this,SLOT(fiberRefinementUpdate(int)));
 
     connect(this->form->buttonSetLineColor,SIGNAL(clicked()),this,SLOT(buttonSetLineColorClicked()));
     //connect(this->form->buttonSaveMeasurement,SIGNAL(clicked()),this,SLOT(buttonSaveMeasurementClicked()));
-
-	connect(this->form->lineEditNamePointA,SIGNAL(textChanged(QString)),this,SLOT(lineEditNamePointAChanged(QString)));
-	connect(this->form->lineEditNamePointB,SIGNAL(textChanged(QString)),this,SLOT(lineEditNamePointBChanged(QString)));
-
-	connect(this->form->comboBoxFiberData,SIGNAL(currentIndexChanged(int)),this,SLOT(comboBoxFiberDataChanged()));
-
-	connect(this->form->spinFiberChoice,SIGNAL(valueChanged(int)),this,SLOT(fiberSelectUpdate(int)));
-	connect(this->form->sliderFiberChoice,SIGNAL(valueChanged(int)),this,SLOT(fiberSelectUpdate(int)));
 }
 
 //------------------------[ Disconnect Qt elements ]-----------------------\\
@@ -1867,12 +1878,16 @@ void IsosurfaceVisualization::comboBoxFiberDataChanged()
         // disable gui
         this->form->sliderFiberChoice->setEnabled(false);
         this->form->spinFiberChoice->setEnabled(false);
+        this->form->sliderFiberRefinement->setEnabled(false);
+        this->form->spinFiberRefinement->setEnabled(false);
     }
     else
     {
         // enable gui
         this->form->sliderFiberChoice->setEnabled(true);
         this->form->spinFiberChoice->setEnabled(true);
+        this->form->sliderFiberRefinement->setEnabled(true);
+        this->form->spinFiberRefinement->setEnabled(true);
 
         // Get data struct
         SortedFibers* sortedFibers = this->sortedFibersList.at(index);
@@ -1880,9 +1895,10 @@ void IsosurfaceVisualization::comboBoxFiberDataChanged()
         // process data set
         processFiberAnteriorSorting(sortedFibers);
 
-        // select fiber
-        this->form->sliderFiberChoice->setValue(sortedFibers->userSelectedLine);
-        this->form->spinFiberChoice->setValue(sortedFibers->userSelectedLine);
+        // Set GUI value limits
+        int amountOfFibers = sortedFibers->selectedLines.length() - 1; // 100 or less
+        this->form->sliderFiberChoice->setMaximum(amountOfFibers);
+        this->form->spinFiberChoice->setMaximum(amountOfFibers);
 
         // update selected point b
         fiberSelectUpdate(sortedFibers->userSelectedLine);
@@ -1915,6 +1931,9 @@ void IsosurfaceVisualization::processFiberAnteriorSorting(SortedFibers* sortedFi
     // Get fiber tracts
     vtkCellArray * fibers = polydata->GetLines();
     vtkIdType numberOfFibers = fibers->GetNumberOfCells();
+
+    vtkPointData* pointdata = polydata->GetPointData();
+    pointdata->Print(std::cout);
 
     // Map used to store fiber indices (value) and their anterior point (key)
 	QMap<double, FiberData*> fiberMap;
@@ -1953,25 +1972,25 @@ void IsosurfaceVisualization::processFiberAnteriorSorting(SortedFibers* sortedFi
                 anteriorPointIndex = pointId;
             }
 
-			// Save fiber point to struct for easier management
-            double vec[4] = {currentPoint[0],currentPoint[1],currentPoint[2],0};
-
+            // Do the point transformation
+            double vec[4] = {currentPoint[0],currentPoint[1],currentPoint[2],1};
 			transformationMatrix->MultiplyPoint(vec,vec);
-			// do the translation. multiplypoint does not seem te be doing it ...
-			vec[0] = vec[0] + transformationMatrix->GetElement(0,3);
-			vec[1] = vec[1] + transformationMatrix->GetElement(1,3);
-			vec[2] = vec[2] + transformationMatrix->GetElement(2,3);
 
+            // Save fiber point as Vec3 for easier management
             Vec3* vec3 = new Vec3;
             vec3->x = vec[0];
             vec3->y = vec[1];
             vec3->z = vec[2];
 
+            // Save to fiber data struct
             fiberData->data.append(vec3);
 		}
 
         // Set anterior point index in struct
         fiberData->anteriorPointIndex = anteriorPointIndex;
+
+        // Set refinement point at zero
+        fiberData->userPointRefinement = 0;
 
         // Add fiber data in QMap for sorting
 		fiberMap.insert(mostAnteriorPoint, fiberData);
@@ -2001,22 +2020,69 @@ void IsosurfaceVisualization::fiberSelectUpdate(int value)
     SortedFibers* sortedFibers = this->sortedFibersList.at(current_modelInfo->selectedFiberData);
 
     // get selected fiber index
-    sortedFibers->userSelectedLine = value;//this->form->sliderFiberChoice->value();
-
-    // set gui values
-    this->form->sliderFiberChoice->setValue(value);
-    this->form->spinFiberChoice->setValue(value);
+    sortedFibers->userSelectedLine = std::max(value,0);
 
     // fiber data
     FiberData* fiberData = sortedFibers->selectedLines.at(sortedFibers->userSelectedLine);
 
-    // most anterior point
-    Vec3* vec = fiberData->data.at(fiberData->anteriorPointIndex);
+    // set gui values
+    this->form->sliderFiberChoice->setValue(value);
+    this->form->spinFiberChoice->setValue(value);
+    this->form->sliderFiberRefinement->setValue(fiberData->userPointRefinement);
+    this->form->spinFiberRefinement->setValue(fiberData->userPointRefinement);
+
+    // Set GUI limits on fiber refinement
+    int refinementValue_min = -fiberData->anteriorPointIndex;
+    int refinementValue_max = fiberData->data.length() - fiberData->anteriorPointIndex - 1;
+    this->form->sliderFiberRefinement->setMinimum(refinementValue_min);
+    this->form->spinFiberRefinement->setMinimum(refinementValue_min);
+    this->form->sliderFiberRefinement->setMaximum(refinementValue_max);
+    this->form->spinFiberRefinement->setMaximum(refinementValue_max);
+
+    // update fiber point
+    fiberPointSelect();
+}
+
+void IsosurfaceVisualization::fiberRefinementUpdate(double value)
+{
+    // Get data struct
+    SortedFibers* sortedFibers = this->sortedFibersList.at(current_modelInfo->selectedFiberData);
+
+    // fiber data
+    FiberData* fiberData = sortedFibers->selectedLines.at(sortedFibers->userSelectedLine);
+
+    // Update refinement value
+    fiberData->userPointRefinement = value;
+
+    // set GUI values
+    this->form->sliderFiberRefinement->setValue(fiberData->userPointRefinement);
+    this->form->spinFiberRefinement->setValue(fiberData->userPointRefinement);
+
+    // update fiber point
+    fiberPointSelect();
+}
+
+void IsosurfaceVisualization::fiberRefinementUpdate(int value)
+{
+    fiberRefinementUpdate((double)value);
+}
+
+void IsosurfaceVisualization::fiberPointSelect()
+{
+    // Get data struct
+    SortedFibers* sortedFibers = this->sortedFibersList.at(current_modelInfo->selectedFiberData);
+
+    // fiber data
+    FiberData* fiberData = sortedFibers->selectedLines.at(sortedFibers->userSelectedLine);
+
+    Vec3* pointA = fiberData->data.at(floor(fiberData->anteriorPointIndex + fiberData->userPointRefinement));
+    Vec3* pointB = fiberData->data.at(ceil(fiberData->anteriorPointIndex + fiberData->userPointRefinement));
 
     // set point B
-    this->clickedPoint[0] = vec->x;
-    this->clickedPoint[1] = vec->y;
-    this->clickedPoint[2] = vec->z;
+    double loc_pos = fmod(fiberData->anteriorPointIndex + fiberData->userPointRefinement,1);
+    this->clickedPoint[0] = pointB->x * loc_pos + pointA->x * (1 - loc_pos);
+    this->clickedPoint[1] = pointB->y * loc_pos + pointA->y * (1 - loc_pos);
+    this->clickedPoint[2] = pointB->z * loc_pos + pointA->z * (1 - loc_pos);
 
     // update point b
     setMeasuredPoint(1);
