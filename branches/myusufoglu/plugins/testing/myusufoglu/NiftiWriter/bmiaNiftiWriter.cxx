@@ -789,8 +789,8 @@ namespace bmia {
 
 
 		cout << " writeMindData 1.9 "<< endl;
-		
-		
+
+
 		// Add the main LONI MiND extensions one descriptor N data-related
 		// DTI 
 		if(dataStructure.contains("DTI")) 
@@ -800,7 +800,7 @@ namespace bmia {
 			m_NiftiImage->dim[5] = 6; // 6 components of thematrix
 			m_NiftiImage->nu =  m_NiftiImage->dim[5];
 			m_NiftiImage->nvox = m_NiftiImage->nx * m_NiftiImage->ny * m_NiftiImage->nz * m_NiftiImage->nt * m_NiftiImage->nu;
-			
+
 
 
 			nifti_add_extension(m_NiftiImage, "DTENSOR", 8, NIFTI_ECODE_MIND_IDENT);
@@ -845,70 +845,132 @@ namespace bmia {
 						m_NiftiImage->data =  (void *) niftiImageData;
 
 		}
+
 		// Discrete Sphere
 		else if(dataStructure.contains("discrete sphere")) {
 			cout << "Dicrete Sphere"<< endl;
 			// overwrite 
 			m_NiftiImage->dim[5] = image->GetNumberOfScalarComponents(); //  *2 ??? No data isone scalar for each index set.
 			m_NiftiImage->nu =  m_NiftiImage->dim[5];
-				m_NiftiImage->nvox = m_NiftiImage->nx * m_NiftiImage->ny * m_NiftiImage->nz * m_NiftiImage->nt * m_NiftiImage->nu;
-				m_NiftiImage->swapsize		= 8;					// ...and the swap size is also 8.
-	m_NiftiImage->iname_offset	= 1024;					// Offset for the image name
-			 image->Print(cout);
-			
-			 char buffer[24];
-             memset(buffer, 0, sizeof(buffer));
-            strncpy(buffer, "DISCSPHFUNC", sizeof(buffer));
+			m_NiftiImage->nvox = m_NiftiImage->nx * m_NiftiImage->ny * m_NiftiImage->nz * m_NiftiImage->nt * m_NiftiImage->nu;
+			m_NiftiImage->swapsize		= 8;					// ...and the swap size is also 8.
+			m_NiftiImage->iname_offset	= 1024;					// Offset for the image name
+			image->Print(cout);
+
+			char buffer[24];
+			memset(buffer, 0, sizeof(buffer));
+			strncpy(buffer, "DISCSPHFUNC", sizeof(buffer));
 
 			nifti_add_extension(m_NiftiImage, buffer, 24, NIFTI_ECODE_MIND_IDENT); // 24 is length of array which inc. DISCSPHFUNC
 			vtkDataArray *directionsDoubleArray = image->GetPointData()->GetArray("Spherical Directions") ;
 			int numberOfDirections = image->GetPointData()->GetArray("Spherical Directions")->GetNumberOfTuples();
 			for(int j=0;j<numberOfDirections; j++)
 			{
-						float indx[2]; 
-						indx[0]= (float) directionsDoubleArray->GetTuple2(j)[0];
-						indx[1]= (float) directionsDoubleArray->GetTuple2(j)[1];
-						cout << j << endl;
-						nifti_add_extension(m_NiftiImage, (char *) &(indx[0]), 2 * sizeof(float), NIFTI_ECODE_SPHERICAL_DIRECTION);	 
-					}
+				float indx[2]; 
+				indx[0]= (float) directionsDoubleArray->GetTuple2(j)[0];
+				indx[1]= (float) directionsDoubleArray->GetTuple2(j)[1];
+				cout << j << endl;
+				nifti_add_extension(m_NiftiImage, (char *) &(indx[0]), 2 * sizeof(float), NIFTI_ECODE_SPHERICAL_DIRECTION);	 
+			}
 
-			
+
 			vtkDataArray * inVectors = image->GetPointData()->GetArray("Vectors");
 			cout << "Vectors Tuples and Components:" << image->GetPointData()->GetArray("Vectors")->GetNumberOfComponents() << endl;
 			cout << image->GetPointData()->GetArray("Vectors")->GetNumberOfTuples() << endl;
-				image->GetPointData()->GetArray("Vectors")->Print(cout);
-					if (!inVectors)
-					{
-						cout <<"Input data has no vectors!";
-						return;
-					}
-
-				 
-					double *outDoubleArray = static_cast<double*>(image->GetScalarPointer() );
-
-					int arraySize = image->GetNumberOfPoints();
-					int comp = image->GetNumberOfScalarComponents();
-					cout << arraySize << " " << comp << endl;
-				
-					
-				 
-					double * niftiImageData =  new double[arraySize*comp];
-					//this->NiftiImage->data = (void *) new double[arraySize*comp+arraySize];
-					cout << "transform 1.92"  << endl;
-					for (int i = 0; i < arraySize; ++i) 
-						for (int j = 0; j < comp; ++j)
-						{
-							// change from row-major to column major
-							niftiImageData[i+ arraySize * j]  = (double) outDoubleArray[j + comp * i];	
-							
-						}
-						cout << "transform 1.93"  << endl;
-						m_NiftiImage->data =  (void *) niftiImageData;
-					
+			image->GetPointData()->GetArray("Vectors")->Print(cout);
+			if (!inVectors)
+			{
+				cout <<"Input data has no vectors!";
+				return;
+			}
 
 
+			double *outDoubleArray = static_cast<double*>(image->GetScalarPointer() );
+
+			int arraySize = image->GetNumberOfPoints();
+			int comp = image->GetNumberOfScalarComponents();
+			cout << arraySize << " " << comp << endl;
+
+
+
+			double * niftiImageData =  new double[arraySize*comp];
+			//this->NiftiImage->data = (void *) new double[arraySize*comp+arraySize];
+			cout << "transform 1.92"  << endl;
+			for (int i = 0; i < arraySize; ++i) 
+				for (int j = 0; j < comp; ++j)
+				{
+					// change from row-major to column major
+					niftiImageData[i+ arraySize * j]  = (double) outDoubleArray[j + comp * i];	
+
+				}
+				cout << "transform 1.93"  << endl;
+				m_NiftiImage->data =  (void *) niftiImageData;
 
 		}
+
+
+		else if(dataStructure.contains("spherical harmonics")) {
+			cout << "Spherical harmonics"<< endl;
+			// overwrite 
+			m_NiftiImage->dim[5] = image->GetNumberOfScalarComponents(); //  *2 ??? No data isone scalar for each index set.
+			m_NiftiImage->nu =  m_NiftiImage->dim[5];
+			m_NiftiImage->nvox = m_NiftiImage->nx * m_NiftiImage->ny * m_NiftiImage->nz * m_NiftiImage->nt * m_NiftiImage->nu;
+			m_NiftiImage->swapsize		= 8;					// ...and the swap size is also 8.
+			m_NiftiImage->iname_offset	= 1024;					// Offset for the image name
+			image->Print(cout);
+
+			char buffer[24];
+			memset(buffer, 0, sizeof(buffer));
+			strncpy(buffer, "REALSPHARMCOEFFS", sizeof(buffer));
+
+			nifti_add_extension(m_NiftiImage, buffer, 24, NIFTI_ECODE_SHC_DEGREEORDER); // 24 is length of array which inc. DISCSPHFUNC
+			vtkDataArray *directionsDoubleArray = image->GetPointData()->GetArray("Spherical Directions") ;
+			int numberOfDirections = image->GetPointData()->GetArray("Spherical Directions")->GetNumberOfTuples();
+			for(int j=0;j<numberOfDirections; j++)
+			{
+				float indx[2]; 
+				indx[0]= (float) directionsDoubleArray->GetTuple2(j)[0];
+				indx[1]= (float) directionsDoubleArray->GetTuple2(j)[1];
+				cout << j << endl;
+				nifti_add_extension(m_NiftiImage, (char *) &(indx[0]), 2 * sizeof(float), NIFTI_ECODE_SPHERICAL_DIRECTION);	 
+			}
+
+
+			vtkDataArray * inVectors = image->GetPointData()->GetArray("Vectors");
+			cout << "Vectors Tuples and Components:" << image->GetPointData()->GetArray("Vectors")->GetNumberOfComponents() << endl;
+			cout << image->GetPointData()->GetArray("Vectors")->GetNumberOfTuples() << endl;
+			image->GetPointData()->GetArray("Vectors")->Print(cout);
+			if (!inVectors)
+			{
+				cout <<"Input data has no vectors!";
+				return;
+			}
+
+
+			double *outDoubleArray = static_cast<double*>(image->GetScalarPointer() );
+
+			int arraySize = image->GetNumberOfPoints();
+			int comp = image->GetNumberOfScalarComponents();
+			cout << arraySize << " " << comp << endl;
+
+
+
+			double * niftiImageData =  new double[arraySize*comp];
+			//this->NiftiImage->data = (void *) new double[arraySize*comp+arraySize];
+			cout << "transform 1.92"  << endl;
+			for (int i = 0; i < arraySize; ++i) 
+				for (int j = 0; j < comp; ++j)
+				{
+					// change from row-major to column major
+					niftiImageData[i+ arraySize * j]  = (double) outDoubleArray[j + comp * i];	
+
+				}
+				cout << "transform 1.93"  << endl;
+				m_NiftiImage->data =  (void *) niftiImageData;
+
+		}
+
+
 		else {
 			qDebug() << "The data type is not suitable to Loni Mind Save Funtion"<< endl;
 		}
