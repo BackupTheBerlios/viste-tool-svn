@@ -847,7 +847,7 @@ namespace bmia {
 		}
 
 		// Discrete Sphere
-		else if(dataStructure.contains("discrete sphere")) {
+		else if(dataStructure.contains("discrete sp")) {
 			cout << "Dicrete Sphere"<< endl;
 			// overwrite 
 			m_NiftiImage->dim[5] = image->GetNumberOfScalarComponents(); //  *2 ??? No data isone scalar for each index set.
