@@ -135,7 +135,7 @@ namespace bmia {
 				writer->writeScalarVolume(image, saveFileName,attObject);
 			}
 
-			else if(image && ( kind.contains("DTI") || kind.contains("Eigen") ||  kind.contains("discrete sphere") ) )
+			else if(image && ( kind.contains("DTI") || kind.contains("Eigen") ||  kind.contains("discrete sphere") || kind.contains("spherical harmonics") ) )
 			{
 				vtkObject * attObject = vtkObject::New();
 				cout << "Get attribute transf mat. "<< endl;

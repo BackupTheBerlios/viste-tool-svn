@@ -4218,7 +4218,7 @@ nifti_image *nifti_image_read( const char *hname , int read_data )
 
    /**- convert all nhdr fields to nifti_image fields */
    nim = nifti_convert_nhdr2nim(nhdr,hfile);
-     printf(" nifti dim0 %d\n", nim->dim[0]);
+    
    if( nim == NULL ){
       znzclose( fp ) ;                                   /* close the file */
       if( g_opts.debug > 0 )

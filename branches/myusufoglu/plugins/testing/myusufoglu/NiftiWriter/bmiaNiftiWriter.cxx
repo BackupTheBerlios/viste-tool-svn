@@ -454,7 +454,7 @@ namespace bmia {
 				dataTypeSize = m_NiftiImage->nbyper;
 				break;
 			default:
-				cout << "cannot handle this type" << endl ;
+				qDebug() << "cannot handle this type" << endl ;
 				break;
 			}
 		}
@@ -470,7 +470,6 @@ namespace bmia {
 		//Transformation and quaternion; quaternion has no scaling but viste uses spacing=1 and scaling parameter of the user transform of the actor is changed with spacing because of the transform.
 		if(transform)
 		{
-			cout << "transform"  << endl;
 			vtkMatrix4x4 *matrix =  vtkMatrix4x4::New();
 			matrix = vtkMatrix4x4::SafeDownCast(transform);
 			if(matrix)
@@ -481,7 +480,6 @@ namespace bmia {
 
 
 				matrix->Print(cout);
-				cout << "transform 1.1"  << endl;
 				mat44 matrixf;
 				for(int i=0;i<4;i++)
 					for(int j=0;j<4;j++)
@@ -497,11 +495,6 @@ namespace bmia {
 					// convert transformation matrix to quaternion
 					nifti_mat44_to_quatern(matrixf, &( m_NiftiImage->quatern_b), &( m_NiftiImage->quatern_c), &( m_NiftiImage->quatern_d), 
 						&( m_NiftiImage->qoffset_x), &(m_NiftiImage->qoffset_y), &(m_NiftiImage->qoffset_z), &(m_NiftiImage->dx) , &(m_NiftiImage->dy) ,&(m_NiftiImage->dz) , &(m_NiftiImage->qfac));
-
-
-					//cout << m_NiftiImage->quatern_b << " " << m_NiftiImage->quatern_c << " " << m_NiftiImage->quatern_d << " " << m_NiftiImage->qfac << " " << endl;
-					//cout << m_NiftiImage->qoffset_x << " " << m_NiftiImage->qoffset_y << " " << m_NiftiImage->qoffset_z <<endl;
-
 					// in case the matrix is not pure transform, quaternion can not include scaling part. Therefore if the matris is not a pure transform matrix use scaling factor in spacing?
 					float scaling[3];
 					if(matrix->Determinant() != 1 && (m_NiftiImage->qform_code > 0) )
@@ -540,17 +533,11 @@ namespace bmia {
 	void bmiaNiftiWriter::writeMindData(vtkImageData *image, QString saveFileName, vtkObject * transform, QString dataStructure)
 
 	{
-		//dim[5]= 6 
 		//there must be 6 extentions
 		cout << "writeMindData" << endl;
 		nifti_image * m_NiftiImage = new nifti_image;
 		m_NiftiImage = nifti_simple_init_nim();
-
-
-
-
-		image->Print(cout);
-		cout << "writeMindData 1.2" << endl;
+		//image->Print(cout);
 		double dataTypeSize = 1.0;
 		int dim[3];
 		int wholeExtent[6];
@@ -564,8 +551,6 @@ namespace bmia {
 		image->GetSpacing(spacing);
 		image->GetDimensions(dim);
 		image->GetWholeExtent(wholeExtent);
-
-		cout << "writeMindData 1.3 image scalar datatype" <<  imageDataType << "pointdata type:" << image->GetPointData()->GetScalars()->GetDataType() << endl;
 
 		m_NiftiImage->byteorder		= nifti_short_order();
 		m_NiftiImage->ndim = 5;
@@ -600,7 +585,7 @@ namespace bmia {
 		m_NiftiImage->du = m_NiftiImage->pixdim[5];
 		m_NiftiImage->dv = m_NiftiImage->pixdim[6];
 		m_NiftiImage->dw = m_NiftiImage->pixdim[7];
-		cout << "writeMindData 1.4" << endl;
+ 
 		int numberOfVoxels = m_NiftiImage->nx;
 
 		if(m_NiftiImage->ny>0){
@@ -620,7 +605,6 @@ namespace bmia {
 		m_NiftiImage->nvox = numberOfVoxels; // Each data sets again below
 
 		if(numComponents!=0 ){
-			cout << "writeMindData 1.3 coponenets:" << numComponents<< " voxels: " <<  numberOfVoxels << "imagedatatype"<<  imageDataType << endl;
 			switch(imageDataType)
 			{
 			case VTK_BIT://DT_BINARY:
@@ -679,27 +663,21 @@ namespace bmia {
 				dataTypeSize = m_NiftiImage->nbyper;
 				break;
 			default:
-				cout << "cannot handle this type" << endl ;
+				qDebug() << "cannot handle this type" << endl ;
 				break;
 			}
 		}
 
-		m_NiftiImage->nifti_type = NIFTI_FTYPE_NIFTI1_1;//??
-		cout << " writeMindData 1.7 "<< endl;
+		m_NiftiImage->nifti_type = NIFTI_FTYPE_NIFTI1_1;//
 		m_NiftiImage->fname = nifti_makehdrname( saveFileName.toStdString().c_str(), m_NiftiImage->nifti_type,false,0);
-		cout << " 1.71 "<< endl;
 		m_NiftiImage->iname = nifti_makeimgname(saveFileName.toStdString().c_str(), m_NiftiImage->nifti_type,false,0); // 0 is compressed
-
-
-		cout << " writeMindData 1.8 "<< endl;
-
-
 
 		// Using the "Vector" intent code
 		m_NiftiImage->intent_code = NIFTI_INTENT_VECTOR;
 		m_NiftiImage->intent_p1   = 0.0f;
 		m_NiftiImage->intent_p2   = 0.0f;
 		m_NiftiImage->intent_p3   = 0.0f;
+
 		// The kernel NIfTI image does not have a transformation matrix
 		m_NiftiImage->qform_code		= 0;
 		m_NiftiImage->quatern_b			= 0.0f;
@@ -709,9 +687,6 @@ namespace bmia {
 		m_NiftiImage->qoffset_y			= 0.0f;
 		m_NiftiImage->qoffset_z			= 0.0f;
 		m_NiftiImage->qfac				= 0.0f;
-
-
-
 
 		if(transform)
 		{
@@ -746,10 +721,6 @@ namespace bmia {
 						nifti_mat44_to_quatern(matrixf, &( m_NiftiImage->quatern_b), &( m_NiftiImage->quatern_c), &( m_NiftiImage->quatern_d), 
 						&( m_NiftiImage->qoffset_x), &(m_NiftiImage->qoffset_y), &(m_NiftiImage->qoffset_z), &(m_NiftiImage->dx) , &(m_NiftiImage->dy) ,&(m_NiftiImage->dz) , &(m_NiftiImage->qfac));
 
-
-					//cout << m_NiftiImage->quatern_b << " " << m_NiftiImage->quatern_c << " " << m_NiftiImage->quatern_d << " " << m_NiftiImage->qfac << " " << endl;
-					//cout << m_NiftiImage->qoffset_x << " " << m_NiftiImage->qoffset_y << " " << m_NiftiImage->qoffset_z <<endl;
-
 					// in case the matrix is not pure transform, quaternion can not include scaling part. Therefore if the matris is not a pure transform matrix use scaling factor in spacing?
 					float scaling[3];
 					if(matrix->Determinant() != 1 && (m_NiftiImage->qform_code > 0) )
@@ -766,15 +737,13 @@ namespace bmia {
 					}
 			}
 			else {
-				cout << "Invalid   matrix \n";
+				qDebug() << "Invalid   matrix \n";
 			}
 		}
 		else
 		{
-			cout << "Invalid transformation object \n";
+			qDebug() << "Invalid transformation object \n";
 		}
-		// Set the intent name to "MiND"
-
 
 		// Set the intent name to "MiND"
 		char * intentName = (char*) "MiND";
@@ -783,35 +752,27 @@ namespace bmia {
 #else
 		strcpy(&(m_NiftiImage->intent_name[0]), intentName);
 #endif
+
 		// Initialize the extension list
 		m_NiftiImage->num_ext  = 0;
 		m_NiftiImage->ext_list = NULL;
-
-
-		cout << " writeMindData 1.9 "<< endl;
-
 
 		// Add the main LONI MiND extensions one descriptor N data-related
 		// DTI 
 		if(dataStructure.contains("DTI")) 
 		{ 
 
-			cout << "save dti"<< endl;
 			m_NiftiImage->dim[5] = 6; // 6 components of thematrix
 			m_NiftiImage->nu =  m_NiftiImage->dim[5];
 			m_NiftiImage->nvox = m_NiftiImage->nx * m_NiftiImage->ny * m_NiftiImage->nz * m_NiftiImage->nt * m_NiftiImage->nu;
 
-
-
 			nifti_add_extension(m_NiftiImage, "DTENSOR", 8, NIFTI_ECODE_MIND_IDENT);
-			cout << " writeMindData DTI 2.0 "<< endl;
 			for(int i=1;  i<=3; i++)
 				for(int j=1;j<=3; j++)
 					if(j<=i) {
 						int index[2];
 						index[0]=i;
 						index[1]=j; 
-						cout << i << "," << j << endl;
 						nifti_add_extension(m_NiftiImage, (char *) &(index[0]), 2 * sizeof(int), NIFTI_ECODE_DT_COMPONENT);	 
 					}
 
@@ -819,7 +780,7 @@ namespace bmia {
 
 					if (!inTensors)
 					{
-						cout <<"Input data has no tensors!";
+						qDebug() <<"Input data has no tensors!";
 						return;
 					}
 
@@ -828,20 +789,14 @@ namespace bmia {
 
 					int arraySize = image->GetPointData()->GetArray("Tensors")->GetNumberOfTuples();
 					int comp = image->GetPointData()->GetArray("Tensors")->GetNumberOfComponents();
-					cout << arraySize << " " << comp << endl;
 					image->GetPointData()->GetArray("Tensors")->Print(cout);
-					cout << "size of outDoubleArray:" << sizeof(outDoubleArray) << endl; 
-					cout << "transform 1.91"  << endl;
 					double * niftiImageData =  new double[arraySize*comp];
 					//this->NiftiImage->data = (void *) new double[arraySize*comp+arraySize];
-					cout << "transform 1.92"  << endl;
 					for (int i = 0; i < arraySize; ++i) 
 						for (int j = 0; j < comp; ++j)
 						{
-
 							niftiImageData[i + indexMap[j] * arraySize]  = (double) outDoubleArray[j + comp * i];	
 						}
-						cout << "transform 1.93"  << endl;
 						m_NiftiImage->data =  (void *) niftiImageData;
 
 		}
@@ -869,46 +824,32 @@ namespace bmia {
 				float indx[2]; 
 				indx[0]= (float) directionsDoubleArray->GetTuple2(j)[0];
 				indx[1]= (float) directionsDoubleArray->GetTuple2(j)[1];
-				cout << j << endl;
 				nifti_add_extension(m_NiftiImage, (char *) &(indx[0]), 2 * sizeof(float), NIFTI_ECODE_SPHERICAL_DIRECTION);	 
 			}
 
 
 			vtkDataArray * inVectors = image->GetPointData()->GetArray("Vectors");
-			cout << "Vectors Tuples and Components:" << image->GetPointData()->GetArray("Vectors")->GetNumberOfComponents() << endl;
-			cout << image->GetPointData()->GetArray("Vectors")->GetNumberOfTuples() << endl;
 			image->GetPointData()->GetArray("Vectors")->Print(cout);
 			if (!inVectors)
 			{
 				cout <<"Input data has no vectors!";
 				return;
 			}
-
-
 			double *outDoubleArray = static_cast<double*>(image->GetScalarPointer() );
-
 			int arraySize = image->GetNumberOfPoints();
 			int comp = image->GetNumberOfScalarComponents();
-			cout << arraySize << " " << comp << endl;
-
-
-
 			double * niftiImageData =  new double[arraySize*comp];
 			//this->NiftiImage->data = (void *) new double[arraySize*comp+arraySize];
-			cout << "transform 1.92"  << endl;
 			for (int i = 0; i < arraySize; ++i) 
 				for (int j = 0; j < comp; ++j)
 				{
 					// change from row-major to column major
 					niftiImageData[i+ arraySize * j]  = (double) outDoubleArray[j + comp * i];	
-
 				}
-				cout << "transform 1.93"  << endl;
 				m_NiftiImage->data =  (void *) niftiImageData;
 
 		}
-
-
+		// Spherical Harmonics
 		else if(dataStructure.contains("spherical harmonics")) {
 			cout << "Spherical harmonics"<< endl;
 			// overwrite 
@@ -918,46 +859,52 @@ namespace bmia {
 			m_NiftiImage->swapsize		= 8;					// ...and the swap size is also 8.
 			m_NiftiImage->iname_offset	= 1024;					// Offset for the image name
 			image->Print(cout);
-
+			image->GetPointData()->Print(cout);
 			char buffer[24];
 			memset(buffer, 0, sizeof(buffer));
 			strncpy(buffer, "REALSPHARMCOEFFS", sizeof(buffer));
+			nifti_add_extension(m_NiftiImage, buffer, 24, NIFTI_ECODE_MIND_IDENT); // 24 is length of array which inc. DISCSPHFUNC
 
-			nifti_add_extension(m_NiftiImage, buffer, 24, NIFTI_ECODE_SHC_DEGREEORDER); // 24 is length of array which inc. DISCSPHFUNC
-			vtkDataArray *directionsDoubleArray = image->GetPointData()->GetArray("Spherical Directions") ;
-			int numberOfDirections = image->GetPointData()->GetArray("Spherical Directions")->GetNumberOfTuples();
-			for(int j=0;j<numberOfDirections; j++)
+			//vtkDataArray *theOrderDegreeArray = image->GetPointData()->GetScalars();
+			int shOrder;
+
+	// Get the SH order, based on the number of coefficients
+	switch( image->GetPointData()->GetScalars()->GetNumberOfComponents())
+	{
+		case 1:		shOrder = 0;	break;
+		case 6:		shOrder = 2;	break;
+		case 15:	shOrder = 4;	break;
+		case 28:	shOrder = 6;	break;
+		case 45:	shOrder = 8;	break;
+
+		default:
+			 qDebug() << "Number of SH coefficients are not present!" << endl;
+			return;
+	}
+
+			 
+			for(int j=0;j<=shOrder; j++)
 			{
-				float indx[2]; 
-				indx[0]= (float) directionsDoubleArray->GetTuple2(j)[0];
-				indx[1]= (float) directionsDoubleArray->GetTuple2(j)[1];
-				cout << j << endl;
-				nifti_add_extension(m_NiftiImage, (char *) &(indx[0]), 2 * sizeof(float), NIFTI_ECODE_SPHERICAL_DIRECTION);	 
+				if( j%2 == 0) //even
+				{
+					for(int i = -1*j; i<=j; i++)
+					{ 
+						int indx[2]; 
+					indx[0]= (int)  j;
+					indx[1]= (int) i;
+					cout << j << endl;
+					nifti_add_extension(m_NiftiImage, (char *) &(indx[0]), 2 * sizeof(int), NIFTI_ECODE_SHC_DEGREEORDER);	 
+					}
+				}
 			}
 
-
-			vtkDataArray * inVectors = image->GetPointData()->GetArray("Vectors");
-			cout << "Vectors Tuples and Components:" << image->GetPointData()->GetArray("Vectors")->GetNumberOfComponents() << endl;
-			cout << image->GetPointData()->GetArray("Vectors")->GetNumberOfTuples() << endl;
-			image->GetPointData()->GetArray("Vectors")->Print(cout);
-			if (!inVectors)
-			{
-				cout <<"Input data has no vectors!";
-				return;
-			}
-
-
+			 
 			double *outDoubleArray = static_cast<double*>(image->GetScalarPointer() );
 
 			int arraySize = image->GetNumberOfPoints();
 			int comp = image->GetNumberOfScalarComponents();
-			cout << arraySize << " " << comp << endl;
-
-
-
 			double * niftiImageData =  new double[arraySize*comp];
-			//this->NiftiImage->data = (void *) new double[arraySize*comp+arraySize];
-			cout << "transform 1.92"  << endl;
+
 			for (int i = 0; i < arraySize; ++i) 
 				for (int j = 0; j < comp; ++j)
 				{
@@ -965,7 +912,7 @@ namespace bmia {
 					niftiImageData[i+ arraySize * j]  = (double) outDoubleArray[j + comp * i];	
 
 				}
-				cout << "transform 1.93"  << endl;
+
 				m_NiftiImage->data =  (void *) niftiImageData;
 
 		}
@@ -977,7 +924,6 @@ namespace bmia {
 
 		// Add the two angles to the NIfTI file as an extension
 		nifti_set_iname_offset(m_NiftiImage);
-		cout << " writeMindData 2.1 num extentions:"<< m_NiftiImage->num_ext <<  endl;
 		nifti_image_write( m_NiftiImage );
 
 	}
@@ -985,17 +931,11 @@ namespace bmia {
 	// DTI without MIND extention method
 	void bmiaNiftiWriter::writeDTIVolume(vtkImageData *image, QString saveFileName, vtkObject * transform)
 	{
-		//dim[5]= 6 
+
 		//there must be 6 extentions
-		cout << "writeDTIVolume" << endl;
 		nifti_image * m_NiftiImage = new nifti_image;
 		m_NiftiImage = nifti_simple_init_nim();
-
-
-
-
-		image->Print(cout);
-		cout << "writeDTIVolume 1.2" << endl;
+		//image->Print(cout);
 		double dataTypeSize = 1.0;
 		int dim[3];
 		int wholeExtent[6];
@@ -1010,10 +950,7 @@ namespace bmia {
 		image->GetDimensions(dim);  
 		image->GetWholeExtent(wholeExtent);
 
-		cout << "writeDTIVolume 1.3 image scalar datatype" <<  imageDataType << "pointdata type:" << image->GetPointData()->GetScalars()->GetDataType() << endl;
-		//cin.get();
-		//m_NiftiImage->swapsize  = 16; 
-		//		= nifti_short_order();
+
 		m_NiftiImage->ndim = 5;
 		m_NiftiImage->dim[0] = 5;
 		m_NiftiImage->dim[1] = wholeExtent[1] + 1;
@@ -1033,7 +970,6 @@ namespace bmia {
 		//m_NiftiImage->cal_max = 0.00747808;
 		//m_NiftiImage->cal_min
 
-		//	m_NiftiImage->pixdim[0] = -1 ;
 		m_NiftiImage->pixdim[1] = spacing[0]; cout << "spacing[0] " << spacing[0] << endl;
 		m_NiftiImage->pixdim[2] = spacing[1]; cout << "spacing[1] " << spacing[1] << endl;
 		m_NiftiImage->pixdim[3] = spacing[2];cout << "spacing[2] " << spacing[2] << endl;
@@ -1048,8 +984,7 @@ namespace bmia {
 		m_NiftiImage->du = m_NiftiImage->pixdim[5];
 		m_NiftiImage->dv = m_NiftiImage->pixdim[6];
 		m_NiftiImage->dw = m_NiftiImage->pixdim[7];
-		cout << "writeDTIVolume 1.4" << endl;
-		cin.get();
+
 		int numberOfVoxels = m_NiftiImage->nx;
 
 		if(m_NiftiImage->ny>0){
@@ -1069,7 +1004,6 @@ namespace bmia {
 		m_NiftiImage->nvox = numberOfVoxels;
 
 		if(numComponents==6 ){
-			cout << "writeDTIVolume 1.3 coponenets:" << numComponents<< " voxels: " <<  numberOfVoxels << "imagedatatype"<<  imageDataType << endl;
 			switch(imageDataType)
 			{
 			case VTK_BIT://DT_BINARY:
@@ -1134,26 +1068,19 @@ namespace bmia {
 		}
 
 		m_NiftiImage->nifti_type = NIFTI_FTYPE_NIFTI1_1;//??
-		cout << " writeDTIVolume1.7 "<< endl;
 		m_NiftiImage->fname = nifti_makehdrname( saveFileName.toStdString().c_str(), m_NiftiImage->nifti_type,false,0);
-		cout << " 1.71 "<< endl;
 		m_NiftiImage->iname = nifti_makeimgname(saveFileName.toStdString().c_str(), m_NiftiImage->nifti_type,false,0); // 0 is compressed
-
-		cout << " writeDTIVolume1.8 "<< endl;
-
-
 
 		// Using the "Vector" intent code
 		m_NiftiImage->intent_code = NIFTI_INTENT_SYMMATRIX;
 		m_NiftiImage->intent_p1   = 0.0f; // CHECK !!!!
 		m_NiftiImage->intent_p2   = 0.0f;
 		m_NiftiImage->intent_p3   = 0.0f;
-		//m_NiftiImage->scl_slope = 1;
-		//m_NiftiImage->scl_inter = 0;
+
 
 		if(transform)
 		{
-			cout << "transform"  << endl;
+
 			vtkMatrix4x4 *matrix =  vtkMatrix4x4::New();
 			matrix = vtkMatrix4x4::SafeDownCast(transform);
 			if(matrix)
@@ -1164,7 +1091,6 @@ namespace bmia {
 
 
 				matrix->Print(cout);
-				cout << "transform 1.1"  << endl;
 				mat44 matrixf;
 				for(int i=0;i<4;i++)
 					for(int j=0;j<4;j++)
@@ -1204,12 +1130,12 @@ namespace bmia {
 					}
 			}
 			else {
-				cout << "Invalid   matrix \n";
+				qDebug() << "Invalid   matrix \n";
 			}
 		}
 		else
 		{
-			cout << "Invalid transformation object \n";
+			qDebug() << "Invalid transformation object \n";
 		}
 		// Set the intent name to "MiND"
 		char * intentName = (char*) "DTI";
@@ -1218,13 +1144,10 @@ namespace bmia {
 #else
 		strcpy(&(m_NiftiImage->intent_name[0]), intentName);
 #endif
-		// Initialize the extension list
-		//	m_NiftiImage->num_ext  = 0;
-		//	m_NiftiImage->ext_list = NULL;
-
+	
 		if (!vtkAbstractArray::SafeDownCast(image->GetPointData()->GetArray("Tensors")))
 		{
-			cout << "ERROR: Tensors array missing or not converted to int" << endl;
+			qDebug() << "ERROR: Tensors array missing or not converted to int" << endl;
 		}
 		int indexMap[6] = {0, 1, 3, 2, 4, 5};
 		int arraySize = image->GetPointData()->GetArray("Tensors")->GetNumberOfTuples();
@@ -1233,28 +1156,16 @@ namespace bmia {
 		double *outDoubleArray = static_cast<double*>(image->GetPointData()->GetArray("Tensors")->GetVoidPointer(0));
 
 		image->GetPointData()->GetArray("Tensors")->Print(cout);
-		cout << "size of outDoubleArray:" << sizeof(outDoubleArray) << endl; 
-		cout << "transform 1.91"  << endl;
+		//cout << "size of outDoubleArray:" << sizeof(outDoubleArray) << endl; 
 		double * niftiImageData =  new double[arraySize*comp];
-		//this->NiftiImage->data = (void *) new double[arraySize*comp+arraySize];
-		cout << "transform 1.92"  << endl;
 		for (int i = 0; i < arraySize; ++i) 
 			for (int j = 0; j < comp; ++j)
 			{
 
 				niftiImageData[i + indexMap[j] * arraySize]  = (double) outDoubleArray[j + comp * i];	
 			}
-			cout << "transform 1.93"  << endl;
 			m_NiftiImage->data =  (void *) niftiImageData;
 			//m_NiftiImage->data= (double *) calloc(image->GetPointData()->GetArray("Tensors")->GetNumberOfTuples(), sizeof(double)*6);
-			//m_NiftiImage->data = (double *) vtkDoubleArray::SafeDownCast(image->GetPointData()->GetArray("Tensors"))->GetDa=
-			//C_TYPE * inArrayCasted = (C_TYPE *) this->NiftiImage->data;				 
-			//		for (int i = 0; i < arraySize; ++i) 									 
-			//			outDoubleArray[i] = (double) inArrayCasted[i + COMP * arraySize];	 	
-
-			cout << " writeDTIVolume 2.1 num extentions:"<< m_NiftiImage->num_ext <<  endl;
-			//int num=image->GetPointData()->GetArray("Tensors")->GetNumberOfTuples();
-			//m_NiftiImage->data = outDoubleArray; 
 			nifti_image_write( m_NiftiImage );
 			delete[]  outDoubleArray;
 			delete[] m_NiftiImage;
