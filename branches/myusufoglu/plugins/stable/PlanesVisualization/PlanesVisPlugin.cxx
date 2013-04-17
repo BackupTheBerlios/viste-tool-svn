@@ -75,7 +75,7 @@ namespace bmia {
 
 //-----------------------------[ Constructor ]-----------------------------\\
 
-PlanesVisPlugin::PlanesVisPlugin() : AdvancedPlugin("Planes")
+PlanesVisPlugin::PlanesVisPlugin() : AdvancedPlugin("Planesss")
 {
 	// Create a planes actor, and hide it for now
 	this->actor = vtkImageOrthogonalSlicesActor::New();
