@@ -52,7 +52,7 @@
       </sizepolicy>
      </property>
      <property name="currentIndex">
-      <number>3</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="page">
       <property name="geometry">
@@ -60,7 +60,7 @@
         <x>0</x>
         <y>0</y>
         <width>272</width>
-        <height>814</height>
+        <height>841</height>
        </rect>
       </property>
       <attribute name="label">
@@ -69,26 +69,40 @@
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
         <layout class="QGridLayout" name="gridLayout">
-         <item row="0" column="0">
-          <widget class="QCheckBox" name="checkBoxVisible">
-           <property name="toolTip">
-            <string>Set visibility of mesh</string>
-           </property>
+         <item row="3" column="0">
+          <widget class="QLabel" name="label_7">
            <property name="text">
-            <string>Visible</string>
-           </property>
-           <property name="checked">
-            <bool>false</bool>
+            <string>Mesh reduction</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="1">
-          <layout class="QHBoxLayout" name="horizontalLayout"/>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_8">
+         <item row="4" column="0">
+          <widget class="QLabel" name="label_3">
            <property name="text">
-            <string>Style</string>
+            <string>Min threshold</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QDoubleSpinBox" name="inputSmoothing">
+           <property name="toolTip">
+            <string>Sigma of Gaussian blur</string>
+           </property>
+           <property name="maximum">
+            <double>10.000000000000000</double>
+           </property>
+           <property name="singleStep">
+            <double>0.500000000000000</double>
+           </property>
+           <property name="value">
+            <double>1.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_2">
+           <property name="text">
+            <string>Smoothing</string>
            </property>
           </widget>
          </item>
@@ -114,33 +128,33 @@
            </item>
           </widget>
          </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_2">
-           <property name="text">
-            <string>Smoothing</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="QDoubleSpinBox" name="inputSmoothing">
+         <item row="0" column="0">
+          <widget class="QCheckBox" name="checkBoxVisible">
            <property name="toolTip">
-            <string>Sigma of Gaussian blur</string>
+            <string>Set visibility of mesh</string>
            </property>
-           <property name="maximum">
-            <double>10.000000000000000</double>
+           <property name="text">
+            <string>Visible</string>
            </property>
-           <property name="singleStep">
-            <double>0.500000000000000</double>
-           </property>
-           <property name="value">
-            <double>1.000000000000000</double>
+           <property name="checked">
+            <bool>false</bool>
            </property>
           </widget>
          </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="label_7">
+         <item row="0" column="1">
+          <layout class="QHBoxLayout" name="horizontalLayout"/>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_8">
            <property name="text">
-            <string>Mesh reduction</string>
+            <string>Style</string>
+           </property>
+          </widget>
+         </item>
+         <item row="8" column="0">
+          <widget class="QLabel" name="label_6">
+           <property name="text">
+            <string>Alpha</string>
            </property>
           </widget>
          </item>
@@ -157,13 +171,6 @@
            </property>
            <property name="value">
             <double>0.000000000000000</double>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="0">
-          <widget class="QLabel" name="label_3">
-           <property name="text">
-            <string>Min threshold</string>
            </property>
           </widget>
          </item>
@@ -227,13 +234,6 @@
            </property>
           </widget>
          </item>
-         <item row="8" column="0">
-          <widget class="QLabel" name="label_6">
-           <property name="text">
-            <string>Alpha</string>
-           </property>
-          </widget>
-         </item>
          <item row="8" column="1">
           <widget class="QDoubleSpinBox" name="inputAlpha">
            <property name="maximum">
@@ -252,6 +252,22 @@
            <property name="text">
             <string>Open picker</string>
            </property>
+          </widget>
+         </item>
+         <item row="9" column="0">
+          <widget class="QLabel" name="label_27">
+           <property name="text">
+            <string>Curvature (LUT)</string>
+           </property>
+          </widget>
+         </item>
+         <item row="9" column="1">
+          <widget class="QComboBox" name="comboBoxCurvatureLUT">
+           <item>
+            <property name="text">
+             <string>Disabled</string>
+            </property>
+           </item>
           </widget>
          </item>
         </layout>
@@ -294,7 +310,7 @@
         <x>0</x>
         <y>0</y>
         <width>272</width>
-        <height>814</height>
+        <height>841</height>
        </rect>
       </property>
       <attribute name="label">
@@ -596,7 +612,7 @@
         <x>0</x>
         <y>0</y>
         <width>272</width>
-        <height>814</height>
+        <height>841</height>
        </rect>
       </property>
       <attribute name="label">
@@ -631,7 +647,7 @@
         <x>0</x>
         <y>0</y>
         <width>272</width>
-        <height>814</height>
+        <height>841</height>
        </rect>
       </property>
       <attribute name="label">

@@ -105,6 +105,7 @@ typedef struct
 
     // mesh and mesh settings
     vtkPolyData* polydata;
+	vtkPolyDataMapper* polyDataMapper;
     vtkLODActor* prop;
     double minimumThreshold;
     double maximumThreshold;
@@ -146,26 +147,29 @@ typedef struct
     // fiber selection
     int selectedFiberData;
 
+	// curvature
+	int curvatureLUTIndex;
+	bool usingCurvature;
+
 } ModelInfo;
 
+/** MeasuredPoint struct holding coordinates and 3D actors of a measured point */
 typedef struct
 {
     bool set;
-    double x;
-    double y;
-    double z;
+    double x, y, z;
     vtkActor* sphere;
     vtkActor2D* label;
 
 } MeasuredPoint;
 
+/** Generic vector3 struct */
 typedef struct
 {
-    double x;
-    double y;
-    double z;
+    double x, y, z;
 } Vec3;
 
+/** Holding pointdata and location of the most anterior point of a fiber */
 typedef struct
 {
     QList< Vec3* > data;
@@ -173,6 +177,7 @@ typedef struct
     double userPointRefinement;
 } FiberData;
 
+/** Holding fiberdata */
 typedef struct
 {
     data::DataSet* ds;
@@ -256,6 +261,7 @@ protected slots:
     void inputAlphaChanged(double value);
     void inputReductionChanged(double value);
     void inputSpecularChanged(double value);
+	void comboBoxCurvatureLUTChanged();
 
     void horizontalSliderXChanged(int value);
     void horizontalSliderYChanged(int value);

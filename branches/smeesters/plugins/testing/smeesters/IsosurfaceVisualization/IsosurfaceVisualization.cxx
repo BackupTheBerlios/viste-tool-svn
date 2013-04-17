@@ -182,6 +182,9 @@ void IsosurfaceVisualization::dataSetAdded(data::DataSet * d)
 		// Add to UI combobox for selection of base layer plane LUT
 		this->form->comboBoxBaseLayerLUT->addItem(d->getName());
 
+		// Add to UI combobox for selection of curvature LUT
+		this->form->comboBoxCurvatureLUT->addItem(d->getName());
+
         // Create the lookup table from the transfer function
         createLookupTable(d);
 	}
@@ -245,6 +248,7 @@ void IsosurfaceVisualization::dataSetChanged(data::DataSet * d)
         // Update the LUTs
         comboBoxOverlayLUTChanged();
         comboBoxBaseLayerLUTChanged();
+		comboBoxCurvatureLUTChanged();
 	}
 }
 
@@ -365,6 +369,8 @@ void IsosurfaceVisualization::createModelInfo(data::DataSet * d)
     modelInfo->bDsPolyAdded = false;
 
     modelInfo->alignPlanesToPick = true;
+
+	modelInfo->curvatureLUTIndex = 0;
 
     // create lookup table for grey values
     vtkLookupTable* defaultLUT = vtkLookupTable::New();
@@ -595,6 +601,9 @@ void IsosurfaceVisualization::updateRenderingModels()
 
         data::DataSet* ds = this->current_modelInfo->ds;
 
+		// determine if we should compute curvature
+		bool useCurvature = current_modelInfo->curvatureLUTIndex > 0;
+
         // smooth dataset
         VTK_CREATE(vtkImageGaussianSmooth, smoother);
         smoother->SetInput(ds->getVtkImageData());
@@ -604,7 +613,10 @@ void IsosurfaceVisualization::updateRenderingModels()
         VTK_CREATE(vtkMarchingCubes, mcubes);
         mcubes->SetInputConnection(smoother->GetOutputPort());
         mcubes->SetNumberOfContours(1);
-        mcubes->SetComputeScalars(1);
+		if(useCurvature)
+			mcubes->SetComputeScalars(1);
+		else
+			mcubes->SetComputeScalars(0);
 		//mcubes->SetComputeNormals(1);
         mcubes->GenerateValues(1,current_modelInfo->minimumThreshold,current_modelInfo->maximumThreshold);
 
@@ -653,99 +665,77 @@ void IsosurfaceVisualization::updateRenderingModels()
         clipper->ExtractInsideOn();
         current_modelInfo->extractPolyFunc = clipper;
 
+		// Create polydata mapper
+		vtkPolyDataMapper* polyMapper = vtkPolyDataMapper::New();
+
 		// curvature
-		vtkSmartPointer<vtkCurvatures> curvaturesFilter =
-		vtkSmartPointer<vtkCurvatures>::New();
-		curvaturesFilter->SetInputConnection(clipper->GetOutputPort());
-		//curvaturesFilter->SetCurvatureTypeToMinimum();
-		//curvaturesFilter->SetCurvatureTypeToMaximum();
-		//curvaturesFilter->SetCurvatureTypeToGaussian();
-		curvaturesFilter->SetCurvatureTypeToMean();
-
-		// compute normals
-		//VTK_CREATE(vtkPolyDataNormals, surfaceNormals);
-		//surfaceNormals->SetInputConnection(curvaturesFilter->GetOutputPort());
-		//surfaceNormals->SetComputePointNormals(1);
-		//surfaceNormals->SetComputePointNormals(1);
-
-		// create lookup table
-		double scalarRange[2];
-		curvaturesFilter->GetOutput()->GetScalarRange(scalarRange);
-
-		std::cout << "SCALAR RANGE: " << scalarRange[0] << " - " << scalarRange[1] << std::endl;
-
-		vtkLookupTable* convLUT = vtkLookupTable::New();
-		//convLUT->SetScaleToLinear();
-		//convLUT->SetValueRange(0,1);
-		//convLUT->SetNumberOfTableValues(128);
-		//convLUT->SetTableRange(0,128);
-		//convLUT->Build();
-
-		//for(int j = 0; j<128; j++)
-		//{
-		//	if(j < 64)
-		//	{
-		//		convLUT->SetTableValue(j,
-		//						   1.0,
-		//						   1.0,
-		//						   1.0,
-		//						   0.0);
-		//	}
-		//	else
-		//	{
-		//		convLUT->SetTableValue(j,
-		//						   1.0,
-		//						   0.0,
-		//						   1.0,
-		//						   1.0);
-		//	}
-
-		//	/*convLUT->SetTableValue(j,
-		//						   1.0,
-		//						   1.0,
-		//						   1.0,
-		//						   std::max(0.0,(j-64)/128.0));*/
-		//}
-
-		//convLUT->SetHueRange(0.0,0.6);		//Red to Blue
-		//convLUT->SetAlphaRange(1.0,1.0);
-		//convLUT->SetValueRange(1.0,1.0);
-		//convLUT->SetSaturationRange(1.0,1.0);
-		convLUT->SetNumberOfTableValues(100);
-		convLUT->SetRange(0,100);
-		convLUT->Build();
-
-		convLUT->Print(std::cout);
-
-		for(int j = 0; j<100; j++)
+		if(useCurvature)
 		{
-			double* bbb = convLUT->GetTableValue(j);
+			// perform curvature filter
+			vtkSmartPointer<vtkCurvatures> curvaturesFilter =
+			vtkSmartPointer<vtkCurvatures>::New();
+			curvaturesFilter->SetInputConnection(clipper->GetOutputPort());
+			//curvaturesFilter->SetCurvatureTypeToMinimum();
+			//curvaturesFilter->SetCurvatureTypeToMaximum();
+			//curvaturesFilter->SetCurvatureTypeToGaussian();
+			curvaturesFilter->SetCurvatureTypeToMean();
 
-			if( j > 0 && j < 80)
-				convLUT->SetTableValue(j,1.0,1.0,1.0,1.0);
-			else if(j >= 80 && j < 100)
-				convLUT->SetTableValue(j,1-(j-80)/20.0*0.25,1-(j-80)/20.0*0.25,1-(j-80)/20.0*0.25,1.0);
+			// progress of curvature
+			this->core()->out()->createProgressBarForAlgorithm(curvaturesFilter, "Isosurface Visualization", "Curvature filter...");
+			curvaturesFilter->Update();
+			this->core()->out()->deleteProgressBarForAlgorithm(curvaturesFilter);
+
+			// create default curvature lookup table
+			/*vtkLookupTable* convLUT;
+		
+				convLUT = vtkLookupTable::New();
+				convLUT->SetNumberOfTableValues(100);
+				convLUT->SetRange(0,100);
+				convLUT->Build();
+
+				for(int j = 0; j<100; j++)
+				{
+					double* bbb = convLUT->GetTableValue(j);
+
+					if( j > 0 && j < 80)
+						convLUT->SetTableValue(j,1.0,1.0,1.0,1.0);
+					else if(j >= 80 && j < 100)
+						convLUT->SetTableValue(j,1-(j-80)/20.0*0.25,1-(j-80)/20.0*0.25,1-(j-80)/20.0*0.25,1.0);
+					else
+						convLUT->SetTableValue(j,0.75,0.75,0.75,1.0);
+				}
+				convLUT->SetRampToSCurve();
+
+				current_modelInfo->curvatureLUT = convLUT;
+			}
 			else
-				convLUT->SetTableValue(j,0.75,0.75,0.75,1.0);
+			{
+				convLUT = current_modelInfo->curvatureLUT;
+			}*/
 
-			//std::cout << "j: " << j << " " << bbb[0] << " " << bbb[1] << " " << bbb[2] << " " << bbb[3] << std::endl;
+			// Get LUT from saved list
+			vtkLookupTable* ctf = this->lookUpTables.at(current_modelInfo->curvatureLUTIndex - 1);
+
+			// Use curvature output in polydatamapper and set LUT
+			polyMapper->SetInputConnection(curvaturesFilter->GetOutputPort());
+			polyMapper->SetLookupTable(ctf);
+
+			current_modelInfo->usingCurvature = true;
 		}
-		convLUT->SetRampToSCurve();
+		else
+		{
+			polyMapper->SetInputConnection(clipper->GetOutputPort());
+			current_modelInfo->usingCurvature = false;
+		}
 
-
-		// Create a mapper and actor
-        VTK_CREATE(vtkPolyDataMapper,polyMapper);
-		polyMapper->SetInputConnection(curvaturesFilter->GetOutputPort());
-		polyMapper->SetLookupTable(convLUT);
-		//polyMapper->SetScalarRange(0,1533);
-
-        // Create a mapper and actor
-        //VTK_CREATE(vtkPolyDataMapper,polyMapper);
-        //polyMapper->SetInputConnection(clipper->GetOutputPort());
-
+		// Create actor
         VTK_CREATE(vtkLODActor,actor);
         actor->SetMapper(polyMapper);
-        //actor->GetProperty()->SetColor(current_modelInfo->color);
+		// No curvature, then set a color
+		if(!useCurvature)
+		{
+			actor->GetProperty()->SetColor(current_modelInfo->color);
+		}
         if(current_modelInfo->alpha < 1.0)
         {
             actor->GetProperty()->SetOpacity(current_modelInfo->alpha);
@@ -788,6 +778,7 @@ void IsosurfaceVisualization::updateRenderingModels()
         id->Delete();
         tfm->Delete();
 
+		current_modelInfo->polyDataMapper = polyMapper;
         current_modelInfo->polydata = connectivity->GetOutput();
         current_modelInfo->prop = actor;
         this->assembly->AddPart(actor);
@@ -1145,6 +1136,7 @@ void IsosurfaceVisualization::connectAll()
     connect(this->form->inputSpecular,SIGNAL(valueChanged(double)),this,SLOT(inputSpecularChanged(double)));
     connect(this->form->inputAlpha,SIGNAL(valueChanged(double)),this,SLOT(inputAlphaChanged(double)));
     connect(this->form->checkBoxLargestComponent,SIGNAL(toggled(bool)),this,SLOT(checkBoxLargestComponentChanged(bool)));
+	connect(this->form->comboBoxCurvatureLUT,SIGNAL(currentIndexChanged(int)),this,SLOT(comboBoxCurvatureLUTChanged()));
     connect(this->form->buttonUpdate,SIGNAL(clicked()),this,SLOT(buttonUpdateClicked()));
 
     // Clipping planes
@@ -1366,9 +1358,45 @@ void IsosurfaceVisualization::comboBoxOverlayLUTChanged()
                 this->overlay_modelInfo->orthogonalPlanesModels[i]->GetProperty()->SetLookupTable(this->overlay_modelInfo->defaultLUT);
             }
         }
-    }
 
-    this->core()->render();
+		this->core()->render();
+    }
+}
+
+//---------------[ Select curvature LUT for mesh ]-----------------\\
+
+void IsosurfaceVisualization::comboBoxCurvatureLUTChanged()
+{
+    // select model info matching the dataset
+    int index = this->form->comboBoxCurvatureLUT->currentIndex();
+
+    if(this->current_modelInfo->prop != NULL)
+    {
+		this->current_modelInfo->curvatureLUTIndex = index;
+
+        if(index > 0)
+        {
+			// if curvature was already computed. (otherwise update is necessary)
+			if(current_modelInfo->usingCurvature)
+			{
+				vtkLookupTable* ctf = this->lookUpTables.at(index - 1);
+				current_modelInfo->polyDataMapper->SetLookupTable(ctf);
+				current_modelInfo->polyDataMapper->Update();
+			}
+			else
+				bModelDirty = true;
+        }
+
+        // disable curvature 
+        else if(index == 0)
+        {
+			// set blank LUT
+			vtkLookupTable* ctf = vtkLookupTable::New();
+            current_modelInfo->polyDataMapper->SetLookupTable(ctf);
+        }
+
+		this->core()->render();
+    }
 }
 
 //---------------[ Select base layer LUT for clipping planes ]-----------------\\
@@ -1399,9 +1427,9 @@ void IsosurfaceVisualization::comboBoxBaseLayerLUTChanged()
                 this->current_modelInfo->orthogonalPlanesModels[i]->GetProperty()->SetLookupTable(this->current_modelInfo->defaultLUT);
             }
         }
-    }
 
-    this->core()->render();
+		this->core()->render();
+    }
 }
 
 //------------------------[ Change visibility of model ]-----------------------\\
