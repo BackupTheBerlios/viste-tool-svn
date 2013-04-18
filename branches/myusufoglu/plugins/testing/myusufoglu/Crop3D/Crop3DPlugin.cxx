@@ -173,6 +173,8 @@ namespace bmia {
 		 boxBoxRepresentation->SetDragable(0);
 		 boxBoxRepresentation->SetHandleSize(0);
 		 this->roiBox->SetRepresentation(this->boxBoxRepresentation);
+		 //double bnds[6]={ 0,0,0,0,0,0}
+		 	//this->boxBoxRepresentation->PlaceWidget(bnds);
 		 this->setZVisible(0);
 		 this->setXVisible(0);
 		 this->setYVisible(0);
@@ -710,11 +712,13 @@ namespace bmia {
 				A[4]=bndVerticeLowerTranslated[2]; 
 				A[5]=bndVerticeUpperTranslated[2]; 
                // Place the widget to appropriate position
+				// transformationMatrix->
 					boxtransform->SetMatrix(transformationMatrix);
-				
+					
 			boxtransform->Update();
-
+		
 				this->boxBoxRepresentation->PlaceWidget((double *)A);
+				
 		this->boxBoxRepresentation->SetTransform(boxtransform);
 			
 				
