@@ -45,8 +45,7 @@
 
 
 #include "SaveDialog.h"
-// temporary
-#include "vtkTransform.h"
+
 
 namespace bmia {
 
@@ -445,23 +444,18 @@ namespace bmia {
 						qDebug() << "Item is a child, please select the data itself."<< endl;	
 						return; 
 					} 
-					else
-					{
-						cout << "printing child columns" << endl;
-						for( int i = 0; i < item->childCount(); ++i )  {
-							for( int col = 0; col < item->columnCount(); ++col )
-								cout << item->child(i)->text(col).toStdString() ;  cout  << endl;
-						}
-					}
+					//else
+					//{
+					//	for( int i = 0; i < item->childCount(); ++i )  {
+					//		for( int col = 0; col < item->columnCount(); ++col )
+					//			cout << item->child(i)->text(col).toStdString() ;  cout  << endl;
+					//	}
+					//}
 
 				}
 
 			}
 
-
-
-			cout << "this->treeWidget->currentIndex().row():" << this->treeWidget->currentIndex().row() << " ";
-			cout << this->treeWidget->currentIndex().column() << endl;
 
 			DataSet * ds= this->dataSets[this->treeWidget->currentIndex().row()];
 			QString name(ds->getName());  
@@ -476,7 +470,7 @@ namespace bmia {
 				saveFileName = QFileDialog::getSaveFileName(this,
 					"Save Data as...",
 					fileName,	
-					"VTK (*.vtk);;Nifti (*.nii);; Nifti (*.nii.gz);; VTK Image (*.vti);;VTK Polydata (*.vtp)");
+					"Nifti (*.nii);; Nifti (*.nii.gz);; VTK Image (*.vti);;VTK Polydata (*.vtp)");
 			}
 			else
 			{
@@ -490,11 +484,6 @@ namespace bmia {
 				return;
 			QStringRef fileNameExtention(&saveFileName,saveFileName.lastIndexOf(QString(".")),4 );
 			this->hide();
-
-			cout << "saveFileName:" << saveFileName.toStdString() << endl;
-			cout << fileNameExtention.toString().toStdString() << endl;
-			//cin.get();
-
 
 			vtkImageData * image   = ds->getVtkImageData();
 			vtkPolyData * polyData =  ds->getVtkPolyData();
@@ -511,28 +500,29 @@ namespace bmia {
 			}
 
 			if(image && (kind.contains("scalar volume") || kind.contains("eigen") || kind.contains("DTI") || kind.contains("discrete sphere") || kind.contains("spherical harmonics")  ))// && (ds->getVtkImageData()->GetNumberOfScalarComponents() ==1 ))
-			{
-				qDebug() << "Writing the image data. No of scalar components is:" << image->GetNumberOfScalarComponents() << endl;
-				//image->Print(cout);
+            {
+                qDebug() << "Writing the image data. No of scalar components is:" << image->GetNumberOfScalarComponents() << endl;
+                //image->Print(cout);
 
-				if((fileNameExtention.toString()==".vtk") || fileNameExtention.toString()==".vti" )
-				{
-					cout << "saving vtk or vti" << endl;
-					writer->SetInput ( (vtkDataObject*)(image) );
-					//save the transfer matrix along with the image
-					writer->SetFileTypeToBinary();
-					writer->SetFileName( saveFileName.toStdString().c_str() );
-					writer->Write();
-					this->saveTransferMatrix(saveFileName, ds ); 
-				}
+                if( fileNameExtention.toString()==".vti" )
+                {
+                    vtkXMLImageDataWriter *writerXML = vtkXMLImageDataWriter::New();
+                    cout << "saving vtk or vti" << endl;
+                    writerXML->SetInput ( (vtkDataObject*)(image) );
+                    //save the transfer matrix along with the image
+                    //writerXML->SetFileTypeToBinary();
+                    writerXML->SetFileName( saveFileName.toStdString().c_str() );
+                    writerXML->Write();
+                    this->saveTransferMatrix(saveFileName, ds ); 
+                    writerXML->Delete();
+                }
+
 				else if( fileNameExtention.toString()==".nii" || fileNameExtention.toString()==".gz"  )
 				{
-					cout << "saving nifti" << endl;
 					vtkObject * attObject = vtkObject::New();
-			cout << "Get attribute transf mat. "<< endl;
 			ds->getAttributes()->getAttribute("transformation matrix", attObject);
 			 
-					//this->setNiftiFields(image,saveFileName.toStdString().c_str(),ds);
+	
 					this->getManager()->writeDataToFile(saveFileName, ds); // who will decide the data type supported extention writer can decide. Niftiwriter can decide.
 				}
 
@@ -561,17 +551,6 @@ namespace bmia {
 			}
 
 
-
-
-
-
-			//image->Delete();
-			//polyData->Delete();
-			//obj->Delete();
-
-
-			//writer->Update();
-
 		}
 
 		//--------------------------------[ saveTransferMatrix ]--------------------------------\\
@@ -593,7 +572,6 @@ namespace bmia {
 				QString fileNameRootQStr = fileNameRoot.toString()  +".tfm";
 
 				// write the matrix to a ".tfm" file
-				cout << fileNameRootQStr.toStdString() << endl;
 				bool success = TransformationMatrixIO::writeMatrix(fileNameRootQStr.toStdString() , vtkMatrix4x4::SafeDownCast(attObject), err);
 
 				// Display error messages if necessary
@@ -613,214 +591,7 @@ namespace bmia {
 			// Simply hide the dialog window
 			this->hide();
 		}
-		//--------------------------------[ setNiftiFields ]--------------------------------\\
-		// will be moved to
-		void SaveDialog::setNiftiFields(vtkImageData * image, const QString saveFileName, data::DataSet *ds )
-		{
-
-
-			nifti_image * m_NiftiImage = new nifti_image;
-			m_NiftiImage = nifti_simple_init_nim();
-			//print for debug
-			image->Print(cout);
-			double dataTypeSize = 1.0;
-			int dim[3];
-			int wholeExtent[6];
-			double spacing[3];
-			double origin[3];
-			image->Update();
-			int numComponents = image->GetNumberOfScalarComponents();
-			int imageDataType = image->GetScalarType();
-
-			image->GetOrigin(origin);
-			image->GetSpacing(spacing);
-			image->GetDimensions(dim);
-			image->GetWholeExtent(wholeExtent);
-			m_NiftiImage->dt = 0;
-
-			m_NiftiImage->ndim = 3;
-			m_NiftiImage->dim[1] = wholeExtent[1] + 1;
-			m_NiftiImage->dim[2] = wholeExtent[3] + 1;
-			m_NiftiImage->dim[3] = wholeExtent[5] + 1;
-			m_NiftiImage->dim[4] = 1;
-			m_NiftiImage->dim[5] = 1;
-			m_NiftiImage->dim[6] = 1;
-			m_NiftiImage->dim[7] = 1;
-			m_NiftiImage->nx =  m_NiftiImage->dim[1];
-			m_NiftiImage->ny =  m_NiftiImage->dim[2];
-			m_NiftiImage->nz =  m_NiftiImage->dim[3];
-			m_NiftiImage->nt =  m_NiftiImage->dim[4];
-			m_NiftiImage->nu =  m_NiftiImage->dim[5];
-			m_NiftiImage->nv =  m_NiftiImage->dim[6];
-			m_NiftiImage->nw =  m_NiftiImage->dim[7];
-
-			//nhdr.pixdim[0] = 0.0 ;
-			m_NiftiImage->pixdim[1] = spacing[0];
-			m_NiftiImage->pixdim[2] = spacing[1];
-			m_NiftiImage->pixdim[3] = spacing[2];
-			m_NiftiImage->pixdim[4] = 0;
-			m_NiftiImage->pixdim[5] = 1;
-			m_NiftiImage->pixdim[6] = 1;
-			m_NiftiImage->pixdim[7] = 1;
-			m_NiftiImage->dx = m_NiftiImage->pixdim[1];
-			m_NiftiImage->dy = m_NiftiImage->pixdim[2];
-			m_NiftiImage->dz = m_NiftiImage->pixdim[3];
-			m_NiftiImage->dt = m_NiftiImage->pixdim[4];
-			m_NiftiImage->du = m_NiftiImage->pixdim[5];
-			m_NiftiImage->dv = m_NiftiImage->pixdim[6];
-			m_NiftiImage->dw = m_NiftiImage->pixdim[7];
-
-			int numberOfVoxels = m_NiftiImage->nx;
-
-			if(m_NiftiImage->ny>0){
-				numberOfVoxels*=m_NiftiImage->ny;
-			}
-			if(m_NiftiImage->nz>0){
-				numberOfVoxels*=m_NiftiImage->nz;
-			}
-			if(m_NiftiImage->nt>0){
-				numberOfVoxels*=m_NiftiImage->nt;
-			}
-			if(m_NiftiImage->nu>0){
-				numberOfVoxels*=m_NiftiImage->nu;
-			}
-			if(m_NiftiImage->nv>0){
-				numberOfVoxels*=m_NiftiImage->nv;
-			}
-			if(m_NiftiImage->nw>0){
-				numberOfVoxels*=m_NiftiImage->nw;
-			}
-
-			m_NiftiImage->nvox = numberOfVoxels;
-
-			if(numComponents==1 || numComponents==6 ){
-				switch(imageDataType)
-				{
-				case VTK_BIT://DT_BINARY:
-					m_NiftiImage->datatype = DT_BINARY;
-					m_NiftiImage->nbyper = 0;
-					dataTypeSize = 0.125;
-					break;
-				case VTK_UNSIGNED_CHAR://DT_UNSIGNED_CHAR:
-					m_NiftiImage->datatype = DT_UNSIGNED_CHAR;
-					m_NiftiImage->nbyper = 1;
-					dataTypeSize = m_NiftiImage->nbyper;
-					break;
-				case VTK_SIGNED_CHAR://DT_INT8:
-					m_NiftiImage->datatype = DT_INT8;
-					m_NiftiImage->nbyper = 1;
-					dataTypeSize = m_NiftiImage->nbyper;
-					break;
-				case VTK_SHORT://DT_SIGNED_SHORT:
-					m_NiftiImage->datatype = DT_SIGNED_SHORT;
-					m_NiftiImage->nbyper = 2;
-					dataTypeSize = m_NiftiImage->nbyper;
-					break;
-				case VTK_UNSIGNED_SHORT://DT_UINT16:
-					m_NiftiImage->datatype = DT_UINT16;
-					m_NiftiImage->nbyper = 2;
-					dataTypeSize = m_NiftiImage->nbyper;
-					break;
-				case VTK_INT://DT_SIGNED_INT:
-					m_NiftiImage->datatype = DT_SIGNED_INT;
-					m_NiftiImage->nbyper = 4;
-					dataTypeSize = m_NiftiImage->nbyper;
-					break;
-				case VTK_UNSIGNED_INT://DT_UINT32:
-					m_NiftiImage->datatype = DT_UINT32;
-					m_NiftiImage->nbyper = 4;
-					dataTypeSize = m_NiftiImage->nbyper;
-					break;
-				case VTK_FLOAT://DT_FLOAT:
-					m_NiftiImage->datatype = DT_FLOAT;
-					m_NiftiImage->nbyper = 4;
-					dataTypeSize = m_NiftiImage->nbyper;
-					break;
-				case VTK_DOUBLE://DT_DOUBLE:
-					m_NiftiImage->datatype = DT_DOUBLE;
-					m_NiftiImage->nbyper = 8;
-					dataTypeSize = m_NiftiImage->nbyper;
-					break;
-				case VTK_LONG://DT_INT64:
-					m_NiftiImage->datatype = DT_INT64;
-					m_NiftiImage->nbyper = 8;
-					dataTypeSize = m_NiftiImage->nbyper;
-					break;
-				case VTK_UNSIGNED_LONG://DT_UINT64:
-					m_NiftiImage->datatype = DT_UINT64;
-					m_NiftiImage->nbyper = 8;
-					dataTypeSize = m_NiftiImage->nbyper;
-					break;
-				default:
-					cout << "cannot handle this type" << endl ;
-					break;
-				}
-			}
-			// m_NiftiImage->data = image->GetPointData( // scalar pointer i ekle buraya !!!! yer ac? 
-			m_NiftiImage->nifti_type = NIFTI_FTYPE_NIFTI1_1;
-			m_NiftiImage->data=const_cast<void *>( image->GetScalarPointer());
-
-			m_NiftiImage->fname = nifti_makehdrname( saveFileName.toStdString().c_str(), m_NiftiImage->nifti_type,false,0);
-			m_NiftiImage->iname = nifti_makeimgname(saveFileName.toStdString().c_str(), m_NiftiImage->nifti_type,false,0); // 0 is compressed
-			m_NiftiImage->qform_code = 1;
-
-			//Transformation and quaternion
-			vtkObject * attObject = vtkObject::New();
-			cout << "Get attribute transf mat. "<< endl;
-			ds->getAttributes()->getAttribute("transformation matrix", attObject);
-			cout << "Get attribute transf mat. OK "<< endl;
-			if(attObject)
-			{
-				cout << "attObject"  << endl;
-				vtkMatrix4x4 *matrix =  vtkMatrix4x4::New();
-					matrix = vtkMatrix4x4::SafeDownCast(attObject);
-				if(matrix)
-				{
-				matrix->Print(cout);
-				cout << "attObject 1.1"  << endl;
-				mat44 matrixf;
-				for(int i=0;i<4;i++)
-					for(int j=0;j<4;j++)
-					{
-						matrixf.m[i][j] = matrix->GetElement(i,j);
-						cout <<  matrixf.m[i][j] << endl;
-					}
-					cout << "attObject 1.2"  << endl;
-					nifti_mat44_to_quatern(matrixf, &( m_NiftiImage->quatern_b), &( m_NiftiImage->quatern_c), &( m_NiftiImage->quatern_d), 
-						&( m_NiftiImage->qoffset_x), &(m_NiftiImage->qoffset_y), &(m_NiftiImage->qoffset_z), &(m_NiftiImage->dx) , &(m_NiftiImage->dy) ,&(m_NiftiImage->dz) , &(m_NiftiImage->qfac));
-
-
-					cout << m_NiftiImage->quatern_b << " " << m_NiftiImage->quatern_c << " " << m_NiftiImage->quatern_d << " " << m_NiftiImage->qfac << " " << endl;
-					cout << m_NiftiImage->qoffset_x << " " << m_NiftiImage->qoffset_y << " " << m_NiftiImage->qoffset_z <<endl;
-
-					// in case the matrix is not pure transform, quaternion can not include scaling part. Therefore if the matris is not a pure transform matrix use scaling factor in spacing?
-					float scaling[3];
-					if(matrix->Determinant() != 1)
-					{
-						cout << "Determinant not 1. Find scaling." << endl;
-						vtkTransform *transform = vtkTransform::New();
-						transform->SetMatrix(matrix);
-						transform->Scale(scaling);
-
-						m_NiftiImage->pixdim[1] = spacing[0]*scaling[0];
-						m_NiftiImage->pixdim[2] = spacing[1]*scaling[1];
-						m_NiftiImage->pixdim[3] = spacing[2]*scaling[2];
-						transform->Delete();
-					}
-				}
-				else {
-					cout << "Invalid   matrix \n";
-				}
-			}
-			else
-			{
-				cout << "Invalid transformation object \n";
-			}
-			nifti_set_iname_offset(m_NiftiImage);
-			// Write the image fiel 
-			nifti_image_write( m_NiftiImage );
-		}
-
+		 
 	} // namespace gui
 
 

@@ -56,8 +56,6 @@
 //some data saved with a transformation matrix
 #include "Helpers/TransformationMatrixIO.h"
 
-//#include "NIfTI/nifti1.h"
-//#include "NIfTI/nifti1_io.h"
 
 /** Includes - Qt */
 
@@ -78,6 +76,7 @@
 #include <vtkPolyData.h>
 #include <vtkDataSetWriter.h>
 #include <vtkAlgorithmOutput.h>
+#include <vtkXMLImageDataWriter.h>
 
 /** Includes - NIfTI TODO: take to bmia nifti writer*/
 
@@ -195,7 +194,7 @@ class SaveDialog : public QDialog, public data::Consumer
 
 		void addSubItem(QTreeWidgetItem * parentItem, QString itemText);
 
-		void setNiftiFields(vtkImageData * image, const QString saveFileName,data::DataSet *ds );
+		 
 
 }; // class SaveDialog
 
