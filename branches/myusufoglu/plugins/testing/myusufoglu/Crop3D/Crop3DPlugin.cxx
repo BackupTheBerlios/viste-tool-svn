@@ -165,13 +165,14 @@ namespace bmia {
 		this->roiBox->SetEnabled(true);
 		this->roiBox->SetRotationEnabled(0);
 		this->roiBox->SetMoveFacesEnabled(0);
-
-         boxRep = this->roiBox->GetRepresentation();
-		 boxRep->SetPlaceFactor(1);
-		 boxRep->SetVisibility(0);
-		 boxRep->SetPickable(0);
-		 boxRep->SetDragable(0);
-		 boxRep->SetHandleSize(0);
+		boxBoxRepresentation = vtkBoxRepresentation::New();
+		 boxtransform = vtkTransform::New();
+		 boxBoxRepresentation->SetPlaceFactor(1);
+		 boxBoxRepresentation->SetVisibility(0);
+		 boxBoxRepresentation->SetPickable(0);
+		 boxBoxRepresentation->SetDragable(0);
+		 boxBoxRepresentation->SetHandleSize(0);
+		 this->roiBox->SetRepresentation(this->boxBoxRepresentation);
 		 this->setZVisible(0);
 		 this->setXVisible(0);
 		 this->setYVisible(0);
@@ -286,19 +287,19 @@ namespace bmia {
 			//ROI
 			disconnect(this->ui->cropButton,		SIGNAL(clicked()),			this , SLOT( cropData() )			);
 			//3D Crop ROI spin -> slider connection 
-			disconnect(this->ui->x0ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderX0 , SLOT(setValue(int) )			);
-			disconnect(this->ui->y0ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderY0 , SLOT(setValue(int) )			);
-			disconnect(this->ui->z0ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderZ0 , SLOT(setValue(int) )			);
-			disconnect(this->ui->x1ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderX1 , SLOT(setValue(int) )			);
-			disconnect(this->ui->y1ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderY1 , SLOT(setValue(int) )			);
-			disconnect(this->ui->z1ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderZ1 , SLOT(setValue(int) )			);
+			disconnect(this->ui->x0ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderX0 , SLOT(setValue(int) )		);
+			disconnect(this->ui->y0ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderY0 , SLOT(setValue(int) )		);
+			disconnect(this->ui->z0ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderZ0 , SLOT(setValue(int) )		);
+			disconnect(this->ui->x1ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderX1 , SLOT(setValue(int) )		);
+			disconnect(this->ui->y1ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderY1 , SLOT(setValue(int) )		);
+			disconnect(this->ui->z1ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderZ1 , SLOT(setValue(int) )		);
 			//3D Crpo ROI   slider->spin conection 
-			disconnect(this->ui->horizontalSliderX0,		SIGNAL(valueChanged(int)),			this->ui->x0ROIPositionSpin, SLOT(setValue(int) )			);
-			disconnect(this->ui->horizontalSliderY0,		SIGNAL(valueChanged(int)),			this->ui->y0ROIPositionSpin, SLOT(setValue(int) )			);
-			disconnect(this->ui->horizontalSliderZ0,		SIGNAL(valueChanged(int)),			this->ui->z0ROIPositionSpin, SLOT(setValue(int) )			);
-			disconnect(this->ui->horizontalSliderX1,		SIGNAL(valueChanged(int)),			this->ui->x1ROIPositionSpin, SLOT(setValue(int) )			);
-			disconnect(this->ui->horizontalSliderY1,		SIGNAL(valueChanged(int)),			this->ui->y1ROIPositionSpin, SLOT(setValue(int) )			);
-			disconnect(this->ui->horizontalSliderZ1,		SIGNAL(valueChanged(int)),			this->ui->z1ROIPositionSpin, SLOT(setValue(int) )			);
+			disconnect(this->ui->horizontalSliderX0,		SIGNAL(valueChanged(int)),			this->ui->x0ROIPositionSpin, SLOT(setValue(int) )	);
+			disconnect(this->ui->horizontalSliderY0,		SIGNAL(valueChanged(int)),			this->ui->y0ROIPositionSpin, SLOT(setValue(int) )	);
+			disconnect(this->ui->horizontalSliderZ0,		SIGNAL(valueChanged(int)),			this->ui->z0ROIPositionSpin, SLOT(setValue(int) )	);
+			disconnect(this->ui->horizontalSliderX1,		SIGNAL(valueChanged(int)),			this->ui->x1ROIPositionSpin, SLOT(setValue(int) )	);
+			disconnect(this->ui->horizontalSliderY1,		SIGNAL(valueChanged(int)),			this->ui->y1ROIPositionSpin, SLOT(setValue(int) )	);
+			disconnect(this->ui->horizontalSliderZ1,		SIGNAL(valueChanged(int)),			this->ui->z1ROIPositionSpin, SLOT(setValue(int) )	);
 
 			disconnect(this->ui->xPositionSlide,SIGNAL(valueChanged(int)), this->ui->xPositionSpin, SLOT(setValue(int)));
 			disconnect(this->ui->yPositionSlide,SIGNAL(valueChanged(int)), this->ui->yPositionSpin, SLOT(setValue(int)));
@@ -614,20 +615,22 @@ namespace bmia {
 	void Crop3DPlugin::setRoiBoxVisible(bool v)
 	{
 		//this->roiBox->PlaceWidget(this->actor->GetBounds());
-	
-		 
+		 if(v) 	
+			this->changeRoiBoundary(0);// argument not used
+
 		// Take form the slice sliders 
-		this->boxRep->SetVisibility(v);
+		this->boxBoxRepresentation->SetVisibility(v);
+		
 		//this->fullCore()->canvas()->GetRenderer3D()->Render();
 		this->core()->render();  
 		//this->roiBox->ProcessEventsOn();
 	}
 
-		void Crop3DPlugin::changeRoiBoundary(int value)
+		void Crop3DPlugin::changeRoiBoundary( int notUsed )
 	{
 		int *bndSlices = new int[6];
 		get3DROIBoundaries(bndSlices);
-		//cout << value << " ";
+ 
 		double *bnd = new double[6];
 		//bnd=this->actor->GetBounds();
 		bnd[0]=this->actor->GetSliceLocation(0,bndSlices[0]);
@@ -637,7 +640,6 @@ namespace bmia {
 		bnd[4]=this->actor->GetSliceLocation(2,bndSlices[4]);
 		bnd[5]=this->actor->GetSliceLocation(2,bndSlices[5]);
 			
-		//cout << "bnd:" << bnd[0] << "  " << bnd[1] << "  " << bnd[2]<< "  " << bnd[3]<< "  " << bnd[4]<< "  " << bnd[5] << endl;
 		data::DataSet * ds;
 		if ((this->ui->scalarVolumeRadio->isChecked()))
 			
@@ -660,24 +662,25 @@ namespace bmia {
 
         // Check for a transformation matrix
 		vtkObject * obj = NULL;
-		
+		vtkMatrix4x4 * transformationMatrix=vtkMatrix4x4::New();
+		//There may be no transformation attribute
+		transformationMatrix->Identity(); 
 		if (ds->getAttributes()->getAttribute("transformation matrix", obj))
 		{
+				
 			// Cast the object to a transformation matrix
-			vtkMatrix4x4 * transformationMatrix = vtkMatrix4x4::SafeDownCast(obj);
+			 transformationMatrix = vtkMatrix4x4::SafeDownCast(obj);
 			
 			// Check if this went okay
 			if (!transformationMatrix)
 			{
 				this->core()->out()->logMessage("Not a valid transformation matrix!");
-				return;
+				//return;
 			}
-		
-			// Loop through all three dimensions
-			//for (int i = 0; i < 3; ++i)
-			//{
+		}
 				// Copy the matrix to a new one, and apply it to the current slice actor
 				vtkMatrix4x4 * matrixCopy = vtkMatrix4x4::New();
+				
 				matrixCopy->DeepCopy(transformationMatrix);
 				vtkMatrix4x4 * matrixCopy2 = vtkMatrix4x4::New();
 				matrixCopy2->DeepCopy(transformationMatrix);
@@ -690,16 +693,14 @@ namespace bmia {
 				bndTemp[2]=bnd[4];
 				bndTemp[3]=1;
 				bndVerticeLowerTranslated = matrixCopy->MultiplyDoublePoint(bndTemp);
-			//	cout << "vertice lower translated:" << bndVerticeLowerTranslated[0] << "  " << bndVerticeLowerTranslated[1] << "  " << bndVerticeLowerTranslated[2]<< "  " << endl;
-		 
-				  bndTemp2[0]=bnd[1];
+	 
+				bndTemp2[0]=bnd[1];
 				  bndTemp2[1]=bnd[3];
 				  bndTemp2[2]=bnd[5];
 				bndTemp2[3]=1;
 				bndVerticeUpperTranslated = matrixCopy2->MultiplyDoublePoint(bndTemp2);
-				//	cout << "vertice upper translated:" << bndVerticeUpperTranslated[0] << "  " << bndVerticeUpperTranslated[1] << "  " << bndVerticeUpperTranslated[2]<< "  " << endl;
-                
-				double A[6]; 
+ 
+			double A[6]; 
 				A[0]=bndVerticeLowerTranslated[0]; 
 				A[1]=bndVerticeUpperTranslated[0]; 
 
@@ -708,12 +709,21 @@ namespace bmia {
 				
 				A[4]=bndVerticeLowerTranslated[2]; 
 				A[5]=bndVerticeUpperTranslated[2]; 
-			//	cout << "translated:" << A[0] << "  " << A[1] << "  " << A[2]<< "  " << A[3]<< "  " << A[4]<< "  " << A[5] << endl;
-				this->boxRep->PlaceWidget((double *)A);
+               // Place the widget to appropriate position
+					boxtransform->SetMatrix(transformationMatrix);
+				
+			boxtransform->Update();
+
+				this->boxBoxRepresentation->PlaceWidget((double *)A);
+		this->boxBoxRepresentation->SetTransform(boxtransform);
+			
+				
+				//this->boxBoxRepresentation->PlaceWidget((double *)A);
+				//this->roiBox->SetRepresentation(this->boxBoxRepresentation);
 				matrixCopy->FastDelete();
 				matrixCopy2->FastDelete();
 		
-		} 
+		
 		this->core()->render();
 
   }
@@ -732,7 +742,7 @@ namespace bmia {
 		// If the index is out of range, simply hide the actor
 		if (index < 0 || index >= this->scalarVolumeDataSets.size())
 		{
-			cout << "index is out of range";
+			qDebug() << "index is out of range";
 			this->actor->VisibilityOff();
 			this->actor->SetInput(NULL);
 			this->core()->render();
@@ -850,7 +860,6 @@ namespace bmia {
 
 	void Crop3DPlugin::changeDTIVolume(int index)
 	{
-		cout << "change DTI Volume end index" << index << endl ; 
 		// Do nothing if we're not using RGB coloring
 		if (!this->ui->dtiRadio->isChecked()) 
 			return;
@@ -1105,7 +1114,7 @@ namespace bmia {
 			
 		//roi box
 		//this->boxRep->PlaceWidget(this->actor->GetBounds()); // if planes are not visible does not work
-		this->changeRoiBoundary(0);
+		this->changeRoiBoundary(0); // argument not used
 		 
 	}
 
@@ -1679,15 +1688,12 @@ namespace bmia {
 		data::DataSet * dataDS;
 		
 	    if (this->ui->dtiRadio->isChecked())
-			dataDS = this->core()->data()->getDataSet(this->ui->dtiVolumeCombo->currentText(),"DTI"); //this->dtiDataSets.at(this->ui->dtiVolumeCombo->currentIndex());
+			dataDS = this->core()->data()->getDataSet(this->ui->dtiVolumeCombo->currentText(),"DTI");  
 		else 
 		dataDS = this->scalarVolumeDataSets.at(this->ui->scalarVolumeCombo->currentIndex());
-	
-		// Get the data sets of the DTI eigensystem image and the weighting image
-		//	data::DataSet * dtiDS = this->dtiDataSets.at(this->ui->dtiVolumeCombo->currentIndex());
-		//data::DataSet * weightDS = this->scalarVolumeDataSets.at(this->ui->dtiWeightCombo->currentIndex() - 1);
+	 
 		if(dataDS == NULL)
-			qDebug() << "dataDS == NULL" << endl;
+			qDebug() << "Dataset dataDS == NULL" << endl;
 		
 		 
 		//this->crop3DDataSet(weightDS);
@@ -1721,9 +1727,8 @@ namespace bmia {
 		}
 		else 
 		{
-			qDebug() << "Neither of the datasets " << endl;
+			qDebug() << "Neither of the datasets can be cropped." << endl;
 			return;
-			//this->core->out()->
 		}
 
 
@@ -1734,8 +1739,7 @@ namespace bmia {
 		extractVOI->SetVOI(bnd[0],bnd[1],bnd[2],bnd[3],bnd[4],bnd[5]);		
 		extractVOI->Update();
 		vtkImageData* extracted = extractVOI->GetOutput();
-		//extracted->SetOrigin(bnd[0]+inputDims[0]*inputSpacing[0]/2.0, bnd[2]+inputDims[1]*inputSpacing[1]/2.0,bnd[4]+inputDims[2]*inputSpacing[2]/2.0  );
-	   
+		   
 		extracted->Update();	 
 		vtkObject *obj = vtkObject::SafeDownCast(extracted);
 		QString croppedDataName= "Cropped-" + ds->getName();
@@ -1750,8 +1754,8 @@ namespace bmia {
 			if ((ds->getAttributes()->getAttribute("transformation matrix", objMatrix)))
 
 			{
-				//objMatrix->Print(cout);
-				//cout << "adding matrix " << endl; 
+			 
+				//Add the transformation matrix to the dataset
 				croppedDS->getAttributes()->addAttribute("transformation matrix", objMatrix);
 			 
 			}

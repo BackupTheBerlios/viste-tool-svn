@@ -290,8 +290,10 @@ class Crop3DPlugin : public plugin::AdvancedPlugin,
 		  /** Set the visibility of 3D ROI box */
 		void setRoiBoxVisible(bool v);
 
-		/** changeRoi Boundary */
-		void changeRoiBoundary(int value);
+		/** changeRoi Boundary 
+		Sets the boundary of the Roi Box to the slider values determined by the user.
+		@param notUsed		Signal-Slot connector requires a slot with the same number of args, not used. */
+		void changeRoiBoundary(int notUsed);
 
 		
 
@@ -390,7 +392,8 @@ class Crop3DPlugin : public plugin::AdvancedPlugin,
 		/** Box widget drawn for the selected bounding box which defines the region to be cropped out. */
 		vtkBoxWidget2	*roiBox;
 		 vtkWidgetRepresentation *boxRep;
-		
+		vtkBoxRepresentation *boxBoxRepresentation; 
+		  vtkTransform *boxtransform;
 
 }; // class Crop3DPlugin
 
