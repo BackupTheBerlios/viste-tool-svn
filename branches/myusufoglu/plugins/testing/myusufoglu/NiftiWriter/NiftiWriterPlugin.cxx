@@ -93,7 +93,7 @@ namespace bmia {
 
 	void NiftiWriterPlugin::writeDataToFile(QString saveFileName,  data::DataSet *ds)
 	{
-		cout << "writeDataToFile"<< endl; 
+
 		// Create a new reader object and set the filename
 		bmiaNiftiWriter * writer = new bmiaNiftiWriter(this->core()->out());
 
@@ -106,42 +106,25 @@ namespace bmia {
 		if(saveFileName==NULL)
 			return;
 		QStringRef fileNameExtention(&saveFileName,saveFileName.lastIndexOf(QString(".")),4 );
-
-
-		cout << "saveFileName and kind" << saveFileName.toStdString() << " " << kind.toStdString() << endl;
-		// cout << fileNameExtention.toString().toStdString() << endl;
-		//cin.get();
-
-
+		//cout << "saveFileName and kind" << saveFileName.toStdString() << " " << kind.toStdString() << endl;
 		vtkImageData * image   = ds->getVtkImageData();
 
 		if(!image) cout << "Not image"<< endl;
 		if( fileNameExtention.toString()==".nii" || fileNameExtention.toString()==".gz"  )
 		{
-			cout << "kind" << kind.toStdString() << endl;
 
 			if(image && kind.contains("scalar volume"))// && (ds->getVtkImageData()->GetNumberOfScalarComponents() ==1 ))
 			{
-				qDebug() << "Writing the image data. No of scalar components is:" << image->GetNumberOfScalarComponents() << endl;
-
-				cout << "saving nifti" << endl;
 				vtkObject * attObject = vtkObject::New();
-				cout << "Get attribute transf mat. "<< endl;
 				ds->getAttributes()->getAttribute("transformation matrix", attObject);
-
-				// Write the data to file 
-				//QString err =
-
 				writer->writeScalarVolume(image, saveFileName,attObject);
 			}
 
 			else if(image && ( kind.contains("DTI") || kind.contains("Eigen") ||  kind.contains("discrete sphere") || kind.contains("spherical harmonics") ) )
 			{
 				vtkObject * attObject = vtkObject::New();
-				cout << "Get attribute transf mat. "<< endl;
 				ds->getAttributes()->getAttribute("transformation matrix", attObject);
 
-				// writer->writeDTIVolume(image, saveFileName, attObject); // works ok, not mind standart nifti
 				writer->writeMindData(image,saveFileName, attObject, ds->getKind());
 			}
 

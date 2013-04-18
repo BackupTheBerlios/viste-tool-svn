@@ -324,7 +324,7 @@ namespace bmia {
 		nifti_image * m_NiftiImage = new nifti_image;
 		m_NiftiImage = nifti_simple_init_nim();
 		//print for debug
-		image->Print(cout);
+		//image->Print(cout);
 		double dataTypeSize = 1.0;
 		int dim[3];
 		int wholeExtent[6];
@@ -458,13 +458,12 @@ namespace bmia {
 				break;
 			}
 		}
-		// m_NiftiImage->data = image->GetPointData( // scalar pointer i ekle buraya !!!! yer ac? 
+
 		m_NiftiImage->nifti_type = NIFTI_FTYPE_NIFTI1_1;
 		m_NiftiImage->data=const_cast<void *>( image->GetScalarPointer());
 
 		m_NiftiImage->fname = nifti_makehdrname( saveFileName.toStdString().c_str(), m_NiftiImage->nifti_type,false,0);
 		m_NiftiImage->iname = nifti_makeimgname(saveFileName.toStdString().c_str(), m_NiftiImage->nifti_type,false,0); // 0 is compressed
-		// qform code
 
 
 		//Transformation and quaternion; quaternion has no scaling but viste uses spacing=1 and scaling parameter of the user transform of the actor is changed with spacing because of the transform.
@@ -476,7 +475,7 @@ namespace bmia {
 			{
 				// sform matrix or qform quaternion, which one will be used. Both can also be used if bothcodes are > 0.
 				m_NiftiImage->qform_code = 0; // Decided to use only sform code. If this is set > 0 then qform quaternion or sform matrix is used.
-				m_NiftiImage->sform_code = 2; // sform matrix is used only if sform_code > 0.
+				m_NiftiImage->sform_code = 1; // sform matrix is used only if sform_code > 0.
 
 
 				matrix->Print(cout);
@@ -534,7 +533,6 @@ namespace bmia {
 
 	{
 		//there must be 6 extentions
-		cout << "writeMindData" << endl;
 		nifti_image * m_NiftiImage = new nifti_image;
 		m_NiftiImage = nifti_simple_init_nim();
 		//image->Print(cout);
@@ -690,7 +688,6 @@ namespace bmia {
 
 		if(transform)
 		{
-			cout << "transform"  << endl;
 			vtkMatrix4x4 *matrix =  vtkMatrix4x4::New();
 			matrix = vtkMatrix4x4::SafeDownCast(transform);
 			if(matrix)
@@ -701,7 +698,6 @@ namespace bmia {
 
 
 				matrix->Print(cout);
-				cout << "transform 1.1"  << endl;
 				mat44 matrixf;
 				for(int i=0;i<4;i++)
 					for(int j=0;j<4;j++)
@@ -709,7 +705,7 @@ namespace bmia {
 						if(m_NiftiImage->qform_code > 0)
 						{
 							matrixf.m[i][j] = matrix->GetElement(i,j);
-							cout <<  matrixf.m[i][j] << endl;
+							//cout <<  matrixf.m[i][j] << endl;
 						}
 						// sform code
 						if(m_NiftiImage->sform_code >0 )
@@ -803,7 +799,6 @@ namespace bmia {
 
 		// Discrete Sphere
 		else if(dataStructure.contains("discrete sphere")) {
-			cout << "Dicrete Sphere"<< endl;
 			// overwrite 
 			m_NiftiImage->dim[5] = image->GetNumberOfScalarComponents(); //  *2 ??? No data isone scalar for each index set.
 			m_NiftiImage->nu =  m_NiftiImage->dim[5];
@@ -851,7 +846,6 @@ namespace bmia {
 		}
 		// Spherical Harmonics
 		else if(dataStructure.contains("spherical harmonics")) {
-			cout << "Spherical harmonics"<< endl;
 			// overwrite 
 			m_NiftiImage->dim[5] = image->GetNumberOfScalarComponents(); //  *2 ??? No data isone scalar for each index set.
 			m_NiftiImage->nu =  m_NiftiImage->dim[5];
@@ -892,7 +886,6 @@ namespace bmia {
 						int indx[2]; 
 					indx[0]= (int)  j;
 					indx[1]= (int) i;
-					cout << j << endl;
 					nifti_add_extension(m_NiftiImage, (char *) &(indx[0]), 2 * sizeof(int), NIFTI_ECODE_SHC_DEGREEORDER);	 
 					}
 				}
@@ -970,9 +963,9 @@ namespace bmia {
 		//m_NiftiImage->cal_max = 0.00747808;
 		//m_NiftiImage->cal_min
 
-		m_NiftiImage->pixdim[1] = spacing[0]; cout << "spacing[0] " << spacing[0] << endl;
-		m_NiftiImage->pixdim[2] = spacing[1]; cout << "spacing[1] " << spacing[1] << endl;
-		m_NiftiImage->pixdim[3] = spacing[2];cout << "spacing[2] " << spacing[2] << endl;
+		m_NiftiImage->pixdim[1] = spacing[0];  
+		m_NiftiImage->pixdim[2] = spacing[1];  
+		m_NiftiImage->pixdim[3] = spacing[2]; 
 		m_NiftiImage->pixdim[4] = 1;
 		m_NiftiImage->pixdim[5] = 1;
 		m_NiftiImage->pixdim[6] = 0;
@@ -1062,7 +1055,7 @@ namespace bmia {
 				dataTypeSize = m_NiftiImage->nbyper;
 				break;
 			default:
-				cout << "cannot handle this type" << endl ;
+				qDebug() << "cannot handle this type" << endl ;
 				break;
 			}
 		}
@@ -1098,7 +1091,6 @@ namespace bmia {
 						if(m_NiftiImage->qform_code > 0)
 						{
 							matrixf.m[i][j] = matrix->GetElement(i,j);
-							cout <<  matrixf.m[i][j] << endl;
 						}
 						// sform code
 						if(m_NiftiImage->sform_code >0 )
