@@ -256,7 +256,6 @@ QString bmiaNiftiReader::readNIfTIFile(const char * filename, bool showProgress)
 	}
 
 	vtkObject * obj = NULL;
-	cout << "In read nifti file function this->imageDataType: (DTI or SH or Scalar:)" << this->imageDataType << endl;
 	// Switch based on the data type of the NIfTI file
 	switch(this->imageDataType)
 	{
@@ -658,7 +657,7 @@ vtkImageData * bmiaNiftiReader::parseScalarVolume(int component)
 
 vtkImageData * bmiaNiftiReader::parseDTIVolume()
 {
-	cout << "parseDTIVolume"<< endl;
+
 	// Default index map. By default, NIfTI stores symmetrical tensors like this:
 	//
 	// a[0]
@@ -688,12 +687,10 @@ vtkImageData * bmiaNiftiReader::parseDTIVolume()
 
 		if (this->compareMiNDID(ext->edata, (char*) "DTENSOR", ext->esize - 8) && (extPos + 6) < this->NiftiImage->num_ext)
 		{
-			cout << "dtensor" << endl;
 			// If so, loop through the next six extensions
 			for (int i = 0; i < 6; ++i)
 			{
-				ext = &(this->NiftiImage->ext_list[++extPos]);
-				cout << i << " ecode:" << ext->ecode << "extpos" << extPos << endl;
+				ext = &(this->NiftiImage->ext_list[++extPos]);				 
 				// Check if the extension code is correct
 				if (ext->ecode != NIFTI_ECODE_DT_COMPONENT)
 					continue;
@@ -705,15 +702,12 @@ vtkImageData * bmiaNiftiReader::parseDTIVolume()
 
 				int * indices = (int *) ext->edata;
 
-				cout << "bytoder: " << NiftiImage->byteorder << endl;
 				// Swap the bytes of the extension data
 				if (this->NiftiImage->byteorder == 2)
 				{
-					cout << "bytoder: 2 " <<  endl;
 					nifti_swap_4bytes(1, &(indices[0]));
 					nifti_swap_4bytes(1, &(indices[1]));
 				}
-				cout << "indices" << indices[0] <<" "<< indices[1]<< endl;
 				if (indices[0] == 1 && indices[1] == 1)		indexMap[0] = extPos - firstExtPos - 1;
 				if (indices[0] == 1 && indices[1] == 2)		indexMap[1] = extPos - firstExtPos - 1;
 				if (indices[0] == 2 && indices[1] == 1)		indexMap[1] = extPos - firstExtPos - 1;
@@ -730,7 +724,6 @@ vtkImageData * bmiaNiftiReader::parseDTIVolume()
 	// Create an output array for the six unique tensor elements
 	int arraySize = this->NiftiImage->dim[1] * this->NiftiImage->dim[2] * this->NiftiImage->dim[3];
 	double * outDoubleArray = new double[arraySize * 6];
-	cout << "parseDTIVolume NiftiImage->datatype" << this->NiftiImage->datatype << endl;
 	// Copy the input array to the output array, using the specified index mapping
 	switch (this->NiftiImage->datatype)
 	{

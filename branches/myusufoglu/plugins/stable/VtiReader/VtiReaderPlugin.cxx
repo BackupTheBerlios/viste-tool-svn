@@ -117,41 +117,61 @@ void VtiReaderPlugin::loadDataFromFile(QString filename)
 
     vtkImageData* data = reader->GetOutput();
     Q_ASSERT(data);
-    if (data->GetNumberOfScalarComponents() == 9) // Roy's tensor data
-	{
-	vtkImageData* newdata = vtkImageData::New();
-	newdata->CopyStructure(data);
-	newdata->SetScalarTypeToFloat();
-	newdata->SetNumberOfScalarComponents(6);
-	vtkFloatArray* out_array = vtkFloatArray::New();
-	out_array->SetName("Tensors");
+  if (data->GetNumberOfScalarComponents() == 9 || data->GetNumberOfScalarComponents() == 6 ) // Roy's tensor data has 9
+        {
+            vtkImageData* newdata = vtkImageData::New();
+            newdata->CopyStructure(data);
+            newdata->SetScalarTypeToFloat();
+            newdata->SetNumberOfScalarComponents(6);
+            vtkFloatArray* out_array = vtkFloatArray::New();
+            out_array->SetName("Tensors");
 
-	Q_ASSERT(data->GetPointData());
-	vtkDataArray* in_array = data->GetPointData()->GetScalars();
-	Q_ASSERT(in_array);
+            Q_ASSERT(data->GetPointData());
+            vtkDataArray* in_array = data->GetPointData()->GetScalars();
+            Q_ASSERT(in_array);
 
-	out_array->SetNumberOfComponents(6);
-	out_array->SetNumberOfTuples(in_array->GetNumberOfTuples());
-	double* tuple; double newtuple[6];
-	int i;
-	for (vtkIdType n = 0; n < in_array->GetNumberOfTuples(); n++)
-	    {
-	    tuple = in_array->GetTuple9(n);
-	    for (i=0; i < 3; i++) newtuple[i] = tuple[i];
-	    newtuple[3] = tuple[4];
-	    newtuple[4] = tuple[5];
-	    newtuple[5] = tuple[8];
-	    out_array->SetTuple(n, newtuple);
+            if(data->GetNumberOfScalarComponents() == 9) {
+                out_array->SetNumberOfComponents(6);
+                out_array->SetNumberOfTuples(in_array->GetNumberOfTuples());
+                double* tuple; double newtuple[6];
+                int i;
 
-	    } // for n
+                for (vtkIdType n = 0; n < in_array->GetNumberOfTuples(); n++)
+                {
+                    tuple = in_array->GetTuple9(n);
+                    for (i=0; i < 3; i++) newtuple[i] = tuple[i];
+                    newtuple[3] = tuple[4];
+                    newtuple[4] = tuple[5];
+                    newtuple[5] = tuple[8];
+                    out_array->SetTuple(n, newtuple);
 
-	Q_ASSERT(newdata->GetPointData());
-	newdata->GetPointData()->SetScalars(out_array);
-	newdata->GetPointData()->SetNumberOfTuples(in_array->GetNumberOfTuples());
-	newdata->SetScalarTypeToFloat();
-	data = newdata;
-	kind = "DTI";
-	}
+                }  
+            }
+            else if(data->GetNumberOfScalarComponents() == 6) // this loop suitable for general but leave 6 for now
+            {
+                out_array->SetNumberOfComponents(data->GetNumberOfScalarComponents());
+                out_array->SetNumberOfTuples(in_array->GetNumberOfTuples());
+                const int comp = data->GetNumberOfScalarComponents();
+                double* tuple; double *newtuple = new double[comp];
+                int i;
+                for (vtkIdType n = 0; n < in_array->GetNumberOfTuples(); n++)
+                {
+                    tuple = in_array->GetTuple(n);
+                    for (i=0; i < data->GetNumberOfScalarComponents(); i++) newtuple[i] = tuple[i];
+
+                    out_array->SetTuple(n, newtuple);
+
+                } // for n
+            }
+
+            Q_ASSERT(newdata->GetPointData());
+            newdata->GetPointData()->SetScalars(out_array);
+            newdata->GetPointData()->SetNumberOfTuples(in_array->GetNumberOfTuples());
+            newdata->SetScalarTypeToFloat();
+            data = newdata;
+            kind = "DTI";
+        }
+
 
     Q_ASSERT(!kind.isEmpty());
 
