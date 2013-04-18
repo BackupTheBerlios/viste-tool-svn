@@ -3614,7 +3614,6 @@ nifti_image* nifti_convert_nhdr2nim(struct nifti_1_header nhdr,
    nim->data = NULL;
 
    /**- check if we must swap bytes */
-   printf( "   dim0 %d hdr: %d bytes\n",nhdr.dim[0], (int)nhdr.sizeof_hdr);
    doswap = need_nhdr_swap(nhdr.dim[0], nhdr.sizeof_hdr); /* swap data flag */
 
    if( doswap < 0 ){
@@ -4213,7 +4212,6 @@ nifti_image *nifti_image_read( const char *hname , int read_data )
       free(hfile);
       return NULL;
    }
-    printf("  ii:%d size nhdrsize:%d nhdr_dim0 %d\n",ii, (int)sizeof(nhdr), nhdr.dim[0]);
    /* create output image struct and set it up */
 
    /**- convert all nhdr fields to nifti_image fields */
