@@ -149,6 +149,7 @@ typedef struct
 
 	// curvature
 	int curvatureLUTIndex;
+	int curvatureType;
 	bool usingCurvature;
 
 } ModelInfo;
@@ -262,6 +263,7 @@ protected slots:
     void inputReductionChanged(double value);
     void inputSpecularChanged(double value);
 	void comboBoxCurvatureLUTChanged();
+	void comboBoxCurvatureTypeChanged();
 
     void horizontalSliderXChanged(int value);
     void horizontalSliderYChanged(int value);

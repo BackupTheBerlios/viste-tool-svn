@@ -371,6 +371,7 @@ void IsosurfaceVisualization::createModelInfo(data::DataSet * d)
     modelInfo->alignPlanesToPick = true;
 
 	modelInfo->curvatureLUTIndex = 0;
+	modelInfo->curvatureType = 0;
 
     // create lookup table for grey values
     vtkLookupTable* defaultLUT = vtkLookupTable::New();
@@ -602,7 +603,7 @@ void IsosurfaceVisualization::updateRenderingModels()
         data::DataSet* ds = this->current_modelInfo->ds;
 
 		// determine if we should compute curvature
-		bool useCurvature = current_modelInfo->curvatureLUTIndex > 0;
+		bool useCurvature = current_modelInfo->curvatureType > 0;
 
         // smooth dataset
         VTK_CREATE(vtkImageGaussianSmooth, smoother);
@@ -675,10 +676,25 @@ void IsosurfaceVisualization::updateRenderingModels()
 			vtkSmartPointer<vtkCurvatures> curvaturesFilter =
 			vtkSmartPointer<vtkCurvatures>::New();
 			curvaturesFilter->SetInputConnection(clipper->GetOutputPort());
-			//curvaturesFilter->SetCurvatureTypeToMinimum();
-			//curvaturesFilter->SetCurvatureTypeToMaximum();
-			//curvaturesFilter->SetCurvatureTypeToGaussian();
-			curvaturesFilter->SetCurvatureTypeToMean();
+
+			switch(current_modelInfo->curvatureType)
+			{
+			    case 1:
+                    curvaturesFilter->SetCurvatureTypeToMaximum();
+                    break;
+
+                case 2:
+                    curvaturesFilter->SetCurvatureTypeToMinimum();
+                    break;
+
+                case 3:
+                    curvaturesFilter->SetCurvatureTypeToGaussian();
+                    break;
+
+                case 4:
+                    curvaturesFilter->SetCurvatureTypeToMean();
+                    break;
+			}
 
 			// progress of curvature
 			this->core()->out()->createProgressBarForAlgorithm(curvaturesFilter, "Isosurface Visualization", "Curvature filter...");
@@ -686,8 +702,9 @@ void IsosurfaceVisualization::updateRenderingModels()
 			this->core()->out()->deleteProgressBarForAlgorithm(curvaturesFilter);
 
 			// create default curvature lookup table
-			/*vtkLookupTable* convLUT;
-		
+			vtkLookupTable* convLUT;
+            if(this->current_modelInfo->curvatureLUTIndex == 0)
+            {
 				convLUT = vtkLookupTable::New();
 				convLUT->SetNumberOfTableValues(100);
 				convLUT->SetRange(0,100);
@@ -705,20 +722,16 @@ void IsosurfaceVisualization::updateRenderingModels()
 						convLUT->SetTableValue(j,0.75,0.75,0.75,1.0);
 				}
 				convLUT->SetRampToSCurve();
-
-				current_modelInfo->curvatureLUT = convLUT;
 			}
 			else
 			{
-				convLUT = current_modelInfo->curvatureLUT;
-			}*/
-
-			// Get LUT from saved list
-			vtkLookupTable* ctf = this->lookUpTables.at(current_modelInfo->curvatureLUTIndex - 1);
+			    // Get LUT from saved list
+				convLUT = this->lookUpTables.at(current_modelInfo->curvatureLUTIndex - 1);
+			}
 
 			// Use curvature output in polydatamapper and set LUT
 			polyMapper->SetInputConnection(curvaturesFilter->GetOutputPort());
-			polyMapper->SetLookupTable(ctf);
+			polyMapper->SetLookupTable(convLUT);
 
 			current_modelInfo->usingCurvature = true;
 		}
@@ -1136,6 +1149,7 @@ void IsosurfaceVisualization::connectAll()
     connect(this->form->inputSpecular,SIGNAL(valueChanged(double)),this,SLOT(inputSpecularChanged(double)));
     connect(this->form->inputAlpha,SIGNAL(valueChanged(double)),this,SLOT(inputAlphaChanged(double)));
     connect(this->form->checkBoxLargestComponent,SIGNAL(toggled(bool)),this,SLOT(checkBoxLargestComponentChanged(bool)));
+    connect(this->form->comboBoxCurvatureType,SIGNAL(currentIndexChanged(int)),this,SLOT(comboBoxCurvatureTypeChanged()));
 	connect(this->form->comboBoxCurvatureLUT,SIGNAL(currentIndexChanged(int)),this,SLOT(comboBoxCurvatureLUTChanged()));
     connect(this->form->buttonUpdate,SIGNAL(clicked()),this,SLOT(buttonUpdateClicked()));
 
@@ -1363,42 +1377,6 @@ void IsosurfaceVisualization::comboBoxOverlayLUTChanged()
     }
 }
 
-//---------------[ Select curvature LUT for mesh ]-----------------\\
-
-void IsosurfaceVisualization::comboBoxCurvatureLUTChanged()
-{
-    // select model info matching the dataset
-    int index = this->form->comboBoxCurvatureLUT->currentIndex();
-
-    if(this->current_modelInfo->prop != NULL)
-    {
-		this->current_modelInfo->curvatureLUTIndex = index;
-
-        if(index > 0)
-        {
-			// if curvature was already computed. (otherwise update is necessary)
-			if(current_modelInfo->usingCurvature)
-			{
-				vtkLookupTable* ctf = this->lookUpTables.at(index - 1);
-				current_modelInfo->polyDataMapper->SetLookupTable(ctf);
-				current_modelInfo->polyDataMapper->Update();
-			}
-			else
-				bModelDirty = true;
-        }
-
-        // disable curvature 
-        else if(index == 0)
-        {
-			// set blank LUT
-			vtkLookupTable* ctf = vtkLookupTable::New();
-            current_modelInfo->polyDataMapper->SetLookupTable(ctf);
-        }
-
-		this->core()->render();
-    }
-}
-
 //---------------[ Select base layer LUT for clipping planes ]-----------------\\
 
 void IsosurfaceVisualization::comboBoxBaseLayerLUTChanged()
@@ -1430,6 +1408,50 @@ void IsosurfaceVisualization::comboBoxBaseLayerLUTChanged()
 
 		this->core()->render();
     }
+}
+
+//---------------[ Select curvature LUT for mesh ]-----------------\\
+
+void IsosurfaceVisualization::comboBoxCurvatureLUTChanged()
+{
+    // select model info matching the dataset
+    int index = this->form->comboBoxCurvatureLUT->currentIndex();
+
+    if(this->current_modelInfo->prop != NULL)
+    {
+		this->current_modelInfo->curvatureLUTIndex = index;
+
+        if(index > 0)
+        {
+			// if curvature was already computed. (otherwise update is necessary)
+			if(current_modelInfo->usingCurvature)
+			{
+				vtkLookupTable* ctf = this->lookUpTables.at(index - 1);
+				current_modelInfo->polyDataMapper->SetLookupTable(ctf);
+				current_modelInfo->polyDataMapper->Update();
+			}
+			else
+				bModelDirty = true;
+        }
+
+        // disable curvature
+        else if(index == 0)
+        {
+			// set blank LUT
+			vtkLookupTable* ctf = vtkLookupTable::New();
+            current_modelInfo->polyDataMapper->SetLookupTable(ctf);
+        }
+
+		this->core()->render();
+    }
+}
+
+//---------------[ Select curvature type for mesh ]-----------------\\
+
+void IsosurfaceVisualization::comboBoxCurvatureTypeChanged()
+{
+    this->current_modelInfo->curvatureType = this->form->comboBoxCurvatureType->currentIndex();
+    bModelDirty = true;
 }
 
 //------------------------[ Change visibility of model ]-----------------------\\
