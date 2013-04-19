@@ -178,6 +178,37 @@ namespace bmia {
 		 this->setZVisible(0);
 		 this->setXVisible(0);
 		 this->setYVisible(0);
+
+		 //polydata soulution
+		 		 boxPts =
+    vtkPoints::New();
+		  polyLineBox = 
+    vtkPolyLine::New();
+		   cellsPolyLine = 
+    vtkCellArray::New();
+			  polyDataBox = 
+    vtkPolyData::New();
+
+  boxPts->SetNumberOfPoints(8);
+     polyLineBox->GetPointIds()->SetNumberOfIds(8);
+ mapperPolyDataBox = 
+    vtkPolyDataMapper::New();
+
+  
+ actorPolyDataBox = 
+    vtkActor::New();
+ actorPolyDataBox->SetVisibility(0);
+ #if VTK_MAJOR_VERSION <= 5
+  mapperPolyDataBox->SetInput(polyDataBox);
+#else
+  mapperPolyDataBox->SetInputData(polyDataBox);
+#endif
+ 
+  actorPolyDataBox->SetMapper(mapperPolyDataBox);
+
+  this->actor->AddPart(actorPolyDataBox);
+
+
 	}
 
 
@@ -614,6 +645,8 @@ namespace bmia {
 		}
 	}
 
+
+	//
 	void Crop3DPlugin::setRoiBoxVisible(bool v)
 	{
 		//this->roiBox->PlaceWidget(this->actor->GetBounds());
@@ -621,27 +654,20 @@ namespace bmia {
 			this->changeRoiBoundary(0);// argument not used
 
 		// Take form the slice sliders 
-		this->boxBoxRepresentation->SetVisibility(v);
-		
+		//this->boxBoxRepresentation->SetVisibility(v);
+		 this->actorPolyDataBox->SetVisibility(v);
 		//this->fullCore()->canvas()->GetRenderer3D()->Render();
 		this->core()->render();  
 		//this->roiBox->ProcessEventsOn();
 	}
 
+
+	////
 		void Crop3DPlugin::changeRoiBoundary( int notUsed )
 	{
 		int *bndSlices = new int[6];
 		get3DROIBoundaries(bndSlices);
  
-		double *bnd = new double[6];
-		//bnd=this->actor->GetBounds();
-		bnd[0]=this->actor->GetSliceLocation(0,bndSlices[0]);
-		bnd[1]=this->actor->GetSliceLocation(0,bndSlices[1]);
-		bnd[2]=this->actor->GetSliceLocation(1,bndSlices[2]);
-		bnd[3]=this->actor->GetSliceLocation(1,bndSlices[3]);
-		bnd[4]=this->actor->GetSliceLocation(2,bndSlices[4]);
-		bnd[5]=this->actor->GetSliceLocation(2,bndSlices[5]);
-			
 		data::DataSet * ds;
 		if ((this->ui->scalarVolumeRadio->isChecked()))
 			
@@ -666,7 +692,6 @@ namespace bmia {
 		vtkObject * obj = NULL;
 		vtkMatrix4x4 * transformationMatrix=vtkMatrix4x4::New();
 		//There may be no transformation attribute
-		transformationMatrix->Identity(); 
 		if (ds->getAttributes()->getAttribute("transformation matrix", obj))
 		{
 				
@@ -680,56 +705,48 @@ namespace bmia {
 				//return;
 			}
 		}
-				// Copy the matrix to a new one, and apply it to the current slice actor
-				vtkMatrix4x4 * matrixCopy = vtkMatrix4x4::New();
-				
-				matrixCopy->DeepCopy(transformationMatrix);
-				vtkMatrix4x4 * matrixCopy2 = vtkMatrix4x4::New();
-				matrixCopy2->DeepCopy(transformationMatrix);
-				double *bndVerticeLowerTranslated = new double[4];
-				double *bndVerticeUpperTranslated = new double[4];
-				double *bndTemp = new double[4]; 
-				double *bndTemp2 = new double[4]; 
-				bndTemp[0]=bnd[0];
-				bndTemp[1]=bnd[2];
-				bndTemp[2]=bnd[4];
-				bndTemp[3]=1;
-				bndVerticeLowerTranslated = matrixCopy->MultiplyDoublePoint(bndTemp);
-	 
-				bndTemp2[0]=bnd[1];
-				  bndTemp2[1]=bnd[3];
-				  bndTemp2[2]=bnd[5];
-				bndTemp2[3]=1;
-				bndVerticeUpperTranslated = matrixCopy2->MultiplyDoublePoint(bndTemp2);
+				 
+	 		//Alternative///////////////////
+						double xMin, xMax, yMin, yMax, zMin, zMax;
+  xMin = bndSlices[0]; xMax = bndSlices[1];
+  yMin = bndSlices[2]; yMax = bndSlices[3];
+  zMin = bndSlices[4]; zMax = bndSlices[5];
  
-			double A[6]; 
-				A[0]=bndVerticeLowerTranslated[0]; 
-				A[1]=bndVerticeUpperTranslated[0]; 
+  boxPts->SetPoint(0, xMax, yMin, zMax);
+  boxPts->SetPoint(1, xMax, yMin, zMin);
+  boxPts->SetPoint(2, xMax, yMax, zMin);
+  boxPts->SetPoint(3, xMax, yMax, zMax);
+  boxPts->SetPoint(4, xMin, yMin, zMax);
+  boxPts->SetPoint(5, xMin, yMin, zMin);
+  boxPts->SetPoint(6, xMin, yMax, zMin);
+  boxPts->SetPoint(7, xMin, yMax, zMax);
+ 
 
-				A[2]=bndVerticeLowerTranslated[1]; 
-				A[3]=bndVerticeUpperTranslated[1]; 
-				
-				A[4]=bndVerticeLowerTranslated[2]; 
-				A[5]=bndVerticeUpperTranslated[2]; 
-               // Place the widget to appropriate position
-				// transformationMatrix->
-					boxtransform->SetMatrix(transformationMatrix);
-					
-			boxtransform->Update();
-		
-				this->boxBoxRepresentation->PlaceWidget((double *)A);
-				
-		this->boxBoxRepresentation->SetTransform(boxtransform);
-			
-				
-				//this->boxBoxRepresentation->PlaceWidget((double *)A);
-				//this->roiBox->SetRepresentation(this->boxBoxRepresentation);
-				matrixCopy->FastDelete();
-				matrixCopy2->FastDelete();
-		
-		
-		this->core()->render();
+  //polyLineBox->GetPointIds()->SetNumberOfIds(0);
 
+  for(unsigned int i = 0; i < 8; i++)
+    {
+    polyLineBox->GetPointIds()->SetId(i,i);
+    }
+   polyLineBox->GetPointIds()->SetId(7,8);
+  // Create a cell array to store the lines in and add the lines to it
+
+  cellsPolyLine->InsertNextCell(polyLineBox);
+ 
+  // Create a polydata to store everything in
+
+ 
+  // Add the points to the dataset
+  polyDataBox->SetPoints(boxPts);
+ 
+  // Add the lines to the dataset
+  polyDataBox->SetLines(cellsPolyLine);
+  this->actorPolyDataBox->SetUserMatrix(transformationMatrix);// this can be done in the selection of radio buttons.
+  this->mapperPolyDataBox->SetImmediateModeRendering(1);
+  // Setup actor and mapper
+
+ this->core()->render();
+ 
   }
 
 

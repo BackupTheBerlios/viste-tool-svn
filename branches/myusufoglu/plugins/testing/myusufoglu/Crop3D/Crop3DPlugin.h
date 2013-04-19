@@ -91,7 +91,13 @@
 #include <vtkTransform.h>
 #include <vtkBoundingBox.h>
 #include <vtkPropCollection.h>
-
+ #include <vtkCellArray.h>
+#include <vtkCellData.h>
+#include <vtkDoubleArray.h>
+#include <vtkPoints.h>
+#include <vtkPolyLine.h>
+#include <vtkPolyData.h>
+#include <vtkPolyDataMapper.h>
 /** Includes - Qt */
 
 #include <QMessageBox>
@@ -394,6 +400,17 @@ class Crop3DPlugin : public plugin::AdvancedPlugin,
 		 vtkWidgetRepresentation *boxRep;
 		vtkBoxRepresentation *boxBoxRepresentation; 
 		  vtkTransform *boxtransform;
+		  
+
+		  	 vtkPoints *boxPts  ;
+		  vtkPolyLine *polyLineBox ;
+		    vtkCellArray *cellsPolyLine ;
+			  vtkPolyData *polyDataBox  ;
+ 
+  vtkPolyDataMapper *mapperPolyDataBox  ;
+
+  
+  vtkActor *actorPolyDataBox ;
 
 }; // class Crop3DPlugin
 
