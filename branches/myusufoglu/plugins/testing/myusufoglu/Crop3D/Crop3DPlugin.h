@@ -395,21 +395,16 @@ class Crop3DPlugin : public plugin::AdvancedPlugin,
 
 		void connectControls(bool doConnect);
 
-		/** Box widget drawn for the selected bounding box which defines the region to be cropped out. */
-		vtkBoxWidget2	*roiBox;
-		 vtkWidgetRepresentation *boxRep;
-		vtkBoxRepresentation *boxBoxRepresentation; 
-		  vtkTransform *boxtransform;
-		  
-
+		/** Box polydata points drawn for the selected bounding box which defines the region to be cropped out. */
+		 
 		  	 vtkPoints *boxPts  ;
-		  vtkPolyLine *polyLineBox ;
-		    vtkCellArray *cellsPolyLine ;
+       /** Box polydata  drawn for the selected bounding box which defines the region to be cropped out. */
 			  vtkPolyData *polyDataBox  ;
- 
+
+ /** Mapper for theroi box drawn for the selected bounding box which defines the region to be cropped out. */
   vtkPolyDataMapper *mapperPolyDataBox  ;
 
-  
+ /** Actor of the roi box drawn for the selected bounding box which defines the region to be cropped out. */
   vtkActor *actorPolyDataBox ;
 
 }; // class Crop3DPlugin

@@ -82,9 +82,7 @@ namespace bmia {
 		this->defaultLUT->SetSaturationRange(0.0, 0.0);
 		this->defaultLUT->SetAlphaRange(1.0, 1.0);
 
-		//Create 3D roi box which w2ill be used for cropping
-		this->roiBox =  vtkBoxWidget2::New() ;
-		
+		// be sure roi for croppong is not displayed.
 		this->ui->roiBoxVisibleCheckBox->setChecked(false);
 
 		// Turn actor interpolation on or off, depending on the default GUI settings
@@ -142,7 +140,7 @@ namespace bmia {
 
 			// Add the planes to their respective 2D views
 			vtkImageSliceActor * sliceActor = this->actor->GetSliceActor(axis);
-			//remove 2d planes for cropped volume
+			//remove 2d planes for cropped volume so that they will not be displayed on top of planes plugins actors.
 			//canvas->GetSubCanvas2D(axis)->GetRenderer()->AddActor(sliceActor);
 
 			// Add the slice actors to the data manager
@@ -157,56 +155,63 @@ namespace bmia {
 		// Add the callback to the canvas as an observer
 		this->fullCore()->canvas()->AddObserver(vtkCommand::UserEvent + 
 			BMIA_USER_EVENT_SUBCANVAS_CAMERA_RESET, this->callBack);
-		// 3D ROi interaction
-		this->roiBox->SetDefaultRenderer(this->fullCore()->canvas()->GetRenderer3D());
-		this->roiBox->SetCurrentRenderer(this->fullCore()->canvas()->GetRenderer3D());
-		this->roiBox->SetPriority(1);
-		this->roiBox->SetInteractor(this->fullCore()->canvas()->GetInteractor());
-		this->roiBox->SetEnabled(true);
-		this->roiBox->SetRotationEnabled(0);
-		this->roiBox->SetMoveFacesEnabled(0);
-		boxBoxRepresentation = vtkBoxRepresentation::New();
-		 boxtransform = vtkTransform::New();
-		 boxBoxRepresentation->SetPlaceFactor(1);
-		 boxBoxRepresentation->SetVisibility(0);
-		 boxBoxRepresentation->SetPickable(0);
-		 boxBoxRepresentation->SetDragable(0);
-		 boxBoxRepresentation->SetHandleSize(0);
-		 this->roiBox->SetRepresentation(this->boxBoxRepresentation);
-		 //double bnds[6]={ 0,0,0,0,0,0}
-		 	//this->boxBoxRepresentation->PlaceWidget(bnds);
-		 this->setZVisible(0);
-		 this->setXVisible(0);
-		 this->setYVisible(0);
 
-		 //polydata soulution
-		 		 boxPts =
-    vtkPoints::New();
-		  polyLineBox = 
-    vtkPolyLine::New();
-		   cellsPolyLine = 
-    vtkCellArray::New();
-			  polyDataBox = 
-    vtkPolyData::New();
+		this->setZVisible(0);
+		this->setXVisible(0);
+		this->setYVisible(0);
 
-  boxPts->SetNumberOfPoints(8);
-     polyLineBox->GetPointIds()->SetNumberOfIds(8);
- mapperPolyDataBox = 
-    vtkPolyDataMapper::New();
+		//3D ROI box as a polydata
+		boxPts =vtkPoints::New();
+		polyDataBox =  vtkPolyData::New();
 
-  
- actorPolyDataBox = 
-    vtkActor::New();
- actorPolyDataBox->SetVisibility(0);
- #if VTK_MAJOR_VERSION <= 5
-  mapperPolyDataBox->SetInput(polyDataBox);
+		// 8 points as vertices of 3D box
+		boxPts->SetNumberOfPoints(8);
+		// mapper for 3d roi 
+		mapperPolyDataBox =  vtkPolyDataMapper::New();
+		
+
+		// Add the points to the roi polydata 
+		this->polyDataBox->Allocate();
+		polyDataBox->SetPoints(boxPts);
+		vtkIdType connectivity[2];
+
+		//create 3d roi box as a rectangular prism
+		// 12 Edges of 3d roi box
+		for(int i=0; i<7;i++)
+		{
+			connectivity[0] = i;
+			connectivity[1] = i+1;
+			this->polyDataBox->InsertNextCell(VTK_LINE,2,connectivity);
+		} 
+		connectivity[0] = 7;
+		connectivity[1] = 0;
+		this->polyDataBox->InsertNextCell(VTK_LINE,2,connectivity);
+		connectivity[0] = 0;
+		connectivity[1] = 3;
+		this->polyDataBox->InsertNextCell(VTK_LINE,2,connectivity);
+		connectivity[0] = 2;
+		connectivity[1] = 5;
+		this->polyDataBox->InsertNextCell(VTK_LINE,2,connectivity);
+		connectivity[0] = 4;
+		connectivity[1] = 7;
+		this->polyDataBox->InsertNextCell(VTK_LINE,2,connectivity);
+		connectivity[0] = 1;
+		connectivity[1] = 6;
+		this->polyDataBox->InsertNextCell(VTK_LINE,2,connectivity);
+
+		// display pipeline
+		actorPolyDataBox =  vtkActor::New();
+		actorPolyDataBox->SetVisibility(0);
+#if VTK_MAJOR_VERSION <= 5
+		mapperPolyDataBox->SetInput(polyDataBox);
 #else
-  mapperPolyDataBox->SetInputData(polyDataBox);
+		mapperPolyDataBox->SetInputData(polyDataBox);
 #endif
- 
-  actorPolyDataBox->SetMapper(mapperPolyDataBox);
 
-  this->actor->AddPart(actorPolyDataBox);
+		actorPolyDataBox->SetMapper(mapperPolyDataBox);
+
+		//add to the actor as a part so that it can be controlled by the visibility button in the main window
+		this->actor->AddPart(actorPolyDataBox);
 
 
 	}
@@ -268,10 +273,8 @@ namespace bmia {
 			connect(this->ui->zVisibleCheck,		SIGNAL(toggled(bool)),				this, SLOT(setZVisible(bool))		);
 
 			// 3D Crop ROI signals
-
 			connect(this->ui->cropButton,		SIGNAL(clicked()),			this , SLOT( cropData() ),	Qt::UniqueConnection		);
 			connect(this->ui->roiBoxVisibleCheckBox,	SIGNAL(toggled(bool)),				this, SLOT(setRoiBoxVisible(bool))	);
-			//connect(this->ui->horizontalSliderX0 ,		SIGNAL(valueChanged(int)),	this, SLOT(changeROIBoundary(int))	);
 
 			// spin -> slider connection 
 			connect(this->ui->x0ROIPositionSpin,		SIGNAL(valueChanged(int)),			this->ui->horizontalSliderX0 , SLOT(setValue(int) )			);
@@ -291,7 +294,7 @@ namespace bmia {
 			// spin to 3d roi box connections !!!
 			connect(this->ui->x0ROIPositionSpin,		SIGNAL(valueChanged(int)),  this, SLOT(changeRoiBoundary(int) ));
 			connect(this->ui->x1ROIPositionSpin,		SIGNAL(valueChanged(int)),  this, SLOT(changeRoiBoundary(int) ));
-	        connect(this->ui->y0ROIPositionSpin,		SIGNAL(valueChanged(int)),  this, SLOT(changeRoiBoundary(int) ));
+			connect(this->ui->y0ROIPositionSpin,		SIGNAL(valueChanged(int)),  this, SLOT(changeRoiBoundary(int) ));
 			connect(this->ui->y1ROIPositionSpin,		SIGNAL(valueChanged(int)),  this, SLOT(changeRoiBoundary(int) ));
 			connect(this->ui->z0ROIPositionSpin,		SIGNAL(valueChanged(int)),  this, SLOT(changeRoiBoundary(int) ));
 			connect(this->ui->z1ROIPositionSpin,		SIGNAL(valueChanged(int)),  this, SLOT(changeRoiBoundary(int) ));
@@ -363,10 +366,10 @@ namespace bmia {
 	void Crop3DPlugin::dataSetAdded(data::DataSet * ds)
 	{
 		//cout << "Crop3DPlugin dataSetAdded " << ds->getName().toStdString() << " " << ds->getName().toStdString() << endl;
-		
+
 		int isCropped(0);
 		ds->getAttributes()->getAttribute("isSubVolume",isCropped);
-	 
+
 
 		// Scalar volume
 		if (ds->getKind() == "scalar volume")
@@ -415,7 +418,7 @@ namespace bmia {
 			this->connectControls(true);
 		} 
 
-		
+
 		//else if (ds->getKind() == "DTI")
 		//{
 		//	 
@@ -445,7 +448,7 @@ namespace bmia {
 
 		else if (ds->getKind() == "eigen") // &&  isCropped)
 		{
-			 
+
 			this->connectControls(false);
 
 			// Add the eigensystem (DTI) data set to the list
@@ -466,7 +469,7 @@ namespace bmia {
 				// Reset the camera of the 3D volume
 				this->fullCore()->canvas()->GetRenderer3D()->ResetCamera();
 			}
-			
+
 			this->connectControls(true);
 		}
 
@@ -511,7 +514,7 @@ namespace bmia {
 		//cin.get();
 		int isCropped(0);
 		ds->getAttributes()->getAttribute("isSubVolume",isCropped);
-	 
+
 		if(ds->getKind() == "scalar volume" && this->scalarVolumeDataSets.contains(ds))
 		{
 			this->connectControls(false);
@@ -649,29 +652,26 @@ namespace bmia {
 	//
 	void Crop3DPlugin::setRoiBoxVisible(bool v)
 	{
-		//this->roiBox->PlaceWidget(this->actor->GetBounds());
-		 if(v) 	
+		if(v) 	
 			this->changeRoiBoundary(0);// argument not used
 
 		// Take form the slice sliders 
-		//this->boxBoxRepresentation->SetVisibility(v);
-		 this->actorPolyDataBox->SetVisibility(v);
-		//this->fullCore()->canvas()->GetRenderer3D()->Render();
+		this->actorPolyDataBox->SetVisibility(v);
 		this->core()->render();  
-		//this->roiBox->ProcessEventsOn();
+
 	}
 
 
 	////
-		void Crop3DPlugin::changeRoiBoundary( int notUsed )
+	void Crop3DPlugin::changeRoiBoundary( int notUsed )
 	{
 		int *bndSlices = new int[6];
 		get3DROIBoundaries(bndSlices);
- 
+
 		data::DataSet * ds;
 		if ((this->ui->scalarVolumeRadio->isChecked()))
-			
-		  ds = this->scalarVolumeDataSets.at( this->ui->scalarVolumeCombo->currentIndex());
+
+			ds = this->scalarVolumeDataSets.at( this->ui->scalarVolumeCombo->currentIndex());
 		else if(this->ui->dtiRadio->isChecked())
 		{
 			ds = this->dtiDataSets.at(this->ui->dtiVolumeCombo->currentIndex());
@@ -688,16 +688,16 @@ namespace bmia {
 		if (!(ds->getVtkImageData()))
 			return;
 
-        // Check for a transformation matrix
+		// Check for a transformation matrix
 		vtkObject * obj = NULL;
 		vtkMatrix4x4 * transformationMatrix=vtkMatrix4x4::New();
 		//There may be no transformation attribute
 		if (ds->getAttributes()->getAttribute("transformation matrix", obj))
 		{
-				
+
 			// Cast the object to a transformation matrix
-			 transformationMatrix = vtkMatrix4x4::SafeDownCast(obj);
-			
+			transformationMatrix = vtkMatrix4x4::SafeDownCast(obj);
+
 			// Check if this went okay
 			if (!transformationMatrix)
 			{
@@ -705,49 +705,33 @@ namespace bmia {
 				//return;
 			}
 		}
-				 
-	 		//Alternative///////////////////
-						double xMin, xMax, yMin, yMax, zMin, zMax;
-  xMin = bndSlices[0]; xMax = bndSlices[1];
-  yMin = bndSlices[2]; yMax = bndSlices[3];
-  zMin = bndSlices[4]; zMax = bndSlices[5];
- 
-  boxPts->SetPoint(0, xMax, yMin, zMax);
-  boxPts->SetPoint(1, xMax, yMin, zMin);
-  boxPts->SetPoint(2, xMax, yMax, zMin);
-  boxPts->SetPoint(3, xMax, yMax, zMax);
-  boxPts->SetPoint(4, xMin, yMin, zMax);
-  boxPts->SetPoint(5, xMin, yMin, zMin);
-  boxPts->SetPoint(6, xMin, yMax, zMin);
-  boxPts->SetPoint(7, xMin, yMax, zMax);
- 
 
-  //polyLineBox->GetPointIds()->SetNumberOfIds(0);
+		//Alternative///////////////////
+		double xMin, xMax, yMin, yMax, zMin, zMax;
+		xMin = bndSlices[0]; xMax = bndSlices[1];
+		yMin = bndSlices[2]; yMax = bndSlices[3];
+		zMin = bndSlices[4]; zMax = bndSlices[5];
 
-  for(unsigned int i = 0; i < 8; i++)
-    {
-    polyLineBox->GetPointIds()->SetId(i,i);
-    }
-   polyLineBox->GetPointIds()->SetId(7,8);
-  // Create a cell array to store the lines in and add the lines to it
+		boxPts->SetPoint(0, xMax, yMin, zMax);
+		boxPts->SetPoint(1, xMax, yMin, zMin);
+		boxPts->SetPoint(2, xMax, yMax, zMin);
+		boxPts->SetPoint(3, xMax, yMax, zMax);
+		boxPts->SetPoint(7, xMin, yMin, zMax);
+		boxPts->SetPoint(6, xMin, yMin, zMin);
+		boxPts->SetPoint(5, xMin, yMax, zMin);
+		boxPts->SetPoint(4, xMin, yMax, zMax);
 
-  cellsPolyLine->InsertNextCell(polyLineBox);
- 
-  // Create a polydata to store everything in
 
- 
-  // Add the points to the dataset
-  polyDataBox->SetPoints(boxPts);
- 
-  // Add the lines to the dataset
-  polyDataBox->SetLines(cellsPolyLine);
-  this->actorPolyDataBox->SetUserMatrix(transformationMatrix);// this can be done in the selection of radio buttons.
-  this->mapperPolyDataBox->SetImmediateModeRendering(1);
-  // Setup actor and mapper
+		this->polyDataBox->Update();
 
- this->core()->render();
- 
-  }
+
+		this->actorPolyDataBox->SetUserMatrix(transformationMatrix);// this can be done in the selection of radio buttons.
+		this->mapperPolyDataBox->SetImmediateModeRendering(1);
+		// Setup actor and mapper
+
+		this->core()->render();
+
+	}
 
 
 	//--------------------------[ changeScalarVolume ]-------------------------\\
@@ -755,7 +739,7 @@ namespace bmia {
 	void Crop3DPlugin::changeScalarVolume(int index)
 	{
 
-		 
+
 		// Only do this is we're currently scowing a scalar volume
 		if (!(this->ui->scalarVolumeRadio->isChecked()))
 			return;
@@ -797,7 +781,7 @@ namespace bmia {
 		//this->core()->render(); // tes 2
 		// Use the image as the input for the actor
 		this->actor->SetInput(ds->getVtkImageData());
-		
+
 		// Set transformation matrix, reset slices
 		this->configureNewImage(ds);
 
@@ -810,7 +794,7 @@ namespace bmia {
 		this->actor->UpdateInput();
 		this->core()->enableRendering();
 		this->core()->render();
-		 
+
 	}
 
 
@@ -951,7 +935,7 @@ namespace bmia {
 
 	void Crop3DPlugin::changeWeightVolume(int index)
 	{
-		 
+
 		// Do nothing if we're not using RGB coloring
 		if (!this->ui->dtiRadio->isChecked()) 
 			return;
@@ -1025,7 +1009,7 @@ namespace bmia {
 
 	void Crop3DPlugin::configureNewImage(data::DataSet * ds)
 	{
-		 
+
 
 		// Check if the range of the image has changed
 		bool resetSlices = false;
@@ -1077,19 +1061,19 @@ namespace bmia {
 
 		// Check for a transformation matrix
 		vtkObject * obj = NULL;
-		
+
 		if (ds->getAttributes()->getAttribute("transformation matrix", obj))
 		{
 			// Cast the object to a transformation matrix
 			vtkMatrix4x4 * transformationMatrix = vtkMatrix4x4::SafeDownCast(obj);
-			
+
 			// Check if this went okay
 			if (!transformationMatrix)
 			{
 				this->core()->out()->logMessage("Not a valid transformation matrix!");
 				return;
 			}
-		
+
 			// Loop through all three dimensions
 			for (int i = 0; i < 3; ++i)
 			{
@@ -1132,11 +1116,11 @@ namespace bmia {
 		this->core()->data()->dataSetChanged(this->seedDataSets[0]);
 		this->core()->data()->dataSetChanged(this->seedDataSets[1]);
 		this->core()->data()->dataSetChanged(this->seedDataSets[2]);
-			
+
 		//roi box
 		//this->boxRep->PlaceWidget(this->actor->GetBounds()); // if planes are not visible does not work
 		this->changeRoiBoundary(0); // argument not used
-		 
+
 	}
 
 
@@ -1335,7 +1319,7 @@ namespace bmia {
 		// Set the slice position
 		//cout << "set slice x" << endl;
 		this->actor->SetX(x);
-		 //stephens plugin
+		//stephens plugin
 		//data::DataSet * ds = this->scalarVolumeDataSets.at(this->ui->scalarVolumeCombo->currentIndex());
 		//if(ds->getAttributes()->hasAttribute("SlicePosX"))
 		//{
@@ -1343,7 +1327,7 @@ namespace bmia {
 		//   cout << "Added attribute \n";
 		//	this->core()->data()->dataSetChanged(ds);
 		//}
-			// Get the input image of the slice
+		// Get the input image of the slice
 		vtkImageData * input = this->actor->GetInput();
 
 		if (input)
@@ -1372,7 +1356,7 @@ namespace bmia {
 			this->core()->data()->dataSetChanged(this->sliceActorDataSets[0]);
 			this->core()->render();
 		}
-	 
+
 
 	}
 
@@ -1636,13 +1620,13 @@ namespace bmia {
 		this->ui->horizontalSliderX0->setValue(this->actor->GetXMin());
 		this->ui->horizontalSliderY0->setValue(this->actor->GetYMin());
 		this->ui->horizontalSliderZ0->setValue(this->actor->GetZMin());
-		 
+
 
 		this->ui->horizontalSliderX1->setValue(this->actor->GetXMax());
 		this->ui->horizontalSliderY1->setValue(this->actor->GetYMax());
 		this->ui->horizontalSliderZ1->setValue(this->actor->GetZMax());
-	 
-		 
+
+
 		// spins
 		this->ui->x0ROIPositionSpin->setMinimum(this->actor->GetXMin());
 		this->ui->x0ROIPositionSpin->setMaximum(this->actor->GetXMax());
@@ -1665,15 +1649,13 @@ namespace bmia {
 		// set spins
 		this->ui->x0ROIPositionSpin->setValue(this->actor->GetXMin());
 		this->ui->x1ROIPositionSpin->setValue(this->actor->GetXMax());
-		 
+
 		this->ui->y0ROIPositionSpin->setValue(this->actor->GetYMin());	 
 		this->ui->y1ROIPositionSpin->setValue(this->actor->GetYMax());
-	
+
 		this->ui->z0ROIPositionSpin->setValue(this->actor->GetZMin());
 		this->ui->z1ROIPositionSpin->setValue(this->actor->GetZMax());
 
-
-		 
 	}
 
 	// Get ROI Boundaries Set by the user
@@ -1690,15 +1672,14 @@ namespace bmia {
 
 	void Crop3DPlugin::cropData()
 	{ 
-		 
 
 		if( (this->ui->horizontalSliderX0->value() >  this->ui->horizontalSliderX1->value()) ||
-			        (this->ui->horizontalSliderY0->value() >  this->ui->horizontalSliderY1->value()) || (this->ui->horizontalSliderZ0->value() >  this->ui->horizontalSliderZ1->value()))
-			{
-				this->core()->out()->showMessage("Initial border value must be less then the second border value along an axis.", "Boundary Problem");
-				return ;  
-		    }      
-					
+			(this->ui->horizontalSliderY0->value() >  this->ui->horizontalSliderY1->value()) || (this->ui->horizontalSliderZ0->value() >  this->ui->horizontalSliderZ1->value()))
+		{
+			this->core()->out()->showMessage("Initial border value must be less then the second border value along an axis.", "Boundary Problem");
+			return ;  
+		}      
+
 		for (int i=0; i< this->scalarVolumeDataSets.size();i++)
 			qDebug() << i << " " << this->scalarVolumeDataSets.at(i)->getName() << " " << this->scalarVolumeDataSets.at(i)->getKind() << endl;
 
@@ -1707,29 +1688,24 @@ namespace bmia {
 
 
 		data::DataSet * dataDS;
-		
-	    if (this->ui->dtiRadio->isChecked())
+
+		if (this->ui->dtiRadio->isChecked())
 			dataDS = this->core()->data()->getDataSet(this->ui->dtiVolumeCombo->currentText(),"DTI");  
 		else 
-		dataDS = this->scalarVolumeDataSets.at(this->ui->scalarVolumeCombo->currentIndex());
-	 
+			dataDS = this->scalarVolumeDataSets.at(this->ui->scalarVolumeCombo->currentIndex());
+
 		if(dataDS == NULL)
 			qDebug() << "Dataset dataDS == NULL" << endl;
-		
-		 
-		//this->crop3DDataSet(weightDS);
+
 		this->crop3DDataSet(dataDS);
 
 		for(int axis = 0; axis < 3; ++axis)
 		{
 			// Add the seed point data set to the data manager
 			// The line below was at the initialization function, but that creates confision. If there is no volume crapped there also exists a crop seed plane which is same with original uncur plane.
-			 this->core()->data()->addDataSet(this->seedDataSets[axis]);
+			this->core()->data()->addDataSet(this->seedDataSets[axis]);
 
 		}
-		//vtkImageData * dtiImage = dtiDS->getVtkImageData();
-		//vtkImageData * weightImage = weightDS->getVtkImageData();
-		// check the combo box indexes, understand which one is shown cut it by crop3DDataSet
 
 	}
 
@@ -1742,8 +1718,8 @@ namespace bmia {
 		{
 			image   = ds->getVtkImageData();
 			if(!image) 	
-				{
-					qDebug() << "Not imagedata " << endl; 
+			{
+				qDebug() << "Not imagedata " << endl; 
 				return; }
 		}
 		else 
@@ -1760,32 +1736,32 @@ namespace bmia {
 		extractVOI->SetVOI(bnd[0],bnd[1],bnd[2],bnd[3],bnd[4],bnd[5]);		
 		extractVOI->Update();
 		vtkImageData* extracted = extractVOI->GetOutput();
-		   
+
 		extracted->Update();	 
 		vtkObject *obj = vtkObject::SafeDownCast(extracted);
 		QString croppedDataName= "Cropped-" + ds->getName();
 
 		if (obj)
 		{
-			 
+
 			data::DataSet *croppedDS = new data::DataSet( croppedDataName, ds->getKind(),obj);
-			 
-			 
+
+
 			vtkObject * objMatrix;
 			if ((ds->getAttributes()->getAttribute("transformation matrix", objMatrix)))
 
 			{
-			 
+
 				//Add the transformation matrix to the dataset
 				croppedDS->getAttributes()->addAttribute("transformation matrix", objMatrix);
-			 
+
 			}
 			int isCropped(1);
 			croppedDS->getAttributes()->addAttribute("isSubVolume", isCropped);
 
-				this->core()->data()->addDataSet(croppedDS); // to only this plugin or to all ?
-			 
-			 
+			this->core()->data()->addDataSet(croppedDS); // to only this plugin or to all ?
+
+
 			this->core()->render();  
 		}
 		else
