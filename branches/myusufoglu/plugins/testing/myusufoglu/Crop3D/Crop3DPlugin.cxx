@@ -245,6 +245,11 @@ namespace bmia {
 		this->defaultLUT->Delete();
 		this->MEVColoringFilter->Delete();
 
+		boxPts->Delete()  ;
+		polyDataBox->Delete() ;
+		mapperPolyDataBox->Delete() ;
+		actorPolyDataBox->Delete() ;
+
 		// Delete the callback
 		if (this->callBack)
 			this->callBack->Delete();

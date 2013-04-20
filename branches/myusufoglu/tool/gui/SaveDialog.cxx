@@ -211,13 +211,10 @@ namespace bmia {
 			if (image)
 			{
 
-
-
-				// Why derivatices of DTI like FA is listed as being 0 byte. lets update
+				// Why derivatices of DTI like FA is listed as being 0 byte. lets update. This may take time at the startup.
 				if (ds->getVtkImageData()->GetActualMemorySize() == 0)
 				{
 					ds->getVtkImageData()->Update();
-					//this->manager->dataSetChanged(ds);
 				}
 				// Print data set type and dimensionality
 				this->addSubItem(dsItem, "Type: Image (" + QString::number(image->GetDataDimension()) + "D)");
@@ -502,12 +499,10 @@ namespace bmia {
 			if(image && (kind.contains("scalar volume") || kind.contains("eigen") || kind.contains("DTI") || kind.contains("discrete sphere") || kind.contains("spherical harmonics")  ))// && (ds->getVtkImageData()->GetNumberOfScalarComponents() ==1 ))
             {
                 qDebug() << "Writing the image data. No of scalar components is:" << image->GetNumberOfScalarComponents() << endl;
-                //image->Print(cout);
 
                 if( fileNameExtention.toString()==".vti" )
                 {
-                    vtkXMLImageDataWriter *writerXML = vtkXMLImageDataWriter::New();
-                    cout << "saving vtk or vti" << endl;
+                    vtkXMLImageDataWriter *writerXML = vtkXMLImageDataWriter::New();                
                     writerXML->SetInput ( (vtkDataObject*)(image) );
                     //save the transfer matrix along with the image
                     //writerXML->SetFileTypeToBinary();

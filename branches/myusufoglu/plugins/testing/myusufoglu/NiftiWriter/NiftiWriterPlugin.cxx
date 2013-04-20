@@ -97,23 +97,19 @@ namespace bmia {
 		// Create a new reader object and set the filename
 		bmiaNiftiWriter * writer = new bmiaNiftiWriter(this->core()->out());
 
-
-
-
 		QString name(ds->getName());  
 		QString kind(ds->getKind()); 
 
 		if(saveFileName==NULL)
 			return;
 		QStringRef fileNameExtention(&saveFileName,saveFileName.lastIndexOf(QString(".")),4 );
-		//cout << "saveFileName and kind" << saveFileName.toStdString() << " " << kind.toStdString() << endl;
 		vtkImageData * image   = ds->getVtkImageData();
 
 		if(!image) cout << "Not image"<< endl;
 		if( fileNameExtention.toString()==".nii" || fileNameExtention.toString()==".gz"  )
 		{
 
-			if(image && kind.contains("scalar volume"))// && (ds->getVtkImageData()->GetNumberOfScalarComponents() ==1 ))
+			if(image && kind.contains("scalar volume")) 
 			{
 				vtkObject * attObject = vtkObject::New();
 				ds->getAttributes()->getAttribute("transformation matrix", attObject);
@@ -124,13 +120,12 @@ namespace bmia {
 			{
 				vtkObject * attObject = vtkObject::New();
 				ds->getAttributes()->getAttribute("transformation matrix", attObject);
-
 				writer->writeMindData(image,saveFileName, attObject, ds->getKind());
 			}
 
 			else 
 			{
-				qDebug() << "The data can not be saved due to data type2."<< endl;	
+				qDebug() << "The data can not be saved due to data type."<< endl;	
 				return; 
 			}
 
@@ -140,9 +135,6 @@ namespace bmia {
 			qDebug() << "The data can not be saved due to extention mismatch."<< endl;	
 			return; 
 		}
-
-
-
 
 	}
 

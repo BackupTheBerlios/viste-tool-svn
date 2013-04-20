@@ -5131,13 +5131,11 @@ int nifti_write_all_data(znzFile fp, nifti_image * nim,
 {
    size_t ss;
    int    bnum;
- printf(" Nifti write data all \n");
    if( !NBL ){ /* just write one buffer and get out of here */
       if( nim->data == NULL ){
          fprintf(stderr,"** NWAD: no image data to write\n");
          return -1;
       }
-	   printf(" Nifti write data all 1.1\n");
       ss = nifti_write_buffer(fp,nim->data,nim->nbyper * nim->nvox);
       if (ss < nim->nbyper * nim->nvox){
          fprintf(stderr,
@@ -5145,7 +5143,6 @@ int nifti_write_all_data(znzFile fp, nifti_image * nim,
             (unsigned)ss, (unsigned)(nim->nbyper * nim->nvox));
          return -1;
       }
-	   printf(" Nifti write data all 1.2\n");
       if( g_opts.debug > 1 )
          fprintf(stderr,"+d wrote single image of %u bytes\n", (unsigned)ss);
    } else {

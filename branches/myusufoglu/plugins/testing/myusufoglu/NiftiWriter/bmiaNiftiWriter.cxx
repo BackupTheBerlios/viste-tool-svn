@@ -323,8 +323,6 @@ namespace bmia {
 
 		nifti_image * m_NiftiImage = new nifti_image;
 		m_NiftiImage = nifti_simple_init_nim();
-		//print for debug
-		//image->Print(cout);
 		double dataTypeSize = 1.0;
 		int dim[3];
 		int wholeExtent[6];
@@ -478,14 +476,13 @@ namespace bmia {
 				m_NiftiImage->sform_code = 1; // sform matrix is used only if sform_code > 0.
 
 
-				matrix->Print(cout);
+				//matrix->Print(cout);
 				mat44 matrixf;
 				for(int i=0;i<4;i++)
 					for(int j=0;j<4;j++)
 					{
 						if(m_NiftiImage->qform_code > 0)
 							matrixf.m[i][j] = matrix->GetElement(i,j);
-						cout <<  matrixf.m[i][j] << endl;
 						// sform code
 						if(m_NiftiImage->sform_code >0 )
 							m_NiftiImage->sto_xyz.m[i][j]= matrix->GetElement(i,j);
@@ -535,7 +532,6 @@ namespace bmia {
 		//there must be 6 extentions
 		nifti_image * m_NiftiImage = new nifti_image;
 		m_NiftiImage = nifti_simple_init_nim();
-		//image->Print(cout);
 		double dataTypeSize = 1.0;
 		int dim[3];
 		int wholeExtent[6];
@@ -697,7 +693,6 @@ namespace bmia {
 				m_NiftiImage->sform_code = 1; // sform matrix is used only if sform_code > 0.
 
 
-				matrix->Print(cout);
 				mat44 matrixf;
 				for(int i=0;i<4;i++)
 					for(int j=0;j<4;j++)
@@ -705,7 +700,6 @@ namespace bmia {
 						if(m_NiftiImage->qform_code > 0)
 						{
 							matrixf.m[i][j] = matrix->GetElement(i,j);
-							//cout <<  matrixf.m[i][j] << endl;
 						}
 						// sform code
 						if(m_NiftiImage->sform_code >0 )
@@ -785,7 +779,6 @@ namespace bmia {
 
 					int arraySize = image->GetPointData()->GetArray("Tensors")->GetNumberOfTuples();
 					int comp = image->GetPointData()->GetArray("Tensors")->GetNumberOfComponents();
-					image->GetPointData()->GetArray("Tensors")->Print(cout);
 					double * niftiImageData =  new double[arraySize*comp];
 					//this->NiftiImage->data = (void *) new double[arraySize*comp+arraySize];
 					for (int i = 0; i < arraySize; ++i) 
@@ -805,7 +798,6 @@ namespace bmia {
 			m_NiftiImage->nvox = m_NiftiImage->nx * m_NiftiImage->ny * m_NiftiImage->nz * m_NiftiImage->nt * m_NiftiImage->nu;
 			m_NiftiImage->swapsize		= 8;					// ...and the swap size is also 8.
 			m_NiftiImage->iname_offset	= 1024;					// Offset for the image name
-			image->Print(cout);
 
 			char buffer[24];
 			memset(buffer, 0, sizeof(buffer));
@@ -824,7 +816,7 @@ namespace bmia {
 
 
 			vtkDataArray * inVectors = image->GetPointData()->GetArray("Vectors");
-			image->GetPointData()->GetArray("Vectors")->Print(cout);
+			//image->GetPointData()->GetArray("Vectors")->Print(cout);
 			if (!inVectors)
 			{
 				cout <<"Input data has no vectors!";
@@ -834,7 +826,7 @@ namespace bmia {
 			int arraySize = image->GetNumberOfPoints();
 			int comp = image->GetNumberOfScalarComponents();
 			double * niftiImageData =  new double[arraySize*comp];
-			//this->NiftiImage->data = (void *) new double[arraySize*comp+arraySize];
+
 			for (int i = 0; i < arraySize; ++i) 
 				for (int j = 0; j < comp; ++j)
 				{
@@ -852,8 +844,6 @@ namespace bmia {
 			m_NiftiImage->nvox = m_NiftiImage->nx * m_NiftiImage->ny * m_NiftiImage->nz * m_NiftiImage->nt * m_NiftiImage->nu;
 			m_NiftiImage->swapsize		= 8;					// ...and the swap size is also 8.
 			m_NiftiImage->iname_offset	= 1024;					// Offset for the image name
-			image->Print(cout);
-			image->GetPointData()->Print(cout);
 			char buffer[24];
 			memset(buffer, 0, sizeof(buffer));
 			strncpy(buffer, "REALSPHARMCOEFFS", sizeof(buffer));
@@ -910,7 +900,6 @@ namespace bmia {
 
 		}
 
-
 		else {
 			qDebug() << "The data type is not suitable to Loni Mind Save Funtion"<< endl;
 		}
@@ -943,14 +932,13 @@ namespace bmia {
 		image->GetDimensions(dim);  
 		image->GetWholeExtent(wholeExtent);
 
-
 		m_NiftiImage->ndim = 5;
 		m_NiftiImage->dim[0] = 5;
 		m_NiftiImage->dim[1] = wholeExtent[1] + 1;
 		m_NiftiImage->dim[2] = wholeExtent[3] + 1;
 		m_NiftiImage->dim[3] = wholeExtent[5] + 1;
 		m_NiftiImage->dim[4] = 1;
-		m_NiftiImage->dim[5] = 6; // 6 *2 ???
+		m_NiftiImage->dim[5] = 6; 
 		m_NiftiImage->dim[6] = 0;
 		m_NiftiImage->dim[7] = 0;
 		m_NiftiImage->nx =  m_NiftiImage->dim[1];
@@ -960,8 +948,6 @@ namespace bmia {
 		m_NiftiImage->nu =  m_NiftiImage->dim[5];
 		m_NiftiImage->nv =  m_NiftiImage->dim[6];
 		m_NiftiImage->nw =  m_NiftiImage->dim[7];
-		//m_NiftiImage->cal_max = 0.00747808;
-		//m_NiftiImage->cal_min
 
 		m_NiftiImage->pixdim[1] = spacing[0];  
 		m_NiftiImage->pixdim[2] = spacing[1];  
@@ -1083,7 +1069,7 @@ namespace bmia {
 				m_NiftiImage->sform_code = 1; // sform matrix is used only if sform_code > 0.
 
 
-				matrix->Print(cout);
+				//matrix->Print(cout);
 				mat44 matrixf;
 				for(int i=0;i<4;i++)
 					for(int j=0;j<4;j++)
@@ -1101,7 +1087,6 @@ namespace bmia {
 					if(m_NiftiImage->qform_code > 0)
 						nifti_mat44_to_quatern(matrixf, &( m_NiftiImage->quatern_b), &( m_NiftiImage->quatern_c), &( m_NiftiImage->quatern_d), 
 						&( m_NiftiImage->qoffset_x), &(m_NiftiImage->qoffset_y), &(m_NiftiImage->qoffset_z), &(m_NiftiImage->dx) , &(m_NiftiImage->dy) ,&(m_NiftiImage->dz) , &(m_NiftiImage->qfac));
-
 
 					//cout << m_NiftiImage->quatern_b << " " << m_NiftiImage->quatern_c << " " << m_NiftiImage->quatern_d << " " << m_NiftiImage->qfac << " " << endl;
 					//cout << m_NiftiImage->qoffset_x << " " << m_NiftiImage->qoffset_y << " " << m_NiftiImage->qoffset_z <<endl;
@@ -1144,11 +1129,10 @@ namespace bmia {
 		int indexMap[6] = {0, 1, 3, 2, 4, 5};
 		int arraySize = image->GetPointData()->GetArray("Tensors")->GetNumberOfTuples();
 		int comp = image->GetPointData()->GetArray("Tensors")->GetNumberOfComponents();
-		cout << arraySize << " " << comp << endl;
 		double *outDoubleArray = static_cast<double*>(image->GetPointData()->GetArray("Tensors")->GetVoidPointer(0));
 
-		image->GetPointData()->GetArray("Tensors")->Print(cout);
-		//cout << "size of outDoubleArray:" << sizeof(outDoubleArray) << endl; 
+		//image->GetPointData()->GetArray("Tensors")->Print(cout);
+
 		double * niftiImageData =  new double[arraySize*comp];
 		for (int i = 0; i < arraySize; ++i) 
 			for (int j = 0; j < comp; ++j)
@@ -1168,7 +1152,7 @@ namespace bmia {
 
 	void bmiaNiftiWriter::writeDiscreteSphereVolume()
 	{
-
+		// This part is on WriteMINDData() function
 
 	}
 
@@ -1177,7 +1161,7 @@ namespace bmia {
 
 	void bmiaNiftiWriter::writeSphericalHarmonicsVolume()
 	{
-
+		  // This part is on WriteMINDData() function
 
 	}
 
@@ -1186,11 +1170,6 @@ namespace bmia {
 
 	void bmiaNiftiWriter::writeTriangles()
 	{
-
-
-
-
-
 
 	} // namespace bmia
 }
