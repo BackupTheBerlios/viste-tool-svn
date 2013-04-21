@@ -159,22 +159,44 @@ class bmiaNiftiWriter
 
 		QList<vtkObject *> outData;
 
-		/** Create an image with one scalar value per voxel. Used for both 
-			"NDT_ScalarVolume" and "NDT_GenericVector"; in the latter case, the
-			"component" value describes which component of the input vector
-			should be used to construct the scalar image volume. 
-			@param component	Target output component. */
 
-		void writeScalarVolume(int component = 0);
-			void writeScalarVolume( vtkImageData *image, QString saveFileName, vtkObject * attObject);
+		/** Write the scalar data passed as vtkimagedata using filename and the tranformation matrix. 
+			@param image	Input Scalar component. 
+			@param saveFileName The file name including the extention.
+			@param attObject Transformation info including rotation and translation.
+			*/
+
+		void writeScalarVolume( vtkImageData *image, QString saveFileName, vtkObject * attObject);
+		
+		/** Write the scalar data passed as vtkimagedata using filename and the tranformation object. 
+			@param image	Input Scalar component. 
+			@param saveFileName The file name including the extention.
+			@param attObject Transformation info including rotation and translation.
+			*/
+
 		void writeScalarVolume(int component, vtkImageData *image, QString saveFileName, vtkObject * attObject);
-	/** Create an image containing second-order DTI tensors.  DTI saved as standart nifti, without MIND extentions */
+
+	/** Write image containing second-order DTI tensors.  DTI saved as standart nifti, without MIND extentions 
+	     DTI data passed as vtkimagedata and saved using filename and the tranformation object. 
+			@param image	Input DTI data. 
+			@param saveFileName The file name including the extention.
+			@param attObject Transformation info including rotation and translation.
+			*/
 
 		void writeDTIVolume(vtkImageData *image, QString saveFileName, vtkObject * transform);
 
-		/** Create an image containing second-order DTI tensors, spherical harmonics or discrete sphere.  Data saved as Loni-Mind nifti, ie. with MIND extentions */
+		/** Save the image containing second-order DTI tensors, spherical harmonics or discrete sphere.  
+		 Data saved as Loni-Mind nifti, ie. with MIND extentions.
+		    @param image	Input data as DTI or Spherical Harmonics or Discrete Sphere. 
+			@param saveFileName The file name including the extention.
+			@param attObject Transformation info including rotation and translation.
+			@param dataStructure DTI, Discrete Sphereor Spherical Harmonics.
+		 
+		 */
 
 		void writeMindData(vtkImageData *image, QString saveFileName,vtkObject * transform, QString dataStructure);
+
+
 	protected:
 
 		/** The NIfTI image object constructed when writing the ".nii" file. */

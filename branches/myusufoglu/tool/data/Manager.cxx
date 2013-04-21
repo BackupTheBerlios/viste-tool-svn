@@ -451,7 +451,6 @@ void Manager::loadDataFromFile(QString filename)
 void Manager::writeDataToFile(QString filename, DataSet *ds)  
 {
     QTextStream out(stdout);
-    out<<"Writing data to file "<<filename<<endl;
     QFile file;
     file.setFileName(filename);
      

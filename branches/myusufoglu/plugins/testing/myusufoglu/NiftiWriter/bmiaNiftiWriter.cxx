@@ -392,7 +392,8 @@ namespace bmia {
 		}
 
 		m_NiftiImage->nvox = numberOfVoxels;
-
+		 
+		// scalar but when it is a product of DTI, remains 6, solve the problem in production of FA etc. from DTI
 		if(numComponents==1 || numComponents==6 ){
 			switch(imageDataType)
 			{

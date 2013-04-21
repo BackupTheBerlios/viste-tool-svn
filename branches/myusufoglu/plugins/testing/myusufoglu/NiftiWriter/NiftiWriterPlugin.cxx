@@ -120,6 +120,9 @@ namespace bmia {
 			{
 				vtkObject * attObject = vtkObject::New();
 				ds->getAttributes()->getAttribute("transformation matrix", attObject);
+				if(kind.contains("DTI"))
+					writer->writeDTIVolume(image,saveFileName, attObject);
+				else
 				writer->writeMindData(image,saveFileName, attObject, ds->getKind());
 			}
 
