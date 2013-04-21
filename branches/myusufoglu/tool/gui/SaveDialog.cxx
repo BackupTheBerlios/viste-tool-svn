@@ -416,11 +416,9 @@ namespace bmia {
 
 		void SaveDialog::setClickedItem(QTreeWidgetItem* item, int index)
 		{
-			//qDebug() << index << endl;
-			qDebug() << "Clicked row and item child count:"<<   this->treeWidget->currentIndex().row()  << ","<< item->childCount() << endl;
+			//Might be used in the future, leave.
+			//qDebug() << "Clicked row and item child count:"<<   this->treeWidget->currentIndex().row()  << ","<< item->childCount() << endl;
 			//QTreeWidgetItem *item = this->treeWidget->takeTopLevelItem(this->treeWidget->currentIndex().row());
-
-
 
 		}
 
@@ -432,7 +430,7 @@ namespace bmia {
 
 			bool isFiber(false);
 			//Get the selected item and save, if it is a child item return.
-			qDebug() << "Save selected item current row() index:"<< this->treeWidget->currentIndex().row() << endl;
+			//qDebug() << "Save selected item current row() index:"<< this->treeWidget->currentIndex().row() << endl;
 			foreach( QTreeWidgetItem *item, this->treeWidget->selectedItems() ) {
 
 				for( int col = 0; col < item->columnCount(); ++col ) {

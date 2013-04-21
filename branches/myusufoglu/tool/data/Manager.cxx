@@ -440,7 +440,7 @@ void Manager::loadDataFromFile(QString filename)
 
     if (!reader)
 	{
-	out<<"No reader found that supports the requested file extension for file "<<filename<<endl;
+	out << "No reader found that supports the requested file extension for file "<<filename<<endl;
 	return;
 	} // if
     
@@ -477,7 +477,6 @@ void Manager::writeDataToFile(QString filename, DataSet *ds)
 	out<<"No writer found that supports the requested file extension for file "<<filename<<endl;
 	return;
 	} // if
-	 cout << "in manager" << ds->getKind().toStdString() << endl;
     writer->writeDataToFile(filename, ds); 
 }
 
