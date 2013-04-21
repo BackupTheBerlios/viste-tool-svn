@@ -70,6 +70,9 @@
  * - Moved the background color options to this settings dialog.
  * - Added comments, implemented destructor.
  *
+ *  * 2013-02-12 Mehmet Yusufoglu
+ * - Changed showAbout function, which shows the Help->About window. Reads the data from an xml file. AboutInfo.xml.
+ *
  */
 
 
@@ -871,31 +874,65 @@ void MainWindow::showVis(const QString &pluginName)
 
 //------------------------------[ showAbout ]------------------------------\\
 
-void MainWindow::showAbout()
-{
-	// Create the credits string
-	QString acks = QString("The following people contributed to the DTITool3 software:\n\n") +
-	QString("Tim Peeters\n") +
-	QString("Anna Vilanova\n") +
-	QString("Evert van Aart\n") +
-	QString("Paulo Rodrigues\n") +
-	QString("Vesna Prchkovska\n") +
-	QString("Ralph Brecheisen\n") +
-	QString("Wiljan van Ravensteijn\n")+
-	QString("Guus Berenschot\n") +
-	QString("\n") +
-	QString("To get the latest updates, and more information,\n") +
-	QString("visit our website:\n\n") +
-	QString("http://bmia.bmt.tue.nl/Software/DTITool/");
-	;
+		void MainWindow::showAbout()
+		{
+			 
+			QString webpage;
+			QString version;
+			QString acks;  
+			QString aboutFileName("\\AboutInfo.xml");  
+			QFile file(qApp->applicationDirPath() + aboutFileName );
+			bool open = file.open(QIODevice::ReadOnly | QIODevice::Text);
+			if (!open) 
+			{
+				qDebug() << "Couldn't open the file " << aboutFileName  << endl;      
+			}
+			else 
+			{
+				//qDebug() << "About file opened: " << aboutFileName  << endl;
+				// Start acknowledgment line
+				acks =  QString("<br> <b>Acknowledgements</b><br> The following people contributed to the vIST/e software.<br>");
+				QXmlStreamReader xml(&file);
 
-	// Show the credits string in a message box
-	QMessageBox box;
-	box.setText("DTITool 3 Acknowledgments");
-	box.setInformativeText(acks);
-	box.exec();
-}
+				while (!xml.atEnd() && !xml.hasError()) 
+				{
+					xml.readNext();
+					if (xml.isStartElement())
+					{
+						QString name = xml.name().toString();
+						if (name == "fullname")
+						{
+							acks= acks + xml.readElementText() + "<br>"; 								 
+						}
+						else if (name=="version")
+							version= xml.readElementText(); 
+						else if (name=="website")
+							webpage= xml.readElementText(); 
+					}
+				}
+				if (xml.hasError())
+				{
+					qDebug() << "XML error: " << xml.errorString() << endl;
+				}
+				else if (xml.atEnd())
+				{
+					//qDebug() << "Reached end of XML."   << endl;
+				}
+				
+			}
+			
+			// Default webpage of viste, if it is not set in xml file.
+			if(webpage=="") webpage="'http://bmia.bmt.tue.nl/Software/vISTe/'"; else webpage= "'"+ webpage + "'";
+			QString versionText("<big><b> vISTe Tool<\b><\big> <br> Version:" + version + "<br> For more information please check: <a href="+webpage +">vISTe Tool</a>. ");
+			
+			QMessageBox box;
 
+			 //this is what makes the links clickable
+			box.setTextFormat(Qt::RichText);  
+			box.setText(versionText);
+			box.setInformativeText(acks);
+			box.exec();
+		} //showAbout
 
 } // namespace gui
 

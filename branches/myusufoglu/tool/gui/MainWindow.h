@@ -74,6 +74,10 @@
  * - Added preprocessor directive to check for OS and conditionally include
  *   gui/ui_MainWindow.h (either with double quotes or parentheses).
  *
+ *
+ *  * 2013-02-12 Mehmet Yusufoglu
+ * - Changed showAbout function, which shows the Help->About window. Reads the data from an xml file. AboutInfo.xml.
+ *  Included file : QXmlStreamReader. 
  */
 
 
@@ -96,6 +100,7 @@
 #include <QSignalMapper>
 #include <QtDebug>
 #include <QFrame>
+#include <QXmlStreamReader>
 
 /** Includes - VTK */
 
@@ -275,7 +280,9 @@ class MainWindow : public QMainWindow, public Ui::MainWindow, public MainWindowI
 	
 		void selectPluginGui();
 
-		/** Show a message box with information about the DTITool. */
+			/** Shows a message box with information about the DTITool. 
+		* Reads an xml file which includes version info and people's names to be included into the acknowledgements list.
+		* If there is no xml file, ie. AboutInfo.xml, prints the name, no version, default web page and no acknowledgements. */
 
 		void showAbout();
 

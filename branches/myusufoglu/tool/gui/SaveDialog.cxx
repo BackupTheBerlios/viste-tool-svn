@@ -525,8 +525,10 @@ namespace bmia {
 
 				qDebug() << "Writing the polydata data" << endl;
 				writer->SetInput( (vtkDataObject*)(polyData) );
+				writer->SetFileTypeToASCII();
+				writer->SetFileName( saveFileName.toStdString().c_str() );
 				if(isFiber) this->saveTransferMatrix(saveFileName, ds);
-
+				writer->Write();
 
 			}
 			else if(pointSet)

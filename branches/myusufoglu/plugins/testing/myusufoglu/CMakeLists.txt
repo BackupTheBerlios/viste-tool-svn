@@ -31,5 +31,3 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-add_subdirectory( Crop3D )
-add_subdirectory( NiftiWriter )
