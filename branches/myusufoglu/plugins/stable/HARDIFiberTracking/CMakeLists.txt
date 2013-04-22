@@ -26,8 +26,8 @@ set(SRCS
 	HARDI/vertex.h
 	HARDI/HARDIMath.cxx
 	HARDI/HARDIMath.h
-	HARDI/HARDItransformationManager.cxx
-	HARDI//HARDItransformationManager.h
+	HARDI/HARDITransformationManager.cxx
+	HARDI//HARDITransformationManager.h
 	vtkGeometryGlyphBuilder.cxx
 	vtkGeometryGlyphBuilder.h
 	vtkGeometryGlyphFromSHBuilder.cxx
