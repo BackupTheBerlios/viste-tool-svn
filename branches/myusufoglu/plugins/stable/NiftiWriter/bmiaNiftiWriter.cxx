@@ -473,6 +473,10 @@ namespace bmia {
 			matrix = vtkMatrix4x4::SafeDownCast(transform);
 			if(matrix)
 			{
+				
+              // if extent does not start from zero if it is a cropped image for example:
+			//for(int i=0;i<3;i++)
+			//matrix->SetElement(i,3,matrix->GetElement(i,3) - wholeExtent[2*i]*spacing[i]);
 				// sform matrix or qform quaternion, which one will be used. Both can also be used if bothcodes are > 0.
 				m_NiftiImage->qform_code = 0; // Decided to use only sform code. If this is set > 0 then qform quaternion or sform matrix is used.
 				m_NiftiImage->sform_code = 1; // sform matrix is used only if sform_code > 0.
@@ -688,13 +692,19 @@ namespace bmia {
 		{
 			vtkMatrix4x4 *matrix =  vtkMatrix4x4::New();
 			matrix = vtkMatrix4x4::SafeDownCast(transform);
+			
+
+			 
 			if(matrix)
 			{
+
+					//for(int i=0;i<3;i++)
+			//matrix->SetElement(i,3,matrix->GetElement(i,3) - wholeExtent[2*i]*spacing[i]);
 				// sform matrix or qform quaternion, which one will be used. Both can also be used if bothcodes are > 0.
 				m_NiftiImage->qform_code = 0; // Decided to use only sform code. If this is set > 0 then qform quaternion or sform matrix is used.
 				m_NiftiImage->sform_code = 1; // sform matrix is used only if sform_code > 0.
 
-
+				
 				mat44 matrixf;
 				for(int i=0;i<4;i++)
 					for(int j=0;j<4;j++)
@@ -1066,6 +1076,10 @@ namespace bmia {
 			matrix = vtkMatrix4x4::SafeDownCast(transform);
 			if(matrix)
 			{
+
+				//	for(int i=0;i<3;i++)
+			//matrix->SetElement(i,3,matrix->GetElement(i,3) - wholeExtent[2*i]*spacing[i]);
+				
 				// sform matrix or qform quaternion, which one will be used. Both can also be used if bothcodes are > 0.
 				m_NiftiImage->qform_code = 0; // Decided to use only sform code. If this is set > 0 then qform quaternion or sform matrix is used.
 				m_NiftiImage->sform_code = 1; // sform matrix is used only if sform_code > 0.
