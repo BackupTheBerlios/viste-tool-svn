@@ -339,9 +339,10 @@ namespace bmia {
 		m_NiftiImage->dt = 0;
 
 		m_NiftiImage->ndim = 3;
-		m_NiftiImage->dim[1] = wholeExtent[1] + 1;
-		m_NiftiImage->dim[2] = wholeExtent[3] + 1;
-		m_NiftiImage->dim[3] = wholeExtent[5] + 1;
+		// if start index is 0 wholeExtent[1] below is enough, but if the image is a cropped image etc.
+		m_NiftiImage->dim[1] = wholeExtent[1]-wholeExtent[0] + 1;
+		m_NiftiImage->dim[2] = wholeExtent[3]-wholeExtent[2] + 1;
+		m_NiftiImage->dim[3] = wholeExtent[5]-wholeExtent[4] + 1;
 		m_NiftiImage->dim[4] = 1;
 		m_NiftiImage->dim[5] = 1;
 		m_NiftiImage->dim[6] = 1;
@@ -550,9 +551,9 @@ namespace bmia {
 		m_NiftiImage->byteorder		= nifti_short_order();
 		m_NiftiImage->ndim = 5;
 		m_NiftiImage->dim[0] = 5;
-		m_NiftiImage->dim[1] = wholeExtent[1] + 1;
-		m_NiftiImage->dim[2] = wholeExtent[3] + 1;
-		m_NiftiImage->dim[3] = wholeExtent[5] + 1;
+	    m_NiftiImage->dim[1] = wholeExtent[1]-wholeExtent[0] + 1;// if start index is 0 wholeExtent[1] is enough
+		m_NiftiImage->dim[2] = wholeExtent[3]-wholeExtent[2] + 1;
+		m_NiftiImage->dim[3] = wholeExtent[5]-wholeExtent[4] + 1;
 		m_NiftiImage->dim[4] = 1;
 		m_NiftiImage->dim[5] = 1; // Each data sets again below
 		m_NiftiImage->dim[6] = 0;
@@ -794,7 +795,7 @@ namespace bmia {
 		// Discrete Sphere
 		else if(dataStructure.contains("discrete sphere")) {
 			// overwrite 
-			m_NiftiImage->dim[5] = image->GetNumberOfScalarComponents(); //  *2 ??? No data isone scalar for each index set.
+			m_NiftiImage->dim[5] = image->GetNumberOfScalarComponents(); //   
 			m_NiftiImage->nu =  m_NiftiImage->dim[5];
 			m_NiftiImage->nvox = m_NiftiImage->nx * m_NiftiImage->ny * m_NiftiImage->nz * m_NiftiImage->nt * m_NiftiImage->nu;
 			m_NiftiImage->swapsize		= 8;					// ...and the swap size is also 8.
@@ -840,7 +841,7 @@ namespace bmia {
 		// Spherical Harmonics
 		else if(dataStructure.contains("spherical harmonics")) {
 			// overwrite 
-			m_NiftiImage->dim[5] = image->GetNumberOfScalarComponents(); //  *2 ??? No data isone scalar for each index set.
+			m_NiftiImage->dim[5] = image->GetNumberOfScalarComponents(); //   
 			m_NiftiImage->nu =  m_NiftiImage->dim[5];
 			m_NiftiImage->nvox = m_NiftiImage->nx * m_NiftiImage->ny * m_NiftiImage->nz * m_NiftiImage->nt * m_NiftiImage->nu;
 			m_NiftiImage->swapsize		= 8;					// ...and the swap size is also 8.
@@ -850,7 +851,7 @@ namespace bmia {
 			strncpy(buffer, "REALSPHARMCOEFFS", sizeof(buffer));
 			nifti_add_extension(m_NiftiImage, buffer, 24, NIFTI_ECODE_MIND_IDENT); // 24 is length of array which inc. DISCSPHFUNC
 
-			//vtkDataArray *theOrderDegreeArray = image->GetPointData()->GetScalars();
+	
 			int shOrder;
 
 	// Get the SH order, based on the number of coefficients
@@ -935,9 +936,9 @@ namespace bmia {
 
 		m_NiftiImage->ndim = 5;
 		m_NiftiImage->dim[0] = 5;
-		m_NiftiImage->dim[1] = wholeExtent[1] + 1;
-		m_NiftiImage->dim[2] = wholeExtent[3] + 1;
-		m_NiftiImage->dim[3] = wholeExtent[5] + 1;
+	    m_NiftiImage->dim[1] = wholeExtent[1]-wholeExtent[0] + 1;// if start index is 0 wholeExtent[1] is enough
+		m_NiftiImage->dim[2] = wholeExtent[3]-wholeExtent[2] + 1;
+		m_NiftiImage->dim[3] = wholeExtent[5]-wholeExtent[4] + 1;
 		m_NiftiImage->dim[4] = 1;
 		m_NiftiImage->dim[5] = 6; 
 		m_NiftiImage->dim[6] = 0;
@@ -1131,10 +1132,7 @@ namespace bmia {
 		int arraySize = image->GetPointData()->GetArray("Tensors")->GetNumberOfTuples();
 		int comp = image->GetPointData()->GetArray("Tensors")->GetNumberOfComponents();
 		double *outDoubleArray = static_cast<double*>(image->GetPointData()->GetArray("Tensors")->GetVoidPointer(0));
-
-		//image->GetPointData()->GetArray("Tensors")->Print(cout);
-
-		double * niftiImageData =  new double[arraySize*comp];
+    	double * niftiImageData =  new double[arraySize*comp];
 		for (int i = 0; i < arraySize; ++i) 
 			for (int j = 0; j < comp; ++j)
 			{

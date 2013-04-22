@@ -125,7 +125,19 @@ void PolyDataVisualizationPlugin::dataSetAdded(data::DataSet* ds)
     // Note that the mapper was not actually deleted because it was
     // registered by the actor. And it can still be accessed through
     // actor->GetMapper().
+	
+		vtkObject * obj;
+	if (!(ds->getAttributes()->getAttribute("transformation matrix", obj)))
+	{
+		qDebug() << "No transformation matrix for the polydata" << endl;
+		//return;
+	}
+	else {
 
+	vtkMatrix4x4 * m = vtkMatrix4x4::SafeDownCast(obj);
+
+	actor->SetUserMatrix(m);
+	}
     // Add the actor to the assembly to be rendered:
     this->assembly->AddPart(actor);
 

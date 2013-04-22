@@ -475,6 +475,14 @@ namespace bmia {
 					fileName,	
 					"Fibers (*.fbs);;VTK (*.vtk);;VTK Polydata (*.vtp)");
 			}
+				else if(kind=="regionOfInterest")
+			{
+				 
+				saveFileName = QFileDialog::getSaveFileName(this,
+					"Save Data as...",
+					fileName,	
+					"VTK Polydata (*.pol);;VTK (*.vtk);;VTK Polydata (*.vtp)");
+			}
 			else{
 				saveFileName = QFileDialog::getSaveFileName(this,
 					"Save Data as...",
@@ -533,7 +541,8 @@ namespace bmia {
 				writer->SetInput( (vtkDataObject*)(polyData) );
 				writer->SetFileTypeToASCII();
 				writer->SetFileName( saveFileName.toStdString().c_str() );
-				if(isFiber) this->saveTransferMatrix(saveFileName, ds);
+				//if(isFiber)
+					this->saveTransferMatrix(saveFileName, ds);
 				writer->Write();
 
 			}
