@@ -473,7 +473,7 @@ void Manager::writeDataToFile(QString filename, DataSet *ds)
 
     if (!writer)
 	{
-	out<<"No writer found that supports the requested file extension for file "<<filename<<endl;
+	out <<"No writer found that supports the requested file extension for file "<<filename<<endl;
 	return;
 	} // if
     writer->writeDataToFile(filename, ds); 

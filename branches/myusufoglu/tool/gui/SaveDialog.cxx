@@ -458,22 +458,28 @@ namespace bmia {
 			QString fileName (name+"-"+kind);
 			QString saveFileName;
 			// fiber selection must be automaticly fbs.
-
-			if(kind!="fibers")
+			// if image
+			if(kind!="fibers" && kind!= "seed points" && kind != "regionOfInterest")
 			{
 
 				saveFileName = QFileDialog::getSaveFileName(this,
 					"Save Data as...",
 					fileName,	
-					"Nifti (*.nii);; Nifti (*.nii.gz);; VTK Image (*.vti);;VTK Polydata (*.vtp)");
+					"Nifti (*.nii);; VTK Image (*.vti);;VTK Polydata (*.vtp)");
 			}
-			else
+			else if(kind=="fibers")
 			{
 				isFiber = true;
 				saveFileName = QFileDialog::getSaveFileName(this,
 					"Save Data as...",
 					fileName,	
 					"Fibers (*.fbs);;VTK (*.vtk);;VTK Polydata (*.vtp)");
+			}
+			else{
+				saveFileName = QFileDialog::getSaveFileName(this,
+					"Save Data as...",
+					fileName,	
+					"VTK (*.vtk);;VTK Polydata (*.vtp)");
 			}
 			if(saveFileName==NULL)
 				return;
@@ -496,7 +502,7 @@ namespace bmia {
 
 			if(image && (kind.contains("scalar volume") || kind.contains("eigen") || kind.contains("DTI") || kind.contains("discrete sphere") || kind.contains("spherical harmonics")  ))// && (ds->getVtkImageData()->GetNumberOfScalarComponents() ==1 ))
             {
-                qDebug() << "Writing the image data. No of scalar components is:" << image->GetNumberOfScalarComponents() << endl;
+                //qDebug() << "Writing the image data. No of scalar components is:" << image->GetNumberOfScalarComponents() << endl;
 
                 if( fileNameExtention.toString()==".vti" )
                 {
@@ -533,7 +539,7 @@ namespace bmia {
 			}
 			else if(pointSet)
 			{		 
-				qDebug() << "Writing the pointset data" << endl;
+				qDebug() << "Exporting the pointset data" << endl;
 				writer->SetInput( (vtkDataObject*)(pointSet) );
 				writer->SetFileTypeToASCII();
 				writer->SetFileName( saveFileName.toStdString().c_str() );
