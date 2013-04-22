@@ -1,9 +1,0 @@
-VERT dtilight.vert
-FRAG lighting.frag 
-FRAG infinity.frag
-FRAG glyphs.frag
-FRAG geometry.frag
-FRAG coordinates.frag
-FRAG coordinates-tensor.frag
-FRAG dtilight.frag
-FRAG matrix.frag
