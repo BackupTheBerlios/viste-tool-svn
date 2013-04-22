@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ConnectivityMeasuresForm</class>
+ <widget class="QWidget" name="ConnectivityMeasuresForm">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>290</width>
+    <height>881</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_4">
+   <item>
+    <layout class="QHBoxLayout" name="inputHLayout">
+     <item>
+      <widget class="QLabel" name="inputLabel">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Fibers   </string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="inputCombo"/>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="outputHLayout">
+     <item>
+      <widget class="QLabel" name="outputLabel">
+       <property name="text">
+        <string>Output Name   </string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="outputLineEdit"/>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="measureGroup">
+     <property name="title">
+      <string>Connectivity Measure</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <layout class="QGridLayout" name="measureGLayout">
+        <item row="0" column="0">
+         <widget class="QLabel" name="measureLabel">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Measure   </string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QComboBox" name="measureCombo">
+          <item>
+           <property name="text">
+            <string>Geodesic Connection Strength</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="measureDTIImageLabel">
+          <property name="text">
+           <string>DTI Image</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QComboBox" name="measureDTIImageCombo"/>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="normalizeCheck">
+        <property name="text">
+         <string>Normalize Measure Values</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="rankGroup">
+     <property name="title">
+      <string>Ranking</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="QLabel" name="rankByLabel">
+        <property name="text">
+         <string>Perform ranking based on...</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="rankByEndRadio">
+        <property name="text">
+         <string>Connectivity Measure value at fiber end</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="rankByAverageRadio">
+        <property name="text">
+         <string>Average Connectivity Measure value</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="singleValueCheck">
+        <property name="text">
+         <string>Single scalar value per fiber</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="Line" name="rankLine">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="rankOutHLayout">
+        <item>
+         <widget class="QLabel" name="rankOutLabel">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Output   </string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="rankOutCombo">
+          <item>
+           <property name="text">
+            <string>All fibers</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Strongest Fibers (#)</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Strongest Fibers (%)</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="rankNumberHLayout">
+        <item>
+         <widget class="QLabel" name="rankNumberLabel">
+          <property name="text">
+           <string>Number of Fibers</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSpinBox" name="rankNumberSpin">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximum">
+           <number>100</number>
+          </property>
+          <property name="value">
+           <number>1</number>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="rankPercHLayout">
+        <item>
+         <widget class="QLabel" name="rankPercLabel">
+          <property name="text">
+           <string>Percentage </string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSlider" name="rankPercSlide">
+          <property name="maximum">
+           <number>100</number>
+          </property>
+          <property name="value">
+           <number>10</number>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSpinBox" name="rankPercSpin">
+          <property name="maximum">
+           <number>100</number>
+          </property>
+          <property name="value">
+           <number>10</number>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="updateHLayout">
+     <property name="topMargin">
+      <number>6</number>
+     </property>
+     <property name="bottomMargin">
+      <number>6</number>
+     </property>
+     <item>
+      <spacer name="updateHSpacerA">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="updateButton">
+       <property name="text">
+        <string>Update</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="updateHSpacerB">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <spacer name="mainSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>rankPercSlide</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>rankPercSpin</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>152</x>
+     <y>338</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>248</x>
+     <y>338</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>rankPercSpin</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>rankPercSlide</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>248</x>
+     <y>338</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>152</x>
+     <y>338</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

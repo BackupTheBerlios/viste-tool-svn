@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# Get command-line parameters. First parameter is output library.
+# Remaining parameters contain source files
+CUDA_OUTPUT_LIB=$1; shift
+CUDA_SRC=$@
+
+echo "Compiling CUDA sources for DistanceUncertainty plugin..."
+echo $CUDA_OUTPUT_LIB
+echo $CUDA_SRC
+
+rm $CUDA_OUTPUT_LIB
+
+# Run NVCC compiler
+/usr/local/cuda/bin/nvcc -o $CUDA_OUTPUT_LIB -g -Xcompiler -fPIC -m64 -lib $CUDA_SRC
+
+# Create table of contents for the archive
+ranlib $CUDA_OUTPUT_LIB
