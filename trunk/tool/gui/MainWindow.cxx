@@ -794,9 +794,11 @@ void MainWindow::addPluginVtkProp(vtkProp * prop, QString name)
 	toggleVisAction->setCheckable(true);
 	toggleVisAction->setChecked(true);
 
+	toggleVisAction->setToolTip("Change " + name + " Visibility");
+	toggleVisAction->setStatusTip("Change the visibility of the actors of " + name + " Plugin");
 	// Add this action to the toolbar as a button
 	this->pluginToolbar->addAction(toggleVisAction);
-
+	
 	// Map the action to the plugin name
 	this->visibilitySignalMapper->setMapping(toggleVisAction, name);
 	connect(toggleVisAction, SIGNAL(toggled(bool)), this->visibilitySignalMapper, SLOT(map()));
