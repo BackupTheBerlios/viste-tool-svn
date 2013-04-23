@@ -124,8 +124,9 @@ MainWindow::MainWindow(Core * coreInstance, QWidget * parent) : QMainWindow(pare
 
 	// Add the plugins toolbar
 	this->pluginToolbar = this->addToolBar("Plugins");
-	this->pluginToolbar->setToolTip("Plugins Toolbar for visible plugins");
-	this->pluginToolbar->setStatusTip("Plugins Toolbar lists the plugins having visible objects (actors)");
+
+	
+
 	// Connect the menu actions to the correct functions
 	this->connectActions();
 
@@ -143,11 +144,6 @@ MainWindow::MainWindow(Core * coreInstance, QWidget * parent) : QMainWindow(pare
 	connect(this->pluginChooserTop, SIGNAL(currentIndexChanged(int)), this, SLOT(selectPluginGui()));
 	connect(this->pluginChooserBot, SIGNAL(currentIndexChanged(int)), this, SLOT(selectPluginGui()));
 	
-	this->pluginChooserTop->setToolTip("Select the plugin");
-	this->pluginChooserTop->setStatusTip("Select one of the plugins to display its user interface");
-	this->pluginChooserBot->setToolTip("Select the plugin");
-	this->pluginChooserBot->setStatusTip("Select one of the plugins to display its user interface");
-
 	// Minimum window size
 	this->setMinimumSize(800, 600);
 
@@ -158,6 +154,23 @@ MainWindow::MainWindow(Core * coreInstance, QWidget * parent) : QMainWindow(pare
 	}
 
 	this->guiShortcutMapper = NULL;
+
+	// Status tips and Tool tips to be displayed with mouse movements over the main window gui
+	//info displayed when mouse comes over the toolbar
+	this->pluginToolbar->setToolTip("Plugins Toolbar for visible plugins");
+	this->pluginToolbar->setStatusTip("Plugins Toolbar lists the plugins having visible objects (actors)");
+	
+	// info when mouse comesover the frame
+	this->pluginFrameTop->setToolTip("User interface area of the plugin");
+	this->pluginFrameBot->setToolTip("User interface area of the plugin");
+	this->pluginFrameTop->setStatusTip("Area for the user interface of the selected plugin");
+	this->pluginFrameBot->setStatusTip("Area for the user interface of the second selected plugin");
+	
+	//info displayed when mouse comes over the combobox
+	this->pluginChooserTop->setToolTip("Select the plugin");
+	this->pluginChooserTop->setStatusTip("Select one of the plugins to display its user interface");
+	this->pluginChooserBot->setToolTip("Select the plugin");
+	this->pluginChooserBot->setStatusTip("Select one of the plugins to display its user interface");
 }
 
 
@@ -801,8 +814,11 @@ void MainWindow::addPluginVtkProp(vtkProp * prop, QString name)
 	toggleVisAction->setCheckable(true);
 	toggleVisAction->setChecked(true);
 
+	
+	//info displayed when mouse comes over the item in toolbar 
 	toggleVisAction->setToolTip("Change " + name + " Visibility");
 	toggleVisAction->setStatusTip("Change the visibility of the actors of " + name + " Plugin");
+	
 	// Add this action to the toolbar as a button
 	this->pluginToolbar->addAction(toggleVisAction);
 	
