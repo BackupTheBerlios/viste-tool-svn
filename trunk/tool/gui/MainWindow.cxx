@@ -124,7 +124,8 @@ MainWindow::MainWindow(Core * coreInstance, QWidget * parent) : QMainWindow(pare
 
 	// Add the plugins toolbar
 	this->pluginToolbar = this->addToolBar("Plugins");
-
+	this->pluginToolbar->setToolTip("Plugins Toolbar for visible plugins");
+	this->pluginToolbar->setStatusTip("Plugins Toolbar lists the plugins having visible objects (actors)");
 	// Connect the menu actions to the correct functions
 	this->connectActions();
 
@@ -141,6 +142,11 @@ MainWindow::MainWindow(Core * coreInstance, QWidget * parent) : QMainWindow(pare
 	// Connect the plugin chooser combo boxes
 	connect(this->pluginChooserTop, SIGNAL(currentIndexChanged(int)), this, SLOT(selectPluginGui()));
 	connect(this->pluginChooserBot, SIGNAL(currentIndexChanged(int)), this, SLOT(selectPluginGui()));
+	
+	this->pluginChooserTop->setToolTip("Select the plugin");
+	this->pluginChooserTop->setStatusTip("Select one of the plugins to display its user interface");
+	this->pluginChooserBot->setToolTip("Select the plugin");
+	this->pluginChooserBot->setStatusTip("Select one of the plugins to display its user interface");
 
 	// Minimum window size
 	this->setMinimumSize(800, 600);
@@ -777,6 +783,7 @@ void MainWindow::selectPluginGui()
 	}
 
 	// Add the selected plugin widgets to the top and bottom fields
+	 
 	this->pluginFrameTop->layout()->addWidget(this->pluginWidgets.at(indexTop));
 	this->pluginWidgets.at(indexTop)->show();
 
