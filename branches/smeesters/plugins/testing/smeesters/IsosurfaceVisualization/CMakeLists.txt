@@ -9,6 +9,10 @@ if(PLUGINS_BUILD_ISOSURFACEVISUALIZATION)
 	FIND_PACKAGE(Qt4 REQUIRED)
 	INCLUDE(${QT_USE_FILE})
 
+	IF(NOT VTK_USE_CHARTS)
+		MESSAGE(FATAL_ERROR "Isosurface Visualization Plugin requires VTK_USE_CHARTS.")
+	ENDIF(NOT VTK_USE_CHARTS)
+
 	SET (SRCS
 		IsosurfaceVisualization.cxx
 		IsosurfaceVisualization.h
@@ -25,6 +29,6 @@ if(PLUGINS_BUILD_ISOSURFACEVISUALIZATION)
 	QT4_WRAP_CPP(MOC_SRCS IsosurfaceVisualization.h)
 	ADD_LIBRARY(IsosurfaceVisualization SHARED ${SRCS} ${MOC_SRCS})
 
-	TARGET_LINK_LIBRARIES(IsosurfaceVisualization bmia_core bmia_plugin bmia_data vtkHybrid)
+	TARGET_LINK_LIBRARIES(IsosurfaceVisualization bmia_core bmia_plugin bmia_data vtkHybrid vtkCharts)
 
 endif(PLUGINS_BUILD_ISOSURFACEVISUALIZATION)

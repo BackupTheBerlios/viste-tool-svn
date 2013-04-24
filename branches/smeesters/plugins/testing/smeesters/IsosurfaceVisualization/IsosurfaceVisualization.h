@@ -82,6 +82,18 @@
 
 #include <vtkPointData.h>
 
+
+// qt window test
+#include "vtkContextView.h"
+#include "vtkContextScene.h"
+#include "vtkChartXY.h"
+#include "vtkPlot.h"
+#include "vtkTable.h"
+#include "vtkQtTableView.h"
+#include "vtkTimerLog.h"
+#include "vtkFloatArray.h"
+#include "vtkAxis.h"
+
 class vtkInteractorStyleTrackballPositionPicker;
 
 namespace Ui
@@ -174,6 +186,7 @@ typedef struct
 typedef struct
 {
     QList< Vec3* > data;
+    QList< double > scalarData;
     int anteriorPointIndex;
     double userPointRefinement;
 } FiberData;
@@ -303,6 +316,8 @@ protected slots:
 	void fiberRefinementUpdate(double value);
 
 private:
+
+    QWidget secondWindow;
 
     /** If plugin inherits from plugin::GUI */
     QWidget * widget;

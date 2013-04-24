@@ -114,7 +114,6 @@ void IsosurfaceVisualization::init()
 
 	this->measuredLine = NULL;
 
-
 }
 
 //------------[ Setup pointer interactor for clipping planes ]----------------\\
@@ -450,19 +449,6 @@ void IsosurfaceVisualization::createModelInfo(data::DataSet * d)
 
     // Add to local model list
     this->modelInfoList.append(modelInfo);
-
-//    // Add to dataset manager so that it shows up in the PolyData list
-//    // Set the default name for the new ROI
-//	QString newDataName = QString("IsosurfaceVisualization: ").append(d->getName());
-//
-//	// Create an empty polydata object
-//	vtkPolyData * polyData = vtkPolyData::New();
-//
-//	// Create a data set with the default name and the empty data
-//	data::DataSet * ds_poly = new data::DataSet(newDataName, "regionOfInterest", polyData);
-//	polyData->Delete();
-//
-//	modelInfo->ds_poly = ds_poly;
 }
 
 //------------------------[ Process transfer function ]-----------------------\\
@@ -580,6 +566,7 @@ void IsosurfaceVisualization::createLookupTable(data::DataSet * d, int index)
                                al_v*(1-ind_frac) + au_v*(ind_frac));
     }
 
+    // add to lookup tables, or replace if it already existed
     if(index == -1)
         lookUpTables.append(convLUT);
     else
@@ -652,6 +639,7 @@ void IsosurfaceVisualization::updateRenderingModels()
 			this->core()->out()->deleteProgressBarForAlgorithm(deci);
         }
 
+        // Clip geometry (based on slider values)
         vtkExtractPolyDataGeometry* clipper = vtkExtractPolyDataGeometry::New();
         clipper->SetImplicitFunction(current_modelInfo->clippingCube);
         if(current_modelInfo->reduction > 0.1)
@@ -668,6 +656,7 @@ void IsosurfaceVisualization::updateRenderingModels()
 
 		// Create polydata mapper
 		vtkPolyDataMapper* polyMapper = vtkPolyDataMapper::New();
+		//polyMapper->ImmediateModeRenderingOn();
 
 		// curvature
 		if(useCurvature)
@@ -1953,6 +1942,121 @@ void IsosurfaceVisualization::comboBoxFiberDataChanged()
         // update selected point b
         fiberSelectUpdate(sortedFibers->userSelectedLine);
 
+
+
+
+
+
+
+        secondWindow.setGeometry(0, 0, 1150, 600);
+
+
+        // QVTK set up and initialization
+        QVTKWidget *qvtkWidget = new QVTKWidget(&secondWindow);
+        QVTKWidget *qvtkWidget2 = new QVTKWidget(&secondWindow);
+
+        // Set up my 2D world...
+        VTK_CREATE(vtkContextView, view); // This contains a chart object
+        view->SetInteractor(qvtkWidget->GetInteractor());
+        qvtkWidget->SetRenderWindow(view->GetRenderWindow());
+
+        VTK_CREATE(vtkContextView, view2); // This contains a chart object
+        view2->SetInteractor(qvtkWidget2->GetInteractor());
+        qvtkWidget2->SetRenderWindow(view2->GetRenderWindow());
+
+        // Create a table with some points in it...
+        VTK_CREATE(vtkTable, table);
+        VTK_CREATE(vtkFloatArray, arrX);
+        arrX->SetName("X Axis");
+        table->AddColumn(arrX);
+        VTK_CREATE(vtkFloatArray, arrC);
+        arrC->SetName("Average score");
+        table->AddColumn(arrC);
+        VTK_CREATE(vtkFloatArray, arrS);
+        arrS->SetName("Local average score");
+        table->AddColumn(arrS);
+
+
+        MeasuredPoint* pointA = this->measuredPointList.at(0);
+
+        int length = sortedFibers->selectedLines.length();
+        table->SetNumberOfRows(length);
+        for(int j = 0; j<length; j++)
+        {
+            int fiberLength = sortedFibers->selectedLines.at(j)->scalarData.length();
+
+            int anteriorIndex = sortedFibers->selectedLines.at(j)->anteriorPointIndex;
+            Vec3* pointB = sortedFibers->selectedLines.at(j)->data.at(anteriorIndex);
+
+            double distance =   sqrt( (pointA->x - pointB->x)*(pointA->x - pointB->x) +
+                                (pointA->y - pointB->y)*(pointA->y - pointB->y) +
+                                (pointA->z - pointB->z)*(pointA->z - pointB->z) );
+
+            // distance axis
+            table->SetValue(j, 0, distance);
+
+            // average score
+            double avgScore = 0.0;
+            for(int i = 0; i<fiberLength; i++)
+            {
+                avgScore += sortedFibers->selectedLines.at(j)->scalarData.at(i);
+            }
+            avgScore /= fiberLength;
+            table->SetValue(j, 1, avgScore);
+
+            // local average score
+            double localAvgScore = 0.0;
+            int pointRange = 25;
+            int minBound = std::max(0,anteriorIndex - pointRange);
+            int maxBound = std::min(fiberLength,anteriorIndex + pointRange);
+            for(int i = minBound; i<maxBound; i++)
+            {
+                localAvgScore += sortedFibers->selectedLines.at(j)->scalarData.at(i);
+            }
+            localAvgScore /= maxBound - minBound;
+            table->SetValue(j, 2, localAvgScore);
+
+
+            std::cout << " j: " << j << " distance: " << distance
+            << " avg score: " << avgScore
+            << " local avg score: " << localAvgScore << std::endl;
+
+        }
+        table->Update();
+
+        // Add multiple line plots, setting the colors etc
+        vtkSmartPointer<vtkChartXY> chart = vtkSmartPointer<vtkChartXY>::New();
+        view->GetScene()->AddItem(chart);
+        vtkPlot *line = chart->AddPlot(vtkChart::POINTS);
+        line->SetInput(table, 0, 1);
+        line->SetColor(255, 0, 0, 255);
+        line->SetWidth(2.0);
+        chart->GetAxis(vtkAxis::LEFT)->SetTitle("Connectivity measure (-)");
+        chart->GetAxis(vtkAxis::BOTTOM)->SetTitle("Distance (mm)");
+        chart->SetTitle("Average score");
+
+        vtkSmartPointer<vtkChartXY> chart2 = vtkSmartPointer<vtkChartXY>::New();
+        view2->GetScene()->AddItem(chart2);
+        line = chart2->AddPlot(vtkChart::POINTS);
+        line->SetInput(table, 0, 2);
+        line->SetColor(0, 255, 0, 255);
+        line->SetWidth(2.0);
+        chart2->GetAxis(vtkAxis::LEFT)->SetTitle("Connectivity measure (-)");
+        chart2->GetAxis(vtkAxis::BOTTOM)->SetTitle("Distance (mm)");
+        chart2->SetTitle("Average local score");
+
+        // Now lets try to add a table view
+        QVBoxLayout *layout = new QVBoxLayout(&secondWindow);
+        layout->addWidget(qvtkWidget);
+        layout->addWidget(qvtkWidget2);
+
+        secondWindow.raise();
+        secondWindow.show();
+
+
+
+
+
     }
 }
 
@@ -1984,6 +2088,22 @@ void IsosurfaceVisualization::processFiberAnteriorSorting(SortedFibers* sortedFi
 
     vtkPointData* pointdata = polydata->GetPointData();
     pointdata->Print(std::cout);
+
+    // Get scalar values (if present)
+    // Check if the fibers contain point data
+    vtkDataArray * scalars;
+    bool hasScalars = false;
+    if (polydata->GetPointData())
+    {
+        if (scalars = polydata->GetPointData()->GetScalars())
+        {
+            // Scalar array should have as many points as the input fiber set, and at least one component
+            if (scalars->GetNumberOfTuples() == polydata->GetNumberOfPoints() && scalars->GetNumberOfComponents() > 0)
+            {
+                hasScalars = true;
+            }
+        }
+    }
 
     // Map used to store fiber indices (value) and their anterior point (key)
 	QMap<double, FiberData*> fiberMap;
@@ -2034,6 +2154,15 @@ void IsosurfaceVisualization::processFiberAnteriorSorting(SortedFibers* sortedFi
 
             // Save to fiber data struct
             fiberData->data.append(vec3);
+		}
+
+		// If it contains scalar data, copy it
+		if(hasScalars)
+		{
+		    for (vtkIdType pointId = 0; pointId < numberOfPoints; ++pointId)
+            {
+                fiberData->scalarData.append(scalars->GetTuple1(pointList[pointId]));
+            }
 		}
 
         // Set anterior point index in struct
@@ -2129,6 +2258,7 @@ void IsosurfaceVisualization::fiberPointSelect()
     Vec3* pointB = fiberData->data.at(ceil(fiberData->anteriorPointIndex + fiberData->userPointRefinement));
 
     // set point B
+    // do a linear interpolation for the refinement setting
     double loc_pos = fmod(fiberData->anteriorPointIndex + fiberData->userPointRefinement,1);
     this->clickedPoint[0] = pointB->x * loc_pos + pointA->x * (1 - loc_pos);
     this->clickedPoint[1] = pointB->y * loc_pos + pointA->y * (1 - loc_pos);

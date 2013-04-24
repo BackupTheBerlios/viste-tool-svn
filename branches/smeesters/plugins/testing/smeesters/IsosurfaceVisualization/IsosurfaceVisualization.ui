@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>290</width>
-    <height>995</height>
+    <width>292</width>
+    <height>815</height>
    </rect>
   </property>
   <property name="acceptDrops">
@@ -52,15 +52,15 @@
       </sizepolicy>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="page">
       <property name="geometry">
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>272</width>
-        <height>818</height>
+        <width>274</width>
+        <height>638</height>
        </rect>
       </property>
       <attribute name="label">
@@ -345,8 +345,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>272</width>
-        <height>818</height>
+        <width>274</width>
+        <height>638</height>
        </rect>
       </property>
       <attribute name="label">
@@ -647,8 +647,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>272</width>
-        <height>818</height>
+        <width>274</width>
+        <height>638</height>
        </rect>
       </property>
       <attribute name="label">
@@ -682,8 +682,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>272</width>
-        <height>818</height>
+        <width>274</width>
+        <height>638</height>
        </rect>
       </property>
       <attribute name="label">
@@ -1026,6 +1026,9 @@
            </item>
            <item row="3" column="1">
             <widget class="QSlider" name="sliderFiberRefinement">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
              </property>
@@ -1033,6 +1036,9 @@
            </item>
            <item row="3" column="0">
             <widget class="QDoubleSpinBox" name="spinFiberRefinement">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="singleStep">
               <double>0.100000000000000</double>
              </property>
@@ -1040,6 +1046,13 @@
            </item>
           </layout>
          </widget>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton">
+         <property name="text">
+          <string>Plot connectivity</string>
+         </property>
         </widget>
        </item>
        <item>
