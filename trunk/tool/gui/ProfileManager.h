@@ -73,6 +73,7 @@
 #include <QMessageBox>
 #include <QInputDialog>
 #include <QApplication>
+#include <QSizePolicy>
 
 /** Includes - Custom Files */
 
@@ -209,7 +210,6 @@ class ProfileManager : public QDialog
 		QLineEdit * dataDirLineEdit;			/**< Line edit containing the data directory. */
 		QPushButton * dataDirBrowseButton;		/**< Browse button for setting the data directory. */
 		QHBoxLayout * dataDirHLayout;			/**< Layout for the data directory. */
-
 		QFrame * hLine2;						/**< Horizontal separator. */
 
 		QLabel * pluginSectionLabel;			/**< Label for the plugins section. */

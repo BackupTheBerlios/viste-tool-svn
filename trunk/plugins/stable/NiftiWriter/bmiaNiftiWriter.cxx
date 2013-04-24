@@ -695,9 +695,13 @@ namespace bmia {
 			
 
 			 
-			if(matrix)
+			if(!matrix)
 			{
-
+ 
+				qDebug() << "Invalid transformation  matrix \n";
+				matrix =  vtkMatrix4x4::New();
+				matrix->Identity();
+			}
 					//for(int i=0;i<3;i++)
 			//matrix->SetElement(i,3,matrix->GetElement(i,3) - wholeExtent[2*i]*spacing[i]);
 				// sform matrix or qform quaternion, which one will be used. Both can also be used if bothcodes are > 0.
@@ -737,10 +741,7 @@ namespace bmia {
 						m_NiftiImage->pixdim[3] = spacing[2]*scaling[2];
 						transform->Delete();
 					}
-			}
-			else {
-				qDebug() << "Invalid   matrix \n";
-			}
+			
 		}
 		else
 		{
@@ -851,7 +852,9 @@ namespace bmia {
 		// Spherical Harmonics
 		else if(dataStructure.contains("spherical harmonics")) {
 			// overwrite 
-			m_NiftiImage->dim[5] = image->GetNumberOfScalarComponents(); //   
+			m_NiftiImage->dim[5] = image->GetNumberOfScalarComponents(); //   Works for loaded nifti but not sharm
+			m_NiftiImage->dim[5] = image->GetPointData()->GetArray(0)->GetNumberOfComponents(); // works for sharm loaded
+			//cout << image->GetPointData()->GetArray(0)->GetName() << endl;
 			m_NiftiImage->nu =  m_NiftiImage->dim[5];
 			m_NiftiImage->nvox = m_NiftiImage->nx * m_NiftiImage->ny * m_NiftiImage->nz * m_NiftiImage->nt * m_NiftiImage->nu;
 			m_NiftiImage->swapsize		= 8;					// ...and the swap size is also 8.

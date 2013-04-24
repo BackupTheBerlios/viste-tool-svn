@@ -161,8 +161,8 @@ MainWindow::MainWindow(Core * coreInstance, QWidget * parent) : QMainWindow(pare
 	this->pluginToolbar->setStatusTip("Plugins Toolbar lists the plugins having visible objects (actors)");
 	
 	// info when mouse comesover the frame
-	this->pluginFrameTop->setToolTip("User interface area of the plugin");
-	this->pluginFrameBot->setToolTip("User interface area of the plugin");
+	//this->pluginFrameTop->setToolTip("User interface area of the plugin");
+	//this->pluginFrameBot->setToolTip("User interface area of the plugin");
 	this->pluginFrameTop->setStatusTip("Area for the user interface of the selected plugin");
 	this->pluginFrameBot->setStatusTip("Area for the user interface of the second selected plugin");
 	
