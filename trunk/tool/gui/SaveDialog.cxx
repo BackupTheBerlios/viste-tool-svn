@@ -212,10 +212,10 @@ namespace bmia {
 			{
 
 				// Why derivatices of DTI like FA is listed as being 0 byte. lets update. This may take time at the startup.
-				if (ds->getVtkImageData()->GetActualMemorySize() == 0)
-				{
-					ds->getVtkImageData()->Update();
-				}
+				//if (ds->getVtkImageData()->GetActualMemorySize() == 0)
+				//{
+				//	ds->getVtkImageData()->Update();
+				//}
 				// Print data set type and dimensionality
 				this->addSubItem(dsItem, "Type: Image (" + QString::number(image->GetDataDimension()) + "D)");
 				this->addSubItem(dsItem, "Components Per Voxel: " + QString::number(image->GetNumberOfScalarComponents()) + "");
