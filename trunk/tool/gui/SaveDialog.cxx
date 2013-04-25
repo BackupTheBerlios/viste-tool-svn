@@ -534,7 +534,11 @@ namespace bmia {
                     //writerXML->SetFileTypeToBinary();
 					writerXML->SetDataModeToBinary();
                     writerXML->SetFileName( saveFileName.toStdString().c_str() );
-                    writerXML->Write();
+
+                    if(writerXML->Write()) 
+						cout << "Writing finished. "<< endl;
+					else
+					    cout << "Writing error. "<< endl;
                     this->saveTransferMatrix(saveFileName, ds ); 
                     writerXML->Delete();
                 }
