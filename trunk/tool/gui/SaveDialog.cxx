@@ -43,7 +43,11 @@
 * plugin. Nifti andNifti Mind saving is implemented in NiftiWriterPlugin.
 *
 * 2013-02-08 Mehmet Yusufoglu
-* vti saving is converted to binary.
+* -vti saving is converted to binary. 
+* -Derivatices of DTI like FA is listed as being 0 byte. When the scalar volume is 
+* to be saved get image data and update it so that the data will be produced from 
+* the DTI.
+*
 */
 
 
@@ -464,6 +468,13 @@ namespace bmia {
 			// if image
 			if(kind!="fibers" && kind!= "seed points" && kind != "regionOfInterest")
 			{
+
+				// Why derivatices of DTI like FA is listed as being 0 byte. lets update.  
+				if(ds->getVtkImageData()) 
+				if ((ds->getVtkImageData()->GetActualMemorySize() == 0) && (kind=="scalar volume"))
+				 {
+				 	ds->getVtkImageData()->Update();
+				 }
 
 				saveFileName = QFileDialog::getSaveFileName(this,
 					"Save Data as...",
