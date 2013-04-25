@@ -39,8 +39,11 @@
 *
 * 2013-02-08 Mehmet Yusufoglu	
 * Created for saving the data, a similar class of DataDialog. saveSelectedItem function 
-* is the main function. 
-* 
+* is the main function.  vti saving and .pol and .fbs saving are here may be moved to a 
+* plugin. Nifti andNifti Mind saving is implemented in NiftiWriterPlugin.
+*
+* 2013-02-08 Mehmet Yusufoglu
+* vti saving is converted to binary.
 */
 
 
@@ -518,6 +521,7 @@ namespace bmia {
                     writerXML->SetInput ( (vtkDataObject*)(image) );
                     //save the transfer matrix along with the image
                     //writerXML->SetFileTypeToBinary();
+					writerXML->SetDataModeToBinary();
                     writerXML->SetFileName( saveFileName.toStdString().c_str() );
                     writerXML->Write();
                     this->saveTransferMatrix(saveFileName, ds ); 
