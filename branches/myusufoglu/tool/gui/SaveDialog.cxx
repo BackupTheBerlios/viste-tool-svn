@@ -39,8 +39,15 @@
 *
 * 2013-02-08 Mehmet Yusufoglu	
 * Created for saving the data, a similar class of DataDialog. saveSelectedItem function 
-* is the main function. 
-* 
+* is the main function.  vti saving and .pol and .fbs saving are here may be moved to a 
+* plugin. Nifti andNifti Mind saving is implemented in NiftiWriterPlugin.
+*
+* 2013-02-08 Mehmet Yusufoglu
+* -vti saving is converted to binary. 
+* -Derivatices of DTI like FA is listed as being 0 byte. When the scalar volume is 
+* to be saved get image data and update it so that the data will be produced from 
+* the DTI.
+*
 */
 
 
@@ -212,16 +219,19 @@ namespace bmia {
 			{
 
 				// Why derivatices of DTI like FA is listed as being 0 byte. lets update. This may take time at the startup.
-				if (ds->getVtkImageData()->GetActualMemorySize() == 0)
-				{
-					ds->getVtkImageData()->Update();
-				}
+				//if (ds->getVtkImageData()->GetActualMemorySize() == 0)
+				//{
+				//	ds->getVtkImageData()->Update();
+				//}
 				// Print data set type and dimensionality
 				this->addSubItem(dsItem, "Type: Image (" + QString::number(image->GetDataDimension()) + "D)");
 				this->addSubItem(dsItem, "Components Per Voxel: " + QString::number(image->GetNumberOfScalarComponents()) + "");
 				this->addSubItem(dsItem, "Scalar Type: " + QString::number(image->GetScalarType()) + "");
 				if(image->GetDataDimension() == 3)
 					this->addSubItem(dsItem, "Spacing: " + QString::number(image->GetSpacing()[0]) + " "+ QString::number(image->GetSpacing()[1]) + " " + QString::number(image->GetSpacing()[2]));
+				if(image->GetDataDimension() == 3)
+					this->addSubItem(dsItem, "Dimensions: " + QString::number(image->GetDimensions()[0]) + " "+ QString::number(image->GetDimensions()[1]) + " " + QString::number(image->GetDimensions()[2]));
+				
 				dataSize = image->GetActualMemorySize();
 				dataSizeAvailable = true;
 
@@ -462,6 +472,13 @@ namespace bmia {
 			if(kind!="fibers" && kind!= "seed points" && kind != "regionOfInterest")
 			{
 
+				// Why derivatices of DTI like FA is listed as being 0 byte. lets update.  
+				if(ds->getVtkImageData()) 
+				if ((ds->getVtkImageData()->GetActualMemorySize() == 0) && (kind=="scalar volume"))
+				 {
+				 	ds->getVtkImageData()->Update();
+				 }
+
 				saveFileName = QFileDialog::getSaveFileName(this,
 					"Save Data as...",
 					fileName,	
@@ -518,8 +535,13 @@ namespace bmia {
                     writerXML->SetInput ( (vtkDataObject*)(image) );
                     //save the transfer matrix along with the image
                     //writerXML->SetFileTypeToBinary();
+					writerXML->SetDataModeToBinary();
                     writerXML->SetFileName( saveFileName.toStdString().c_str() );
-                    writerXML->Write();
+
+                    if(writerXML->Write()) 
+						cout << "Writing finished. "<< endl;
+					else
+					    cout << "Writing error. "<< endl;
                     this->saveTransferMatrix(saveFileName, ds ); 
                     writerXML->Delete();
                 }
