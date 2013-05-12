@@ -48,6 +48,9 @@
  * 2011-10-04   Ralph Brecheisen
  * - Fixed bug in constructor where Q_ASSERT was check member 'core'
  * instead of the parameter 'coreInstance'.
+ *
+ * 2013-02-07   Mehmet Yusufoglu
+ * - Changed the unloadable plugin warning which is called by load(), from a message box warning to terminal log warning.
  */
 
 
@@ -174,7 +177,7 @@ bool Manager::load(int i)
 	// Check if loading was successful 
 	if (!loadedQObject)
 	{
-		this->core->out()->showMessage("Plugin could not be loaded. " + loader->errorString());
+		this->core->out()->logMessage("Plugin could not be loaded. " + loader->errorString()); 
 		return false;
 	}
  
@@ -199,6 +202,7 @@ bool Manager::load(int i)
 	// Handle the different plugin types by casting the plugin and running the appropriate function. 
 	// If a plugin is not of a casted type, the cast will return NULL, which causes the function to return.
 
+	this->loadWriter(qobject_cast<data::Writer *>(loadedPlugin));
 	this->loadReader(qobject_cast<data::Reader *>(loadedPlugin));
 	this->loadConsumer(qobject_cast<data::Consumer *>(loadedPlugin));
 	this->loadVisualization(loadedPlugin, qobject_cast<plugin::Visualization *>(loadedPlugin));
@@ -413,6 +417,33 @@ void Manager::unloadReader(data::Reader * reader)
 	this->core->data()->removeReader(reader);
 }
 
+//------------------------------[ loadReader ]-----------------------------\\
+
+void Manager::loadWriter(data::Writer * writer)
+{
+	if (!writer) 
+		return;
+
+	qDebug()<<"Loaded plugin has data::Reader functionality.";
+
+	// Add the plugin to the list of readers
+	this->core->data()->addWriter(writer);
+}
+
+
+//-----------------------------[ unloadReader ]----------------------------\\
+
+void Manager::unloadWriter(data::Writer * writer)
+{
+	if (!writer) 
+		return;
+
+	qDebug()<<"Unloading plugin that has data::Reader functionality.";
+
+	// Remove the plugin from the list of readers
+	this->core->data()->removeWriter(writer);
+}
+
 
 //-----------------------------[ loadConsumer ]----------------------------\\
 
@@ -605,7 +636,16 @@ void Manager::readAll(QDir dir)
 	// Loop through all files in the current directory
 	foreach (QString filename, dir.entryList(QDir::Files))
 	{
-		// (Try to) load the current DLL file
+		#if defined (_WIN32) || defined (_WIN64) 
+			if(filename.endsWith(".dll"))
+		#elif defined (__linux__)
+			if(filename.endsWith(".so"))
+		#elif defined (__APPLE__) || defined (__MACH__)
+			if(filename.endsWith(".dylib"))
+		#endif
+		//Alternatively: if(filename.endsWith(".dll") || filename.endsWith(".so") || filename.endsWith(".dylib")   )
+	    
+		// (Try to) load the current Dynamic Libray File. Dll (WINDOWS), so (linux), dylib (Mac)
 		core->plugin()->load(core->plugin()->add(dir.absoluteFilePath(filename)));
 	}
 

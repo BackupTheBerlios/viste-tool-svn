@@ -71,7 +71,8 @@ namespace data {
 class DataSet;
 class Consumer;
 class Reader;
-
+class Writer;
+ 
 /** This class iused to manage data sets. Data sets, consumers and readers can 
 	be added and removed from a data manager.
 */
@@ -157,6 +158,22 @@ class Manager {
 
 		/** Return a list of all file extensions that are supported by the data 
 			manager. The list of returned extensions consists of the concatenation
+			of all the lists of supported file extensions of the data writers 
+			that were added to this manager. Note that currently we do not check 
+			for double extensions, i.e. the same extension supported by different 
+			readers. */
+
+			void addWriter(Writer * writer);
+
+		/** Remove a data writer from this data manager. The file extensions that 
+			were supported by the reader will be removed from the supported file
+			extensions of the data manager.
+			@param reader	Removed data reader plugin. */
+
+		void removeWriter(Writer * writer);
+
+		/** Return a list of all file extensions that are supported by the data 
+			manager. The list of returned extensions consists of the concatenation
 			of all the lists of supported file extensions of the data readers 
 			that were added to this manager. Note that currently we do not check 
 			for double extensions, i.e. the same extension supported by different 
@@ -170,10 +187,34 @@ class Manager {
 
 		QStringList getSupportedFileExtensionsWithDescriptions();
 
+
+		/** Return a list of all file extensions that are supported by the data 
+			manager. The list of returned extensions consists of the concatenation
+			of all the lists of supported file extensions of the data writers 
+			that were added to this manager. Note that currently we do not check 
+			for double extensions, i.e. the same extension supported by different 
+			readers. */
+
+		QStringList getSupportedFileWriteExtensions();
+
+		/** Returns a list of all supported extensions, complete with file descriptions, 
+			i.e. in the format "Fibers (*.fbs)". This list can then be used for the filter 
+			list when opening a file dialog. Contains one or more entries per reader. */
+
+		QStringList getSupportedFileWriteExtensionsWithDescriptions();
+
+
 		/** Prints the supported file extensions. */
     
 		void printSupportedFileExtensions();
 
+		/** Writes the the data to the specified file. The actual writing of the data 
+			will be performed by the data writer that supports the file type.
+			@param filename	Target file name. */
+
+		void writeDataToFile(QString filename, DataSet *ds );  
+
+		
 		/** Loads the data from the specified file. The actual loading of the data 
 			will be performed by the data reader that supports the file type.
 			@param filename	Target file name. */
@@ -185,6 +226,7 @@ class Manager {
 		QList<DataSet *> dataSets;		/**< All available data sets. */
 		QList<Consumer *> consumers;	/**< All active consumer plugins. */
 		QList<Reader *> readers;		/**< All active reader plugins. */
+		QList<Writer *> writers;		/**< All active reader plugins. */
 
 private:
 

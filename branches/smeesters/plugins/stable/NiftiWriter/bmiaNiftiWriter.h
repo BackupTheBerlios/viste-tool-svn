@@ -34,31 +34,16 @@
  */
 
 /*
- * bmiaNiftiReader.cxx
+ * bmiaNiftiWriter.cxx
  *
- * 2011-04-04	Evert van Aart
- * - First version. This reader is based on the old "vtkNiftiReader" class by Tim
- *   Peeters, but with some changes. The reader now supports multiple types of 
- *   input data, including triangles ("NIFTI_INTENT_TRIANGLE"), which means that
- *   its output will not always be "vtkImageData". For this reason, the reader
- *   is no longer a child of "vtkImageDataReader2". Furthermore, the reader not
- *   includes support for MiNT extensions.
- *
- * 2011-05-10	Evert van Aart
- * - Added support for spherical harmonics using MiND. 
- *
- * 2011-08-22	Evert van Aart
- * - Which transformation matrix to use is now determined correctly based on the
- *   "qform_code" and "sform_code" of the NIfTI image.
- *
- * * 2013-01-28   Mehmet Yusufoglu
- * - Add a pointer parameter pointing the instance of UserOut class as an argument to the constructor.  
- * - Userout class pointer is used to ask which transfomation is used if both qform ans sform are larger than zero.
+ * * 2013-03-16   Mehmet Yusufoglu
+ * - Create the class. Writes the scalar data in Nifti format.
+ * - 
  */
 
 
-#ifndef bmia_NiftiReaderPlugin_bmiaNiftiReader_h
-#define bmia_NiftiReaderPlugin_bmiaNiftiReader_h
+#ifndef bmia_NiftiWriterPlugin_bmiaNiftiWriter_h
+#define bmia_NiftiWriterPlugin_bmiaNiftiWriter_h
 
 
 /** Includes - VTK */
@@ -74,6 +59,7 @@
 #include <vtkFloatArray.h>
 #include <vtkDoubleArray.h>
 #include <vtkMatrix4x4.h>
+#include <vtkTransform.h>
 
 /** Includes - Qt */
 
@@ -102,36 +88,28 @@ namespace bmia {
 	if available. Since NIfTI files can contain data that cannot be expressed as
 	an image volume - such as a triangle array, which is represented with a
 	"vtkIntArray" object - a data output can be any child of "vtkObject". It is
-	up the "NiftiReaderPlugin" class to create the correct type of data set for
+	up the "NiftiWriterPlugin" class to create the correct type of data set for
 	the output objects. 
 */
 
-class bmiaNiftiReader
+class bmiaNiftiWriter
 {
 	public:
 
 		/** Constructor */
 
-		bmiaNiftiReader(UserOutput * rUserOut);
+		bmiaNiftiWriter(UserOutput * rUserOut);
 
 		/** Destructor */
 
-		~bmiaNiftiReader();
+		~bmiaNiftiWriter();
 
 		/** Check if we can read the input file. Returns one if we can, zero otherwise.
 			filename	Input filename. */
 
 		virtual int CanReadFile(const char * filename);
 
-		/** Read a NIfTI file. If successful, the data read from the NIfTI file
-			is stored in the "outData" list, and its type is stored in the 
-			"imageDataType" variable. On success, an empty string is returned;
-			otherwise, the return string contains an error message.
-			@param filename		Name of the NIfTI file.
-			@param showProgress	Should the reader create a progress bar? */
-
-		QString readNIfTIFile(const char * filename, bool showProgress = true);
-
+	 
 		 
 
 		/** Return supported file extensions. */
@@ -181,9 +159,47 @@ class bmiaNiftiReader
 
 		QList<vtkObject *> outData;
 
+
+		/** Write the scalar data passed as vtkimagedata using filename and the tranformation matrix. 
+			@param image	Input Scalar component. 
+			@param saveFileName The file name including the extention.
+			@param attObject Transformation info including rotation and translation.
+			*/
+
+		void writeScalarVolume( vtkImageData *image, QString saveFileName, vtkObject * attObject);
+		
+		/** Write the scalar data passed as vtkimagedata using filename and the tranformation object. 
+			@param image	Input Scalar component. 
+			@param saveFileName The file name including the extention.
+			@param attObject Transformation info including rotation and translation.
+			*/
+
+		void writeScalarVolume(int component, vtkImageData *image, QString saveFileName, vtkObject * attObject);
+
+	/** Write image containing second-order DTI tensors.  DTI saved as standart nifti, without MIND extentions 
+	     DTI data passed as vtkimagedata and saved using filename and the tranformation object. 
+			@param image	Input DTI data. 
+			@param saveFileName The file name including the extention.
+			@param attObject Transformation info including rotation and translation.
+			*/
+
+		void writeDTIVolume(vtkImageData *image, QString saveFileName, vtkObject * transform);
+
+		/** Save the image containing second-order DTI tensors, spherical harmonics or discrete sphere.  
+		 Data saved as Loni-Mind nifti, ie. with MIND extentions.
+		    @param image	Input data as DTI or Spherical Harmonics or Discrete Sphere. 
+			@param saveFileName The file name including the extention.
+			@param attObject Transformation info including rotation and translation.
+			@param dataStructure DTI, Discrete Sphereor Spherical Harmonics.
+		 
+		 */
+
+		void writeMindData(vtkImageData *image, QString saveFileName,vtkObject * transform, QString dataStructure);
+
+
 	protected:
 
-		/** The NIfTI image object constructed when reading the ".nii" file. */
+		/** The NIfTI image object constructed when writing the ".nii" file. */
 
 		nifti_image * NiftiImage;
 
@@ -198,17 +214,8 @@ class bmiaNiftiReader
 
 		bool determineDataType();
 
-		/** Create an image with one scalar value per voxel. Used for both 
-			"NDT_ScalarVolume" and "NDT_GenericVector"; in the latter case, the
-			"component" value describes which component of the input vector
-			should be used to construct the scalar image volume. 
-			@param component	Target output component. */
-
-		vtkImageData * parseScalarVolume(int component = 0);
-
-		/** Create an image containing second-order DTI tensors. */
-
-		vtkImageData * parseDTIVolume();
+		
+	
 
 		/** Create an image containing, per voxel, the radius for each of the
 			spherical directions. These spherical directions, which are read
@@ -219,7 +226,7 @@ class bmiaNiftiReader
 			or, failing that, constructed here. In either case, an array describing 
 			the topology (triangles) is also attached to the output image. */
 
-		vtkImageData * parseDiscreteSphereVolume();
+		void writeDiscreteSphereVolume();
 
 		/** Create an image containing, for each voxel, a set of Spherical Harmonics
 			coefficients. The number of coefficients (i.e., the vector length) should
@@ -227,14 +234,14 @@ class bmiaNiftiReader
 			are stored in ascending order: First the coefficient for l = 0, then the
 			five coefficients for l = 2, and so on. Uses the MiND extensions. */
 
-		vtkImageData * parseSphericalHarmonicsVolume();
+		void writeSphericalHarmonicsVolume();
 
 		/** Create an array of 3-element integer vectors. These integers represent
 			point indices of the vertices of a discrete sphere function. Each set
 			of three point indices describes a triangle; these triangles can later
 			be used to create the geometry glyphs. */
 
-		vtkIntArray * parseTriangles();
+		void writeTriangles();
 
 		/** Compare one string to a target string. Used for the MiND identifiers. 
 			@param id			Input string.
@@ -252,13 +259,7 @@ class bmiaNiftiReader
 
 		nifti1_extension * findExtension(int targetID, int & extPos);
 
-		/** Create an image using a specified double array.
-			@param data			Double array containing the image data.
-			@param numberOfComponents	Number of components in the output image. 
-			@param arrayName	Desired name for the scalar array. */
-
-		vtkImageData * createimageData(double * data, int numberOfComponents, const char * arrayName);
-
+	 
 		/** Copy of the input filename. */
 
 		QString filenameQ;
@@ -269,10 +270,10 @@ class bmiaNiftiReader
 
 		UserOutput * userOut;									// User output (for s_form q_form selection)
 
-}; // class bmiaNiftiReader
+}; // class bmiaNiftiWriter
 
 
 } // namespace bmia
 
 
-#endif // bmia_NiftiReaderPlugin_bmiaNiftiReader_h
+#endif // bmia_NiftiWriterPlugin_bmiaNiftiWriter_h

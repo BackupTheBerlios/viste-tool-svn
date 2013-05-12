@@ -1,24 +1,24 @@
 /**
  * Copyright (c) 2012, Biomedical Image Analysis Eindhoven (BMIA/e)
  * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
+ * 
+ * Redistribution and use in source and binary forms, with or without 
  * modification, are permitted provided that the following conditions
  * are met:
- *
+ * 
  *   - Redistributions of source code must retain the above copyright
  *     notice, this list of conditions and the following disclaimer.
- *
+ * 
  *   - Redistributions in binary form must reproduce the above copyright
  *     notice, this list of conditions and the following disclaimer in
- *     the documentation and/or other materials provided with the
+ *     the documentation and/or other materials provided with the 
  *     distribution.
- *
+ * 
  *   - Neither the name of Eindhoven University of Technology nor the
- *     names of its contributors may be used to endorse or promote
- *     products derived from this software without specific prior
+ *     names of its contributors may be used to endorse or promote 
+ *     products derived from this software without specific prior 
  *     written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -75,8 +75,10 @@ namespace bmia {
 
 //-----------------------------[ Constructor ]-----------------------------\\
 
+
 PlanesVisPlugin::PlanesVisPlugin() : AdvancedPlugin("Planes")
 {
+
 	// Create a planes actor, and hide it for now
 	this->actor = vtkImageOrthogonalSlicesActor::New();
 	this->actor->VisibilityOff();
@@ -92,7 +94,7 @@ PlanesVisPlugin::PlanesVisPlugin() : AdvancedPlugin("Planes")
 	// Add default items to combo boxes
 	this->ui->dtiWeightCombo->addItem("None");
 	this->ui->lutCombo->addItem("Default");
-
+	
 	// Disable the DTI controls by default
 	this->ui->dtiRadio->setEnabled(false);
 	this->ui->dtiVolumeLabel->setEnabled(false);
@@ -172,7 +174,7 @@ void PlanesVisPlugin::init()
 	this->callBack->plugin = this;
 
 	// Add the callback to the canvas as an observer
-	this->fullCore()->canvas()->AddObserver(vtkCommand::UserEvent +
+	this->fullCore()->canvas()->AddObserver(vtkCommand::UserEvent + 
 			BMIA_USER_EVENT_SUBCANVAS_CAMERA_RESET, this->callBack);
 }
 
@@ -277,13 +279,9 @@ void PlanesVisPlugin::dataSetAdded(data::DataSet * ds)
 	{
 		this->connectControls(false);
 
-		ds->getAttributes()->addAttribute("SlicePosX",0);
-		ds->getAttributes()->addAttribute("SlicePosY",0);
-		ds->getAttributes()->addAttribute("SlicePosZ",0);
-
 		// Add the scalar volume to the list
 		this->scalarVolumeDataSets.append(ds);
-
+			
 		// Add the scalar volume to both relevant combo boxes
 		this->ui->scalarVolumeCombo->addItem(ds->getName());
 		this->ui->dtiWeightCombo->addItem(ds->getName());
@@ -306,7 +304,10 @@ void PlanesVisPlugin::dataSetAdded(data::DataSet * ds)
 			this->ui->dtiWeightCombo->setCurrentIndex(1);
 			this->changeWeightVolume(1);
 		}
-
+			//stephen remove
+		//ds->getAttributes()->addAttribute("SlicePosX",0);
+		//ds->getAttributes()->addAttribute("SlicePosY",0);
+		//ds->getAttributes()->addAttribute("SlicePosZ",0);
 		this->connectControls(true);
 
 	} // if [scalar volume]
@@ -321,7 +322,7 @@ void PlanesVisPlugin::dataSetAdded(data::DataSet * ds)
 		this->ui->lutCombo->addItem(ds->getName());
 
 		this->connectControls(true);
-	}
+	} 
 
 	// Eigensystem Data
 	else if (ds->getKind() == "eigen")
@@ -371,20 +372,20 @@ void PlanesVisPlugin::dataSetChanged(data::DataSet * ds)
 
 		if (this->ui->scalarVolumeCombo->currentIndex() == dsIndex)
 			this->changeScalarVolume(dsIndex);
-
+		
 		if (this->ui->dtiWeightCombo->currentIndex() == dsIndex + 1)
 			this->changeWeightVolume(dsIndex + 1);
-
-        // Addition from Mehmet for plane selection
-        int pos[3];
-        ds->getAttributes()->getAttribute("SlicePosX",pos[0]);
-        ds->getAttributes()->getAttribute("SlicePosY",pos[1]);
-        ds->getAttributes()->getAttribute("SlicePosZ",pos[2]);
-        this->setXSlice(pos[0]);
-        this->setYSlice(pos[1]);
-        this->setZSlice(pos[2]);
-
+	
 		this->connectControls(true);
+		//stephen
+		//int pos[3];
+		//ds->getAttributes()->getAttribute("SlicePosX",pos[0]);
+		//ds->getAttributes()->getAttribute("SlicePosY",pos[1]);
+		//ds->getAttributes()->getAttribute("SlicePosZ",pos[2]);
+		//cout << pos[0] << " " << pos[1] << " " << pos[2] << endl;
+		//emit this->setXSlice(pos[0]);
+		//emit this->setYSlice(pos[1]);
+		//emit this->setZSlice(pos[2]);
 	}
 
 	// Transfer Functions
@@ -416,14 +417,14 @@ void PlanesVisPlugin::dataSetChanged(data::DataSet * ds)
 	}
 }
 
-
+	
 //----------------------------[ dataSetRemoved ]---------------------------\\
 
 void PlanesVisPlugin::dataSetRemoved(data::DataSet * ds)
 {
 	// General behavior: Remove the item from the GUI combo boxes and from the
-	// data set lists. If the removed data set was selected in one of the combo
-	// boxes, reset the index of that combo box to a default value, and update the
+	// data set lists. If the removed data set was selected in one of the combo 
+	// boxes, reset the index of that combo box to a default value, and update the 
 	// planes for this new index.
 
 	// Scalar Volumes
@@ -544,7 +545,7 @@ void PlanesVisPlugin::changeScalarVolume(int index)
 
 	// Use the image as the input for the actor
 	this->actor->SetInput(ds->getVtkImageData());
-
+	// qDebug() << ds->getName() << " : " << ds->getKind() << "#ofComponents: " << ds->getVtkImageData()->GetNumberOfScalarComponents() << endl; 
 	// Set transformation matrix, reset slices
 	this->configureNewImage(ds);
 
@@ -605,7 +606,7 @@ void PlanesVisPlugin::changeLUT(int index)
 			return;
 
 		vtkColorTransferFunction * vtkTf = vtkColorTransferFunction::SafeDownCast(ds->getVtkObject());
-
+		
 		if (!vtkTf)
 			return;
 
@@ -628,7 +629,7 @@ void PlanesVisPlugin::changeLUT(int index)
 void PlanesVisPlugin::changeDTIVolume(int index)
 {
 	// Do nothing if we're not using RGB coloring
-	if (!this->ui->dtiRadio->isChecked())
+	if (!this->ui->dtiRadio->isChecked()) 
 		return;
 
 	// If the index is out of range, simply hide the actor
@@ -661,7 +662,7 @@ void PlanesVisPlugin::changeDTIVolume(int index)
 	}
 
 	vtkImageData * image = ds->getVtkImageData();
-
+	
 	if (!image)
 	{
 		this->core()->enableRendering();
@@ -698,7 +699,7 @@ void PlanesVisPlugin::changeDTIVolume(int index)
 void PlanesVisPlugin::changeWeightVolume(int index)
 {
 	// Do nothing if we're not using RGB coloring
-	if (!this->ui->dtiRadio->isChecked())
+	if (!this->ui->dtiRadio->isChecked()) 
 		return;
 
 	// If the weight volume has been set to "None"...
@@ -838,9 +839,9 @@ void PlanesVisPlugin::configureNewImage(data::DataSet * ds)
 			this->actor->GetSliceActor(i)->SetUserMatrix(matrixCopy);
 			matrixCopy->Delete();
 		}
-	}
+	} 
 	// Otherwise, set identity matrices
-	else
+	else 
 	{
 		// Loop through all three dimensions
 		for (int i = 0; i < 3; ++i)
@@ -879,7 +880,7 @@ void PlanesVisPlugin::configureNewImage(data::DataSet * ds)
 bool PlanesVisPlugin::checkWeightVolumeMatch()
 {
 	// Check if indices are in the correct range
-	if (	this->ui->dtiVolumeCombo->currentIndex() < 0 ||
+	if (	this->ui->dtiVolumeCombo->currentIndex() < 0 || 
 			this->ui->dtiVolumeCombo->currentIndex() >= this->dtiDataSets.size() ||
 			this->ui->dtiWeightCombo->currentIndex() < 0 ||
 			this->ui->dtiWeightCombo->currentIndex() - 1 >= this->scalarVolumeDataSets.size())
@@ -931,8 +932,8 @@ void PlanesVisPlugin::reset2DCamera(vtkRenderer * renderer, vtkImageSliceActor *
 
 	// Get the image used to create the actor
 	vtkImageData * input = sliceActor->GetInput();
-
-	if (!input)
+	
+	if (!input) 
 		return;
 
 	// Create a new parallel projection camera
@@ -1040,13 +1041,13 @@ void PlanesVisPlugin::reset2DCamera(vtkRenderer * renderer, vtkImageSliceActor *
 
 	vtkMath::Normalize(viewUp);
 
-	// Set the position of the camera. We start at the center of the plane, and move
+	// Set the position of the camera. We start at the center of the plane, and move 
 	// along its normal to ensure head-on projection for rotated planes. The distance
 	// moved along the normal is equal to the image size along the selected axis, to
 	// ensure that the camera is placed outside of the volume.
 
-	newCamera->SetPosition(	center[0] - (bounds[1] - bounds[0]) * normal[0],
-							center[1] - (bounds[3] - bounds[2]) * normal[1],
+	newCamera->SetPosition(	center[0] - (bounds[1] - bounds[0]) * normal[0], 
+							center[1] - (bounds[3] - bounds[2]) * normal[1], 
 							center[2] - (bounds[5] - bounds[4]) * normal[2]);
 
 	// Set the view vector for the camera
@@ -1071,14 +1072,14 @@ void PlanesVisPlugin::setXSlice(int x, bool updateData)
 
 	// Get the input image of the slice
 	vtkImageData * input = this->actor->GetInput();
-
+		
 	if (input)
 	{
 		// Get the bounds and spacing of the input image
-		double bounds[6];
+		double bounds[6]; 
 		input->GetBounds(bounds);
 
-		double spacing[3];
+		double spacing[3]; 
 		input->GetSpacing(spacing);
 
 		// Limit the bounds of the X-dimensions to the slice location
@@ -1108,21 +1109,21 @@ void PlanesVisPlugin::setYSlice(int y, bool updateData)
 	// Like "setXSlice"
 	this->actor->SetY(y);
 	vtkImageData * input = this->actor->GetInput();
-
+		
 	if (input)
 	{
-		double bounds[6];
+		double bounds[6]; 
 		input->GetBounds(bounds);
-
-		double spacing[3];
+		
+		double spacing[3]; 
 		input->GetSpacing(spacing);
-
+		
 		bounds[2] = bounds[3] = this->actor->GetSliceActor(1)->GetSliceLocation();
 		this->updateSeeds(this->seedsY, bounds, spacing);
 
 		if (updateData)
 			this->core()->data()->dataSetChanged(this->seedDataSets[1]);
-	}
+	} 
 
 	if (updateData)
 	{
@@ -1142,15 +1143,15 @@ void PlanesVisPlugin::setZSlice(int z, bool updateData)
 
 	if (input)
 	{
-		double bounds[6];
+		double bounds[6]; 
 		input->GetBounds(bounds);
 
-		double spacing[3];
+		double spacing[3]; 
 		input->GetSpacing(spacing);
-
+		
 		bounds[4] = bounds[5] = this->actor->GetSliceActor(2)->GetSliceLocation();
 		this->updateSeeds(this->seedsZ, bounds, spacing);
-
+	
 		if (updateData)
 			this->core()->data()->dataSetChanged(this->seedDataSets[2]);
 	}
@@ -1214,8 +1215,8 @@ void PlanesVisPlugin::updateSeeds(vtkPoints * points, double bounds[6], double s
 	// Reset the point set
 	points->Reset();
 
-	double x;
-	double y;
+	double x; 
+	double y; 
 	double z;
 
 	x = bounds[0];
@@ -1224,11 +1225,11 @@ void PlanesVisPlugin::updateSeeds(vtkPoints * points, double bounds[6], double s
 	while (x <= bounds[1])
 	{
 		y = bounds[2];
-
+		
 		while (y <= bounds[3])
 		{
 			z = bounds[4];
-
+			
 			while (z <= bounds[5])
 			{
 				points->InsertNextPoint(x, y, z);
@@ -1263,7 +1264,7 @@ void PlanesVisPlugin::applyLUTColoring()
 	this->ui->dtiWeightCombo->setEnabled(false);
 }
 
-
+	
 //---------------------------[ applyRGBColoring ]--------------------------\\
 
 void PlanesVisPlugin::applyRGBColoring()

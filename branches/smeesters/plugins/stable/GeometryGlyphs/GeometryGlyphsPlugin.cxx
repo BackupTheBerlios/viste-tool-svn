@@ -169,35 +169,22 @@ void GeometryGlyphsPlugin::dataSetAdded(data::DataSet * ds)
 	// Discrete sphere functions
 	if (ds->getKind() == "discrete sphere" && this->glyphDataSets.contains(ds) == false)
 	{
-		qDebug() << " In GeometryGlyphsPlugin ds->getKind: " << ds->getKind()  << endl;
 		// Check if the data set contains an image
 		vtkImageData * image = ds->getVtkImageData();
 
 		if (!image)
-		{
-			qDebug() << " Not image. " << endl;
 			return;
-		}
+
 		// Check if the image contains point data
 		vtkPointData * imagePD = image->GetPointData();
-	 
+
 		if (!imagePD)
-		{
-			qDebug() << " Not point data. " << endl;
 			return;
-		}
 
 		// Check if the point data contains a spherical directions array
 		if (!(imagePD->GetArray("Spherical Directions")))
-			{
-			qDebug() << " PointData has no spherical directions. " << endl;
 			return;
-		}
-			if ( (imagePD->GetArray("Triangles")) )
-		{
-			qDebug() << "PointData has triangles. " << endl;	
-		}
-			 
+
 		// We can use this data set, so add it to the list and the GUI
 		this->glyphDataSets.append(ds);
 		this->ui->glyphDataCombo->addItem(ds->getName());

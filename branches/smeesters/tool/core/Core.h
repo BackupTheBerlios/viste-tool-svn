@@ -173,6 +173,7 @@ class Core : public SimpleCoreInterface
     
 		void render();
 
+
 		/** List of all profiles (plugins and files loaded at start-up). */
 
 		QList<DTIToolProfile *> profiles;

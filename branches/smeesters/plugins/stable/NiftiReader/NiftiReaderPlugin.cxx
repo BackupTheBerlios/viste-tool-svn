@@ -59,6 +59,9 @@
  * - Which transformation matrix to use is now determined correctly based on the
  *   "qform_code" and "sform_code" of the NIfTI image.
  *
+ *  2013-02-06 Mehmet Yusufoglu
+ *  core()->out() is passed to bmiaNiftiReader constructor so that the reader can ask to the user
+ * which transformation will be used if qform_code and sform_code both are positive.
  */
 
 
@@ -109,6 +112,8 @@ QStringList NiftiReaderPlugin::getSupportedFileDescriptions()
 }
 
 
+ 
+
 //--------------------------[ loadDataFromFile ]---------------------------\\
 
 void NiftiReaderPlugin::loadDataFromFile(QString filename)
@@ -117,7 +122,7 @@ void NiftiReaderPlugin::loadDataFromFile(QString filename)
     this->core()->out()->logMessage("Trying to load data from file " + filename + ".");
 
     // Create a new reader object and set the filename
-    bmiaNiftiReader * reader = new bmiaNiftiReader;
+	bmiaNiftiReader * reader = new bmiaNiftiReader(this->core()->out());
     
     // Read the data from file by updating the VTK reader object
     QString err = reader->readNIfTIFile(filename.toLatin1().data());
@@ -139,7 +144,7 @@ void NiftiReaderPlugin::loadDataFromFile(QString filename)
 	{
 		int lastSlash = filename.lastIndexOf("/");
 		dsName = filename.right(filename.length() - lastSlash - 1);
-	}
+	} 
 	else if (filename.contains("\\"))
 	{
 		int lastBSlash = filename.lastIndexOf("\\");

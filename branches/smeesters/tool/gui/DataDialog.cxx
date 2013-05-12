@@ -93,11 +93,12 @@ DataDialog::DataDialog(Manager * dManager, QWidget * parent) :
 	this->treeWidget->setAnimated(true);
 	this->treeWidget->header()->hide();
 	this->treeWidget->header()->setStretchLastSection(false);
-
+	
 	this->setMinimumWidth(430);
 
 	// Connect the close button to the "close" function
-	connect(closeButton, SIGNAL(clicked()), this, SLOT(close()));
+	connect(closeButton, SIGNAL(clicked()), this, SLOT(close()));	
+	connect(this->treeWidget,SIGNAL(itemClicked(QTreeWidgetItem*, int)), SLOT(setClickedItem(QTreeWidgetItem*,int)));
 
 	// Create the main layout and the layout for the buttons
 	QVBoxLayout * mainLayout   = new QVBoxLayout;
@@ -157,7 +158,7 @@ void DataDialog::update()
 		if (!dataSets[i])
 			continue;
 		
-		// Add the data set to the tree widget
+		// Add the data sett o the tree widget
 		this->populateTreeWidget(dataSets[i]);
 	}
 }
@@ -426,7 +427,7 @@ void DataDialog::dataSetRemoved(DataSet * ds)
 {
 	if (!ds)
 		return;
-
+ 
 	// Check if the data set has been added before
 	if (!(this->dataSets.contains(ds)))
 		return;
@@ -451,6 +452,14 @@ void DataDialog::close()
     this->hide();
 }
 
+ 
+
+void DataDialog::setClickedItem(QTreeWidgetItem*, int index)
+{
+	qDebug() << index << endl;
+
+
+}
 
 } // namespace gui
 

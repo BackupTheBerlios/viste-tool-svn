@@ -30,8 +30,10 @@
 # LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-
+ 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/MetaCanvas)
+include_directories(${BMIA_LIBS_SOURCE_DIR})
+include_directories(${BMIA_LIBS_BINARY_DIR})
 add_subdirectory(MetaCanvas)
 add_subdirectory(vISTe)
 
@@ -39,6 +41,7 @@ set(gui_h_moc
   MainWindow.h
   PluginDialog.h
   DataDialog.h
+  SaveDialog.h
   ProfileManager.h
   DefaultProfileDialog.h
   SettingsDialog.h
@@ -55,6 +58,7 @@ set(gui_cxx
   MainWindow.cxx
   PluginDialog.cxx
   DataDialog.cxx
+  SaveDialog.cxx
   ProfileManager.cxx
   DefaultProfileDialog.cxx
   SettingsDialog.cxx
@@ -69,5 +73,5 @@ qt4_wrap_cpp(MocSrcs ${gui_h_moc})
 set_source_files_properties(${gui_cxx} PROPERTIES OBJECT_DEPENDS "${UiHeaders}")
 
 add_library(bmia_gui ${gui_cxx} ${gui_h_moc} ${gui_h_other} ${MocSrcs})
-target_link_libraries(bmia_gui QVTK ${QT_LIBRARIES} bmia_core vtkMetaCanvas)
+target_link_libraries(bmia_gui QVTK ${QT_LIBRARIES} bmia_core vtkMetaCanvas vtkHelpers vtkNIfTI)
 

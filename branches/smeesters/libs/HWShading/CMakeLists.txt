@@ -38,6 +38,7 @@ if(VTK_FOUND)
   include(${VTK_USE_FILE})
 endif(VTK_FOUND)
 
+
 include_directories(${BMIA_LIBS_SOURCE_DIR})
 
 SET( HWShading_classes

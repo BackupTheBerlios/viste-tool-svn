@@ -296,7 +296,7 @@ void vtkGeometryGlyphFromSHBuilder::Execute()
 		if (radii.size() != this->numberOfAngles)
 			continue;
 
-		// Compute the minimum and maximum radius 
+		// Compute the minimum and maximum radius  
 		this->computeMinMaxRadii(&radii, minNorm, maxNorm);
 
 		// Create a new list for the glyph points

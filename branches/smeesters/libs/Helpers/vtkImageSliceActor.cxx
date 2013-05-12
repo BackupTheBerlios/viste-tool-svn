@@ -50,6 +50,11 @@
  *
  * 2007-09-25	Tim Peeters
  * - Add SetMapper() and GetMapper() functions.
+ *
+ * 2013-02-20 Mehmet Yusufoglu
+ * - Change plane location calculation. In functions UpdateDisplayExtent and GetSliceLocation, slice-min used to be subtracted in calculation of sliceloc. It is removed because 
+ * - if the extent does not start from zero, there is a problem of slice positioning.
+ *
  */
 
 #include "vtkImageSliceActor.h"
@@ -249,9 +254,9 @@ void vtkImageSliceActor::CenterSlice()
     {
     return;
     }
-
+  
   int *w_ext = input->GetWholeExtent();
-//cout<<"===================================================================================================================="<<endl;
+ 
 //cout<<"w_ext = "<<w_ext[0]<<", "<<w_ext[1]<<", "<<w_ext[2]<<", "<<w_ext[3]<<", "<<w_ext[4]<<", "<<w_ext[5]<<endl;
   int slice_min = w_ext[this->SliceOrientation * 2];
 //cout<<"SliceOrientation = "<<SliceOrientation<<endl;
@@ -306,13 +311,13 @@ void vtkImageSliceActor::UpdateDisplayExtent()
 
 
     int* dims = input->GetDimensions();
-//	cout<<" Dimensions are "<<dims[0]<<", "<<dims[1]<<", "<<dims[2]<<"."<<endl;
-//   cout<<"Input bounds are "<<bounds[0]<<", "<<bounds[1]<<", "<<bounds[2]
-//       <<", "<<bounds[3]<<", "<<bounds[4]<<", "<<bounds[5]<<endl;
-//  cout<<"Input spacing is "<<spacing[0]<<", "<<spacing[1]<<", "<<spacing[2]<<endl;
-//   cout<<"w_ext are "<<w_ext[0]<<", "<<w_ext[1]<<", "<<w_ext[2]
-//       <<", "<<w_ext[3]<<", "<<w_ext[4]<<", "<<w_ext[5]<<endl;
-
+	/*cout<<" Dimensions are "<<dims[0]<<", "<<dims[1]<<", "<<dims[2]<<"."<<endl;
+   cout<<"Input bounds are "<<bounds[0]<<", "<<bounds[1]<<", "<<bounds[2]
+       <<", "<<bounds[3]<<", "<<bounds[4]<<", "<<bounds[5]<<endl;
+  cout<<"Input spacing is "<<spacing[0]<<", "<<spacing[1]<<", "<<spacing[2]<<endl;
+   cout<<"w_ext are "<<w_ext[0]<<", "<<w_ext[1]<<", "<<w_ext[2]
+       <<", "<<w_ext[3]<<", "<<w_ext[4]<<", "<<w_ext[5]<<endl;
+*/
   //cout<<"bounds should be"<<bounds[0]<<", "<<bounds[1]+spacing[0]<<", "<<bounds[2]
   //<<", "<<bounds[3]+spacing[1]<<", "<<bounds[4]<<", "<<bounds[5]+spacing[2]<<endl;
   
@@ -326,8 +331,9 @@ void vtkImageSliceActor::UpdateDisplayExtent()
     } // if
 
   // XXX: is this correct is slice_min != 0?
-  double sliceloc = spacing[this->SliceOrientation]*(double)(this->Slice - slice_min);
+  double sliceloc = spacing[this->SliceOrientation]*(double)(this->Slice ); // - slice_min);
   //cout<<"sliceloc = "<<sliceloc<<endl;
+  // cout<<"slice_min = "<<slice_min<<endl;
   double* cent=NULL;
   // Set the image actor
   switch (this->SliceOrientation)
@@ -395,9 +401,44 @@ double vtkImageSliceActor::GetSliceLocation()
     } // if
 */
   // XXX: is this correct is slice_min != 0? --> NO?
-  double sliceloc = spacing[this->SliceOrientation]*(double)(this->Slice - slice_min);
+  double sliceloc = spacing[this->SliceOrientation]*(double)(this->Slice); // - slice_min);
+  //cout << " in getsliceloc function " ;
+  // cout<<"slice_min = "<< slice_min << endl;
+	  return sliceloc;
+}
 
-  return sliceloc;
+// If orientation and the slice were not set
+double vtkImageSliceActor::GetSliceLocation(int slice)
+{
+  if (!this->GetInput()) return 0.0;
+
+  int *w_ext = this->GetInput()->GetWholeExtent();
+  int slice_min = w_ext[this->SliceOrientation * 2];
+  w_ext = NULL;
+
+//  double bounds[6]; input->GetBounds(bounds);
+  double spacing[3]; this->GetInput()->GetSpacing(spacing);
+    double origin[3]; this->GetInput()->GetOrigin(origin);
+  /*
+  vtkDebugMacro(<<"Input bounds are "<<bounds[0]<<", "<<bounds[1]<<", "<<bounds[2]
+	<<", "<<bounds[3]<<", "<<bounds[4]<<", "<<bounds[5]);
+  vtkDebugMacro(<<"Input spacing is "<<spacing[0]<<", "<<spacing[1]<<", "<<spacing[2]);
+
+  if (!vtkMath::AreBoundsInitialized(bounds))
+    {
+    int* dims = input->GetDimensions();
+    vtkDebugMacro(<<"Bounds are not initialized!"
+	<<" Dimensions are "<<dims[0]<<", "<<dims[1]<<", "<<dims[2]<<".");
+    // Input is not up-to-date. Pipeline must be updated first, so return.
+    return;
+    } // if
+*/
+  // XXX: is this correct is slice_min != 0? --> NO?
+  double sliceloc = spacing[this->SliceOrientation]*(double)(slice); // - slice_min);
+  //cout << "\n In getsliceloc function spacing:" << spacing[this->SliceOrientation] ;
+//   cout<<"slice_min = "<< slice_min << endl;
+   //cout << "origin: " << origin[this->SliceOrientation] << endl;
+	  return sliceloc;
 }
 
 /*

@@ -47,6 +47,11 @@
  *   through the VTK pipeline; the algorithm's progress bar will only appear when
  *   the algorithm updates, and will remain hidden the rest of the time.
  * - Tidied up the code.
+ * 
+ * 2013-01-28  Mehmet Yusufoglu
+ *  - The function "selectItemDialog" added.
+ *  A dialog with a selection list is displayed. User can select the item amongst the items. 
+ *  The list of items is passed to the function as a comma or space seperated string. 
  *
  */
 
@@ -62,6 +67,7 @@
 #include <QMessageBox>
 #include <QHash>
 #include <QtDebug>
+#include <QInputDialog>
 
 /** Includes - VTK */
 
@@ -123,6 +129,12 @@ class UserOutput
 			@param algorithm	Algorithm for which the progress bar should be deleted. */
 	
 		void deleteProgressBarForAlgorithm(vtkAlgorithm * algorithm);
+
+		/** User selects the item amongst the items in the items list given as a comma or space seperated string. 
+			@param title	Title of the dialog box. 
+			@param items    Items string.Items should be seperated by comma or space. 
+			@param selectedItem The selected item. */
+		void selectItemDialog(QString title, QString label, QString items, QString &selectedItem  );
 
 	protected:
 

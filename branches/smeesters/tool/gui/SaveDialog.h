@@ -34,34 +34,16 @@
  */
 
 /*
- * DataDialog.h
+ * SaveDialog.h
  *
- * 2010-03-08	Tim Peeters
- * - First version.
- *
- * 2010-08-03	Tim Peeters
- * - Implement "data::Consumer functions".
- * - Replace "assert" by "Q_ASSERT".
- *
- * 2011-02-09	Evert van Aart
- * - Fixed range displaying for images.
- * 
- * 2011-03-14	Evert van Aart
- * - Added data set size to the dialog.
- * - Instead of completely rebuilding the tree widget every time any data set is
- *   added, modified, or deleted, we now only update the relevant item.
- *
- * 2011-05-13	Evert van Aart
- * - Modified attribute handling.
- *
- * 2011-07-21	Evert van Aart
- * - Added a destructor.
+ * 2010-03-08	 Mehmet Yusufoglu
+ * Dialog to select the data to be saved. A Similar class to the data dialog class.
  *
  */
 
 
-#ifndef bmia_DataDialog_h
-#define bmia_DataDialog_h
+#ifndef bmia_SaveDialog_h
+#define bmia_SaveDialog_h
 
 
 /** Includes - Custom Files */
@@ -70,6 +52,10 @@
 #include "data/DataSet.h"
 #include "data/Attributes.h"
 #include "data/Consumer.h"
+
+//some data saved with a transformation matrix
+#include "Helpers/TransformationMatrixIO.h"
+
 
 /** Includes - Qt */
 
@@ -82,14 +68,19 @@
 #include <QHeaderView>
 #include <QtDebug>
 #include <QHash>
-
+#include <QDialog>
 #include <QFileDialog>
-
 /** Includes - VTK */
 
 #include <vtkImageData.h>
 #include <vtkPolyData.h>
+#include <vtkDataSetWriter.h>
+#include <vtkAlgorithmOutput.h>
+#include <vtkXMLImageDataWriter.h>
 
+/** Includes - NIfTI TODO: take to bmia nifti writer*/
+
+#include "NIfTI/nifti1_io.h"
 
 namespace bmia {
 
@@ -97,14 +88,16 @@ namespace bmia {
 namespace gui {
 
 
-/** The data dialog gives an overview of the data currently available to the data
-	manager. For each data set, it also provide the user with some basic information,
+/** The save dialog gives an overview of the data currently available to the data
+	manager, and the user can click on the save button to save the data which was 
+	selected by a mouse click. 
+	For each data set, it also provide the user with some basic information,
 	depending on the data set type and type of VTK data. The dialog acts as a 
 	consumer plugin with regards to its interfaces, so it will be notified of
 	all new, changed, and deleted data sets. 
 */
 
-class DataDialog : public QDialog, public data::Consumer
+class SaveDialog : public QDialog, public data::Consumer
 {
 	Q_OBJECT
 
@@ -114,11 +107,11 @@ class DataDialog : public QDialog, public data::Consumer
 			@param dManager		Data manager of the tool. 
 			@param parent		Parent widget, usually the main window. */
 
-		DataDialog(data::Manager * dManager, QWidget * parent = NULL);
+		SaveDialog(data::Manager * dManager, QWidget * parent = NULL);
 
 		/** Destructor */
 
-		~DataDialog();
+		~SaveDialog();
 
 		/** Called when a new data set is added to the manager.
 			@param ds			New data set. */
@@ -140,9 +133,23 @@ class DataDialog : public QDialog, public data::Consumer
 
 		void close();
 
-		/** Sets the clicked item of the data list */
+    /** Saves the corresponding data of the selected item */
+
+		void saveSelectedItem();
+
+		/** Sets the clicked item of the data list 
+		@param treeWidget			Widget Item.  
+		@param index			Item Index. 
+		*/
 		void setClickedItem(QTreeWidgetItem*,int index);
 
+		/** Saves the transfer matrix of the selected data set which is actually the active component of the treewidget. If file name has an extention, it is changed to ".tfm".
+		@param saveFileName		fileName.   
+		@param ds		the DataSet.   
+		*/
+		void saveTransferMatrix(const QString saveFileName, data::DataSet * ds );
+
+		data::Manager *getManager() { return this->manager; }
 
 	private:
 	
@@ -161,7 +168,9 @@ class DataDialog : public QDialog, public data::Consumer
 
 		QPushButton * closeButton;
 
-		 
+		/** Button for saving the data selected in the dialog. */
+
+		QPushButton * saveButton;
 
 		/** List of all available data sets. */
 
@@ -185,7 +194,9 @@ class DataDialog : public QDialog, public data::Consumer
 
 		void addSubItem(QTreeWidgetItem * parentItem, QString itemText);
 
-}; // class DataDialog
+		 
+
+}; // class SaveDialog
 
 
 } // namespace gui
@@ -194,4 +205,4 @@ class DataDialog : public QDialog, public data::Consumer
 } // namespace bmia
 
 
-#endif // bmia_DataDialog_h
+#endif // bmia_SaveDialog_h

@@ -134,7 +134,6 @@ size_t znzread(void* buf, size_t size, size_t nmemb, znzFile file)
   char     * cbuf = (char *)buf;
   unsigned   n2read;
   int        nread;
-
   if (file==NULL) { return 0; }
 #ifdef HAVE_ZLIB
   if (file->zfptr!=NULL) {
@@ -145,7 +144,7 @@ size_t znzread(void* buf, size_t size, size_t nmemb, znzFile file)
        nread = gzread(file->zfptr, (void *)cbuf, n2read);
        if( nread < 0 ) return nread; /* returns -1 on error */
 
-       remain -= nread;
+       remain -= nread; 
        cbuf += nread;
 
        /* require reading n2read bytes, so we don't get stuck */
@@ -158,7 +157,7 @@ size_t znzread(void* buf, size_t size, size_t nmemb, znzFile file)
 
     return nmemb - remain/size;   /* return number of members processed */
   }
-#endif
+  #endif
   return fread(buf,size,nmemb,file->nzfptr);
 }
 

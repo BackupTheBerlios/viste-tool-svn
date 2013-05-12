@@ -43,6 +43,7 @@ include(${VTK_USE_FILE})
 find_package(Qt4 REQUIRED)
 include(${QT_USE_FILE})
 
+find_package(OpenGL)
 set(SRCS
    FiberFilterWidget.h
    FiberFilterWidget.cxx
@@ -59,6 +60,6 @@ qt4_wrap_cpp( MOC_SRCS FiberFilterPlugin.h FiberFilterWidget.h )
 set_source_files_properties(FiberFilterWidget.cxx PROPERTIES OBJECT_DEPENDS "${UiHeaders}")
 
 add_library( FiberFilterPlugin SHARED ${SRCS} ${MOC_SRCS} )
-target_link_libraries( FiberFilterPlugin bmia_libs vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering)
+target_link_libraries( FiberFilterPlugin bmia_libs vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering ${OPENGL_LIBRARIES})
 
 endif(PLUGINS_BUILD_FIBERFILTER)

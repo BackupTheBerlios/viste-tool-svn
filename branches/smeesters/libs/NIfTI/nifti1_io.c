@@ -3614,7 +3614,6 @@ nifti_image* nifti_convert_nhdr2nim(struct nifti_1_header nhdr,
    nim->data = NULL;
 
    /**- check if we must swap bytes */
-  
    doswap = need_nhdr_swap(nhdr.dim[0], nhdr.sizeof_hdr); /* swap data flag */
 
    if( doswap < 0 ){
@@ -4213,12 +4212,11 @@ nifti_image *nifti_image_read( const char *hname , int read_data )
       free(hfile);
       return NULL;
    }
-
    /* create output image struct and set it up */
 
    /**- convert all nhdr fields to nifti_image fields */
    nim = nifti_convert_nhdr2nim(nhdr,hfile);
-
+    
    if( nim == NULL ){
       znzclose( fp ) ;                                   /* close the file */
       if( g_opts.debug > 0 )
@@ -5133,13 +5131,11 @@ int nifti_write_all_data(znzFile fp, nifti_image * nim,
 {
    size_t ss;
    int    bnum;
-
    if( !NBL ){ /* just write one buffer and get out of here */
       if( nim->data == NULL ){
          fprintf(stderr,"** NWAD: no image data to write\n");
          return -1;
       }
-
       ss = nifti_write_buffer(fp,nim->data,nim->nbyper * nim->nvox);
       if (ss < nim->nbyper * nim->nvox){
          fprintf(stderr,
@@ -5147,7 +5143,6 @@ int nifti_write_all_data(znzFile fp, nifti_image * nim,
             (unsigned)ss, (unsigned)(nim->nbyper * nim->nvox));
          return -1;
       }
-
       if( g_opts.debug > 1 )
          fprintf(stderr,"+d wrote single image of %u bytes\n", (unsigned)ss);
    } else {
@@ -5615,7 +5610,7 @@ int nifti_extension_size(nifti_image *nim)
 void nifti_set_iname_offset(nifti_image *nim)
 {
    int offset;
-
+  
    switch( nim->nifti_type ){
 
      default:  /* writing into 2 files */
@@ -5659,6 +5654,7 @@ void nifti_set_iname_offset(nifti_image *nim)
 znzFile nifti_image_write_hdr_img( nifti_image *nim , int write_data , 
                                           const char* opts )
 {
+
   return nifti_image_write_hdr_img2(nim,write_data,opts,NULL,NULL);
 }
 
@@ -5754,7 +5750,7 @@ znzFile nifti_image_write_hdr_img2(nifti_image *nim, int write_opts,
    }
 
    /* write the header and extensions */
-
+   
    ss = znzwrite(&nhdr , 1 , sizeof(nhdr) , fp); /* write header */
    if( ss < sizeof(nhdr) ){
       LNI_FERR(func,"bad header write to output file",nim->fname);

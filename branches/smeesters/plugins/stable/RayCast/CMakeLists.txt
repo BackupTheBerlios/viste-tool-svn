@@ -42,7 +42,9 @@ include(${VTK_USE_FILE})
 
 find_package(Qt4 REQUIRED)
 include(${QT_USE_FILE})
+
 find_package(OpenGL)
+
 set(SRCS
     RayCastPlugin.h
     RayCastPlugin.cxx

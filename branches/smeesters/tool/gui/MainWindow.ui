@@ -139,6 +139,7 @@
     </property>
     <addaction name="actionOpenData"/>
     <addaction name="actionListData"/>
+    <addaction name="actionSaveData"/>
     <addaction name="separator"/>
     <addaction name="actionProfileManager"/>
     <addaction name="actionSet_Default_Profile"/>
@@ -202,6 +203,14 @@
     <string>Ctrl+D</string>
    </property>
   </action>
+   <action name="actionSaveData">
+     <property name="text">
+       <string>Save data</string>
+     </property>
+     <property name="shortcut">
+       <string>Ctrl+S</string>
+     </property>
+   </action>
   <action name="actionListPlugins">
    <property name="text">
     <string>P&amp;lugins</string>

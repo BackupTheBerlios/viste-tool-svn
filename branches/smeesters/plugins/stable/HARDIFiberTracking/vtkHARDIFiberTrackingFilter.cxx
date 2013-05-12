@@ -224,7 +224,7 @@ namespace bmia {
 
 	void vtkHARDIFiberTrackingFilter::Execute()
 	{
-		cout << "vtkHARDIFiberTrackingFilter::ExecuteNew()" << endl;
+		 
 		//get settings from the ui
 		unsigned int NUMBEROFITERATIONS = this->Iterations;
 		bool CLEANMAXIMA = this->CleanMaxima;
@@ -507,7 +507,7 @@ namespace bmia {
 			this->readDirectionsFile(directionPoints, fileName.toStdString() );
 		else
 			qDebug() << "Filename is empty!" << endl;
-		cout << "Directions read \n";
+		//cout << "Directions read \n";
 		unitVectors = (double **) malloc(sizeof(double)*3*directionPoints->GetNumberOfPoints());
 		for(int i=0; i< directionPoints->GetNumberOfPoints();i++)
 		{

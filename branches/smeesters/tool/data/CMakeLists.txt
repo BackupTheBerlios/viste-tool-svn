@@ -36,8 +36,9 @@ Attributes.h
 Attributes.cxx
 DataSet.h
 DataSet.cxx
-Consumer.h
+Consumer.h 
 Reader.h
+Writer.h
 Manager.h
 Manager.cxx
 )

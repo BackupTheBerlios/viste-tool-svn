@@ -77,7 +77,7 @@
  *
  *  * 2013-02-12 Mehmet Yusufoglu
  * - Changed showAbout function, which shows the Help->About window. Reads the data from an xml file. AboutInfo.xml.
- *
+ *  Included file : QXmlStreamReader. 
  */
 
 
@@ -118,6 +118,7 @@
 
 #include "MainWindowInterface.h"
 #include "DataDialog.h"
+#include "SaveDialog.h"
 #include "PluginDialog.h"
 #include "ProfileManager.h"
 #include "DefaultProfileDialog.h"
@@ -253,6 +254,10 @@ class MainWindow : public QMainWindow, public Ui::MainWindow, public MainWindowI
 		
 		void openData();
 
+		/** Launches the save data dialog. */
+
+		void saveData();
+
 		/** List all available data files. Launches the data dialog. */
 
 		void listData();
@@ -275,7 +280,7 @@ class MainWindow : public QMainWindow, public Ui::MainWindow, public MainWindowI
 	
 		void selectPluginGui();
 
-		/** Shows a message box with information about the DTITool. 
+			/** Shows a message box with information about the DTITool. 
 		* Reads an xml file which includes version info and people's names to be included into the acknowledgements list.
 		* If there is no xml file, ie. AboutInfo.xml, prints the name, no version, default web page and no acknowledgements. */
 
@@ -332,6 +337,11 @@ class MainWindow : public QMainWindow, public Ui::MainWindow, public MainWindowI
 			in the data manager. */
 
 		DataDialog * dataDialog;
+
+	   /** Save dialog, used to display and save the data that are currently available
+			in the data manager. */
+
+		SaveDialog * saveDialog;
 
 		/** Core object of the DTITool. */
 

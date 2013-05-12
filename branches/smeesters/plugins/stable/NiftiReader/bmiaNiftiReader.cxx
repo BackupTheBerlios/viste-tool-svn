@@ -51,6 +51,9 @@
  * - Which transformation matrix to use is now determined correctly based on the
  *   "qform_code" and "sform_code" of the NIfTI image.
  *
+ * 2013-01-28   Mehmet Yusufoglu
+ * - Add a pointer parameter pointing the instance of UserOut class as an argument to the constructor.  
+ * - Userout class pointer is used to ask which transfomation is used if both qform_code ans sform_code are larger than zero. 
  */
 
 
@@ -77,7 +80,7 @@
 #define createDoubleMappedArrayMacro(C_TYPE, ELEMENTS)							\
 	{																			\
 		C_TYPE * inArrayCasted = (C_TYPE *) this->NiftiImage->data;				\
-		for (int i = 0; i < arraySize; ++i) {									\
+		for (int i = 0; i < arraySize; ++i) {					 				\
 			for (int j = 0; j < ELEMENTS; ++j) {								\
 				outDoubleArray[j + ELEMENTS * i] = (double) inArrayCasted[i + indexMap[j] * arraySize];	\
 	} } }
@@ -111,12 +114,13 @@ namespace bmia {
 
 //-----------------------------[ Constructor ]-----------------------------\\
 
-bmiaNiftiReader::bmiaNiftiReader()
+bmiaNiftiReader::bmiaNiftiReader(UserOutput * rUserOut)
 {
 	// Initialize pointers to NULL
 	this->NiftiImage		= NULL;
 	this->transformMatrix	= NULL;
 	this->progress			= NULL;
+	this->userOut			= rUserOut;
 }
 
 
@@ -190,6 +194,9 @@ int bmiaNiftiReader::CanReadFile(const char * filename)
 	return 1;
 }
 
+ 
+
+
 
 //----------------------------[ readNIfTIFile ]----------------------------\\
 
@@ -249,7 +256,6 @@ QString bmiaNiftiReader::readNIfTIFile(const char * filename, bool showProgress)
 	}
 
 	vtkObject * obj = NULL;
-
 	// Switch based on the data type of the NIfTI file
 	switch(this->imageDataType)
 	{
@@ -391,8 +397,16 @@ QString bmiaNiftiReader::readNIfTIFile(const char * filename, bool showProgress)
 	// Temporary matrix array
 	double tM[16];
 
+	//If both qform_code and sform_code larger than 0, ask to the user. 
+	QString selectedItem("");
+	if (this->NiftiImage->qform_code > 0 && this->NiftiImage->sform_code > 0)
+	{
+		this->userOut->selectItemDialog("Select Transformation Matrix", "Qform-code and Sform-code are positive. Select one of the matrices.", "QForm,SForm",selectedItem);
+	}
+	
+     
 	// Use the QForm matrix if available
-	if (this->NiftiImage->qform_code > 0)
+	if (this->NiftiImage->qform_code > 0 && selectedItem!="SForm")
 	{
 		// Get the transformation matrix
 		tM[ 0] = (double) this->NiftiImage->qto_xyz.m[0][0];	
@@ -468,7 +482,7 @@ QString bmiaNiftiReader::readNIfTIFile(const char * filename, bool showProgress)
 	// Create a VTK matrix
 	m = vtkMatrix4x4::New();
 	m->DeepCopy(tM);
-
+	
 	this->transformMatrix = m;
 
 	if (this->progress)
@@ -643,6 +657,7 @@ vtkImageData * bmiaNiftiReader::parseScalarVolume(int component)
 
 vtkImageData * bmiaNiftiReader::parseDTIVolume()
 {
+
 	// Default index map. By default, NIfTI stores symmetrical tensors like this:
 	//
 	// a[0]
@@ -675,8 +690,7 @@ vtkImageData * bmiaNiftiReader::parseDTIVolume()
 			// If so, loop through the next six extensions
 			for (int i = 0; i < 6; ++i)
 			{
-				ext = &(this->NiftiImage->ext_list[++extPos]);
-
+				ext = &(this->NiftiImage->ext_list[++extPos]);				 
 				// Check if the extension code is correct
 				if (ext->ecode != NIFTI_ECODE_DT_COMPONENT)
 					continue;
@@ -694,7 +708,6 @@ vtkImageData * bmiaNiftiReader::parseDTIVolume()
 					nifti_swap_4bytes(1, &(indices[0]));
 					nifti_swap_4bytes(1, &(indices[1]));
 				}
-
 				if (indices[0] == 1 && indices[1] == 1)		indexMap[0] = extPos - firstExtPos - 1;
 				if (indices[0] == 1 && indices[1] == 2)		indexMap[1] = extPos - firstExtPos - 1;
 				if (indices[0] == 2 && indices[1] == 1)		indexMap[1] = extPos - firstExtPos - 1;
@@ -711,11 +724,10 @@ vtkImageData * bmiaNiftiReader::parseDTIVolume()
 	// Create an output array for the six unique tensor elements
 	int arraySize = this->NiftiImage->dim[1] * this->NiftiImage->dim[2] * this->NiftiImage->dim[3];
 	double * outDoubleArray = new double[arraySize * 6];
-
 	// Copy the input array to the output array, using the specified index mapping
 	switch (this->NiftiImage->datatype)
 	{
-		case DT_UNSIGNED_CHAR:	createDoubleMappedArrayMacro(unsigned char,  6);		break;
+		case DT_UNSIGNED_CHAR:	createDoubleMappedArrayMacro(unsigned char,  6);		break; 
 		case DT_SIGNED_SHORT:	createDoubleMappedArrayMacro(unsigned short, 6);		break;
 		case DT_UINT16:			createDoubleMappedArrayMacro(unsigned short, 6);		break;
 		case DT_SIGNED_INT:		createDoubleMappedArrayMacro(int,            6);		break;
@@ -806,7 +818,7 @@ vtkImageData * bmiaNiftiReader::parseDiscreteSphereVolume()
 	QString geoFileName = this->filenameQ.insert(this->filenameQ.lastIndexOf("."), "_topo");
 
 	vtkIntArray * triangleArray = NULL;
-	bmiaNiftiReader * geoReader = new bmiaNiftiReader;
+	bmiaNiftiReader * geoReader = new bmiaNiftiReader(this->userOut);
 	
 	// Check if the topology file exists
 	if (geoReader->CanReadFile(geoFileName.toLatin1().data()))
@@ -1016,7 +1028,7 @@ vtkImageData * bmiaNiftiReader::createimageData(double * data, int numberOfCompo
 	// essentially be applied twice. A more elegant solution to this problem
 	// should be created in the future.
 
-	newVolume->SetSpacing(1.0, 1.0, 1.0);
+	newVolume->SetSpacing(1.0, 1.0, 1.0); // nifti spacing
 
 	newVolume->SetExtent(	0, this->NiftiImage->dim[1] - 1, 
 							0, this->NiftiImage->dim[2] - 1, 

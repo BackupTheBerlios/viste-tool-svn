@@ -31,5 +31,5 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-add_executable(vISTe vISTe.cxx icons/vISTe-64x64.res)
+add_executable(vISTe vISTe.cxx icons/vISTe-128x128.res)
 target_link_libraries(vISTe bmia_gui)

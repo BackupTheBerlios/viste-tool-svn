@@ -33,37 +33,18 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 /*
- * NiftiReaderPlugin.h
+ * bmiaNiftiWriter.cxx
  *
- * 2010-08-11	Tim Peeters
- * - First version.
- *
- * 2011-03-21	Evert van Aart
- * - Version 1.0.0.
- * - Turned off debug mode of the reader, reducing its verbosity. 
- * - Reformatted code, added more comments. 
- *
- * 2011-04-04	Evert van Aart
- * - Version 2.0.0.
- * - Completely rebuilt the reader. The new reader is capable of dealing with 
- *   MiND extensions, which are necessary for reading in HARDI data. Furthermore,
- *   the new reader is more easy to extend with support of other data types.
- *
- * 2011-05-10	Evert van Aart
- * - Version 2.1.0.
- * - Added support for spherical harmonics using MiND. 
- *
- * 2011-08-22	Evert van Aart
- * - Version 2.1.1.
- * - Which transformation matrix to use is now determined correctly based on the
- *   "qform_code" and "sform_code" of the NIfTI image.
- *
+ * * 2013-03-16   Mehmet Yusufoglu
+ * - Create the class. Writes the scalar data in Nifti format.
+ * - 
  */
 
 
-#ifndef bmia_NiftiReaderPlugin_h
-#define bmia_NiftiReaderPlugin_h
+#ifndef bmia_NiftiWriterPlugin_h
+#define bmia_NiftiWriterPlugin_h
 
 
 /** Includes - Main Header */
@@ -72,7 +53,7 @@
 
 /** Includes - Custom Files */
 
-#include "bmiaNiftiReader.h"
+#include "bmiaNiftiWriter.h"
 
 /** Includes - VTK */
 
@@ -96,11 +77,11 @@ namespace bmia {
 	it as a set of DTI tensors. 
 */
 
-class NiftiReaderPlugin : public plugin::Plugin, public data::Reader
+class NiftiWriterPlugin : public plugin::Plugin, public data::Writer
 {
     Q_OBJECT
     Q_INTERFACES(bmia::plugin::Plugin)
-    Q_INTERFACES(bmia::data::Reader)
+    Q_INTERFACES(bmia::data::Writer)
 
 	public:
 
@@ -113,11 +94,11 @@ class NiftiReaderPlugin : public plugin::Plugin, public data::Reader
 
 		/** Constructor */
     
-		NiftiReaderPlugin();
+		NiftiWriterPlugin();
 
 		/** Destructor */
 
-		~NiftiReaderPlugin();
+		~NiftiWriterPlugin();
 
 		/** Returns the list of file extensions supported by this reader plugin. */
     
@@ -129,27 +110,22 @@ class NiftiReaderPlugin : public plugin::Plugin, public data::Reader
 
 		QStringList getSupportedFileDescriptions();
 
-		/** Read the NIfTI file and make it available to the data manager.
-			@param filename		Filename of the NIfTI file. */
-
-		void loadDataFromFile(QString filename);
+ 
 
 		void niftiStructure(data::DataSet *ds);
 
-		 
+		 void writeDataToFile(QString filename, data::DataSet *ds);
+
 
 	private:
 
-		/** Add a data set to the data manager, with optional transformation matrix.
-			@param ds			New data set.
-			@param m			Optional transformation matrix. */
+ 
 
-		void addDataSet(data::DataSet * ds, vtkMatrix4x4 * m);
-
-}; // class NiftiReaderPlugin
+		
+}; // class NiftiWriterPlugin
 
 
 } // namespace bmia
 
 
-#endif // bmia_NiftiReaderPlugin_h
+#endif // bmia_NiftiWriterPlugin_h

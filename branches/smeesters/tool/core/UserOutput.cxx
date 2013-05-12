@@ -48,6 +48,11 @@
  *   the algorithm updates, and will remain hidden the rest of the time.
  * - Tidied up the code.
  *
+ * 2013-01-28  Mehmet Yusufoglu
+ *  - The function "selectItemDialog" added.
+ *  A dialog with a selection list is displayed. User can select the item amongst the items. 
+ *  The items list is passed to the function as a comma or space seperated string. 
+ *			
  */
 
 
@@ -114,6 +119,20 @@ void UserOutput::logMessage(QString msg)
 {
 	// Write the message to the text stream
     this->outStream << "LOG: " << msg << endl;
+}
+
+//------------------------------[ selectItemDialog ]-----------------------------\\
+
+void UserOutput::selectItemDialog( QString title, QString label, QString items, QString &selectedItem )
+{
+  QStringList list;
+  bool ok;
+  QRegExp rx("(\\ |\\,)");
+  list=items.split(rx);
+  QString item = QInputDialog::getItem(NULL, title, label, list, 0, false, &ok);
+  if (ok && !item.isEmpty())
+      selectedItem=item;  
+	  
 }
 
 

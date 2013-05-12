@@ -33,28 +33,69 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * DataInterfaces.h
+/*
+ * Writer.h
  *
- * 2009-11-04	Tim Peeters
- * - First version.
- *
+ * 2013-03-18 Mehmet Yusufoglu
+ * - First version
  */
 
-
-/** Includes */
-
-#include "data/Reader.h"
-#include "data/Writer.h"
-#include "data/Consumer.h"
+#ifndef bmia_data_Writer_h
+#define bmia_data_Writer_h
 
 
-#ifndef bmia_plugin_DataInterfaces_h
-#define bmia_plugin_DataInterfaces_h
+/** Includes - Qt */
 
-Q_DECLARE_INTERFACE(bmia::data::Writer,   "bmia.data.Writer")
-Q_DECLARE_INTERFACE(bmia::data::Reader,   "bmia.data.Reader")
-Q_DECLARE_INTERFACE(bmia::data::Consumer, "bmia.data.Consumer")
+#include <QStringList>
+// necessary declaration
+ class DataSet;
+
+namespace bmia {
+namespace data {
+
+/** Writer plugins can read data files. All Writer plugin classes should implement
+	the functions of this interface. 
+*/
+
+class Writer {
+
+	public:
+
+		/** Destructor */
+
+		virtual ~Writer() {};
+
+		/** Returns a list of extensions of filenames that are supported by this data Writer. */
+    
+		virtual QStringList getSupportedFileExtensions() = 0;
+
+		/** Returns a list of descriptions for the file type supported
+			by this data Writer. This is the description that will be used in
+			the filter box of the file open dialog (e.g., "Fibers (*.fbs)").
+			Must be implemented by all Writers. */
+
+		virtual QStringList getSupportedFileDescriptions() = 0;
+
+		/** Load the data from the file with the given filename. Adding data 
+			the data manager is the responsibility of the subclass that 
+			implements this function.
+			@param filename	Full file name (with path) of the input file. */
+    
+		virtual void writeDataToFile(QString filename, DataSet *ds) = 0;
+
+	protected:
 
 
-#endif // bmia_plugin_DataInterfaces_h
+	private:
+
+
+}; // class Writer
+
+
+} // namespace data
+
+
+} // namespace bmia
+
+
+#endif // bmia_data_Writer_h
