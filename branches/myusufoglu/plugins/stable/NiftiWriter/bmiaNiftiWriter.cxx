@@ -48,53 +48,27 @@
 #include "bmiaNiftiWriter.h"
 
 
-// Copy the "COMP"-th component of the input array, of data type "C_TYPE", to
-// an array of doubles of size "arraySize". Used to create scalar volumes.
-
-#define createDoubleScalarArrayMacro(C_TYPE, COMP)								\
+//m_NiftiImage must have been defined before this macro call
+#define fillNiftiDataStringMacro(C_TYPE)								\
 	{																			\
-	C_TYPE * inArrayCasted = (C_TYPE *) this->NiftiImage->data;				\
-	for (int i = 0; i < arraySize; ++i) 									\
-	outDoubleArray[i] = (double) inArrayCasted[i + COMP * arraySize];	\
+	C_TYPE *outDoubleArray = static_cast<C_TYPE*>(image->GetPointData()->GetArray("Tensors")->GetVoidPointer(0));		\
+	C_TYPE * niftiImageData =  new C_TYPE[arraySize*comp];   								\
+	for (int i = 0; i < arraySize; ++i)   \
+			for (int j = 0; j < comp; ++j)    \
+				niftiImageData[i + indexMap[j] * arraySize]  = outDoubleArray[j + comp * i];	 \
+                       m_NiftiImage->data =  (void *) niftiImageData;  \
 	}
 
-// Copy "ELEMENTS" elements from an input array of type "C_TYPE" to an output
-// doubles array. The indices of the elements are mapped through an "indexMap"
-// array, which should have size "ELEMENTS". Used to create tensors; for second-
-// order tensors, "ELEMENTS" should be six.
-
-#define createDoubleMappedArrayMacro(C_TYPE, ELEMENTS)							\
-	{																			\
-	C_TYPE * inArrayCasted = (C_TYPE *) this->NiftiImage->data;				\
-	for (int i = 0; i < arraySize; ++i) {					 				\
-	for (int j = 0; j < ELEMENTS; ++j) {								\
-	outDoubleArray[j + ELEMENTS * i] = (double) inArrayCasted[i + indexMap[j] * arraySize];	\
-	} } }
-
-// Copy "ELEMENTS" elements from an input array of type "C_TYPE" to an output
-// doubles array. Like "createDoubleMappedArrayMacro", but without the index
-// mapping. Used for generic vectors.
-
-#define createDoubleVectorArrayMacro(C_TYPE, ELEMENTS)							\
-	{																			\
-	C_TYPE * inArrayCasted = (C_TYPE *) this->NiftiImage->data;				\
-	for (int i = 0; i < arraySize; ++i) {									\
-	for (int j = 0; j < ELEMENTS; ++j) {								\
-	outDoubleArray[j + ELEMENTS * i] = (double) inArrayCasted[i + j * arraySize];	\
-	} } }
-
-// Like "createDoubleVectorArrayMacro", but with integers
-
-#define createIntVectorArrayMacro(C_TYPE, ELEMENTS)								\
-	{																			\
-	C_TYPE * inArrayCasted = (C_TYPE *) this->NiftiImage->data;				\
-	for (int i = 0; i < arraySize; ++i) {									\
-	for (int j = 0; j < ELEMENTS; ++j) {								\
-	outIntArray[j + ELEMENTS * i] = (int) inArrayCasted[i + j * arraySize];	\
-	} } }
-
-
-
+//m_NiftiImage must have been defined before calling this macro
+#define createArrayMacro(C_TYPE)								\
+	{          \
+	 C_TYPE *niftiImageData =  new C_TYPE[arraySize*comp];   \
+	 for (int i = 0; i < arraySize; ++i)           \
+				for (int j = 0; j < comp; ++j)       \
+					niftiImageData[i+ arraySize * j]  = outDoubleArray[j + comp * i];	\
+				m_NiftiImage->data =  (void *) niftiImageData; \
+  } 
+ 
 namespace bmia {
 
 
@@ -315,7 +289,7 @@ namespace bmia {
 	}
 
 
-	//--------------------------[ parseScalarVolume ]--------------------------\\
+	//--------------------------[ writeScalarVolume ]--------------------------\\
 
 	void bmiaNiftiWriter::writeScalarVolume(vtkImageData *image, QString saveFileName, vtkObject * transform)
 	{
@@ -356,9 +330,9 @@ namespace bmia {
 		m_NiftiImage->nw =  m_NiftiImage->dim[7];
 
 		//nhdr.pixdim[0] = 0.0 ;
-		m_NiftiImage->pixdim[1] = spacing[0];
-		m_NiftiImage->pixdim[2] = spacing[1];
-		m_NiftiImage->pixdim[3] = spacing[2];
+		m_NiftiImage->pixdim[1] =  spacing[0];
+		m_NiftiImage->pixdim[2] =  spacing[1];
+		m_NiftiImage->pixdim[3] =  spacing[2];
 		m_NiftiImage->pixdim[4] = 0;
 		m_NiftiImage->pixdim[5] = 1;
 		m_NiftiImage->pixdim[6] = 1;
@@ -530,7 +504,7 @@ namespace bmia {
 	}
 
 
-	// ----------------------------[ writeDTIVolume ]--------------------------- \\
+	// ----------------------------[ writeMindData ]--------------------------- \\
 	//Any datastructure with extention
 	void bmiaNiftiWriter::writeMindData(vtkImageData *image, QString saveFileName, vtkObject * transform, QString dataStructure)
 
@@ -571,9 +545,9 @@ namespace bmia {
 		m_NiftiImage->nw =  m_NiftiImage->dim[7];
 
 		m_NiftiImage->pixdim[0] = 0.0 ;
-		m_NiftiImage->pixdim[1] = spacing[0];
-		m_NiftiImage->pixdim[2] = spacing[1];
-		m_NiftiImage->pixdim[3] = spacing[2];
+		m_NiftiImage->pixdim[1] =  spacing[0];
+		m_NiftiImage->pixdim[2] =  spacing[1];
+		m_NiftiImage->pixdim[3] =  spacing[2];
 		m_NiftiImage->pixdim[4] = 0;
 		m_NiftiImage->pixdim[5] = 0;
 		m_NiftiImage->pixdim[6] = 0;
@@ -852,9 +826,8 @@ namespace bmia {
 		// Spherical Harmonics
 		else if(dataStructure.contains("spherical harmonics")) {
 			// overwrite 
-			m_NiftiImage->dim[5] = image->GetNumberOfScalarComponents(); //   Works for loaded nifti but not sharm
+			//m_NiftiImage->dim[5] = image->GetNumberOfScalarComponents(); //   Works for loaded nifti but not sharm
 			m_NiftiImage->dim[5] = image->GetPointData()->GetArray(0)->GetNumberOfComponents(); // works for sharm loaded
-			//cout << image->GetPointData()->GetArray(0)->GetName() << endl;
 			m_NiftiImage->nu =  m_NiftiImage->dim[5];
 			m_NiftiImage->nvox = m_NiftiImage->nx * m_NiftiImage->ny * m_NiftiImage->nz * m_NiftiImage->nt * m_NiftiImage->nu;
 			m_NiftiImage->swapsize		= 8;					// ...and the swap size is also 8.
@@ -899,20 +872,21 @@ namespace bmia {
 			 
 			double *outDoubleArray = static_cast<double*>(image->GetScalarPointer() );
 
-			int arraySize = image->GetNumberOfPoints();
+			int arraySize = image->GetNumberOfPoints(); 
 			int comp = image->GetNumberOfScalarComponents();
-			comp=image->GetPointData()->GetNumberOfComponents();
-			double * niftiImageData =  new double[arraySize*comp];
+			comp=image->GetPointData()->GetNumberOfComponents(); // for all data, 72dirs and others
+		 	 
+		 
+			switch (m_NiftiImage->datatype)
+	        {
+		case DT_FLOAT:  createArrayMacro(float); break;
+		case DT_DOUBLE:  createArrayMacro(double); break;
+		default:
+	     createArrayMacro(double); break;
 
-			for (int i = 0; i < arraySize; ++i) 
-				for (int j = 0; j < comp; ++j)
-				{
-					// change from row-major to column major
-					niftiImageData[i+ arraySize * j]  = (double) outDoubleArray[j + comp * i];	
+		}	
 
-				}
-
-				m_NiftiImage->data =  (void *) niftiImageData;
+			
 
 		}
 
@@ -1078,8 +1052,17 @@ namespace bmia {
 
 			vtkMatrix4x4 *matrix =  vtkMatrix4x4::New();
 			matrix = vtkMatrix4x4::SafeDownCast(transform);
-			if(matrix)
+
+
+			if(!matrix)
 			{
+ 
+				qDebug() << "Invalid transformation  matrix \n";
+				matrix =  vtkMatrix4x4::New();
+				matrix->Identity();
+			}
+			 
+			 
 
 				//	for(int i=0;i<3;i++)
 			//matrix->SetElement(i,3,matrix->GetElement(i,3) - wholeExtent[2*i]*spacing[i]);
@@ -1125,10 +1108,7 @@ namespace bmia {
 						m_NiftiImage->pixdim[3] = spacing[2]*scaling[2];
 						transform->Delete();
 					}
-			}
-			else {
-				qDebug() << "Invalid   matrix \n";
-			}
+		 
 		}
 		else
 		{
@@ -1149,18 +1129,18 @@ namespace bmia {
 		int indexMap[6] = {0, 1, 3, 2, 4, 5};
 		int arraySize = image->GetPointData()->GetArray("Tensors")->GetNumberOfTuples();
 		int comp = image->GetPointData()->GetArray("Tensors")->GetNumberOfComponents();
-		double *outDoubleArray = static_cast<double*>(image->GetPointData()->GetArray("Tensors")->GetVoidPointer(0));
-    	double * niftiImageData =  new double[arraySize*comp];
-		for (int i = 0; i < arraySize; ++i) 
-			for (int j = 0; j < comp; ++j)
-			{
-
-				niftiImageData[i + indexMap[j] * arraySize]  = (double) outDoubleArray[j + comp * i];	
-			}
-			m_NiftiImage->data =  (void *) niftiImageData;
+		 
+		switch (m_NiftiImage->datatype)
+	        {
+		case DT_FLOAT:  fillNiftiDataStringMacro(float); break;
+		case DT_DOUBLE:  fillNiftiDataStringMacro(double); break;
+		
+		default: 
+			 fillNiftiDataStringMacro(double); break;
+		}	
 			//m_NiftiImage->data= (double *) calloc(image->GetPointData()->GetArray("Tensors")->GetNumberOfTuples(), sizeof(double)*6);
 			nifti_image_write( m_NiftiImage );
-			delete[]  outDoubleArray;
+			//delete[]  outDoubleArray;
 			delete[] m_NiftiImage;
 	}
 
