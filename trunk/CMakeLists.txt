@@ -1,5 +1,5 @@
 # Copyright (c) 2012, Biomedical Image Analysis Eindhoven (BMIA/e)
-# All rights reserved.
+# All rights reserved. 
 # 
 # Redistribution and use in source and binary forms, with or without 
 # modification, are permitted provided that the following conditions
