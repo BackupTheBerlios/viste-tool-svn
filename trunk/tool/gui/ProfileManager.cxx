@@ -172,8 +172,7 @@ ProfileManager::ProfileManager(plugin::Manager * rPluginManager, DTIToolSettings
 	this->dataButtonsHLayout->addWidget(this->dataMoveUpButton);
 
 	this->dataList = new QListWidget;
-	this->dataList->setMaximumHeight(130);
-	this->pluginTable->setMaximumHeight(260);
+ 
 	// Save and close buttons
 	this->saveButton = new QPushButton("Save");
 	this->closeButton = new QPushButton("Close");
@@ -197,8 +196,8 @@ ProfileManager::ProfileManager(plugin::Manager * rPluginManager, DTIToolSettings
 	this->mainLayout->addLayout(this->dataButtonsHLayout);
 	this->mainLayout->addWidget(this->dataList);
 	this->mainLayout->addLayout(this->saveHLayout);
-	this->setLayout(this->mainLayout);
 
+	this->setLayout(this->mainLayout);
 	// Connect all pushbuttons
 	connect(this->saveButton,				SIGNAL(clicked()), this, SLOT(save()));
 	connect(this->closeButton,				SIGNAL(clicked()), this, SLOT(close()));

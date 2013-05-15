@@ -1,5 +1,5 @@
 # Copyright (c) 2012, Biomedical Image Analysis Eindhoven (BMIA/e)
-# All rights reserved. 
+# All rights reserved.
 # 
 # Redistribution and use in source and binary forms, with or without 
 # modification, are permitted provided that the following conditions
@@ -33,7 +33,7 @@
 # 06.02.2012 Remove CMAKE_BUILD_TYPE assignment to Debug. 
 # 06.02.2012 Add two messages to print the IDE selected and the status of 64bit compiler for windows. 
 # 06.02.2012 CMAKE_BUILD_TYPE control and messages. 
- 
+
 cmake_minimum_required(VERSION 2.6)
 
 # CMAKE_BUILD_TYPE default value is Release

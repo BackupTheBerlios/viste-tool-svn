@@ -229,6 +229,9 @@ namespace bmia {
 				this->addSubItem(dsItem, "Scalar Type: " + QString::number(image->GetScalarType()) + "");
 				if(image->GetDataDimension() == 3)
 					this->addSubItem(dsItem, "Spacing: " + QString::number(image->GetSpacing()[0]) + " "+ QString::number(image->GetSpacing()[1]) + " " + QString::number(image->GetSpacing()[2]));
+				if(image->GetDataDimension() == 3)
+					this->addSubItem(dsItem, "Dimensions: " + QString::number(image->GetDimensions()[0]) + " "+ QString::number(image->GetDimensions()[1]) + " " + QString::number(image->GetDimensions()[2]));
+				
 				dataSize = image->GetActualMemorySize();
 				dataSizeAvailable = true;
 

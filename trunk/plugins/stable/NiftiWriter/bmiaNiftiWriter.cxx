@@ -48,52 +48,26 @@
 #include "bmiaNiftiWriter.h"
 
 
-// Copy the "COMP"-th component of the input array, of data type "C_TYPE", to
-// an array of doubles of size "arraySize". Used to create scalar volumes.
-
-#define createDoubleScalarArrayMacro(C_TYPE, COMP)								\
+//m_NiftiImage must have been defined before the call of this macro
+#define fillNiftiDataStringMacro(C_TYPE)								\
 	{																			\
-	C_TYPE * inArrayCasted = (C_TYPE *) this->NiftiImage->data;				\
-	for (int i = 0; i < arraySize; ++i) 									\
-	outDoubleArray[i] = (double) inArrayCasted[i + COMP * arraySize];	\
+	C_TYPE *outDoubleArray = static_cast<C_TYPE*>(image->GetPointData()->GetArray("Tensors")->GetVoidPointer(0));		\
+	C_TYPE * niftiImageData =  new C_TYPE[arraySize*comp];   								\
+	for (int i = 0; i < arraySize; ++i)   \
+	for (int j = 0; j < comp; ++j)    \
+	niftiImageData[i + indexMap[j] * arraySize]  = outDoubleArray[j + comp * i];	 \
+	m_NiftiImage->data =  (void *) niftiImageData;  \
 	}
 
-// Copy "ELEMENTS" elements from an input array of type "C_TYPE" to an output
-// doubles array. The indices of the elements are mapped through an "indexMap"
-// array, which should have size "ELEMENTS". Used to create tensors; for second-
-// order tensors, "ELEMENTS" should be six.
-
-#define createDoubleMappedArrayMacro(C_TYPE, ELEMENTS)							\
-	{																			\
-	C_TYPE * inArrayCasted = (C_TYPE *) this->NiftiImage->data;				\
-	for (int i = 0; i < arraySize; ++i) {					 				\
-	for (int j = 0; j < ELEMENTS; ++j) {								\
-	outDoubleArray[j + ELEMENTS * i] = (double) inArrayCasted[i + indexMap[j] * arraySize];	\
-	} } }
-
-// Copy "ELEMENTS" elements from an input array of type "C_TYPE" to an output
-// doubles array. Like "createDoubleMappedArrayMacro", but without the index
-// mapping. Used for generic vectors.
-
-#define createDoubleVectorArrayMacro(C_TYPE, ELEMENTS)							\
-	{																			\
-	C_TYPE * inArrayCasted = (C_TYPE *) this->NiftiImage->data;				\
-	for (int i = 0; i < arraySize; ++i) {									\
-	for (int j = 0; j < ELEMENTS; ++j) {								\
-	outDoubleArray[j + ELEMENTS * i] = (double) inArrayCasted[i + j * arraySize];	\
-	} } }
-
-// Like "createDoubleVectorArrayMacro", but with integers
-
-#define createIntVectorArrayMacro(C_TYPE, ELEMENTS)								\
-	{																			\
-	C_TYPE * inArrayCasted = (C_TYPE *) this->NiftiImage->data;				\
-	for (int i = 0; i < arraySize; ++i) {									\
-	for (int j = 0; j < ELEMENTS; ++j) {								\
-	outIntArray[j + ELEMENTS * i] = (int) inArrayCasted[i + j * arraySize];	\
-	} } }
-
-
+//m_NiftiImage must have been defined before calling this macro
+#define createArrayMacro(C_TYPE)								\
+	{          \
+	C_TYPE *niftiImageData =  new C_TYPE[arraySize*comp];   \
+	for (int i = 0; i < arraySize; ++i)           \
+	for (int j = 0; j < comp; ++j)       \
+	niftiImageData[i+ arraySize * j]  = outDoubleArray[j + comp * i];	\
+	m_NiftiImage->data =  (void *) niftiImageData; \
+  } 
 
 namespace bmia {
 
@@ -315,7 +289,7 @@ namespace bmia {
 	}
 
 
-	//--------------------------[ parseScalarVolume ]--------------------------\\
+	//--------------------------[ writeScalarVolume ]--------------------------\\
 
 	void bmiaNiftiWriter::writeScalarVolume(vtkImageData *image, QString saveFileName, vtkObject * transform)
 	{
@@ -356,9 +330,9 @@ namespace bmia {
 		m_NiftiImage->nw =  m_NiftiImage->dim[7];
 
 		//nhdr.pixdim[0] = 0.0 ;
-		m_NiftiImage->pixdim[1] = spacing[0];
-		m_NiftiImage->pixdim[2] = spacing[1];
-		m_NiftiImage->pixdim[3] = spacing[2];
+		m_NiftiImage->pixdim[1] =  spacing[0];
+		m_NiftiImage->pixdim[2] =  spacing[1];
+		m_NiftiImage->pixdim[3] =  spacing[2];
 		m_NiftiImage->pixdim[4] = 0;
 		m_NiftiImage->pixdim[5] = 1;
 		m_NiftiImage->pixdim[6] = 1;
@@ -393,7 +367,7 @@ namespace bmia {
 		}
 
 		m_NiftiImage->nvox = numberOfVoxels;
-		 
+
 		// scalar but when it is a product of DTI, remains 6, solve the problem in production of FA etc. from DTI
 		if(numComponents==1 || numComponents==6 ){
 			switch(imageDataType)
@@ -471,50 +445,52 @@ namespace bmia {
 		{
 			vtkMatrix4x4 *matrix =  vtkMatrix4x4::New();
 			matrix = vtkMatrix4x4::SafeDownCast(transform);
-			if(matrix)
+
+			if(!matrix)
 			{
-				
-              // if extent does not start from zero if it is a cropped image for example:
-			//for(int i=0;i<3;i++)
-			//matrix->SetElement(i,3,matrix->GetElement(i,3) - wholeExtent[2*i]*spacing[i]);
-				// sform matrix or qform quaternion, which one will be used. Both can also be used if bothcodes are > 0.
-				m_NiftiImage->qform_code = 0; // Decided to use only sform code. If this is set > 0 then qform quaternion or sform matrix is used.
-				m_NiftiImage->sform_code = 1; // sform matrix is used only if sform_code > 0.
 
-
-				//matrix->Print(cout);
-				mat44 matrixf;
-				for(int i=0;i<4;i++)
-					for(int j=0;j<4;j++)
-					{
-						if(m_NiftiImage->qform_code > 0)
-							matrixf.m[i][j] = matrix->GetElement(i,j);
-						// sform code
-						if(m_NiftiImage->sform_code >0 )
-							m_NiftiImage->sto_xyz.m[i][j]= matrix->GetElement(i,j);
-					}
-
-					// convert transformation matrix to quaternion
-					nifti_mat44_to_quatern(matrixf, &( m_NiftiImage->quatern_b), &( m_NiftiImage->quatern_c), &( m_NiftiImage->quatern_d), 
-						&( m_NiftiImage->qoffset_x), &(m_NiftiImage->qoffset_y), &(m_NiftiImage->qoffset_z), &(m_NiftiImage->dx) , &(m_NiftiImage->dy) ,&(m_NiftiImage->dz) , &(m_NiftiImage->qfac));
-					// in case the matrix is not pure transform, quaternion can not include scaling part. Therefore if the matris is not a pure transform matrix use scaling factor in spacing?
-					float scaling[3];
-					if(matrix->Determinant() != 1 && (m_NiftiImage->qform_code > 0) )
-					{
-						// If determinant is not 1 find scaling
-						vtkTransform *transform = vtkTransform::New();
-						transform->SetMatrix(matrix);
-						transform->Scale(scaling);
-
-						m_NiftiImage->pixdim[1] = spacing[0]*scaling[0];
-						m_NiftiImage->pixdim[2] = spacing[1]*scaling[1];
-						m_NiftiImage->pixdim[3] = spacing[2]*scaling[2];
-						transform->Delete();
-					}
+				qDebug() << "Invalid transformation  matrix \n";
+				matrix =  vtkMatrix4x4::New();
+				matrix->Identity();
 			}
-			else {
-				cout << "Invalid   matrix \n";
-			}
+
+
+			// if extent does not start from zero if it is a cropped image for example:
+			// sform matrix or qform quaternion, which one will be used. Both can also be used if bothcodes are > 0.
+			m_NiftiImage->qform_code = 0; // Decided to use only sform code. If this is set > 0 then qform quaternion or sform matrix is used.
+			m_NiftiImage->sform_code = 1; // sform matrix is used only if sform_code > 0.
+
+
+			//matrix->Print(cout);
+			mat44 matrixf;
+			for(int i=0;i<4;i++)
+				for(int j=0;j<4;j++)
+				{
+					if(m_NiftiImage->qform_code > 0)
+						matrixf.m[i][j] = matrix->GetElement(i,j);
+					// sform code
+					if(m_NiftiImage->sform_code >0 )
+						m_NiftiImage->sto_xyz.m[i][j]= matrix->GetElement(i,j);
+				}
+
+				// convert transformation matrix to quaternion
+				nifti_mat44_to_quatern(matrixf, &( m_NiftiImage->quatern_b), &( m_NiftiImage->quatern_c), &( m_NiftiImage->quatern_d), 
+					&( m_NiftiImage->qoffset_x), &(m_NiftiImage->qoffset_y), &(m_NiftiImage->qoffset_z), &(m_NiftiImage->dx) , &(m_NiftiImage->dy) ,&(m_NiftiImage->dz) , &(m_NiftiImage->qfac));
+				// in case the matrix is not pure transform, quaternion can not include scaling part. Therefore if the matris is not a pure transform matrix use scaling factor in spacing?
+				float scaling[3];
+				if(matrix->Determinant() != 1 && (m_NiftiImage->qform_code > 0) )
+				{
+					// If determinant is not 1 find scaling
+					vtkTransform *transform = vtkTransform::New();
+					transform->SetMatrix(matrix);
+					transform->Scale(scaling);
+
+					m_NiftiImage->pixdim[1] = spacing[0]*scaling[0];
+					m_NiftiImage->pixdim[2] = spacing[1]*scaling[1];
+					m_NiftiImage->pixdim[3] = spacing[2]*scaling[2];
+					transform->Delete();
+				}
+
 		}
 		else
 		{
@@ -530,7 +506,7 @@ namespace bmia {
 	}
 
 
-	// ----------------------------[ writeDTIVolume ]--------------------------- \\
+	// ----------------------------[ writeMindData ]--------------------------- \\
 	//Any datastructure with extention
 	void bmiaNiftiWriter::writeMindData(vtkImageData *image, QString saveFileName, vtkObject * transform, QString dataStructure)
 
@@ -555,7 +531,7 @@ namespace bmia {
 		m_NiftiImage->byteorder		= nifti_short_order();
 		m_NiftiImage->ndim = 5;
 		m_NiftiImage->dim[0] = 5;
-	    m_NiftiImage->dim[1] = wholeExtent[1]-wholeExtent[0] + 1;// if start index is 0 wholeExtent[1] is enough
+		m_NiftiImage->dim[1] = wholeExtent[1]-wholeExtent[0] + 1;// if start index is 0 wholeExtent[1] is enough
 		m_NiftiImage->dim[2] = wholeExtent[3]-wholeExtent[2] + 1;
 		m_NiftiImage->dim[3] = wholeExtent[5]-wholeExtent[4] + 1;
 		m_NiftiImage->dim[4] = 1;
@@ -571,9 +547,9 @@ namespace bmia {
 		m_NiftiImage->nw =  m_NiftiImage->dim[7];
 
 		m_NiftiImage->pixdim[0] = 0.0 ;
-		m_NiftiImage->pixdim[1] = spacing[0];
-		m_NiftiImage->pixdim[2] = spacing[1];
-		m_NiftiImage->pixdim[3] = spacing[2];
+		m_NiftiImage->pixdim[1] =  spacing[0];
+		m_NiftiImage->pixdim[2] =  spacing[1];
+		m_NiftiImage->pixdim[3] =  spacing[2];
 		m_NiftiImage->pixdim[4] = 0;
 		m_NiftiImage->pixdim[5] = 0;
 		m_NiftiImage->pixdim[6] = 0;
@@ -585,7 +561,7 @@ namespace bmia {
 		m_NiftiImage->du = m_NiftiImage->pixdim[5];
 		m_NiftiImage->dv = m_NiftiImage->pixdim[6];
 		m_NiftiImage->dw = m_NiftiImage->pixdim[7];
- 
+
 		int numberOfVoxels = m_NiftiImage->nx;
 
 		if(m_NiftiImage->ny>0){
@@ -692,56 +668,55 @@ namespace bmia {
 		{
 			vtkMatrix4x4 *matrix =  vtkMatrix4x4::New();
 			matrix = vtkMatrix4x4::SafeDownCast(transform);
-			
 
-			 
+
+
 			if(!matrix)
 			{
- 
+
 				qDebug() << "Invalid transformation  matrix \n";
 				matrix =  vtkMatrix4x4::New();
 				matrix->Identity();
 			}
-					//for(int i=0;i<3;i++)
-			//matrix->SetElement(i,3,matrix->GetElement(i,3) - wholeExtent[2*i]*spacing[i]);
-				// sform matrix or qform quaternion, which one will be used. Both can also be used if bothcodes are > 0.
-				m_NiftiImage->qform_code = 0; // Decided to use only sform code. If this is set > 0 then qform quaternion or sform matrix is used.
-				m_NiftiImage->sform_code = 1; // sform matrix is used only if sform_code > 0.
 
-				
-				mat44 matrixf;
-				for(int i=0;i<4;i++)
-					for(int j=0;j<4;j++)
-					{
-						if(m_NiftiImage->qform_code > 0)
-						{
-							matrixf.m[i][j] = matrix->GetElement(i,j);
-						}
-						// sform code
-						if(m_NiftiImage->sform_code >0 )
-							m_NiftiImage->sto_xyz.m[i][j]= matrix->GetElement(i,j);
-					}
+			// sform matrix or qform quaternion, which one will be used. Both can also be used if bothcodes are > 0.
+			m_NiftiImage->qform_code = 0; // Decided to use only sform code. If this is set > 0 then qform quaternion or sform matrix is used.
+			m_NiftiImage->sform_code = 1; // sform matrix is used only if sform_code > 0.
 
-					// convert transformation matrix to quaternion
+
+			mat44 matrixf;
+			for(int i=0;i<4;i++)
+				for(int j=0;j<4;j++)
+				{
 					if(m_NiftiImage->qform_code > 0)
-						nifti_mat44_to_quatern(matrixf, &( m_NiftiImage->quatern_b), &( m_NiftiImage->quatern_c), &( m_NiftiImage->quatern_d), 
-						&( m_NiftiImage->qoffset_x), &(m_NiftiImage->qoffset_y), &(m_NiftiImage->qoffset_z), &(m_NiftiImage->dx) , &(m_NiftiImage->dy) ,&(m_NiftiImage->dz) , &(m_NiftiImage->qfac));
-
-					// in case the matrix is not pure transform, quaternion can not include scaling part. Therefore if the matris is not a pure transform matrix use scaling factor in spacing?
-					float scaling[3];
-					if(matrix->Determinant() != 1 && (m_NiftiImage->qform_code > 0) )
 					{
-						// If determinant is not 1 find scaling
-						vtkTransform *transform = vtkTransform::New();
-						transform->SetMatrix(matrix);
-						transform->Scale(scaling);
-
-						m_NiftiImage->pixdim[1] = spacing[0]*scaling[0];
-						m_NiftiImage->pixdim[2] = spacing[1]*scaling[1];
-						m_NiftiImage->pixdim[3] = spacing[2]*scaling[2];
-						transform->Delete();
+						matrixf.m[i][j] = matrix->GetElement(i,j);
 					}
-			
+					// use only sform code, give the matrix itself
+					if(m_NiftiImage->sform_code >0 )
+						m_NiftiImage->sto_xyz.m[i][j]= matrix->GetElement(i,j);
+				}
+
+				// convert transformation matrix to quaternion
+				if(m_NiftiImage->qform_code > 0)
+					nifti_mat44_to_quatern(matrixf, &( m_NiftiImage->quatern_b), &( m_NiftiImage->quatern_c), &( m_NiftiImage->quatern_d), 
+					&( m_NiftiImage->qoffset_x), &(m_NiftiImage->qoffset_y), &(m_NiftiImage->qoffset_z), &(m_NiftiImage->dx) , &(m_NiftiImage->dy) ,&(m_NiftiImage->dz) , &(m_NiftiImage->qfac));
+
+				// in case the matrix is not pure transform, quaternion can not include scaling part. Therefore if the matris is not a pure transform matrix use scaling factor in spacing?
+				float scaling[3];
+				if(matrix->Determinant() != 1 && (m_NiftiImage->qform_code > 0) )
+				{
+					// If determinant is not 1 find scaling
+					vtkTransform *transform = vtkTransform::New();
+					transform->SetMatrix(matrix);
+					transform->Scale(scaling);
+
+					m_NiftiImage->pixdim[1] = spacing[0]*scaling[0];
+					m_NiftiImage->pixdim[2] = spacing[1]*scaling[1];
+					m_NiftiImage->pixdim[3] = spacing[2]*scaling[2];
+					transform->Delete();
+				}
+
 		}
 		else
 		{
@@ -852,9 +827,8 @@ namespace bmia {
 		// Spherical Harmonics
 		else if(dataStructure.contains("spherical harmonics")) {
 			// overwrite 
-			m_NiftiImage->dim[5] = image->GetNumberOfScalarComponents(); //   Works for loaded nifti but not sharm
+			//m_NiftiImage->dim[5] = image->GetNumberOfScalarComponents(); //   Works for loaded nifti but not sharm
 			m_NiftiImage->dim[5] = image->GetPointData()->GetArray(0)->GetNumberOfComponents(); // works for sharm loaded
-			//cout << image->GetPointData()->GetArray(0)->GetName() << endl;
 			m_NiftiImage->nu =  m_NiftiImage->dim[5];
 			m_NiftiImage->nvox = m_NiftiImage->nx * m_NiftiImage->ny * m_NiftiImage->nz * m_NiftiImage->nt * m_NiftiImage->nu;
 			m_NiftiImage->swapsize		= 8;					// ...and the swap size is also 8.
@@ -864,24 +838,24 @@ namespace bmia {
 			strncpy(buffer, "REALSPHARMCOEFFS", sizeof(buffer));
 			nifti_add_extension(m_NiftiImage, buffer, 24, NIFTI_ECODE_MIND_IDENT); // 24 is length of array which inc. DISCSPHFUNC
 
-	
+
 			int shOrder;
 
-	// Get the SH order, based on the number of coefficients
-	switch( image->GetPointData()->GetScalars()->GetNumberOfComponents())
-	{
-		case 1:		shOrder = 0;	break;
-		case 6:		shOrder = 2;	break;
-		case 15:	shOrder = 4;	break;
-		case 28:	shOrder = 6;	break;
-		case 45:	shOrder = 8;	break;
+			// Get the SH order, based on the number of coefficients
+			switch( image->GetPointData()->GetScalars()->GetNumberOfComponents())
+			{
+			case 1:		shOrder = 0;	break;
+			case 6:		shOrder = 2;	break;
+			case 15:	shOrder = 4;	break;
+			case 28:	shOrder = 6;	break;
+			case 45:	shOrder = 8;	break;
 
-		default:
-			 qDebug() << "Number of SH coefficients are not present!" << endl;
-			return;
-	}
+			default:
+				qDebug() << "Number of SH coefficients are not present!" << endl;
+				return;
+			}
 
-			 
+
 			for(int j=0;j<=shOrder; j++)
 			{
 				if( j%2 == 0) //even
@@ -889,29 +863,29 @@ namespace bmia {
 					for(int i = -1*j; i<=j; i++)
 					{ 
 						int indx[2]; 
-					indx[0]= (int)  j;
-					indx[1]= (int) i;
-					nifti_add_extension(m_NiftiImage, (char *) &(indx[0]), 2 * sizeof(int), NIFTI_ECODE_SHC_DEGREEORDER);	 
+						indx[0]= (int)  j;
+						indx[1]= (int) i;
+						nifti_add_extension(m_NiftiImage, (char *) &(indx[0]), 2 * sizeof(int), NIFTI_ECODE_SHC_DEGREEORDER);	 
 					}
 				}
 			}
 
-			 
+
 			double *outDoubleArray = static_cast<double*>(image->GetScalarPointer() );
 
-			int arraySize = image->GetNumberOfPoints();
+			int arraySize = image->GetNumberOfPoints(); 
 			int comp = image->GetNumberOfScalarComponents();
-			double * niftiImageData =  new double[arraySize*comp];
+			comp=image->GetPointData()->GetNumberOfComponents(); // for all data, 72dirs and others
 
-			for (int i = 0; i < arraySize; ++i) 
-				for (int j = 0; j < comp; ++j)
-				{
-					// change from row-major to column major
-					niftiImageData[i+ arraySize * j]  = (double) outDoubleArray[j + comp * i];	
+			//m_NiftiImage must have been defined before calling this macro
+			switch (m_NiftiImage->datatype)
+			{
+			case DT_FLOAT:  createArrayMacro(float); break;
+			case DT_DOUBLE:  createArrayMacro(double); break;
+			default:
+				createArrayMacro(double); break;
 
-				}
-
-				m_NiftiImage->data =  (void *) niftiImageData;
+			}	
 
 		}
 
@@ -949,7 +923,7 @@ namespace bmia {
 
 		m_NiftiImage->ndim = 5;
 		m_NiftiImage->dim[0] = 5;
-	    m_NiftiImage->dim[1] = wholeExtent[1]-wholeExtent[0] + 1;// if start index is 0 wholeExtent[1] is enough
+		m_NiftiImage->dim[1] = wholeExtent[1]-wholeExtent[0] + 1;// if start index is 0 wholeExtent[1] is enough
 		m_NiftiImage->dim[2] = wholeExtent[3]-wholeExtent[2] + 1;
 		m_NiftiImage->dim[3] = wholeExtent[5]-wholeExtent[4] + 1;
 		m_NiftiImage->dim[4] = 1;
@@ -1077,57 +1051,60 @@ namespace bmia {
 
 			vtkMatrix4x4 *matrix =  vtkMatrix4x4::New();
 			matrix = vtkMatrix4x4::SafeDownCast(transform);
-			if(matrix)
+
+
+			if(!matrix)
 			{
 
-				//	for(int i=0;i<3;i++)
-			//matrix->SetElement(i,3,matrix->GetElement(i,3) - wholeExtent[2*i]*spacing[i]);
-				
-				// sform matrix or qform quaternion, which one will be used. Both can also be used if bothcodes are > 0.
-				m_NiftiImage->qform_code = 0; // Decided to use only sform code. If this is set > 0 then qform quaternion or sform matrix is used.
-				m_NiftiImage->sform_code = 1; // sform matrix is used only if sform_code > 0.
+				qDebug() << "Invalid transformation  matrix \n";
+				matrix =  vtkMatrix4x4::New();
+				matrix->Identity();
+			}
 
 
-				//matrix->Print(cout);
-				mat44 matrixf;
-				for(int i=0;i<4;i++)
-					for(int j=0;j<4;j++)
-					{
-						if(m_NiftiImage->qform_code > 0)
-						{
-							matrixf.m[i][j] = matrix->GetElement(i,j);
-						}
-						// sform code
-						if(m_NiftiImage->sform_code >0 )
-							m_NiftiImage->sto_xyz.m[i][j]= matrix->GetElement(i,j);
-					}
 
-					// convert transformation matrix to quaternion
+			// sform matrix or qform quaternion, which one will be used. Both can also be used if bothcodes are > 0.
+			m_NiftiImage->qform_code = 0; // Decided to use only sform code. If this is set > 0 then qform quaternion or sform matrix is used.
+			m_NiftiImage->sform_code = 1; // sform matrix is used only if sform_code > 0.
+
+
+			//matrix->Print(cout);
+			mat44 matrixf;
+			for(int i=0;i<4;i++)
+				for(int j=0;j<4;j++)
+				{
 					if(m_NiftiImage->qform_code > 0)
-						nifti_mat44_to_quatern(matrixf, &( m_NiftiImage->quatern_b), &( m_NiftiImage->quatern_c), &( m_NiftiImage->quatern_d), 
-						&( m_NiftiImage->qoffset_x), &(m_NiftiImage->qoffset_y), &(m_NiftiImage->qoffset_z), &(m_NiftiImage->dx) , &(m_NiftiImage->dy) ,&(m_NiftiImage->dz) , &(m_NiftiImage->qfac));
-
-					//cout << m_NiftiImage->quatern_b << " " << m_NiftiImage->quatern_c << " " << m_NiftiImage->quatern_d << " " << m_NiftiImage->qfac << " " << endl;
-					//cout << m_NiftiImage->qoffset_x << " " << m_NiftiImage->qoffset_y << " " << m_NiftiImage->qoffset_z <<endl;
-
-					// in case the matrix is not pure transform, quaternion can not include scaling part. Therefore if the matris is not a pure transform matrix use scaling factor in spacing?
-					float scaling[3];
-					if(matrix->Determinant() != 1 && (m_NiftiImage->qform_code > 0) )
 					{
-						// If determinant is not 1 find scaling
-						vtkTransform *transform = vtkTransform::New();
-						transform->SetMatrix(matrix);
-						transform->Scale(scaling);
-
-						m_NiftiImage->pixdim[1] = spacing[0]*scaling[0];
-						m_NiftiImage->pixdim[2] = spacing[1]*scaling[1];
-						m_NiftiImage->pixdim[3] = spacing[2]*scaling[2];
-						transform->Delete();
+						matrixf.m[i][j] = matrix->GetElement(i,j);
 					}
-			}
-			else {
-				qDebug() << "Invalid   matrix \n";
-			}
+					// sform code
+					if(m_NiftiImage->sform_code >0 )
+						m_NiftiImage->sto_xyz.m[i][j]= matrix->GetElement(i,j);
+				}
+
+				// convert transformation matrix to quaternion
+				if(m_NiftiImage->qform_code > 0)
+					nifti_mat44_to_quatern(matrixf, &( m_NiftiImage->quatern_b), &( m_NiftiImage->quatern_c), &( m_NiftiImage->quatern_d), 
+					&( m_NiftiImage->qoffset_x), &(m_NiftiImage->qoffset_y), &(m_NiftiImage->qoffset_z), &(m_NiftiImage->dx) , &(m_NiftiImage->dy) ,&(m_NiftiImage->dz) , &(m_NiftiImage->qfac));
+
+				//cout << m_NiftiImage->quatern_b << " " << m_NiftiImage->quatern_c << " " << m_NiftiImage->quatern_d << " " << m_NiftiImage->qfac << " " << endl;
+				//cout << m_NiftiImage->qoffset_x << " " << m_NiftiImage->qoffset_y << " " << m_NiftiImage->qoffset_z <<endl;
+
+				// in case the matrix is not pure transform, quaternion can not include scaling part. Therefore if the matris is not a pure transform matrix use scaling factor in spacing?
+				float scaling[3];
+				if(matrix->Determinant() != 1 && (m_NiftiImage->qform_code > 0) )
+				{
+					// If determinant is not 1 find scaling
+					vtkTransform *transform = vtkTransform::New();
+					transform->SetMatrix(matrix);
+					transform->Scale(scaling);
+
+					m_NiftiImage->pixdim[1] = spacing[0]*scaling[0];
+					m_NiftiImage->pixdim[2] = spacing[1]*scaling[1];
+					m_NiftiImage->pixdim[3] = spacing[2]*scaling[2];
+					transform->Delete();
+				}
+
 		}
 		else
 		{
@@ -1140,7 +1117,7 @@ namespace bmia {
 #else
 		strcpy(&(m_NiftiImage->intent_name[0]), intentName);
 #endif
-	
+
 		if (!vtkAbstractArray::SafeDownCast(image->GetPointData()->GetArray("Tensors")))
 		{
 			qDebug() << "ERROR: Tensors array missing or not converted to int" << endl;
@@ -1148,19 +1125,22 @@ namespace bmia {
 		int indexMap[6] = {0, 1, 3, 2, 4, 5};
 		int arraySize = image->GetPointData()->GetArray("Tensors")->GetNumberOfTuples();
 		int comp = image->GetPointData()->GetArray("Tensors")->GetNumberOfComponents();
-		double *outDoubleArray = static_cast<double*>(image->GetPointData()->GetArray("Tensors")->GetVoidPointer(0));
-    	double * niftiImageData =  new double[arraySize*comp];
-		for (int i = 0; i < arraySize; ++i) 
-			for (int j = 0; j < comp; ++j)
-			{
 
-				niftiImageData[i + indexMap[j] * arraySize]  = (double) outDoubleArray[j + comp * i];	
-			}
-			m_NiftiImage->data =  (void *) niftiImageData;
-			//m_NiftiImage->data= (double *) calloc(image->GetPointData()->GetArray("Tensors")->GetNumberOfTuples(), sizeof(double)*6);
-			nifti_image_write( m_NiftiImage );
-			delete[]  outDoubleArray;
-			delete[] m_NiftiImage;
+
+		switch (m_NiftiImage->datatype)
+		{
+
+		//m_NiftiImage must have been defined before calling this macro
+		case DT_FLOAT:  fillNiftiDataStringMacro(float); break;
+		case DT_DOUBLE:  fillNiftiDataStringMacro(double); break;
+
+		default: 
+			fillNiftiDataStringMacro(double); break;
+		}	
+
+		nifti_image_write( m_NiftiImage );
+		//delete[]  outDoubleArray;
+		delete[] m_NiftiImage;
 	}
 
 
@@ -1177,7 +1157,7 @@ namespace bmia {
 
 	void bmiaNiftiWriter::writeSphericalHarmonicsVolume()
 	{
-		  // This part is on WriteMINDData() function
+		// This part is on WriteMINDData() function
 
 	}
 
