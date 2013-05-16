@@ -39,6 +39,7 @@
 *
 * * 2013-03-16   Mehmet Yusufoglu
 * - Create the class. Writes the scalar data in Nifti format.
+*
 * - 
 */
 
