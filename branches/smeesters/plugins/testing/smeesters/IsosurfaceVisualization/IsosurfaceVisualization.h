@@ -94,6 +94,11 @@
 #include "vtkFloatArray.h"
 #include "vtkAxis.h"
 
+#include "vtkScalarBarActor.h"
+#include <vtkColorSeries.h>
+
+#include <vtkSmoothPolyDataFilter.h>
+
 class vtkInteractorStyleTrackballPositionPicker;
 
 namespace Ui
@@ -332,6 +337,9 @@ private:
     QList<data::DataSet *> tf_datasets;
 
     /** Transfer functions for orthogonal planes */
+    QList<vtkColorTransferFunction*> colorTransferFunctions;
+
+    /** Color loopup tables */
     QList<vtkLookupTable*> lookUpTables;
 
     /** Fiber information structs */
@@ -421,6 +429,8 @@ private:
     void processFiberAnteriorSorting(SortedFibers* sortedFibers);
 
     void fiberPointSelect();
+
+    vtkSmartPointer<vtkScalarBarActor> scalarBar; //temp
 };
 
 }

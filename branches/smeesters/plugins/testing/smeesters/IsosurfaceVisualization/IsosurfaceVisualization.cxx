@@ -114,6 +114,7 @@ void IsosurfaceVisualization::init()
 
 	this->measuredLine = NULL;
 
+    this->scalarBar = NULL; //temp
 }
 
 //------------[ Setup pointer interactor for clipping planes ]----------------\\
@@ -458,7 +459,7 @@ void IsosurfaceVisualization::createLookupTable(data::DataSet * d, int index)
 	 // get color transfer function
     vtkColorTransferFunction* ctf = vtkColorTransferFunction::SafeDownCast(d->getVtkObject());
     int numberOfColorNodes = ctf->GetSize();
-    std::cout << "Number of nodes: " << numberOfColorNodes << std::endl;
+    //std::cout << "Number of nodes: " << numberOfColorNodes << std::endl;
 
     // color range
     double colorRange[2];
@@ -474,8 +475,8 @@ void IsosurfaceVisualization::createLookupTable(data::DataSet * d, int index)
 		// get opacity transfer function
 		pf = vtkPiecewiseFunction::SafeDownCast(cpf);
 		numberOfOpacityNodes = pf->GetSize();
-		pf->Print(std::cout);
-		std::cout << "Number of nodes: " << numberOfOpacityNodes << std::endl;
+		//pf->Print(std::cout);
+		//std::cout << "Number of nodes: " << numberOfOpacityNodes << std::endl;
 	}
 
 	// no opacity transfer function available, create one (no opacity: 1.0 to 1.0)
@@ -484,10 +485,10 @@ void IsosurfaceVisualization::createLookupTable(data::DataSet * d, int index)
 		pf = vtkPiecewiseFunction::New();
 		pf->AdjustRange(colorRange);
 
-		double point1[4] = {0.0, 1.0, 0.0, 0.5};
+		double point1[4] = {0.0, 1.0, 0.0, 1.0};
 		pf->SetNodeValue(0,point1);
 
-		double point2[4] = {colorRange[1], 1.0, 0.0, 0.5};
+		double point2[4] = {colorRange[1], 1.0, 0.0, 1.0};
 		pf->SetNodeValue(0,point2);
 	}
 
@@ -571,6 +572,12 @@ void IsosurfaceVisualization::createLookupTable(data::DataSet * d, int index)
         lookUpTables.append(convLUT);
     else
         lookUpTables.replace(index,convLUT);
+
+    // save color transfer function
+    if(index == -1)
+        colorTransferFunctions.append(ctf);
+    else
+        colorTransferFunctions.replace(index,ctf);
 }
 
 //------------------------[ Create or update the mesh ]-----------------------\\
@@ -621,6 +628,11 @@ void IsosurfaceVisualization::updateRenderingModels()
             connectivity->SetExtractionModeToLargestRegion();
         }
 
+        vtkSmoothPolyDataFilter* smoother2 = vtkSmoothPolyDataFilter::New();
+        smoother2->SetInputConnection(connectivity->GetOutputPort());
+        smoother2->SetNumberOfIterations(50);
+        smoother2->Update();
+
         // decimate
         VTK_CREATE(vtkDecimatePro, deci);
         if(current_modelInfo->reduction > 0.1)
@@ -647,7 +659,7 @@ void IsosurfaceVisualization::updateRenderingModels()
         else
 		{
 			if(current_modelInfo->selectLargestComponent)
-                clipper->SetInputConnection(connectivity->GetOutputPort());
+                clipper->SetInputConnection(smoother2->GetOutputPort());
             else
                 clipper->SetInputConnection(mcubes->GetOutputPort());
 		}
@@ -698,10 +710,18 @@ void IsosurfaceVisualization::updateRenderingModels()
 			curvaturesFilter->Update();
 			this->core()->out()->deleteProgressBarForAlgorithm(curvaturesFilter);
 
+            // Set output of curvature
+            polyMapper->SetInputConnection(curvaturesFilter->GetOutputPort());
+
+            // Get scalar range
+            double scalarRange[2];
+            curvaturesFilter->GetOutput()->GetScalarRange(scalarRange);
+            std::cout << "Scalar range: " << scalarRange[0] << " - " << scalarRange[1] << std::endl;
+
 			// create default curvature lookup table
-			vtkLookupTable* convLUT;
             if(this->current_modelInfo->curvatureLUTIndex == 0)
             {
+                /*vtkLookupTable* convLUT;
 				convLUT = vtkLookupTable::New();
 				convLUT->SetNumberOfTableValues(100);
 				convLUT->SetRange(0,100);
@@ -719,18 +739,46 @@ void IsosurfaceVisualization::updateRenderingModels()
 						convLUT->SetTableValue(j,0.75,0.75,0.75,1.0);
 				}
 				convLUT->SetRampToSCurve();
+				polyMapper->SetLookupTable(convLUT);*/
+
+				double mid = 0.5 * (scalarRange[1] + scalarRange[0]);
+
+                vtkColorTransferFunction* convLUT = vtkColorTransferFunction::New();
+				convLUT->AddRGBPoint(scalarRange[0], 1.0, 0.0, 0.0);
+				convLUT->AddRGBPoint(mid, 0.0, 1.0, 0.0);
+				convLUT->AddRGBPoint(scalarRange[1], 0.0, 0.0, 1.0);
+				convLUT->Print(std::cout);
+
+                polyMapper->SetLookupTable(convLUT);
 			}
+
+			// Use custom transfer function
 			else
 			{
 			    // Get LUT from saved list
-				convLUT = this->lookUpTables.at(current_modelInfo->curvatureLUTIndex - 1);
+			    //vtkLookupTable* convLUT;
+				//convLUT = this->lookUpTables.at(current_modelInfo->curvatureLUTIndex - 1);
+
+				vtkColorTransferFunction* convLUT;
+				convLUT = this->colorTransferFunctions.at(current_modelInfo->curvatureLUTIndex - 1);
+
+				// Use curvature output in polydatamapper and set LUT
+				polyMapper->SetLookupTable(convLUT);
 			}
 
-			// Use curvature output in polydatamapper and set LUT
-			polyMapper->SetInputConnection(curvaturesFilter->GetOutputPort());
-			polyMapper->SetLookupTable(convLUT);
-
 			current_modelInfo->usingCurvature = true;
+
+			if(scalarBar != NULL)
+            {
+                this->assembly->RemovePart(scalarBar);
+                scalarBar = NULL;
+            }
+            scalarBar = vtkSmartPointer<vtkScalarBarActor>::New();
+            scalarBar->SetLookupTable(polyMapper->GetLookupTable());
+            scalarBar->SetTitle(
+            curvaturesFilter->GetOutput()->GetPointData()->GetScalars()->GetName());
+            scalarBar->SetNumberOfLabels(5);
+            this->assembly->AddPart(scalarBar);
 		}
 		else
 		{
