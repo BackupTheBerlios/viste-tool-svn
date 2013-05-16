@@ -31,11 +31,11 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-OPTION(PLUGINS_BUILD_TRANSFERFUNCTIONREADER "Build Transfer Function Reader Plugin" ON)
+OPTION(PLUGINS_BUILD_PDBREADER "Build PDB Reader Plugin" ON)
 
-if(PLUGINS_BUILD_TRANSFERFUNCTIONREADER)
+if(PLUGINS_BUILD_PDBREADER)
 
-set( BMIA_TRANSFERFUNCTIONREADER_PLUGIN )
+set( BMIA_PDBREADER_PLUGIN )
 
 find_package(VTK REQUIRED)
 include(${VTK_USE_FILE})
@@ -44,13 +44,13 @@ find_package(Qt4 REQUIRED)
 include(${QT_USE_FILE})
 
 set(SRCS
-    TransferFunctionReaderPlugin.h
-    TransferFunctionReaderPlugin.cxx
+    PDBReaderPlugin.h
+    PDBReaderPlugin.cxx
 )
 
-qt4_wrap_cpp( MOC_SRCS TransferFunctionReaderPlugin.h )
+qt4_wrap_cpp( MOC_SRCS PDBReaderPlugin.h )
 
-add_library( TransferFunctionReaderPlugin SHARED ${SRCS} ${MOC_SRCS} )
-target_link_libraries( TransferFunctionReaderPlugin bmia_plugin bmia_data vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering )
+add_library( PDBReaderPlugin SHARED ${SRCS} ${MOC_SRCS} )
+target_link_libraries( PDBReaderPlugin bmia_plugin bmia_data vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering )
 
-endif(PLUGINS_BUILD_TRANSFERFUNCTIONREADER)
+endif(PLUGINS_BUILD_PDBREADER)
