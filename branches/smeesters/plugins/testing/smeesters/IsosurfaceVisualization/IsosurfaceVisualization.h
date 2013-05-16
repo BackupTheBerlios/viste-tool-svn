@@ -86,6 +86,7 @@
 // qt window test
 #include "vtkContextView.h"
 #include "vtkContextScene.h"
+#include "vtkChart.h"
 #include "vtkChartXY.h"
 #include "vtkPlot.h"
 #include "vtkTable.h"
@@ -98,6 +99,10 @@
 #include <vtkColorSeries.h>
 
 #include <vtkSmoothPolyDataFilter.h>
+
+#include <vtkContextScene.h>
+#include <vtkContextItem.h>
+#include <vtkContextMouseEvent.h>
 
 class vtkInteractorStyleTrackballPositionPicker;
 

@@ -2073,9 +2073,9 @@ void IsosurfaceVisualization::comboBoxFiberDataChanged()
             table->SetValue(j, 2, localAvgScore);
 
 
-            std::cout << " j: " << j << " distance: " << distance
-            << " avg score: " << avgScore
-            << " local avg score: " << localAvgScore << std::endl;
+            //std::cout << " j: " << j << " distance: " << distance
+            //<< " avg score: " << avgScore
+            //<< " local avg score: " << localAvgScore << std::endl;
 
         }
         table->Update();
@@ -2090,6 +2090,11 @@ void IsosurfaceVisualization::comboBoxFiberDataChanged()
         chart->GetAxis(vtkAxis::LEFT)->SetTitle("Connectivity measure (-)");
         chart->GetAxis(vtkAxis::BOTTOM)->SetTitle("Distance (mm)");
         chart->SetTitle("Average score");
+        //chart->SetActionToButton(vtkChart::SELECT,vtkContextMouseEvent::LEFT_BUTTON);
+        //chart->SetActionToButton(vtkChart::ZOOM,vtkContextMouseEvent::MIDDLE_BUTTON);
+        //chart->SetActionToButton(vtkChart::PAN,vtkContextMouseEvent::RIGHT_BUTTON);
+        chart->SetClickActionToButton(vtkChart::SELECT, vtkContextMouseEvent::LEFT_BUTTON);
+        chart->SetClickActionToButton(vtkChart::NOTIFY, vtkContextMouseEvent::RIGHT_BUTTON);
 
         vtkSmartPointer<vtkChartXY> chart2 = vtkSmartPointer<vtkChartXY>::New();
         view2->GetScene()->AddItem(chart2);
