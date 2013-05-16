@@ -48,6 +48,8 @@
 * to be saved get image data and update it so that the data will be produced from 
 * the DTI.
 *
+* 2013-05-16   Mehmet Yusufoglu
+* - add saving eigen image as .vti binary binary.
 */
 
 
@@ -467,12 +469,11 @@ namespace bmia {
 			QString kind(ds->getKind()); 
 			QString fileName (name+"-"+kind);
 			QString saveFileName;
-			// fiber selection must be automaticly fbs.
-			// if image
-			if(kind!="fibers" && kind!= "seed points" && kind != "regionOfInterest")
+			
+			if(kind!="fibers" && kind!= "seed points" && kind != "regionOfInterest" && kind != "eigen")
 			{
 
-				// Why derivatices of DTI like FA is listed as being 0 byte. lets update.  
+				// Why derivatives of DTI like FA is listed as being 0 byte. lets update the volumes so that they will be produced.  
 				if(ds->getVtkImageData()) 
 				if ((ds->getVtkImageData()->GetActualMemorySize() == 0) && (kind=="scalar volume"))
 				 {
@@ -483,6 +484,14 @@ namespace bmia {
 					"Save Data as...",
 					fileName,	
 					"Nifti (*.nii);; VTK Image (*.vti);;VTK Polydata (*.vtp)");
+			}
+			else if(kind=="eigen")
+			{
+				 
+				saveFileName = QFileDialog::getSaveFileName(this,
+					"Save Data as...",
+					fileName,	
+					"VTK Image (*.vti)");
 			}
 			else if(kind=="fibers")
 			{
@@ -525,7 +534,7 @@ namespace bmia {
 				pointSet = vtkPointSet::SafeDownCast(obj);
 			}
 
-			if(image && (kind.contains("scalar volume") || kind.contains("eigen") || kind.contains("DTI") || kind.contains("discrete sphere") || kind.contains("spherical harmonics")  ))// && (ds->getVtkImageData()->GetNumberOfScalarComponents() ==1 ))
+			if(image && (kind.contains("scalar volume") || kind.contains("DTI") || kind.contains("discrete sphere") || kind.contains("spherical harmonics")  ))// && (ds->getVtkImageData()->GetNumberOfScalarComponents() ==1 ))
             {
                 //qDebug() << "Writing the image data. No of scalar components is:" << image->GetNumberOfScalarComponents() << endl;
 
@@ -533,8 +542,7 @@ namespace bmia {
                 {
                     vtkXMLImageDataWriter *writerXML = vtkXMLImageDataWriter::New();                
                     writerXML->SetInput ( (vtkDataObject*)(image) );
-                    //save the transfer matrix along with the image
-                    //writerXML->SetFileTypeToBinary();
+                   // writerXML->SetFileTypeToBinary();
 					writerXML->SetDataModeToBinary();
                     writerXML->SetFileName( saveFileName.toStdString().c_str() );
 
@@ -542,19 +550,33 @@ namespace bmia {
 						cout << "Writing finished. "<< endl;
 					else
 					    cout << "Writing error. "<< endl;
-                    this->saveTransferMatrix(saveFileName, ds ); 
+                    //save the transfer matrix along with the image
+					this->saveTransferMatrix(saveFileName, ds ); 
                     writerXML->Delete();
                 }
 
 				else if( fileNameExtention.toString()==".nii" || fileNameExtention.toString()==".gz"  )
 				{
-					vtkObject * attObject = vtkObject::New();
-			ds->getAttributes()->getAttribute("transformation matrix", attObject);
-			 
 	
 					this->getManager()->writeDataToFile(saveFileName, ds); // who will decide the data type supported extention writer can decide. Niftiwriter can decide.
 				}
 
+
+			}
+			else if(image && (kind.contains("eigen") ) ){	 		 
+                    vtkXMLImageDataWriter *writerXML = vtkXMLImageDataWriter::New();                
+                    writerXML->SetInput ( (vtkDataObject*)(image) );
+                   // writerXML->SetFileTypeToBinary();
+					writerXML->SetDataModeToBinary();
+                    writerXML->SetFileName( saveFileName.toStdString().c_str() );
+
+                    if(writerXML->Write()) 
+						cout << "Writing vti finished. "<< endl;
+					else
+					    cout << "Writing vti error. "<< endl;
+                    //save the transfer matrix along with the image
+					this->saveTransferMatrix(saveFileName, ds ); 
+                    writerXML->Delete();              
 
 			}
 			else if(polyData){	 
@@ -563,8 +585,7 @@ namespace bmia {
 				writer->SetInput( (vtkDataObject*)(polyData) );
 				writer->SetFileTypeToASCII();
 				writer->SetFileName( saveFileName.toStdString().c_str() );
-				//if(isFiber)
-					this->saveTransferMatrix(saveFileName, ds);
+                this->saveTransferMatrix(saveFileName, ds);
 				writer->Write();
 
 			}
@@ -578,7 +599,7 @@ namespace bmia {
 			}
 			else 
 			{
-				qDebug() << "The data can not be saved due to data type."<< endl;	
+				qDebug() << "The data can not be saved due to data type."<< endl;
 				return; 
 			}
 

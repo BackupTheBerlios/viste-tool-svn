@@ -36,8 +36,19 @@
 /*
  * SaveDialog.h
  *
- * 2010-03-08	 Mehmet Yusufoglu
- * Dialog to select the data to be saved. A Similar class to the data dialog class.
+ * 2013-02-08 Mehmet Yusufoglu	
+ * Created for saving the data, a similar class of DataDialog. saveSelectedItem function 
+ * is the main function.  vti saving and .pol and .fbs saving are here may be moved to a 
+ * plugin. Nifti andNifti Mind saving is implemented in NiftiWriterPlugin.
+ *
+ * 2013-02-08 Mehmet Yusufoglu
+ * -vti saving is converted to binary. 
+ * -Derivatices of DTI like FA is listed as being 0 byte. When the scalar volume is 
+ * to be saved get image data and update it so that the data will be produced from 
+ * the DTI.
+ *
+ * 2013-05-16   Mehmet Yusufoglu
+ * - Save eigen image in .vti . No change in this file.
  *
  */
 
