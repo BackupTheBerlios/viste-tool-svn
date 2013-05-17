@@ -224,11 +224,20 @@ void PDBReaderPlugin::loadDataFromFile(QString filename)
     pdbFile.read(reinterpret_cast<char*>(&numPathways), sizeof(int));
     //std::cout << "number of pathways: " << numPathways << std::endl;
 
+	// create progress bar
+	vtkAlgorithm* algo = vtkAlgorithm::New();
+	algo->SetProgressText("Loading pathways ...");
+	algo->UpdateProgress(0.0);
+    this->core()->out()->createProgressBarForAlgorithm(algo, "PDB reader");
+
     // load pathways
     Pathway* pathways = new Pathway[numPathways];
     int totalNumberOfPoints = 0;
     for(int i = 0; i<numPathways; i++)
     {
+        // update progress bar
+        algo->UpdateProgress((double) i / (double) numPathways);
+
         pdbFile.read(reinterpret_cast<char*>(&ii), sizeof(int));
         pathways[i].headerSize = ii;
 
@@ -436,6 +445,12 @@ void PDBReaderPlugin::loadDataFromFile(QString filename)
 
     // Add the data set to the manager
 	this->core()->data()->addDataSet(ds);
+
+	// remove progress bar
+    this->core()->out()->deleteProgressBarForAlgorithm(algo);
+
+    // clean up
+    algo->Delete();
 }
 
 } // namespace bmia

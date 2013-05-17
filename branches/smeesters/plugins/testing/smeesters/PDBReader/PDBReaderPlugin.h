@@ -56,6 +56,7 @@
 #include <vtkDoubleArray.h>
 #include <vtkPointData.h>
 #include <vtkTransform.h>
+#include <vtkAlgorithm.h>
 
 /** Includes - Qt */
 
