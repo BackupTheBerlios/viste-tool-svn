@@ -101,7 +101,7 @@
 
 #include "FiberVisualizationPlugin.h"
 #include "FiberVisualizationPipeline.h"
-
+#include <vtkDoubleArray.h>
 
 namespace bmia {
 
@@ -155,6 +155,8 @@ void FiberVisualizationPlugin::connectAll()
 	connect(this->ui->colorUseAIWeightingCheck, SIGNAL(toggled(bool)), this, SLOT(settingsFromGUIToPipeline()));
 	connect(this->ui->colorAICombo, SIGNAL(currentIndexChanged(int)), this, SLOT(settingsFromGUIToPipeline()));
 	connect(this->ui->lutCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(settingsFromGUIToPipeline()));
+
+	connect(this->ui->scalarArrayComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(settingsFromGUIToPipeline()));
 	connect(this->ui->dataList, SIGNAL(currentRowChanged(int)), this, SLOT(selectData(int)));
     connect(this->ui->colorSingleCustomButton, SIGNAL(clicked()), this, SLOT(changeSingleColor()));
     connect(this->ui->colorSingleWhiteButton, SIGNAL(clicked()), this, SLOT(changeSingleColorToWhite()));
@@ -184,6 +186,8 @@ void FiberVisualizationPlugin::disconnectAll()
 	disconnect(this->ui->shapeCombo, SIGNAL(currentIndexChanged(QString)), this, SLOT(changeShape()));
 	disconnect(this->ui->shapeTubeUpdateButton, SIGNAL(clicked(bool)), this, SLOT(settingsFromGUIToPipeline()));
 	disconnect(this->ui->coloringTypeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(settingsFromGUIToPipeline()));
+	disconnect(this->ui->scalarArrayComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(settingsFromGUIToPipeline()));
+
 	disconnect(this->ui->colorShiftValuesCheck, SIGNAL(toggled(bool)), this, SLOT(settingsFromGUIToPipeline()));
 	disconnect(this->ui->colorUseAIWeightingCheck, SIGNAL(toggled(bool)), this, SLOT(settingsFromGUIToPipeline()));
  	disconnect(this->ui->colorAICombo, SIGNAL(currentIndexChanged(int)), this, SLOT(settingsFromGUIToPipeline()));
@@ -970,6 +974,9 @@ void FiberVisualizationPlugin::settingsFromGUIToPipeline()
 									(float) this->ui->shadowsThicknessSpin->value() );
 
 	// Rebuild the pipeline if necessary
+	cout << this->ui->scalarArrayComboBox->itemData( this->ui->scalarArrayComboBox->currentIndex() ).toString().toStdString() << endl;
+	//ds->getVtkPolyData()->GetPointData()->SetActiveScalars( this->ui->scalarArrayComboBox->itemData(this->ui->scalarArrayComboBox->currentIndex()).toString().toStdString().c_str() );
+	ds->getVtkPolyData()->GetPointData()->SetActiveScalars("scalars2");
 	currentPipeline->setupPipeline(ds->getVtkPolyData(), currentActor);
 
 	// Enable or disable controls based on current settings
@@ -1252,29 +1259,72 @@ void FiberVisualizationPlugin::changeColoringMethod()
 
 	bool valid = false;
 
+	vtkDoubleArray * scalars1 = vtkDoubleArray::New();
+	scalars1->SetNumberOfComponents(1);
+	//scalars1->SetNumberOfTuples(currentFibers->GetNumberOfPoints());
+	scalars1->SetName("scalars1");
+	vtkDoubleArray * scalars2 = vtkDoubleArray::New();
+	scalars2->SetNumberOfComponents(1);
+	//scalars2->SetNumberOfTuples(currentFibers->GetNumberOfPoints());
+	scalars2->SetName("scalars2");
+	for(int i=0;i< currentFibers->GetNumberOfPoints(); i++)
+	{
+		double d = i%255;
+		scalars2->InsertNextTuple(&d);
+			double d2=i%15;
+		scalars1->InsertNextTuple(&d2);
+	}
+	//currentFibers->GetPointData()->Add 2 arrays here!!! test
+	currentFibers->GetPointData()->AddArray(scalars1);
+	currentFibers->GetPointData()->AddArray(scalars2);
 	// Fiber Data using LUTs
 	if (this->ui->coloringTypeComboBox->currentIndex() == this->FC_FiberData)
 	{
+		
 		// Check if the fibers contain point data
 		if (currentFibers->GetPointData())
-		{
-			// Check fi the point data contains a scalar array
-			if (vtkDataArray * scalars = currentFibers->GetPointData()->GetScalars())
-			{
-				// Scalar array should have as many points as the input fiber set, and at least one component
-				if (scalars->GetNumberOfTuples() == currentFibers->GetNumberOfPoints() && scalars->GetNumberOfComponents() > 0)
-				{
-					valid = true;
+		{ 
+       bool allvalid = false;
+			if(currentFibers->GetPointData()->GetNumberOfArrays() >0) // give the names of arrays to the new combo box 
+					{
+						for(int i=0; i<currentFibers->GetPointData()->GetNumberOfArrays();i++)
+						// this->ui->scalarArrayComboBox->addItem
+						{
+							this->ui->scalarArrayComboBox->addItem( currentFibers->GetPointData()->GetArrayName(i) );
+							allvalid = allvalid || ((currentFibers->GetPointData()->GetArray(i)->GetNumberOfTuples()== currentFibers->GetNumberOfPoints()) && ( currentFibers->GetPointData()->GetArray(i)->GetNumberOfComponents() ) > 0) ;
+				          
+						
+						}
+
 				}
-			}
+		
+
+			 if (!allvalid)
+		{
+			QMessageBox::warning(this->getGUI(), "Fiber Visualization", "Selected fiber data set does not contain even one suitable scalar array!", QMessageBox::Ok, QMessageBox::Ok);
+			this->ui->coloringTypeComboBox->setCurrentIndex(this->FC_SingleColor);
 		}
 
+			 }
+			// Check fi the point data contains a scalar array
+		//	if (vtkDataArray * scalars = currentFibers->GetPointData()->GetScalars())
+		//	{
+		//		// Scalar array should have as many points as the input fiber set, and at least one component
+		//		if (scalars->GetNumberOfTuples() == currentFibers->GetNumberOfPoints() && scalars->GetNumberOfComponents() > 0)
+		//		{
+		//			valid = true;
+		//			
+		//			
+		//		}
+		//	}
+		//}
+
 		// Invalid data set
-		if (!valid)
+		/*if (!valid)
 		{
 			QMessageBox::warning(this->getGUI(), "Fiber Visualization", "Selected fiber data set does not contain a suitable scalar array!", QMessageBox::Ok, QMessageBox::Ok);
 			this->ui->coloringTypeComboBox->setCurrentIndex(this->FC_SingleColor);
-		}
+		}*/
 	}
 
 	// Cell Data using RGB

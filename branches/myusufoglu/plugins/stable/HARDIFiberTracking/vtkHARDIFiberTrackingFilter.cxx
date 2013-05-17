@@ -461,6 +461,7 @@ namespace bmia {
 				}
 				else
 				{
+					// the radia is read from the input data
 					tracker->calculateFiberDS( 1, &streamlinePointListPos, anglesArray, trianglesArray, NUMBEROFITERATIONS, CLEANMAXIMA, TRESHOLD);
 					tracker->calculateFiberDS(-1, &streamlinePointListNeg, anglesArray, trianglesArray, NUMBEROFITERATIONS, CLEANMAXIMA, TRESHOLD);
 				}
