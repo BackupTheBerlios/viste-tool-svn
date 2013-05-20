@@ -115,6 +115,8 @@ void IsosurfaceVisualization::init()
 	this->measuredLine = NULL;
 
     this->scalarBar = NULL; //temp
+
+	
 }
 
 //------------[ Setup pointer interactor for clipping planes ]----------------\\
@@ -628,10 +630,10 @@ void IsosurfaceVisualization::updateRenderingModels()
             connectivity->SetExtractionModeToLargestRegion();
         }
 
-        vtkSmoothPolyDataFilter* smoother2 = vtkSmoothPolyDataFilter::New();
+        /*vtkSmoothPolyDataFilter* smoother2 = vtkSmoothPolyDataFilter::New();
         smoother2->SetInputConnection(connectivity->GetOutputPort());
         smoother2->SetNumberOfIterations(50);
-        smoother2->Update();
+        smoother2->Update();*/
 
         // decimate
         VTK_CREATE(vtkDecimatePro, deci);
@@ -659,7 +661,7 @@ void IsosurfaceVisualization::updateRenderingModels()
         else
 		{
 			if(current_modelInfo->selectLargestComponent)
-                clipper->SetInputConnection(smoother2->GetOutputPort());
+                clipper->SetInputConnection(connectivity->GetOutputPort());
             else
                 clipper->SetInputConnection(mcubes->GetOutputPort());
 		}
@@ -807,6 +809,26 @@ void IsosurfaceVisualization::updateRenderingModels()
         actor->SetPosition(0,0,0);
         actor->SetScale(1,1,1);
         actor->SetOrigin(0,0,0);
+
+		vtkProperty *prop = actor->GetProperty();
+
+		//vtkXMLMaterial* material = vtkXMLMaterial::CreateInstance("D:/Research/Software/vISTe/source/plugins/testing/smeesters/IsosurfaceVisualization/GLSLTwisted.xml");
+		//material->Print(std::cout);
+
+		glEnable(0x3000); // GL_CLIP_DISTANCE0
+		glEnable(0x3000+1); // GL_CLIP_DISTANCE1
+		glEnable(0x3000+2); // GL_CLIP_DISTANCE2
+		//prop->LoadMaterial(material);
+
+		prop->LoadMaterial("D:/Research/Software/vISTe/source/plugins/testing/smeesters/IsosurfaceVisualization/ClippingPlane.xml");
+
+		prop->GetMaterial()->
+		
+		prop->ShadingOn();
+		prop->AddShaderVariable("ClipX",0.0);
+		prop->AddShaderVariable("ClipY",0.0);
+		prop->AddShaderVariable("ClipZ",0.0);
+		
 
         // Use the identity matrix by default
         vtkMatrix4x4 * id = vtkMatrix4x4::New();
@@ -1115,8 +1137,15 @@ void IsosurfaceVisualization::updateClippingPlaneSlider(int direction, int value
         cubeBounds[direction*2+1] = current_modelInfo->bounds[direction*2+1]; // maximum bound for direction
     }
 
-    current_modelInfo->clippingCube->SetBounds(cubeBounds);
+    //current_modelInfo->clippingCube->SetBounds(cubeBounds);
     current_modelInfo->clippingValues[direction] = value;
+
+	if(direction == 0)
+		this->current_modelInfo->prop->GetProperty()->AddShaderVariable("ClipX",(double)(value) );
+	else if(direction == 1)
+		this->current_modelInfo->prop->GetProperty()->AddShaderVariable("ClipY",(double)(value) );
+	else if(direction == 2)
+		this->current_modelInfo->prop->GetProperty()->AddShaderVariable("ClipZ",(double)(value) );
 
     // compute origin of orthogonal clipping planes in order to move it
     double origin[3];
@@ -1624,6 +1653,9 @@ void IsosurfaceVisualization::horizontalSliderXChanged(int value)
 {
     this->form->spinX->setValue(value);
     this->updateClippingPlaneSlider(0,value);
+
+	//this->current_modelInfo->prop->GetProperty()->AddShaderVariable("ClipX",(double)(value) );
+	//this->core()->render();
 }
 
 //---------------[ Change clipping plane slider in y direction ]-------------------\
@@ -1632,6 +1664,9 @@ void IsosurfaceVisualization::horizontalSliderYChanged(int value)
 {
     this->form->spinY->setValue(value);
     this->updateClippingPlaneSlider(1,value);
+
+		//this->current_modelInfo->prop->GetProperty()->AddShaderVariable("ClipY",(double)(value) );
+	//this->core()->render();
 }
 
 //---------------[ Change clipping plane slider in z direction ]-------------------\
@@ -1640,6 +1675,9 @@ void IsosurfaceVisualization::horizontalSliderZChanged(int value)
 {
     this->form->spinZ->setValue(value);
     this->updateClippingPlaneSlider(2,value);
+
+		//this->current_modelInfo->prop->GetProperty()->AddShaderVariable("ClipZ",(double)(value) );
+	//this->core()->render();
 }
 
 //---------------[ Change clipping plane checkbox in x direction ]-------------------\
@@ -1691,24 +1729,24 @@ void IsosurfaceVisualization::checkBoxFlipZChanged(bool checked)
 
 void IsosurfaceVisualization::spinXChanged(int value)
 {
-    this->form->horizontalSliderX->setValue(value);
-    this->updateClippingPlaneSlider(0,value);
+   // this->form->horizontalSliderX->setValue(value);
+    //this->updateClippingPlaneSlider(0,value);
 }
 
 //---------------[ Change clipping plane spin value in Y direction ]-------------------\
 
 void IsosurfaceVisualization::spinYChanged(int value)
 {
-    this->form->horizontalSliderY->setValue(value);
-    this->updateClippingPlaneSlider(1,value);
+    //this->form->horizontalSliderY->setValue(value);
+   // this->updateClippingPlaneSlider(1,value);
 }
 
 //---------------[ Change clipping plane spin value in Z direction ]-------------------\
 
 void IsosurfaceVisualization::spinZChanged(int value)
 {
-    this->form->horizontalSliderZ->setValue(value);
-    this->updateClippingPlaneSlider(2,value);
+   // this->form->horizontalSliderZ->setValue(value);
+    //this->updateClippingPlaneSlider(2,value);
 }
 
 //---------------[ Save 3D mesh ]-------------------\

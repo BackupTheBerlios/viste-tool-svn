@@ -104,6 +104,9 @@
 #include <vtkContextItem.h>
 #include <vtkContextMouseEvent.h>
 
+#include <vtkXMLMaterial.h>
+#include <vtkOpenGLExtensionManager.h>
+
 class vtkInteractorStyleTrackballPositionPicker;
 
 namespace Ui
