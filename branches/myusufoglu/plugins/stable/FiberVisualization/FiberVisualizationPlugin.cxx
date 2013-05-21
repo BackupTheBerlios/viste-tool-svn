@@ -976,7 +976,7 @@ void FiberVisualizationPlugin::settingsFromGUIToPipeline()
 	// Rebuild the pipeline if necessary
 	cout << this->ui->scalarArrayComboBox->itemData( this->ui->scalarArrayComboBox->currentIndex() ).toString().toStdString() << endl;
 	//ds->getVtkPolyData()->GetPointData()->SetActiveScalars( this->ui->scalarArrayComboBox->itemData(this->ui->scalarArrayComboBox->currentIndex()).toString().toStdString().c_str() );
-	ds->getVtkPolyData()->GetPointData()->SetActiveScalars("scalars2");
+	//ds->getVtkPolyData()->GetPointData()->SetActiveScalars("scalars2");
 	currentPipeline->setupPipeline(ds->getVtkPolyData(), currentActor);
 
 	// Enable or disable controls based on current settings
@@ -1029,6 +1029,39 @@ void FiberVisualizationPlugin::changeSingleColor()
 	}
 }
 
+
+void FiberVisualizationPlugin::changeActiveScalar()
+{
+
+	// Check if the "selectedData" index is within range
+	if (this->selectedData < 0 || this->selectedData >= this->fiberSets.size())
+		return;
+
+	// Get the selected actor
+	vtkActor * currentActor = this->actors.at(this->selectedData).actor;
+
+	// Check if the selected actor exists
+	if (!currentActor)
+		return;
+
+	// Set the visibility of the fiber set
+	currentActor->SetVisibility((int) this->ui->visibleCheckBox->isChecked());
+
+	// Get pipeline of the selected actor
+	FiberVisualizationPipeline * currentPipeline = this->actors.at(this->selectedData).actorPipeline;
+
+	// Check if the current pipeline exists
+	if (!currentPipeline)
+		return;
+
+	// Get the current fiber data set
+	data::DataSet * ds = this->fiberSets.at(this->selectedData);
+	 //ds->getVtkPolyData()->GetPointData()->SetActiveScalars( this->ui->scalarArrayComboBox->itemData(this->ui->scalarArrayComboBox->currentIndex()).toString().toStdString().c_str() );
+	ds->getVtkPolyData()->GetPointData()->SetActiveScalars("scalars2");
+
+		currentPipeline->setupPipeline(ds->getVtkPolyData(), currentActor);
+		
+}
 
 //-----------------------[ changeSingleColorToWhite ]----------------------\\
 
@@ -1269,9 +1302,9 @@ void FiberVisualizationPlugin::changeColoringMethod()
 	scalars2->SetName("scalars2");
 	for(int i=0;i< currentFibers->GetNumberOfPoints(); i++)
 	{
-		double d = i%255;
+		double d = (i%255)/255.0;
 		scalars2->InsertNextTuple(&d);
-			double d2=i%15;
+			double d2=(i%15)/15.0;
 		scalars1->InsertNextTuple(&d2);
 	}
 	//currentFibers->GetPointData()->Add 2 arrays here!!! test
