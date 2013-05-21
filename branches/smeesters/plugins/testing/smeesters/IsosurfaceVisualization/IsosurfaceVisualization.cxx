@@ -116,7 +116,7 @@ void IsosurfaceVisualization::init()
 
     this->scalarBar = NULL; //temp
 
-	
+
 }
 
 //------------[ Setup pointer interactor for clipping planes ]----------------\\
@@ -820,15 +820,14 @@ void IsosurfaceVisualization::updateRenderingModels()
 		glEnable(0x3000+2); // GL_CLIP_DISTANCE2
 		//prop->LoadMaterial(material);
 
-		prop->LoadMaterial("D:/Research/Software/vISTe/source/plugins/testing/smeesters/IsosurfaceVisualization/ClippingPlane.xml");
+		//prop->LoadMaterial("D:/Research/Software/vISTe/source/plugins/testing/smeesters/IsosurfaceVisualization/ClippingPlane.xml");
+		prop->LoadMaterial("/home/stephan/Research/Software/vISTe/src/smeesters/plugins/testing/smeesters/IsosurfaceVisualization/ClippingPlane.xml");
 
-		prop->GetMaterial()->
-		
 		prop->ShadingOn();
 		prop->AddShaderVariable("ClipX",0.0);
 		prop->AddShaderVariable("ClipY",0.0);
 		prop->AddShaderVariable("ClipZ",0.0);
-		
+
 
         // Use the identity matrix by default
         vtkMatrix4x4 * id = vtkMatrix4x4::New();

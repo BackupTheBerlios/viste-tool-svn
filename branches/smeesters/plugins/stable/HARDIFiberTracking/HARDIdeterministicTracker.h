@@ -1,11 +1,11 @@
 /*
  * HARDIdeterministicTracker.h
  *
- * 2011-10-13	Anna Vilanova 
- * - First version. 
+ * 2011-10-13	Anna Vilanova
+ * - First version.
  *
  * 2011-10-31 Bart van Knippenberg
- * - Added HARDI fiber tracking functionallity. 
+ * - Added HARDI fiber tracking functionallity.
  * - Added class MaximumFinder for finding local maxima on the ODF
  * - Adapted calculateFiber to work with HARDI data
  * - Added function for SH interpolation
@@ -15,9 +15,9 @@
  * - Improved fiber initialisation
  * - Removed a bug that caused premature tract termination
  * - Added overloaded function getOutput for GFA calculatian at beginning of fiber
- * 
+ *
   *  2013-03-15 Mehmet Yusufoglu, Bart Knippenberg
- * -Can process a discrete sphere data which already have Spherical Directions and Triangles arrays. 
+ * -Can process a discrete sphere data which already have Spherical Directions and Triangles arrays.
  *  HARDIdeterministicTracker::CalculateFiberDS and MaximumFinderGetOutputDS functions were added.
  *
  *
@@ -58,7 +58,7 @@
 //needed for random numbers
 #include <cstdlib>
 //needed to seed random numbers
-#include <ctime> 
+#include <ctime>
 
 namespace bmia {
 
@@ -70,7 +70,7 @@ class vtkHARDIFiberTrackingFilter;
 
 /** Simple class used to store relevant information about the current
 	fiber point. */
-	
+
 class HARDIstreamlinePoint
 {
 	public:
@@ -86,15 +86,15 @@ class HARDIstreamlinePoint
 
 class MaximumFinder
 {
- 
+
 public:
- 
+
   //constructor
-  MaximumFinder(vtkIntArray* trianglesArray); 
+  MaximumFinder(vtkIntArray* trianglesArray);
   //destructor
   ~MaximumFinder();
 
-  /** calculate the maxima 
+  /** calculate the maxima
   @param pDarraySH		array with SH coefficients
   @param shOrder		order of the SH
   @param treshold		treshold for the maximum detection
@@ -111,7 +111,7 @@ public:
   */
   void getOutputDS(double* pDarraySH, int shOrder, std::vector<double*> anglesArray);
 
-  /** calculate the maxima for Discrete Sphere data calculations. 
+  /** calculate the maxima for Discrete Sphere data calculations.
   @param pDarraySH		array with SH coefficients
   @param shOrder		order of the SH
   @param treshold		treshold for the maximum detection
@@ -145,7 +145,7 @@ public:
   @param GFA		the calculated GFA
   */
   void getGFA(double* GFA);
-  
+
   //vector with normalized radii of the ODF
   std::vector<double> radii_norm;
 
@@ -153,7 +153,7 @@ public:
   std::vector<double> radii;
 
 private:
-	
+
 	//array with triangles, needed for neighbor-search
 	vtkIntArray * trianglesArray;
 
@@ -162,7 +162,7 @@ private:
 	@param depth				depth of the neighborhood search
 	@param neighborlist_final	list with Id's of i's neighbors
 	*/
-	void MaximumFinder::getNeighbors(int i, int depth, std::vector<int> &neighborlist_final);
+	void getNeighbors(int i, int depth, std::vector<int> &neighborlist_final);
 
 	/** get neighbors at depth = 1
 	this function is only used by getNeighbors
@@ -173,7 +173,7 @@ private:
 };
 
 
-/** Basic deterministic tracker, that creates a streamline (fiber) by means 
+/** Basic deterministic tracker, that creates a streamline (fiber) by means
 	Description of the algorithm */
 
 class HARDIdeterministicTracker
@@ -187,7 +187,7 @@ class HARDIdeterministicTracker
 		~HARDIdeterministicTracker();
 
 		/** Initializes the tracker. Stores supplied pointers and parameters,
-			and creates and allocates the two cell arrays. 
+			and creates and allocates the two cell arrays.
 			@param rHARDIimageData	HARDI image data
 			@param rAIImageData		Anisotropy index image data
 			@param rHARDIArray		HARDI array data
@@ -207,20 +207,20 @@ class HARDIdeterministicTracker
 		/** Computes a single fiber in either the positive or negative direction.
 			Points along the fibers are computed iteratively
 			Points are then stored in "pointList", which at the start only contains the seed point.
-			@param direction	1 for positive direction, -1 for negative 
+			@param direction	1 for positive direction, -1 for negative
 			@param pointList	List of fiber points */
 
 		virtual void calculateFiber(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,  int numberOfIterations, bool cLEANMAXIMA, double TRESHOLD);
-		
+
 			/** A version for Discrete Sphere data. Computes a single fiber in either the positive or negative direction. A new version of GetOutput function is used inside.
 			Points along the fibers are computed iteratively
 			Points are then stored in "pointList", which at the start only contains the seed point.
-			@param direction	1 for positive direction, -1 for negative 
+			@param direction	1 for positive direction, -1 for negative
 			@param pointList	List of fiber points */
 		void calculateFiberDS(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,int numberOfIterations, bool CLEANMAXIMA, double TRESHOLD);
 
 
-		/** Sets the unit vectors for this class. */ 
+		/** Sets the unit vectors for this class. */
 		void setUnitVectors(double ** unitVectors);
 
 	protected:
@@ -229,7 +229,7 @@ class HARDIdeterministicTracker
 		vtkImageData *  aiImageData;	// Anisotropy index image data
 		vtkDataArray *  HARDIArray;		// HARDI Array data
 		vtkDataArray *  aiScalars;		// Scalars of the AI image
-		
+
 		/** Filter that created this tracker */
 
 		vtkHARDIFiberTrackingFilter * parentFilter;
@@ -265,14 +265,14 @@ class HARDIdeterministicTracker
 		void interpolateSH(double * interpolatedSH, double * weights,  int SHOrder);
 
 		/** Interpolated a single scalar value, using the Anisotropy Index image and
-			the supplied interpolation weights. The scalar values of the surrounding 
+			the supplied interpolation weights. The scalar values of the surrounding
 			grid points are stored in the "cellAIScalars" array.
 			@param interpolatedScalar		Output scalar
 			@param weights					Interpolation weights */
 
 		void interpolateScalar(double * interpolatedScalar, double * weights);
 
-		
+
 
 	private:
 

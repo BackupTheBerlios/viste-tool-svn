@@ -5,6 +5,7 @@ uniform float ClipZ;
 varying vec3 Normal; 
 varying vec4 EyePosition; 
 
+
 void main(void) 
 { 
 	if(gl_Vertex[0] > ClipX)

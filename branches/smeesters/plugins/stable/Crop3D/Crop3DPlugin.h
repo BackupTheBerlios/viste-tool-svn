@@ -10,24 +10,24 @@
 /**
  * Copyright (c) 2012, Biomedical Image Analysis Eindhoven (BMIA/e)
  * All rights reserved.
- * 
- * Redistribution and use in source and binary forms, with or without 
+ *
+ * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
- * 
+ *
  *   - Redistributions of source code must retain the above copyright
  *     notice, this list of conditions and the following disclaimer.
- * 
+ *
  *   - Redistributions in binary form must reproduce the above copyright
  *     notice, this list of conditions and the following disclaimer in
- *     the documentation and/or other materials provided with the 
+ *     the documentation and/or other materials provided with the
  *     distribution.
- * 
+ *
  *   - Neither the name of Eindhoven University of Technology nor the
- *     names of its contributors may be used to endorse or promote 
- *     products derived from this software without specific prior 
+ *     names of its contributors may be used to endorse or promote
+ *     products derived from this software without specific prior
  *     written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -106,7 +106,7 @@
 
 /** Forward Declarations */
 
-namespace Ui 
+namespace Ui
 {
 	class Crop3DForm;
 }
@@ -120,7 +120,7 @@ namespace bmia {
 class Crop3DPluginCallback;
 
 
-/** This plugin visualizes cross-sections of a 3D scalar volume using texture 
+/** This plugin visualizes cross-sections of a 3D scalar volume using texture
 	mapping and three orthogonal planes. Currently, two different methods are
 	supported: Scalar volumes mapped through a Look-Up Table (also called Transfer
 	Function), and eigenvectors of DTI tensors mapped to RGB values, with optional
@@ -164,25 +164,25 @@ class Crop3DPlugin : public plugin::AdvancedPlugin,
 		~Crop3DPlugin();
 
 		/** Initialize the plugin. Called after the canvas has been set up. */
-    
+
 		void init();
 
 		/** Return the VTK actor that displays the planes. */
-    
+
 		vtkProp * getVtkProp();
 
 		/** Return the Qt widget that represents the GUI. */
-     
+
 		QWidget * getGUI();
 
-		/** The data manager calls this function whenever a new 
-			data set is added to the manager. 
+		/** The data manager calls this function whenever a new
+			data set is added to the manager.
 			@param ds	New data set. */
 
 		void dataSetAdded(data::DataSet * ds);
-		
+
 		/** The data manager calls this function whenever an existing
-			data set is modified in some way. 
+			data set is modified in some way.
 			@param ds		Modified data set. */
 
 		void dataSetChanged(data::DataSet* ds);
@@ -200,7 +200,7 @@ class Crop3DPlugin : public plugin::AdvancedPlugin,
 		vtkSubCanvas * getSubcanvas(int i);
 
 		/** Reset the subcanvas with index "i". Wrapper function for "reset2DCamera"
-			for outside access. 
+			for outside access.
 			@param i		Index of the target subcanvas. */
 
 		void resetSubCanvasCamera(int i);
@@ -211,8 +211,8 @@ class Crop3DPlugin : public plugin::AdvancedPlugin,
 		/** Ranges of sliders which are used to select 3D ROI boundaries are set depending on the dimensions of the data. */
 		void set3DROISliderLimits();
 
-		/** Get the slider values as boundaries of 3D ROI set by the user */ 
-		void Crop3DPlugin::get3DROIBoundaries(int *bnd);
+		/** Get the slider values as boundaries of 3D ROI set by the user */
+		void get3DROIBoundaries(int *bnd);
 
 	protected slots:
 
@@ -230,13 +230,13 @@ class Crop3DPlugin : public plugin::AdvancedPlugin,
 
 		/** Change the weighting volume, which is used to change the brightness
 			of the voxels when using RGB-based visualization of DTI volumes. Does
-			nothing is the method is not set to "RGB". 
+			nothing is the method is not set to "RGB".
 			@param index	Index of the new weighting volume. */
 
 		void changeWeightVolume(int index);
 
-		/** Change the DTI eigensystem, which is used for RGB-based visualization. 
-			Does nothing is the method is not set to "RGB". 
+		/** Change the DTI eigensystem, which is used for RGB-based visualization.
+			Does nothing is the method is not set to "RGB".
 			@param index	Index of the new DTI volume. */
 
 		void changeDTIVolume(int index);
@@ -249,22 +249,22 @@ class Crop3DPlugin : public plugin::AdvancedPlugin,
 
 		void applyRGBColoring();
 
-		/** Change the position of the X slice. 
-			@param x			New slice position. 
+		/** Change the position of the X slice.
+			@param x			New slice position.
 			@param updateData	If false, no data sets will be updated, and scene will
 								not be rendered. */
 
 		void setXSlice(int x, bool updateData = true);
 
-		/** Change the position of the Y slice. 
-			@param y			New slice position. 
+		/** Change the position of the Y slice.
+			@param y			New slice position.
 			@param updateData	If false, no data sets will be updated, and scene will
 								not be rendered. */
 
 		void setYSlice(int y, bool updateData = true);
 
-		/** Change the position of the Z slice. 
-			@param Z			New slice position. 
+		/** Change the position of the Z slice.
+			@param Z			New slice position.
 			@param updateData	If false, no data sets will be updated, and scene will
 								not be rendered. */
 
@@ -296,19 +296,19 @@ class Crop3DPlugin : public plugin::AdvancedPlugin,
 		  /** Set the visibility of 3D ROI box */
 		void setRoiBoxVisible(bool v);
 
-		/** changeRoi Boundary 
+		/** changeRoi Boundary
 		Sets the boundary of the Roi Box to the slider values determined by the user.
 		@param notUsed		Signal-Slot connector requires a slot with the same number of args, not used. */
 		void changeRoiBoundary(int notUsed);
 
-		
+
 
 	private:
 
 		/** Seed points of the X slice. */
 
 		vtkPoints * seedsX;
- 
+
 		/** Seed points of the Y slice. */
 
 		vtkPoints * seedsY;
@@ -362,8 +362,8 @@ class Crop3DPlugin : public plugin::AdvancedPlugin,
 
 		Crop3DPluginCallback * callBack;
 
-		/** Update the seed points for one of the planes. 
-			@param points		Output seed point set. 
+		/** Update the seed points for one of the planes.
+			@param points		Output seed point set.
 			@param bounds		Bounds of the current plane.
 			@param steps		Step size (voxel size) for all three dimensions. */
 
@@ -378,7 +378,7 @@ class Crop3DPlugin : public plugin::AdvancedPlugin,
 
 		void reset2DCamera(vtkRenderer * renderer, vtkImageSliceActor * sliceActor, int axis);
 
-		/** Check if the currently selected weighting volume matches the selected 
+		/** Check if the currently selected weighting volume matches the selected
 			DTI volume in terms of dimensions. Return false is this is not the case. */
 
 		bool checkWeightVolumeMatch();
@@ -396,7 +396,7 @@ class Crop3DPlugin : public plugin::AdvancedPlugin,
 		void connectControls(bool doConnect);
 
 		/** Box polydata points drawn for the selected bounding box which defines the region to be cropped out. */
-		 
+
 		  	 vtkPoints *boxPts  ;
        /** Box polydata  drawn for the selected bounding box which defines the region to be cropped out. */
 			  vtkPolyData *polyDataBox  ;
@@ -415,11 +415,11 @@ class Crop3DPlugin : public plugin::AdvancedPlugin,
 	resetting the camera of the 2D views, we cannot use the default "ResetCamera"
 	function of the renderer, since this is wrong for transformed planes. This
 	callback allows us to overwrite the function of the "R" key. On successfully
-	resetting a 2D camera, we set the abort flag, indicating that the event has 
+	resetting a 2D camera, we set the abort flag, indicating that the event has
 	been handled. If "R" was pressed over the 3D view, we do not set this flag,
-	and the default camera resetting function will be used. 
+	and the default camera resetting function will be used.
 */
-	
+
 class Crop3DPluginCallback : public vtkCommand
 {
 	public:
@@ -428,7 +428,7 @@ class Crop3DPluginCallback : public vtkCommand
 
 		static Crop3DPluginCallback * New() { return new Crop3DPluginCallback; }
 
-		/** Execute the callback. 
+		/** Execute the callback.
 			@param caller		Not used.
 			@param event		Event ID.
 			@param callData		Pointer to the selected subcanvas. */

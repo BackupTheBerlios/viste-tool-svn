@@ -106,6 +106,7 @@
 
 #include <vtkXMLMaterial.h>
 #include <vtkOpenGLExtensionManager.h>
+#include <vtkgl.h>
 
 class vtkInteractorStyleTrackballPositionPicker;
 
