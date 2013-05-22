@@ -821,7 +821,8 @@ void IsosurfaceVisualization::updateRenderingModels()
 		//prop->LoadMaterial(material);
 
 		//prop->LoadMaterial("D:/Research/Software/vISTe/source/plugins/testing/smeesters/IsosurfaceVisualization/ClippingPlane.xml");
-		prop->LoadMaterial("/home/stephan/Research/Software/vISTe/src/smeesters/plugins/testing/smeesters/IsosurfaceVisualization/ClippingPlane.xml");
+		//prop->LoadMaterial("/home/stephan/Research/Software/vISTe/src/smeesters/plugins/testing/smeesters/IsosurfaceVisualization/ClippingPlane.xml");
+        prop->LoadMaterial("/home/linux/Research/fMRIDTI_Visual/Software/vISTe/subversion/smeesters/plugins/testing/smeesters/IsosurfaceVisualization/ClippingPlane.xml");
 
 		prop->ShadingOn();
 		prop->AddShaderVariable("ClipX",0.0);
@@ -1136,7 +1137,7 @@ void IsosurfaceVisualization::updateClippingPlaneSlider(int direction, int value
         cubeBounds[direction*2+1] = current_modelInfo->bounds[direction*2+1]; // maximum bound for direction
     }
 
-    //current_modelInfo->clippingCube->SetBounds(cubeBounds);
+    current_modelInfo->clippingCube->SetBounds(cubeBounds);
     current_modelInfo->clippingValues[direction] = value;
 
 	if(direction == 0)

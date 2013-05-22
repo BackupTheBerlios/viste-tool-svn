@@ -107,20 +107,6 @@ struct Pathway
     double* pointStats;     // {{s1_1,s1_2,...s1_n},{s2_1,s2_2,...s2_n},...,{sm_1,sm_2,...sm_n}} -- m = number of point stats
 };
 
-struct Fibers
-{
-    QString filename;
-    QMatrix4x4 matrix;  // usually identity. not used.
-    int numstats;
-    StatHeader* statheaders;
-    int numPointStats;
-    int numAlgos;
-    AlgoHeader* algoheaders;
-    int versionNumber;
-    int numPathways;
-    Pathway* pathways;
-};
-
 /** Class **/
 
 class PDBReaderPlugin : public plugin::Plugin, public data::Reader

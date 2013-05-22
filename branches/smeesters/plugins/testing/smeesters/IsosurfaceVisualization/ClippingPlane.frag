@@ -2,6 +2,9 @@ varying vec3 Normal;
 varying vec4 EyePosition; 
 uniform int NumLights; 
 
+varying vec2 texture_coordinate;
+uniform sampler2D my_color_texture;
+
 /* Compute the contribution from a particular light source. This basically * comes straight out of the OpenGL orange book. */ 
 void DirectionalLight(in int lightIndex, in vec3 normal, inout vec4 ambient, inout vec4 diffuse, inout vec4 specular) 
 { 
@@ -58,5 +61,5 @@ void main(void)
 
 	AllLights(normal, ambient, diffuse, specular); 
 
-	gl_FragColor = ( ambient*gl_FrontMaterial.ambient + diffuse*gl_FrontMaterial.diffuse + specular*gl_FrontMaterial.specular); 
+	gl_FragColor = ( ambient*gl_FrontMaterial.ambient + diffuse*gl_FrontMaterial.diffuse + specular*gl_FrontMaterial.specular + texture2D(my_color_texture, texture_coordinate)); 
 }

@@ -109,26 +109,21 @@ void PDBReaderPlugin::loadDataFromFile(QString filename)
     // load header size
     unsigned int headersize;
     pdbFile.read(reinterpret_cast<char*>(&headersize), sizeof(unsigned int));
-    //std::cout << "headersize: " << headersize << std::endl;
 
     // load transformation matrix
     QMatrix4x4 matrix;
-    //double matrix[4][4];
     for(int i =0; i<4; i++)
     {
         for(int j = 0; j<4; j++)
         {
             pdbFile.read(reinterpret_cast<char*>(&d), sizeof(double));
-            //matrix[i][j] = d;
             matrix(i,j) = d;
-            //std::cout << "matrix " << d << std::endl;
         }
     }
 
     // load number of stats
     int numstats;
     pdbFile.read(reinterpret_cast<char*>(&numstats), sizeof(int));
-    //std::cout << "number of stats: " << numstats << std::endl;
 
     // load statheaders
     StatHeader* statheaders = new StatHeader[numstats];
@@ -159,13 +154,6 @@ void PDBReaderPlugin::loadDataFromFile(QString filename)
         statheaders[i].i4 = ii;
 
         pdbFile.read(reinterpret_cast<char*>(&s), sizeof(short)); // dummy
-
-        //std::cout << "statheaders.i1: " << statheaders[i].i1 << std::endl;
-        //std::cout << "statheaders.i2: " << statheaders[i].i2 << std::endl;
-        //std::cout << "statheaders.i3: " << statheaders[i].i3 << std::endl;
-        //std::cout << "statheaders.c1: " << statheaders[i].c1 << std::endl;
-        //std::cout << "statheaders.c2: " << statheaders[i].c2 << std::endl;
-        //std::cout << "statheaders.i4: " << statheaders[i].i4 << std::endl;
     }
 
     // count number of point stats
@@ -178,12 +166,10 @@ void PDBReaderPlugin::loadDataFromFile(QString filename)
     bool usingPointStats = numPointStats > 0;
     if(!usingPointStats)
         this->core()->out()->logMessage("PDB file contains no scoring values.");
-    //std::cout << "number of point stats: " << numPointStats << std::endl;
 
     // number of algo's
     int numAlgos;
     pdbFile.read(reinterpret_cast<char*>(&numAlgos), sizeof(int));
-    //std::cout << "number of algos: " << numAlgos << std::endl;
 
     // load algoheaders
     AlgoHeader* algoheaders = new AlgoHeader[numAlgos];
@@ -205,16 +191,11 @@ void PDBReaderPlugin::loadDataFromFile(QString filename)
         algoheaders[i].i1 = ii;
 
         pdbFile.read(reinterpret_cast<char*>(&s), sizeof(short)); // dummy
-
-        //std::cout << "algoheaders.c1: " << algoheaders[i].c1 << std::endl;
-        //std::cout << "algoheaders.c2: " << algoheaders[i].c2 << std::endl;
-        //std::cout << "algoheaders.i1 " << algoheaders[i].i1 << std::endl;
     }
 
     // version number
     int versionNumber;
     pdbFile.read(reinterpret_cast<char*>(&versionNumber), sizeof(int));
-    //std::cout << "version number: " << versionNumber << std::endl;
 
     // skip to end of header
     pdbFile.seekg(headersize, pdbFile.beg);
@@ -222,7 +203,6 @@ void PDBReaderPlugin::loadDataFromFile(QString filename)
     // number of pathways
     int numPathways;
     pdbFile.read(reinterpret_cast<char*>(&numPathways), sizeof(int));
-    //std::cout << "number of pathways: " << numPathways << std::endl;
 
 	// create progress bar
 	vtkAlgorithm* algo = vtkAlgorithm::New();
@@ -254,16 +234,11 @@ void PDBReaderPlugin::loadDataFromFile(QString filename)
         pdbFile.read(reinterpret_cast<char*>(&ii), sizeof(int));
         pathways[i].seedPointIndex = ii;
 
-        //std::cout << "pathways.numPoints: " << pathways[i].numPoints << std::endl;
-        //std::cout << "pathways.algoInt " << pathways[i].algoInt << std::endl;
-        //std::cout << "pathways.seedPointIndex " << pathways[i].seedPointIndex << std::endl;
-
         pathways[i].pathStats = new double[numstats];
         for(int j = 0; j<numstats; j++)
         {
             pdbFile.read(reinterpret_cast<char*>(&d), sizeof(double));
             pathways[i].pathStats[j] = d;
-            //std::cout << "pathStats:" << j << " = " << d << std::endl;
         }
 
         // skip to end of header of pathway
@@ -277,7 +252,6 @@ void PDBReaderPlugin::loadDataFromFile(QString filename)
                 pdbFile.read(reinterpret_cast<char*>(&d), sizeof(double));
                 pathways[i].points[j*3+k] = d;
             }
-            //std::cout << "point" << pathways[i].points[j*3+0] << "," << pathways[i].points[j*3+1] << "," << pathways[i].points[j*3+2] << std::endl;
         }
 
         if(usingPointStats)
@@ -290,7 +264,6 @@ void PDBReaderPlugin::loadDataFromFile(QString filename)
                 {
                     pdbFile.read(reinterpret_cast<char*>(&d), sizeof(double));
                     pathways[i].pointStats[k*pathways[i].numPoints + j] = d;
-                    //std::cout << "pointstat type:" << k << " -- " << d << std::endl;
                 }
             }
         }
@@ -301,19 +274,6 @@ void PDBReaderPlugin::loadDataFromFile(QString filename)
 
     // notify load complete
     this->core()->out()->logMessage("PDB processed: " + filename);
-
-    // create struct to hold fibers
-    Fibers fibers;
-    fibers.filename = filename;
-    fibers.matrix = matrix;
-    fibers.numstats = numstats;
-    fibers.statheaders = statheaders;
-    fibers.numPointStats = numPointStats;
-    fibers.numAlgos = numAlgos;
-    fibers.algoheaders = algoheaders;
-    fibers.versionNumber = versionNumber;
-    fibers.numPathways = numPathways;
-    fibers.pathways = pathways;
 
     //
     //  Transformation
@@ -333,7 +293,6 @@ void PDBReaderPlugin::loadDataFromFile(QString filename)
             pathways[i].points[j*3+2] *= 0.5;
         }
     }
-
 
     vtkMatrix4x4 * mat = vtkMatrix4x4::New();
     mat->Identity();
@@ -364,7 +323,7 @@ void PDBReaderPlugin::loadDataFromFile(QString filename)
     outputLines->Delete();
 
     // Array holding the ConTrack scoring values
-    vtkDoubleArray* scoring;
+    vtkDoubleArray* scoring = NULL;
     if(usingPointStats)
     {
         scoring = vtkDoubleArray::New();
@@ -451,6 +410,7 @@ void PDBReaderPlugin::loadDataFromFile(QString filename)
 
     // clean up
     algo->Delete();
+    transform->Delete();
 }
 
 } // namespace bmia
