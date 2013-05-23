@@ -815,19 +815,19 @@ void IsosurfaceVisualization::updateRenderingModels()
 		//vtkXMLMaterial* material = vtkXMLMaterial::CreateInstance("D:/Research/Software/vISTe/source/plugins/testing/smeesters/IsosurfaceVisualization/GLSLTwisted.xml");
 		//material->Print(std::cout);
 
-		glEnable(0x3000); // GL_CLIP_DISTANCE0
+		/*glEnable(0x3000); // GL_CLIP_DISTANCE0
 		glEnable(0x3000+1); // GL_CLIP_DISTANCE1
 		glEnable(0x3000+2); // GL_CLIP_DISTANCE2
 		//prop->LoadMaterial(material);
 
 		//prop->LoadMaterial("D:/Research/Software/vISTe/source/plugins/testing/smeesters/IsosurfaceVisualization/ClippingPlane.xml");
-		//prop->LoadMaterial("/home/stephan/Research/Software/vISTe/src/smeesters/plugins/testing/smeesters/IsosurfaceVisualization/ClippingPlane.xml");
-        prop->LoadMaterial("/home/linux/Research/fMRIDTI_Visual/Software/vISTe/subversion/smeesters/plugins/testing/smeesters/IsosurfaceVisualization/ClippingPlane.xml");
+		prop->LoadMaterial("/home/stephan/Research/Software/vISTe/src/smeesters/plugins/testing/smeesters/IsosurfaceVisualization/ClippingPlane.xml");
+        //prop->LoadMaterial("/home/linux/Research/fMRIDTI_Visual/Software/vISTe/subversion/smeesters/plugins/testing/smeesters/IsosurfaceVisualization/ClippingPlane.xml");
 
 		prop->ShadingOn();
 		prop->AddShaderVariable("ClipX",0.0);
 		prop->AddShaderVariable("ClipY",0.0);
-		prop->AddShaderVariable("ClipZ",0.0);
+		prop->AddShaderVariable("ClipZ",0.0);*/
 
 
         // Use the identity matrix by default
@@ -1140,12 +1140,12 @@ void IsosurfaceVisualization::updateClippingPlaneSlider(int direction, int value
     current_modelInfo->clippingCube->SetBounds(cubeBounds);
     current_modelInfo->clippingValues[direction] = value;
 
-	if(direction == 0)
+	/*if(direction == 0)
 		this->current_modelInfo->prop->GetProperty()->AddShaderVariable("ClipX",(double)(value) );
 	else if(direction == 1)
 		this->current_modelInfo->prop->GetProperty()->AddShaderVariable("ClipY",(double)(value) );
 	else if(direction == 2)
-		this->current_modelInfo->prop->GetProperty()->AddShaderVariable("ClipZ",(double)(value) );
+		this->current_modelInfo->prop->GetProperty()->AddShaderVariable("ClipZ",(double)(value) );*/
 
     // compute origin of orthogonal clipping planes in order to move it
     double origin[3];

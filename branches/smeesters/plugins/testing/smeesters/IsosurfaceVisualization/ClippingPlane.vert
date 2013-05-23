@@ -9,7 +9,7 @@ varying vec2 texture_coordinate;
 
 void main(void) 
 { 
-	/*if(gl_Vertex[0] > ClipX)
+	if(gl_Vertex[0] > ClipX)
 		gl_ClipDistance[0] = 1;
 	else
 		gl_ClipDistance[0] = -1;
@@ -22,7 +22,7 @@ void main(void)
 	if(gl_Vertex[2] > ClipZ)
 		gl_ClipDistance[2] = 1;
 	else
-		gl_ClipDistance[2] = -1;*/
+		gl_ClipDistance[2] = -1;
 		
 	gl_Position = ftransform(); /* Compute the position in eye coordinates. */ 
 	EyePosition = gl_ModelViewMatrix*gl_Vertex; /* Transform the normal. */ 
