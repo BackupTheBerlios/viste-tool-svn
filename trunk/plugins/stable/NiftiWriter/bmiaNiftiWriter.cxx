@@ -37,10 +37,14 @@
 /*
 * bmiaNiftiWriter.cxx
 *
-* * 2013-03-16   Mehmet Yusufoglu
+*  2013-03-16   Mehmet Yusufoglu
 * - Create the class. Writes the scalar data in Nifti format.
 *
-* - 
+*  2013-05-25 Mehmet Yusufoglu
+*  -If the data has no transformation matrix, this means it is a raw data and read without setting spacings to 1.
+*  Therefore when saving a data without a transform matrix, create transformation matrix with diagonal values equal to spacings.
+*  Assume the data is raw otherwise we have transformation. Scalar, Mind and DTI saving functions have been changed.
+*			  
 */
 
 
@@ -447,12 +451,18 @@ namespace bmia {
 			vtkMatrix4x4 *matrix =  vtkMatrix4x4::New();
 			matrix = vtkMatrix4x4::SafeDownCast(transform);
 
+			// assume the data is raw otherwise we have transformation.
+			//if sraw spacing is not 1 and sharm reader does not  add the spacing to the transform therefore 
+			// we should take care in saving
 			if(!matrix)
 			{
 
-				qDebug() << "Invalid transformation  matrix \n";
+				qDebug() << "Invalid transformation  matrix, creating new using spacing \n";
 				matrix =  vtkMatrix4x4::New();
 				matrix->Identity();
+				matrix->SetElement(0,0,spacing[0]); 
+				matrix->SetElement(1,1,spacing[1]);
+				matrix->SetElement(2,2,spacing[2]);
 			}
 
 
@@ -672,13 +682,20 @@ namespace bmia {
 
 
 
+			// assume the data is raw sharm otherwise we have transformation.
+			//if raw sharm spacing is not 1 and sharm reader does not  add the spacing to the transform therefore 
+			// we should take care in saving
 			if(!matrix)
 			{
 
 				qDebug() << "Invalid transformation  matrix \n";
 				matrix =  vtkMatrix4x4::New();
 				matrix->Identity();
+				matrix->SetElement(0,0,spacing[0]); 
+				matrix->SetElement(1,1,spacing[1]);
+				matrix->SetElement(2,2,spacing[2]);
 			}
+
 
 			// sform matrix or qform quaternion, which one will be used. Both can also be used if bothcodes are > 0.
 			m_NiftiImage->qform_code = 0; // Decided to use only sform code. If this is set > 0 then qform quaternion or sform matrix is used.
@@ -1054,13 +1071,20 @@ namespace bmia {
 			matrix = vtkMatrix4x4::SafeDownCast(transform);
 
 
+			// assume the data is raw otherwise we have transformation.
+			//if sraw spacing is not 1 and sharm reader does not  add the spacing to the transform therefore 
+			// we should take care in saving
 			if(!matrix)
 			{
 
 				qDebug() << "Invalid transformation  matrix \n";
 				matrix =  vtkMatrix4x4::New();
 				matrix->Identity();
+				matrix->SetElement(0,0,spacing[0]); 
+				matrix->SetElement(1,1,spacing[1]);
+				matrix->SetElement(2,2,spacing[2]);
 			}
+
 
 
 
