@@ -491,11 +491,11 @@ void HARDIdeterministicTracker::calculateFiberDS(int direction, std::vector<HARD
 		int numberSHcomponents = this->HARDIimageData->GetNumberOfScalarComponents();
 
 		// Interpolate the SH at the seed point position
-		double * SHAux = new double[numberSHcomponents]; // radia 
+		double * SHAux = new double[numberSHcomponents];
 		//this->HARDIimageData->GetPoint()
 		
 		//	cout << "initial interpolation starts" << endl;
-		this->interpolateSH(SHAux, weights, numberSHcomponents); // radia 
+		this->interpolateSH(SHAux, weights, numberSHcomponents);
 	
 		DoIt.getOutputDS(SHAux, numberSHcomponents, anglesArray);
 	

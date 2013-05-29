@@ -552,7 +552,7 @@ void FiberVisualizationPipeline::setupPipeline(vtkPolyData * input, vtkActor * a
 	// Don't do anything if we don't need to rebuild the pipeline
 	if (!this->rebuildPipeline)
 		return;
-	
+
 	// We need a mapper to build the pipeline
 	if (!this->mapper)
 		return;

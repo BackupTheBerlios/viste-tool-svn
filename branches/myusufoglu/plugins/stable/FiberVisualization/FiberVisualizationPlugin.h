@@ -261,10 +261,6 @@ class FiberVisualizationPlugin : 	public plugin::Plugin,
 
 		void changeSingleColor();
 
-		/** Change the scalar used for coloring. */
-
-		void changeActiveScalar();
-
 		/** Change the color of a fiber set to white. */
 
 		void changeSingleColorToWhite();
