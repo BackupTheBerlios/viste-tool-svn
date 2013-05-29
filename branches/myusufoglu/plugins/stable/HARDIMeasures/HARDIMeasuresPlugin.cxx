@@ -119,7 +119,7 @@ void HARDIMeasuresPlugin::dataSetAdded(data::DataSet * ds)
 		return;
 
 	// Discrete Sphere Functions
-	if (ds->getKind() == "discrete sphere" && this->findInputImage(ds) == -1)
+	if (ds->getKind() == "discrete sphere" &&  this->findInputImage(ds) == -1)
 	{
 		// Check if the data set contains an image
 		vtkImageData * image = ds->getVtkImageData();
