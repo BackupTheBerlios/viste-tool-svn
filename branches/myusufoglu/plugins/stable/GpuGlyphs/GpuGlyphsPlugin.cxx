@@ -97,7 +97,7 @@ namespace bmia {
 
 //-----------------------------[ Constructor ]-----------------------------\\
 
-GpuGlyphsPlugin::GpuGlyphsPlugin() : Plugin("GPU Glyphs")
+GpuGlyphsPlugin::GpuGlyphsPlugin() : plugin::AdvancedPlugin("GPU Glyphs")
 {
 	// Create a prop and a mapper for the DTI glyphs
 	this->DTIMapper = vtkDTIGlyphMapperVA::New();
@@ -464,7 +464,7 @@ void GpuGlyphsPlugin::dataSetChanged(data::DataSet * ds)
 			this->seedFilter->forceExecute();
 
 		this->seedsChanged();
-
+		//this->fullCore()->canvas()->GetRenderer3D()-> // eski kamerayi save edersek belki olur
 		this->core()->render();
 	}
 	// Scalar volumes
@@ -478,7 +478,7 @@ void GpuGlyphsPlugin::dataSetChanged(data::DataSet * ds)
 
 		int dsId = this->scalarDataSets.indexOf(ds);
 		this->ui->dtiColorWeightCombo->setItemText(dsId, ds->getName());
-
+		
 		this->core()->render();
 	}
 

@@ -146,16 +146,20 @@ class vtkCHGlyphMapper;
 	which should have a DTI glyphs. GPU mappers are used to draw both glyph types.
 */
 
-class GpuGlyphsPlugin : 	public plugin::Plugin,
-							public data::Consumer,
-							public plugin::Visualization,
-							public plugin::GUI
+class GpuGlyphsPlugin : 	public plugin::AdvancedPlugin,
+							public plugin::GUI,
+	                        public data::Consumer,
+							public plugin::Visualization
+							
+							
 {
     Q_OBJECT
-    Q_INTERFACES(bmia::plugin::Plugin)
+	Q_INTERFACES(bmia::plugin::Plugin)
+    Q_INTERFACES(bmia::plugin::AdvancedPlugin)
     Q_INTERFACES(bmia::data::Consumer)
     Q_INTERFACES(bmia::plugin::Visualization)
     Q_INTERFACES(bmia::plugin::GUI)
+	
 
 	public:
 
