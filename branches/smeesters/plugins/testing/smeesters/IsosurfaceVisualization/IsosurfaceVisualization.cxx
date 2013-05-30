@@ -1020,7 +1020,6 @@ void IsosurfaceVisualization::setClippingPlanesPosition(double* pos)
         this->current_modelInfo->ds->getAttributes()->addAttribute("SlicePosX", (int)(frac_pos[0]*181));
         this->current_modelInfo->ds->getAttributes()->addAttribute("SlicePosY", (int)(frac_pos[1]*217));
         this->current_modelInfo->ds->getAttributes()->addAttribute("SlicePosZ", (int)(frac_pos[2]*181));
-        this->core()->data()->dataSetChanged(this->current_modelInfo->ds);
 
         if(!current_modelInfo->alignPlanesToPick)
             return;
@@ -1090,7 +1089,7 @@ void IsosurfaceVisualization::setClippingPlanesPosition(double* pos)
             }
         }
 
-
+        this->core()->data()->dataSetChanged(this->current_modelInfo->ds);
 
 
 
@@ -2143,6 +2142,9 @@ void IsosurfaceVisualization::comboBoxFiberDataChanged()
         chart2->GetAxis(vtkAxis::LEFT)->SetTitle("Connectivity measure (-)");
         chart2->GetAxis(vtkAxis::BOTTOM)->SetTitle("Distance (mm)");
         chart2->SetTitle("Average local score");
+        //chart2->SetClickActionToButton(vtkChart::SELECT, vtkContextMouseEvent::LEFT_BUTTON);
+        //chart2->SetClickActionToButton(vtkChart::NOTIFY, vtkContextMouseEvent::RIGHT_BUTTON);
+        chart2->SetSelectionMode(vtkContextScene::SELECTION_TOGGLE);
 
         // Now lets try to add a table view
         QVBoxLayout *layout = new QVBoxLayout(&secondWindow);
