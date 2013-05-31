@@ -463,7 +463,9 @@ void GpuGlyphsPlugin::dataSetChanged(data::DataSet * ds)
 		if (this->seedFilter)
 			this->seedFilter->forceExecute();
 
+		//vtkCamera *camera3D = this->fullCore()->canvas()->GetRenderer3D()->Get
 		this->seedsChanged();
+		//this->fullCore()->canvas()->GetRenderer3D()->SetActiveCamera(camera3D);
 		//this->fullCore()->canvas()->GetRenderer3D()-> // eski kamerayi save edersek belki olur
 		this->core()->render();
 	}
