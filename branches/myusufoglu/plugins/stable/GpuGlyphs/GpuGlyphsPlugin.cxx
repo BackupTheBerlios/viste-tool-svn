@@ -463,9 +463,16 @@ void GpuGlyphsPlugin::dataSetChanged(data::DataSet * ds)
 		if (this->seedFilter)
 			this->seedFilter->forceExecute();
 
-		//vtkCamera *camera3D = this->fullCore()->canvas()->GetRenderer3D()->Get
+		vtkCamera *camera3D = this->fullCore()->canvas()->GetRenderer3D()->GetActiveCamera();
+		//this->fullCore()->canvas()->GetRenderer3D()->GetViewPoint():
+		//this->fullCore()->canvas()->GetRenderer3D()->GetWorldPoint();
+		/*this->fullCore()->canvas()->GetRenderer3D()->Get ActiveCamera()->GetPosition();
+		this->fullCore()->canvas()->GetRenderer3D()->GetActiveCamera()->GetViewTransformMatrix();
+		this->fullCore()->canvas()->GetRenderer3D()->GetActiveCamera()->Set
+		*/
 		this->seedsChanged();
-		//this->fullCore()->canvas()->GetRenderer3D()->SetActiveCamera(camera3D);
+		this->fullCore()->canvas()->GetRenderer3D()->SetActiveCamera(camera3D);
+		
 		//this->fullCore()->canvas()->GetRenderer3D()-> // eski kamerayi save edersek belki olur
 		this->core()->render();
 	}
