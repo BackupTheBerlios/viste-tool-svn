@@ -337,6 +337,17 @@ void PDBReaderPlugin::loadDataFromFile(QString filename)
     {
         int numberOfFiberPoints = pathways[i].numPoints;
 
+        // temp: average score of fiber
+/*         float avgScore = 0.0;
+ *         for(int j = 0; j<numberOfFiberPoints; j++)
+ *         {
+ *             avgScore += pathways[i].pointStats[1*numberOfFiberPoints + j];
+ *         }
+ *         avgScore /= numberOfFiberPoints;
+ *         if(avgScore < -2.0)
+ *             continue;
+ */
+
         // Create a cell representing a fiber
         outputLines->InsertNextCell(numberOfFiberPoints);
 
