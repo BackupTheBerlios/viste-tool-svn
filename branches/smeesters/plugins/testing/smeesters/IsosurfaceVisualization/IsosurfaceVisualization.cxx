@@ -150,6 +150,9 @@ void IsosurfaceVisualization::setupClippingPlanesPicker()
 
 void IsosurfaceVisualization::dataSetAdded(data::DataSet * d)
 {
+    //this->fullCore()->canvas()->GetRenderer3D()->GradientBackgroundOff();
+    //this->fullCore()->canvas()->GetRenderer3D()->SetBackground(1,1,1);
+
     // Assert the data set pointer (should never be NULL)
     Q_ASSERT(d);
 
@@ -586,6 +589,8 @@ void IsosurfaceVisualization::createLookupTable(data::DataSet * d, int index)
 
 void IsosurfaceVisualization::updateRenderingModels()
 {
+
+
     // recalculate model
     if(bModelDirty)
     {

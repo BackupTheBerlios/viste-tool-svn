@@ -81,12 +81,12 @@ namespace bmia {
 
 struct StatHeader
 {
-    int i1;
-    int i2;
-    int i3;
-    char c1[255];
-    char c2[255];
-    int i4;
+    int i1;             /* is this statistic good as a luminance encoding for paths? (not used) */
+    int i2;             /* is this statistic stored per point? */
+    int i3;             /* does it show up in the stat panel by default? (not used) */
+    char c1[255];       /* aggregate name */
+    char c2[255];       /* local name */
+    int i4;             /* unique ID */
 };
 
 struct AlgoHeader

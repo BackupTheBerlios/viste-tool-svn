@@ -37,6 +37,9 @@ void ScoringTools::init()
     // Link events in the GUI to function calls
     this->connectAll();
     this->assembly = vtkPropAssembly::New();
+
+    // default selected fiber (none)
+    selectedFiberDataset = -1;
 }
 
 ///
@@ -67,6 +70,7 @@ void ScoringTools::dataSetAdded(data::DataSet * d)
         sortedFibers->ds = d;
         sortedFibers->ds_processed = NULL;
 		sortedFibers->userSelectedLine = 0;
+		sortedFibers->selectedScalarType = 0;
 
         // Add the new data set to the list of currently available fiber sets
         this->sortedFibersList.append(sortedFibers);
@@ -143,7 +147,12 @@ int ScoringTools::FindInputDataSet(data::DataSet * ds)
 
 void ScoringTools::SelectFiberDataSet(int index)
 {
-    this->selectedFiberDataset = index;
+    // set selected fiber index
+    this->selectedFiberDataset = index - 1;
+
+    // no fiber selected
+    if(index == -1)
+        return;
 
     // Clear scalar type list
     for(int i = this->form->scalarTypeCombo->count()-1; i>=0; i--)
@@ -155,22 +164,37 @@ void ScoringTools::SelectFiberDataSet(int index)
     SortedFibers* sortedFibers = this->sortedFibersList.at(index);
     vtkPolyData * polydata = sortedFibers->ds->getVtkPolyData();
 
-    for(int i = 0; i < polydata->GetPointData()->GetNumberOfArrays(); i++)
+    // Get number of scalar types
+    sortedFibers->numberOfScalarTypes = polydata->GetPointData()->GetNumberOfArrays();
+
+    // Fill scalar list with names
+    for(int i = 0; i < sortedFibers->numberOfScalarTypes; i++)
     {
         this->form->scalarTypeCombo->addItem(polydata->GetPointData()->GetArray(i)->GetName());
     }
 
+    // Select the standard scalar
     SelectScalarType(sortedFibers->selectedScalarType);
-
 }
 
 void ScoringTools::SelectScalarType(int index)
 {
+    // return if fiber is none
+    if(selectedFiberDataset == -1)
+        return;
+
     // Get selected scalar type data
     SortedFibers* sortedFibers = this->sortedFibersList.at(this->selectedFiberDataset);
+
+    // Check if amount of scalar types is larger than 0
+    if(sortedFibers->numberOfScalarTypes == 0)
+        return;
+
+    // Get scalar data
     vtkPolyData * polydata = sortedFibers->ds->getVtkPolyData();
     vtkDoubleArray* scalarData = static_cast<vtkDoubleArray*>(polydata->GetPointData()->GetArray(index));
-
+    //scalarData->Print(std::cout);
+    return;
     // Set average value slider ranges
     double scalarRange[2];
     scalarData->GetValueRange(scalarRange);
@@ -179,11 +203,19 @@ void ScoringTools::SelectScalarType(int index)
 
     //std::cout << "Min: " << scalarRange[0] << " " << scalarRange[1] << std::endl;
 
+    polydata->GetPointData()->SetActiveScalars(polydata->GetPointData()->GetArray(index)->GetName());
+    this->core()->data()->dataSetChanged(sortedFibers->ds);
+
+    // Update selected scalar type
     sortedFibers->selectedScalarType = index;
 }
 
 void ScoringTools::ComputeFibers()
 {
+    // return if fiber is none
+    if(selectedFiberDataset == -1)
+        return;
+
     // critera
     double averageScoreRange[2] = {this->form->averageValueSpinBox->value(),999};
 
@@ -197,6 +229,9 @@ void ScoringTools::ComputeFibers()
 	selectionFilter->SetAverageScoreRange(averageScoreRange);
 	selectionFilter->Update();
 	vtkPolyData* outputPoly = selectionFilter->GetOutput();
+
+	// Create a progress bar for the ranking filter
+	this->core()->out()->createProgressBarForAlgorithm(selectionFilter, "Fiber selection");
 
     // Construst vIST/e dataset
     data::DataSet* ds = sortedFibers->ds_processed;
@@ -239,7 +274,6 @@ void ScoringTools::ComputeFibers()
 	// Hide the input data set
 	sortedFibers->ds->getAttributes()->addAttribute("isVisible", -1.0);
 	this->core()->data()->dataSetChanged(sortedFibers->ds);
-
 }
 
 ///
@@ -249,6 +283,11 @@ void ScoringTools::ComputeFibers()
 void ScoringTools::fibersComboChanged(int index)
 {
     SelectFiberDataSet(index);
+}
+
+void ScoringTools::scalarTypeComboChanged(int index)
+{
+    SelectScalarType(index);
 }
 
 void ScoringTools::averageValueSliderChanged(int value)
@@ -282,6 +321,7 @@ void ScoringTools::updateButtonClicked()
 void ScoringTools::connectAll()
 {
     connect(this->form->fibersCombo,SIGNAL(currentIndexChanged(int)),this,SLOT(fibersComboChanged(int)));
+    connect(this->form->scalarTypeCombo,SIGNAL(currentIndexChanged(int)),this,SLOT(scalarTypeComboChanged(int)));
     connect(this->form->averageValueSlider,SIGNAL(valueChanged(int)),this,SLOT(averageValueSliderChanged(int)));
     connect(this->form->averageValueSpinBox,SIGNAL(valueChanged(double)),this,SLOT(averageValueSpinBoxChanged(double)));
     connect(this->form->updateButton,SIGNAL(clicked()),this,SLOT(updateButtonClicked()));

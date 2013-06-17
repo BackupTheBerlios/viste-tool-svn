@@ -124,6 +124,7 @@ void PDBReaderPlugin::loadDataFromFile(QString filename)
     // load number of stats
     int numstats;
     pdbFile.read(reinterpret_cast<char*>(&numstats), sizeof(int));
+    std::cout << "Number of stats: " << numstats << std::endl;
 
     // load statheaders
     StatHeader* statheaders = new StatHeader[numstats];
@@ -154,6 +155,13 @@ void PDBReaderPlugin::loadDataFromFile(QString filename)
         statheaders[i].i4 = ii;
 
         pdbFile.read(reinterpret_cast<char*>(&s), sizeof(short)); // dummy
+
+        std::cout << "i1 " << statheaders[i].i1 << std::endl;
+        std::cout << "i2 " << statheaders[i].i2 << std::endl;
+        std::cout << "i3 " << statheaders[i].i3 << std::endl;
+        std::cout << "c1 " << statheaders[i].c1 << std::endl;
+        std::cout << "c2 " << statheaders[i].c2 << std::endl;
+        std::cout << "i4 " << statheaders[i].i4 << std::endl;
     }
 
     // count number of point stats
@@ -163,8 +171,8 @@ void PDBReaderPlugin::loadDataFromFile(QString filename)
         if(statheaders[i].i2 == 1)
             numPointStats++;
     }
-    bool usingPointStats = numPointStats > 0;
-    if(!usingPointStats)
+    bool isScored = numPointStats > 0;
+    if(!isScored)
         this->core()->out()->logMessage("PDB file contains no scoring values.");
 
     // number of algo's
@@ -196,6 +204,7 @@ void PDBReaderPlugin::loadDataFromFile(QString filename)
     // version number
     int versionNumber;
     pdbFile.read(reinterpret_cast<char*>(&versionNumber), sizeof(int));
+    std::cout << "PDB version number: " << versionNumber << std::endl;
 
     // skip to end of header
     pdbFile.seekg(headersize, pdbFile.beg);
@@ -254,16 +263,29 @@ void PDBReaderPlugin::loadDataFromFile(QString filename)
             }
         }
 
-        if(usingPointStats)
+        if(isScored)
         {
-            pathways[i].pointStats = new double[pathways[i].numPoints * numPointStats]; // scalar score per point
-            int index = 0;
-            for(int k =0; k<numPointStats; k++)
+            pathways[i].pointStats = new double[pathways[i].numPoints * numstats]; // scalar score per point
+
+            for(int k =0; k<numstats; k++)
             {
-                for(int j = 0; j<pathways[i].numPoints; j++)
+                // stat value per point
+                if(statheaders[k].i2 == 1)
                 {
-                    pdbFile.read(reinterpret_cast<char*>(&d), sizeof(double));
-                    pathways[i].pointStats[k*pathways[i].numPoints + j] = d;
+                    for(int j = 0; j<pathways[i].numPoints; j++)
+                    {
+                        pdbFile.read(reinterpret_cast<char*>(&d), sizeof(double));
+                        pathways[i].pointStats[k*pathways[i].numPoints + j] = d;
+                    }
+                }
+
+                // stat value per fiber (single value)
+                else
+                {
+                    for(int j = 0; j<pathways[i].numPoints; j++)
+                    {
+                        pathways[i].pointStats[k*pathways[i].numPoints + j] = pathways[i].pathStats[k];
+                    }
                 }
             }
         }
@@ -323,12 +345,16 @@ void PDBReaderPlugin::loadDataFromFile(QString filename)
     outputLines->Delete();
 
     // Array holding the ConTrack scoring values
-    vtkDoubleArray* scoring = NULL;
-    if(usingPointStats)
+    QList<vtkDoubleArray*> scoringList;
+    if(isScored)
     {
-        scoring = vtkDoubleArray::New();
-        scoring->SetName("Contrack_Score");
-        scoring->SetNumberOfTuples(totalNumberOfPoints);
+        for(int k = 0; k<numstats; k++)
+        {
+            vtkDoubleArray* scoring = vtkDoubleArray::New();
+            scoring->SetName(statheaders[k].c1);
+            scoring->SetNumberOfTuples(totalNumberOfPoints);
+            scoringList.append(scoring);
+        }
     }
 
     // Loop over pathways
@@ -336,17 +362,6 @@ void PDBReaderPlugin::loadDataFromFile(QString filename)
     for(int i = 0; i < numPathways; i++)
     {
         int numberOfFiberPoints = pathways[i].numPoints;
-
-        // temp: average score of fiber
-/*         float avgScore = 0.0;
- *         for(int j = 0; j<numberOfFiberPoints; j++)
- *         {
- *             avgScore += pathways[i].pointStats[1*numberOfFiberPoints + j];
- *         }
- *         avgScore /= numberOfFiberPoints;
- *         if(avgScore < -2.0)
- *             continue;
- */
 
         // Create a cell representing a fiber
         outputLines->InsertNextCell(numberOfFiberPoints);
@@ -356,9 +371,13 @@ void PDBReaderPlugin::loadDataFromFile(QString filename)
         {
             outputPoints->InsertNextPoint(pathways[i].points[j*3],pathways[i].points[j*3+1],pathways[i].points[j*3+2]);
             outputLines->InsertCellPoint(counter + j);
-            if(usingPointStats)
+            if(isScored)
             {
-                scoring->SetTuple1(counter + j, pathways[i].pointStats[1*numberOfFiberPoints + j]);
+                for(int k = 0; k<numstats; k++)
+                {
+                    vtkDoubleArray* scoring = scoringList.at(k);
+                    scoring->SetTuple1(counter + j, pathways[i].pointStats[k*numberOfFiberPoints + j]);
+                }
             }
         }
 
@@ -366,10 +385,17 @@ void PDBReaderPlugin::loadDataFromFile(QString filename)
     }
 
     // Set active scalars to ConTrack score
-    if(usingPointStats)
+    if(isScored)
     {
-        output->GetPointData()->AddArray(scoring);
-        output->GetPointData()->SetActiveScalars("Contrack_Score");
+        for(int k = 0; k<numstats; k++)
+        {
+            vtkDoubleArray* scoring = scoringList.at(k);
+            output->GetPointData()->AddArray(scoring);
+        }
+        if(numstats >= 2)
+            output->GetPointData()->SetActiveScalars(statheaders[2].c1); // Default: "Scoring"
+        else
+            output->GetPointData()->SetActiveScalars(statheaders[0].c1);
     }
 
     //

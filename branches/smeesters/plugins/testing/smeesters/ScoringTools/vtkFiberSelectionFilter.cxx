@@ -115,9 +115,25 @@ void vtkFiberSelectionFilter::Execute()
 	vtkIdType numberOfPoints;
 	vtkIdType * pointList;
 
+    // Setup progress bar
+    int numberOfCells = inputLines->GetNumberOfCells();
+	int progressStep = numberOfCells / 25;
+	progressStep += (progressStep == 0) ? 1 : 0;
+	this->SetProgressText("Selecting fibers...");
+	this->UpdateProgress(0.0);
+
+    double minScore = 1e30;
+    double maxScore = -1e30;
+
 	// Loop through all input fibers
-	for (vtkIdType lineId = 0; lineId < inputLines->GetNumberOfCells(); ++lineId)
+	for (vtkIdType lineId = 0; lineId < numberOfCells; ++lineId)
 	{
+	    // Update the progress bar
+		if ((lineId % progressStep) == 0)
+		{
+			this->UpdateProgress((double) lineId / (double) numberOfCells);
+		}
+
         // Get the data of the current fiber
         vtkCell * currentCell = input->GetCell(lineId);
         int numberOfFiberPoints = currentCell->GetNumberOfPoints();
@@ -126,9 +142,9 @@ void vtkFiberSelectionFilter::Execute()
 		inputLines->GetNextCell(numberOfPoints, pointList);
 
 		// Evaluate if the fiber should be included in the output fibers
-		bool excludeFiber = this->EvaluateFiber(currentCell,inputScalars);
-		if(!excludeFiber)
-            continue;
+		//bool excludeFiber = this->EvaluateFiber(currentCell,inputScalars);
+		//if(!excludeFiber)
+        //    continue;
 
 		// Create an ID list for the output fiber
 		vtkIdList * newFiberList = vtkIdList::New();
@@ -155,12 +171,23 @@ void vtkFiberSelectionFilter::Execute()
 
 			// Copy the scalar value to the output
 			outputScalars->InsertNextTuple1(scalar);
+
+			if(scalar < minScore)
+                minScore = scalar;
+            if(scalar > maxScore)
+                maxScore = scalar;
 		}
 
 		// Add the new fiber to the output
 		outputLines->InsertNextCell(newFiberList);
 	}
+
+	std::cout << "min: " << minScore << " max: " << maxScore << std::endl;
+
+	// Finalize the progress bar
+	this->UpdateProgress(1.0);
 }
+
 
 bool vtkFiberSelectionFilter::EvaluateFiber(vtkCell* cell, vtkDataArray* inputScalars)
 {
@@ -169,6 +196,9 @@ bool vtkFiberSelectionFilter::EvaluateFiber(vtkCell* cell, vtkDataArray* inputSc
     // critera
     bool excludeFiber = false;
     double averageScore = 0.0;
+
+    //double minScore = 1e30;
+    //double maxScore = -1e30;
 
     // Loop through all points in the fiber
     for (int pointId = 0; pointId < numberOfFiberPoints; ++pointId)
@@ -181,7 +211,14 @@ bool vtkFiberSelectionFilter::EvaluateFiber(vtkCell* cell, vtkDataArray* inputSc
 
         // Average value of fiber
         averageScore += scalar;
+
+       //if(scalar < minScore)
+        //    minScore = scalar;
+        //if(scalar > maxScore)
+        //    maxScore = scalar;
     }
+
+    //std::cout << "min: " << minScore << " max: " << maxScore << std::endl;
 
     // finish critera
     averageScore /= numberOfFiberPoints;

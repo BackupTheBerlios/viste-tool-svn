@@ -64,7 +64,7 @@ typedef struct
     QList<FiberData*> selectedLines;
     int userSelectedLine;
     int selectedScalarType;
-
+    int numberOfScalarTypes;
 
 } SortedFibers;
 
@@ -126,6 +126,7 @@ public:
 protected slots:
 
     void fibersComboChanged(int index);
+    void scalarTypeComboChanged(int index);
     void averageValueSliderChanged(int value);
     void averageValueSpinBoxChanged(double value);
     void updateButtonClicked();
