@@ -147,11 +147,12 @@ int ScoringTools::FindInputDataSet(data::DataSet * ds)
 
 void ScoringTools::SelectFiberDataSet(int index)
 {
+    std::cout << "sdasdas" << index;
     // set selected fiber index
     this->selectedFiberDataset = index - 1;
 
     // no fiber selected
-    if(index == -1)
+    if(this->selectedFiberDataset == -1)
         return;
 
     // Clear scalar type list
@@ -161,7 +162,7 @@ void ScoringTools::SelectFiberDataSet(int index)
     }
 
     // Add new scalar types to list
-    SortedFibers* sortedFibers = this->sortedFibersList.at(index);
+    SortedFibers* sortedFibers = this->sortedFibersList.at(this->selectedFiberDataset);
     vtkPolyData * polydata = sortedFibers->ds->getVtkPolyData();
 
     // Get number of scalar types
@@ -173,18 +174,28 @@ void ScoringTools::SelectFiberDataSet(int index)
         this->form->scalarTypeCombo->addItem(polydata->GetPointData()->GetArray(i)->GetName());
     }
 
+    // Create threshold settings structs for scalar types
+    if(sortedFibers->scalarThresholdSettings.length() == 0)
+    {
+        ThresholdSettings* ts = new ThresholdSettings;
+        sortedFibers->scalarThresholdSettings.append(ts);
+    }
+
     // Select the standard scalar
-    SelectScalarType(sortedFibers->selectedScalarType);
+    //SelectScalarType(sortedFibers->selectedScalarType);
 }
 
 void ScoringTools::SelectScalarType(int index)
 {
     // return if fiber is none
-    if(selectedFiberDataset == -1)
+    if(this->selectedFiberDataset == -1)
         return;
 
     // Get selected scalar type data
     SortedFibers* sortedFibers = this->sortedFibersList.at(this->selectedFiberDataset);
+
+     // Update selected scalar type
+    sortedFibers->selectedScalarType = index;
 
     // Check if amount of scalar types is larger than 0
     if(sortedFibers->numberOfScalarTypes == 0)
@@ -194,30 +205,31 @@ void ScoringTools::SelectScalarType(int index)
     vtkPolyData * polydata = sortedFibers->ds->getVtkPolyData();
     vtkDoubleArray* scalarData = static_cast<vtkDoubleArray*>(polydata->GetPointData()->GetArray(index));
     //scalarData->Print(std::cout);
-    return;
+
     // Set average value slider ranges
     double scalarRange[2];
     scalarData->GetValueRange(scalarRange);
-    this->form->averageValueSlider->setRange(scalarRange[0]*100,scalarRange[1]*100);
-    this->form->averageValueSpinBox->setRange(scalarRange[0],scalarRange[1]);
+    this->form->averageValueMinSlider->setRange(scalarRange[0]*100,scalarRange[1]*100);
+    this->form->averageValueMinSpinBox->setRange(scalarRange[0],scalarRange[1]);
+    this->form->averageValueMaxSlider->setRange(scalarRange[0]*100,scalarRange[1]*100);
+    this->form->averageValueMaxSpinBox->setRange(scalarRange[0],scalarRange[1]);
+
+
 
     //std::cout << "Min: " << scalarRange[0] << " " << scalarRange[1] << std::endl;
 
     polydata->GetPointData()->SetActiveScalars(polydata->GetPointData()->GetArray(index)->GetName());
     this->core()->data()->dataSetChanged(sortedFibers->ds);
-
-    // Update selected scalar type
-    sortedFibers->selectedScalarType = index;
 }
 
 void ScoringTools::ComputeFibers()
 {
     // return if fiber is none
-    if(selectedFiberDataset == -1)
+    if(this->selectedFiberDataset == -1)
         return;
 
     // critera
-    double averageScoreRange[2] = {this->form->averageValueSpinBox->value(),999};
+    double averageScoreRange[2] = {this->form->averageValueMinSpinBox->value(),this->form->averageValueMaxSpinBox->value()};
 
     // Get polydata of original fibers
     SortedFibers* sortedFibers = this->sortedFibersList.at(this->selectedFiberDataset);
@@ -227,6 +239,7 @@ void ScoringTools::ComputeFibers()
     vtkFiberSelectionFilter* selectionFilter = vtkFiberSelectionFilter::New();
 	selectionFilter->SetInput(polydata);
 	selectionFilter->SetAverageScoreRange(averageScoreRange);
+	selectionFilter->SetScalarType(sortedFibers->selectedScalarType);
 	selectionFilter->Update();
 	vtkPolyData* outputPoly = selectionFilter->GetOutput();
 
@@ -290,21 +303,42 @@ void ScoringTools::scalarTypeComboChanged(int index)
     SelectScalarType(index);
 }
 
-void ScoringTools::averageValueSliderChanged(int value)
+void ScoringTools::averageValueMinSliderChanged(int value)
 {
-    averageValueSpinBoxChanged((double)(value/100.0));
+    averageValueMinSpinBoxChanged((double)(value/100.0));
 }
 
-void ScoringTools::averageValueSpinBoxChanged(double value)
+void ScoringTools::averageValueMinSpinBoxChanged(double value)
 {
-    this->form->averageValueSlider->blockSignals(true);
-    this->form->averageValueSpinBox->blockSignals(true);
+    this->form->averageValueMinSlider->blockSignals(true);
+    this->form->averageValueMinSpinBox->blockSignals(true);
 
-    this->form->averageValueSlider->setValue(value*100);
-    this->form->averageValueSpinBox->setValue(value);
+    this->form->averageValueMinSlider->setValue(value*100);
+    this->form->averageValueMinSpinBox->setValue(value);
 
-    this->form->averageValueSlider->blockSignals(false);
-    this->form->averageValueSpinBox->blockSignals(false);
+    this->form->averageValueMinSlider->blockSignals(false);
+    this->form->averageValueMinSpinBox->blockSignals(false);
+
+    this->form->averageValueMaxSlider->setMinimum(this->form->averageValueMinSlider->value()+1);
+}
+
+void ScoringTools::averageValueMaxSliderChanged(int value)
+{
+    averageValueMaxSpinBoxChanged((double)(value/100.0));
+}
+
+void ScoringTools::averageValueMaxSpinBoxChanged(double value)
+{
+    this->form->averageValueMaxSlider->blockSignals(true);
+    this->form->averageValueMaxSpinBox->blockSignals(true);
+
+    this->form->averageValueMaxSlider->setValue(value*100);
+    this->form->averageValueMaxSpinBox->setValue(value);
+
+    this->form->averageValueMaxSlider->blockSignals(false);
+    this->form->averageValueMaxSpinBox->blockSignals(false);
+
+    this->form->averageValueMinSlider->setMaximum(this->form->averageValueMaxSlider->value()-1);
 }
 
 void ScoringTools::updateButtonClicked()
@@ -322,8 +356,10 @@ void ScoringTools::connectAll()
 {
     connect(this->form->fibersCombo,SIGNAL(currentIndexChanged(int)),this,SLOT(fibersComboChanged(int)));
     connect(this->form->scalarTypeCombo,SIGNAL(currentIndexChanged(int)),this,SLOT(scalarTypeComboChanged(int)));
-    connect(this->form->averageValueSlider,SIGNAL(valueChanged(int)),this,SLOT(averageValueSliderChanged(int)));
-    connect(this->form->averageValueSpinBox,SIGNAL(valueChanged(double)),this,SLOT(averageValueSpinBoxChanged(double)));
+    connect(this->form->averageValueMinSlider,SIGNAL(valueChanged(int)),this,SLOT(averageValueMinSliderChanged(int)));
+    connect(this->form->averageValueMinSpinBox,SIGNAL(valueChanged(double)),this,SLOT(averageValueMinSpinBoxChanged(double)));
+    connect(this->form->averageValueMaxSlider,SIGNAL(valueChanged(int)),this,SLOT(averageValueMaxSliderChanged(int)));
+    connect(this->form->averageValueMaxSpinBox,SIGNAL(valueChanged(double)),this,SLOT(averageValueMaxSpinBoxChanged(double)));
     connect(this->form->updateButton,SIGNAL(clicked()),this,SLOT(updateButtonClicked()));
 }
 

@@ -142,9 +142,9 @@ void vtkFiberSelectionFilter::Execute()
 		inputLines->GetNextCell(numberOfPoints, pointList);
 
 		// Evaluate if the fiber should be included in the output fibers
-		//bool excludeFiber = this->EvaluateFiber(currentCell,inputScalars);
-		//if(!excludeFiber)
-        //    continue;
+		bool excludeFiber = this->EvaluateFiber(currentCell,inputScalars);
+		if(!excludeFiber)
+            continue;
 
 		// Create an ID list for the output fiber
 		vtkIdList * newFiberList = vtkIdList::New();

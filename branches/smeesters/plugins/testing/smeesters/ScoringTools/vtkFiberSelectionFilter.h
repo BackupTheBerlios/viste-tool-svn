@@ -50,6 +50,13 @@ class vtkFiberSelectionFilter : public vtkPolyDataToPolyDataFilter
             averageScoreRange = range;
 		}
 
+		/** Select scalar value type */
+
+		void SetScalarType(int index)
+		{
+            scalarType = index;
+		}
+
 	protected:
 
 
@@ -68,6 +75,10 @@ class vtkFiberSelectionFilter : public vtkPolyDataToPolyDataFilter
 		/** Scoring parameters. */
 
 		double* averageScoreRange;
+
+        /** Selected scalar value type */
+
+		int scalarType;
 
 		/** Evaluates if the considered fiber should be included in the output polydata
 		    based on scoring thresholding criteria. */

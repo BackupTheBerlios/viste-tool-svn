@@ -55,6 +55,13 @@ typedef struct
 
 } FiberData;
 
+/** Holding threshold settings */
+typedef struct
+{
+    double averageScoreRange[2];
+
+} ThresholdSettings;
+
 /** Holding fiberdata */
 typedef struct
 {
@@ -66,7 +73,11 @@ typedef struct
     int selectedScalarType;
     int numberOfScalarTypes;
 
+    QList<ThresholdSettings*> scalarThresholdSettings;
+
 } SortedFibers;
+
+
 
 class ScoringTools :  public plugin::AdvancedPlugin,
                     public plugin::Visualization,
@@ -127,8 +138,10 @@ protected slots:
 
     void fibersComboChanged(int index);
     void scalarTypeComboChanged(int index);
-    void averageValueSliderChanged(int value);
-    void averageValueSpinBoxChanged(double value);
+    void averageValueMinSliderChanged(int value);
+    void averageValueMinSpinBoxChanged(double value);
+    void averageValueMaxSliderChanged(int value);
+    void averageValueMaxSpinBoxChanged(double value);
     void updateButtonClicked();
 
 private:
