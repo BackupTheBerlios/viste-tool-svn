@@ -63,6 +63,9 @@ void ScoringTools::dataSetAdded(data::DataSet * d)
 	    if (d->getVtkPolyData() == NULL)
 			return;
 
+        if (d->getAttributes()->hasIntAttribute("isScoreThresholded"))
+			return;
+
         // Create new fiber struct
         SortedFibers* sortedFibers = new SortedFibers;
 
@@ -71,6 +74,7 @@ void ScoringTools::dataSetAdded(data::DataSet * d)
         sortedFibers->ds_processed = NULL;
 		sortedFibers->userSelectedLine = 0;
 		sortedFibers->selectedScalarType = 0;
+		sortedFibers->outputFiberDataName = d->getName().append("_thresholded");
 
         // Add the new data set to the list of currently available fiber sets
         this->sortedFibersList.append(sortedFibers);
@@ -118,8 +122,19 @@ void ScoringTools::dataSetRemoved(data::DataSet * d)
 		if (dsIndex == -1)
 			return;
 
+        // Select 'none' in combobox
+        this->form->fibersCombo->setCurrentIndex(0);
+        this->SelectFiberDataSet(0);
+
         // Remove from UI combobox for selection of overlay
-        this->form->fibersCombo->removeItem(dsIndex);
+        this->form->fibersCombo->removeItem(dsIndex+1);
+
+        // Clean up struct
+        SortedFibers* sortedFibers = this->sortedFibersList.at(dsIndex);
+        sortedFibers->ds = NULL;
+        sortedFibers->ds_processed = NULL;
+        sortedFibers->selectedLines.clear();
+        sortedFibers->scalarThresholdSettings.clear();
 
         // Remove from collection
         this->sortedFibersList.removeAt(dsIndex);
@@ -147,7 +162,6 @@ int ScoringTools::FindInputDataSet(data::DataSet * ds)
 
 void ScoringTools::SelectFiberDataSet(int index)
 {
-    std::cout << "sdasdas" << index;
     // set selected fiber index
     this->selectedFiberDataset = index - 1;
 
@@ -156,6 +170,7 @@ void ScoringTools::SelectFiberDataSet(int index)
         return;
 
     // Clear scalar type list
+    this->form->scalarTypeCombo->blockSignals(true);
     for(int i = this->form->scalarTypeCombo->count()-1; i>=0; i--)
     {
         this->form->scalarTypeCombo->removeItem(i);
@@ -173,16 +188,24 @@ void ScoringTools::SelectFiberDataSet(int index)
     {
         this->form->scalarTypeCombo->addItem(polydata->GetPointData()->GetArray(i)->GetName());
     }
+    this->form->scalarTypeCombo->blockSignals(false);
 
     // Create threshold settings structs for scalar types
     if(sortedFibers->scalarThresholdSettings.length() == 0)
     {
-        ThresholdSettings* ts = new ThresholdSettings;
-        sortedFibers->scalarThresholdSettings.append(ts);
+        for(int i = 0; i<sortedFibers->numberOfScalarTypes; i++)
+        {
+            ThresholdSettings* ts = new ThresholdSettings;
+            ts->set = false; // no user data set
+            sortedFibers->scalarThresholdSettings.append(ts);
+        }
     }
 
+    // Set output data name
+    this->form->outputLineEdit->setText(sortedFibers->outputFiberDataName);
+
     // Select the standard scalar
-    //SelectScalarType(sortedFibers->selectedScalarType);
+    SelectScalarType(sortedFibers->selectedScalarType);
 }
 
 void ScoringTools::SelectScalarType(int index)
@@ -204,22 +227,52 @@ void ScoringTools::SelectScalarType(int index)
     // Get scalar data
     vtkPolyData * polydata = sortedFibers->ds->getVtkPolyData();
     vtkDoubleArray* scalarData = static_cast<vtkDoubleArray*>(polydata->GetPointData()->GetArray(index));
-    //scalarData->Print(std::cout);
 
-    // Set average value slider ranges
+    // Get scalar range
     double scalarRange[2];
     scalarData->GetValueRange(scalarRange);
+
+    // Set default threshold values (min to max)
+    ThresholdSettings* thresholdSettings = sortedFibers->scalarThresholdSettings.at(index);
+    if(thresholdSettings->set == false)
+    {
+        thresholdSettings->averageScore[0] = scalarRange[0];
+        thresholdSettings->averageScore[1] = scalarRange[1];
+        thresholdSettings->set = true;
+    }
+
+    // Set average value slider ranges
+    this->form->averageValueMinSlider->blockSignals(true);
+    this->form->averageValueMinSpinBox->blockSignals(true);
+    this->form->averageValueMaxSlider->blockSignals(true);
+    this->form->averageValueMaxSpinBox->blockSignals(true);
     this->form->averageValueMinSlider->setRange(scalarRange[0]*100,scalarRange[1]*100);
     this->form->averageValueMinSpinBox->setRange(scalarRange[0],scalarRange[1]);
     this->form->averageValueMaxSlider->setRange(scalarRange[0]*100,scalarRange[1]*100);
     this->form->averageValueMaxSpinBox->setRange(scalarRange[0],scalarRange[1]);
 
+    // Set average value values
+    this->form->averageValueMinSlider->setValue(thresholdSettings->averageScore[0]*100);
+    this->form->averageValueMinSpinBox->setValue(thresholdSettings->averageScore[0]);
+    this->form->averageValueMaxSlider->setValue(thresholdSettings->averageScore[1]*100);
+    this->form->averageValueMaxSpinBox->setValue(thresholdSettings->averageScore[1]);
+    this->form->averageValueMinSlider->blockSignals(false);
+    this->form->averageValueMinSpinBox->blockSignals(false);
+    this->form->averageValueMaxSlider->blockSignals(false);
+    this->form->averageValueMaxSpinBox->blockSignals(false);
 
+    //printf("average score: %f %f\n",thresholdSettings->averageScore[0],thresholdSettings->averageScore[1]);
 
-    //std::cout << "Min: " << scalarRange[0] << " " << scalarRange[1] << std::endl;
-
+    // Set active scalars of fiber dataset
     polydata->GetPointData()->SetActiveScalars(polydata->GetPointData()->GetArray(index)->GetName());
     this->core()->data()->dataSetChanged(sortedFibers->ds);
+
+    if(sortedFibers->ds_processed != NULL)
+    {
+        vtkPolyData * polydata_processed = sortedFibers->ds_processed->getVtkPolyData();
+        polydata_processed->GetPointData()->SetActiveScalars(polydata->GetPointData()->GetArray(index)->GetName());
+        this->core()->data()->dataSetChanged(sortedFibers->ds_processed);
+    }
 }
 
 void ScoringTools::ComputeFibers()
@@ -228,20 +281,32 @@ void ScoringTools::ComputeFibers()
     if(this->selectedFiberDataset == -1)
         return;
 
-    // critera
-    double averageScoreRange[2] = {this->form->averageValueMinSpinBox->value(),this->form->averageValueMaxSpinBox->value()};
-
     // Get polydata of original fibers
     SortedFibers* sortedFibers = this->sortedFibersList.at(this->selectedFiberDataset);
+    //ThresholdSettings* thresholdSettings = sortedFibers->scalarThresholdSettings.at(sortedFibers->selectedScalarType);
     vtkPolyData * polydata = sortedFibers->ds->getVtkPolyData();
+
+    // critera
+    //printf("average score: %f %f\n",thresholdSettings->averageScore[0],thresholdSettings->averageScore[1]);
 
     // Perform fiber selection filter
     vtkFiberSelectionFilter* selectionFilter = vtkFiberSelectionFilter::New();
 	selectionFilter->SetInput(polydata);
-	selectionFilter->SetAverageScoreRange(averageScoreRange);
-	selectionFilter->SetScalarType(sortedFibers->selectedScalarType);
+	//selectionFilter->SetThresholdSettings((QList<ThresholdSettings*>)sortedFibers->scalarThresholdSettings);
+	for(int i =0; i<sortedFibers->scalarThresholdSettings.length(); i++)
+	{
+	    ThresholdSettings* thresholdSettings = sortedFibers->scalarThresholdSettings.at(i);
+	    selectionFilter->AddThresholdSetting(thresholdSettings->set, thresholdSettings->averageScore);
+	}
+
+	//selectionFilter->SetAverageScoreRange(thresholdSettings->averageScore);
+	//selectionFilter->SetScalarType(sortedFibers->selectedScalarType);
 	selectionFilter->Update();
-	vtkPolyData* outputPoly = selectionFilter->GetOutput();
+	vtkPolyData* outputPoly = vtkPolyData::New();
+	outputPoly->ShallowCopy(selectionFilter->GetOutput());  // disconnect from filter to prevent unwanted future updates
+
+    // Set active scalars of output data equal to input data
+	outputPoly->GetPointData()->SetActiveScalars(polydata->GetPointData()->GetArray(sortedFibers->selectedScalarType)->GetName());
 
 	// Create a progress bar for the ranking filter
 	this->core()->out()->createProgressBarForAlgorithm(selectionFilter, "Fiber selection");
@@ -251,7 +316,7 @@ void ScoringTools::ComputeFibers()
 	if (ds != NULL)
 	{
 		ds->updateData(outputPoly);
-		ds->setName("test");
+		ds->setName(sortedFibers->outputFiberDataName);
 
 		// Fibers should be visible, and the visualization pipeline should be updated
 		ds->getAttributes()->addAttribute("isVisible", 1.0);
@@ -266,14 +331,14 @@ void ScoringTools::ComputeFibers()
 	// Otherwise, create a new data set
 	else
 	{
-		ds = new data::DataSet("test", "fibers", outputPoly);
+		ds = new data::DataSet(sortedFibers->outputFiberDataName, "fibers", outputPoly);
 
 		// Fibers should be visible, and the visualization pipeline should be updated
 		ds->getAttributes()->addAttribute("isVisible", 1.0);
 		ds->getAttributes()->addAttribute("updatePipeline", 1.0);
 
 		// We add this attribute to make sure that output data sets are not added to the input data sets
-		ds->getAttributes()->addAttribute("hasCM", 1);
+		ds->getAttributes()->addAttribute("isScoreThresholded", 1);
 
 		// Copy the transformation matrix to the output
 		ds->getAttributes()->copyTransformationMatrix(sortedFibers->ds);
@@ -316,6 +381,12 @@ void ScoringTools::averageValueMinSpinBoxChanged(double value)
     this->form->averageValueMinSlider->setValue(value*100);
     this->form->averageValueMinSpinBox->setValue(value);
 
+    SortedFibers* sortedFibers = this->sortedFibersList.at(this->selectedFiberDataset);
+    ThresholdSettings* thresholdSettings = sortedFibers->scalarThresholdSettings.at(sortedFibers->selectedScalarType);
+    thresholdSettings->averageScore[0] = value;
+
+    //printf("average score: %f %f\n",thresholdSettings->averageScore[0],thresholdSettings->averageScore[1]);
+
     this->form->averageValueMinSlider->blockSignals(false);
     this->form->averageValueMinSpinBox->blockSignals(false);
 
@@ -335,6 +406,12 @@ void ScoringTools::averageValueMaxSpinBoxChanged(double value)
     this->form->averageValueMaxSlider->setValue(value*100);
     this->form->averageValueMaxSpinBox->setValue(value);
 
+    SortedFibers* sortedFibers = this->sortedFibersList.at(this->selectedFiberDataset);
+    ThresholdSettings* thresholdSettings = sortedFibers->scalarThresholdSettings.at(sortedFibers->selectedScalarType);
+    thresholdSettings->averageScore[1] = value;
+
+    //printf("average score: %f %f\n",thresholdSettings->averageScore[0],thresholdSettings->averageScore[1]);
+
     this->form->averageValueMaxSlider->blockSignals(false);
     this->form->averageValueMaxSpinBox->blockSignals(false);
 
@@ -344,6 +421,16 @@ void ScoringTools::averageValueMaxSpinBoxChanged(double value)
 void ScoringTools::updateButtonClicked()
 {
     ComputeFibers();
+}
+
+void ScoringTools::outputLineEditChanged(QString text)
+{
+    // return if fiber is none
+    if(this->selectedFiberDataset == -1)
+        return;
+
+    SortedFibers* sortedFibers = this->sortedFibersList.at(this->selectedFiberDataset);
+    sortedFibers->outputFiberDataName = text;
 }
 
 ///
@@ -361,6 +448,7 @@ void ScoringTools::connectAll()
     connect(this->form->averageValueMaxSlider,SIGNAL(valueChanged(int)),this,SLOT(averageValueMaxSliderChanged(int)));
     connect(this->form->averageValueMaxSpinBox,SIGNAL(valueChanged(double)),this,SLOT(averageValueMaxSpinBoxChanged(double)));
     connect(this->form->updateButton,SIGNAL(clicked()),this,SLOT(updateButtonClicked()));
+    connect(this->form->outputLineEdit,SIGNAL(textChanged(QString)),this,SLOT(outputLineEditChanged(QString)));
 }
 
 //------------------------[ Disconnect Qt elements ]-----------------------\\

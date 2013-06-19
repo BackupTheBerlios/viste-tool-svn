@@ -155,6 +155,27 @@
        </layout>
       </item>
       <item>
+       <widget class="QLabel" name="label_7">
+        <property name="text">
+         <string>Global maximum value</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_6">
+        <item>
+         <widget class="QSlider" name="globalMaximumSlider">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QDoubleSpinBox" name="globalMaximumSpinBox"/>
+        </item>
+       </layout>
+      </item>
+      <item>
        <widget class="QPushButton" name="updateButton">
         <property name="text">
          <string>Update</string>

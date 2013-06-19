@@ -1,24 +1,24 @@
 /**
  * Copyright (c) 2012, Biomedical Image Analysis Eindhoven (BMIA/e)
  * All rights reserved.
- * 
- * Redistribution and use in source and binary forms, with or without 
+ *
+ * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
- * 
+ *
  *   - Redistributions of source code must retain the above copyright
  *     notice, this list of conditions and the following disclaimer.
- * 
+ *
  *   - Redistributions in binary form must reproduce the above copyright
  *     notice, this list of conditions and the following disclaimer in
- *     the documentation and/or other materials provided with the 
+ *     the documentation and/or other materials provided with the
  *     distribution.
- * 
+ *
  *   - Neither the name of Eindhoven University of Technology nor the
- *     names of its contributors may be used to endorse or promote 
- *     products derived from this software without specific prior 
+ *     names of its contributors may be used to endorse or promote
+ *     products derived from this software without specific prior
  *     written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -38,7 +38,7 @@
  *
  * 2010-07-15	Tim Peeters
  * - First version
- * 
+ *
  * 2010-09-15	Evert van Aart
  * - Implemented "dataSetRemoved".
  *
@@ -48,7 +48,7 @@
  *   fiber set. This object contains all visualization settings and filters
  *   for that fiber set.
  * - Implemented "dataSetChanged".
- * 
+ *
  * 2010-10-22	Evert van Aart
  * - Added support for coloring using the "CellData" array.
  *
@@ -57,27 +57,27 @@
  *   Color" is selected, user can use buttons to color the fibers white, use
  *   an automatically generated color (using "vtkQtColorChart"), or select
  *   a custom color. For now, automatic coloring is the default for new fibers.
- * 
+ *
  * 2011-01-12	Evert van Aart
  * - Added support for Look-Up Tables (transfer functions).
  * - Added a combo box for the eigensystem images.
  * - Before switching to a new coloring method or fiber shape, the class now checks
- *   whether the required data is available (i.e., eigensystem image when using 
+ *   whether the required data is available (i.e., eigensystem image when using
  *   MEV coloring), and it will display a message box if this check fails.
  * - Implemented "dataSetChanged" and "dataSetRemoved" for all input data set types.
  *
  * 2011-01-20	Evert van Aart
  * - Added support for transformation matrices.
  * - Write ".tfm" file when saving fibers.
- * 
+ *
  * 2011-02-01	Evert van Aart
  * - Added support for bypassing the simplification filter.
  * - Added a "Delete Fibers" button.
  *
  * 2011-04-06	Evert van Aart
  * - Version 1.0.0.
- * - When saving fibers, the plugin now automatically selects the 
- *   data directory defined in the default profile. 
+ * - When saving fibers, the plugin now automatically selects the
+ *   data directory defined in the default profile.
  *
  * 2011-04-18	Evert van Aart
  * - Moved the simplifcation filter to the "Helpers" library.
@@ -203,7 +203,7 @@ void FiberVisualizationPlugin::disconnectAll()
 FiberVisualizationPlugin::~FiberVisualizationPlugin()
 {
 	// Remove the GUI
-    delete this->widget; 
+    delete this->widget;
 	this->widget = NULL;
 
 	// Delete the assembly
@@ -257,22 +257,22 @@ void FiberVisualizationPlugin::setGUIEnable()
 	this->ui->colorSingleWhiteButton->setEnabled(enableColorDialog);
 	this->ui->colorSingleGroup->setEnabled(enableColorDialog);
 
-	bool enableColorVectorOptions =		this->ui->coloringTypeComboBox->currentIndex() == this->FC_MEV 
+	bool enableColorVectorOptions =		this->ui->coloringTypeComboBox->currentIndex() == this->FC_MEV
 									 || this->ui->coloringTypeComboBox->currentIndex() == this->FC_Direction;
 	this->ui->colorShiftValuesCheck->setEnabled(enableColorVectorOptions);
 	this->ui->colorUseAIWeightingCheck->setEnabled(enableColorVectorOptions);
-	bool enableAICombo =   (enableColorVectorOptions && this->ui->colorUseAIWeightingCheck->isChecked()) 
+	bool enableAICombo =   (enableColorVectorOptions && this->ui->colorUseAIWeightingCheck->isChecked())
 						 || this->ui->coloringTypeComboBox->currentIndex() == this->FC_AI;
 	this->ui->colorAILabel->setEnabled(enableAICombo);
 	this->ui->colorAICombo->setEnabled(enableAICombo);
 
-	bool enableLUT =	this->ui->coloringTypeComboBox->currentIndex() == this->FC_AI || 
+	bool enableLUT =	this->ui->coloringTypeComboBox->currentIndex() == this->FC_AI ||
 						this->ui->coloringTypeComboBox->currentIndex() == this->FC_FiberData;
 	this->ui->lutLabel->setEnabled(enableLUT);
 	this->ui->lutCombo->setEnabled(enableLUT);
 
 	// GPU-related options
-	bool enableGPUOptions =   (this->ui->shapeCombo->currentIndex() == FS_Streamlines); 	
+	bool enableGPUOptions =   (this->ui->shapeCombo->currentIndex() == FS_Streamlines);
 	this->ui->lightingPage->setEnabled(enableGPUOptions);
 	this->ui->shadowsPage->setEnabled(enableGPUOptions);
 
@@ -310,20 +310,20 @@ void FiberVisualizationPlugin::setGUIEnable()
 	int i = this->ui->shapeCombo->currentIndex();
 	this->ui->shapeTubeRadiusLabel->setEnabled(	i == FS_Streamtubes			);
 	this->ui->shapeTubeRadiusSpin->setEnabled(	i == FS_Streamtubes			);
-	this->ui->shapeTubeHyperLabel->setEnabled(	i == FS_Hyperstreamtubes	|| 
-												i == FS_Hyperstreamprisms	|| 
+	this->ui->shapeTubeHyperLabel->setEnabled(	i == FS_Hyperstreamtubes	||
+												i == FS_Hyperstreamprisms	||
 												i == FS_Streamribbons		);
-	this->ui->shapeTubeHyperSpin->setEnabled(	i == FS_Hyperstreamtubes	|| 
-												i == FS_Hyperstreamprisms	|| 
+	this->ui->shapeTubeHyperSpin->setEnabled(	i == FS_Hyperstreamtubes	||
+												i == FS_Hyperstreamprisms	||
 												i == FS_Streamribbons		);
-	this->ui->shapeTubeSidesLabel->setEnabled(	i == FS_Streamtubes			|| 
+	this->ui->shapeTubeSidesLabel->setEnabled(	i == FS_Streamtubes			||
 												i == FS_Hyperstreamtubes	);
-	this->ui->shapeTubeSidesSpin->setEnabled(	i == FS_Streamtubes			|| 
+	this->ui->shapeTubeSidesSpin->setEnabled(	i == FS_Streamtubes			||
 												i == FS_Hyperstreamtubes	);
-	this->ui->eigensystemLabel->setEnabled(		i == FS_Hyperstreamprisms	|| 
+	this->ui->eigensystemLabel->setEnabled(		i == FS_Hyperstreamprisms	||
 												i == FS_Streamribbons		||
 												i == FS_Hyperstreamtubes	);
-	this->ui->eigensystemCombo->setEnabled(		i == FS_Hyperstreamprisms	|| 
+	this->ui->eigensystemCombo->setEnabled(		i == FS_Hyperstreamprisms	||
 												i == FS_Streamribbons		||
 												i == FS_Hyperstreamtubes	);
 }
@@ -343,7 +343,7 @@ void FiberVisualizationPlugin::dataSetAdded(data::DataSet * ds)
 		this->addEigenDataSet(ds);
 	}
 
-	// Add Anisotropy Index image data 
+	// Add Anisotropy Index image data
 	else if (ds->getKind() == "scalar volume")
 	{
 		this->addAIDataSet(ds);
@@ -356,7 +356,7 @@ void FiberVisualizationPlugin::dataSetAdded(data::DataSet * ds)
 	}
 
 	// Add fibers
-	else if (ds->getKind() == "fibers") 
+	else if (ds->getKind() == "fibers")
 	{
 		this->addFiberDataSet(ds);
 	}
@@ -418,7 +418,7 @@ bool FiberVisualizationPlugin::addFiberDataSet(bmia::data::DataSet *ds)
     // Add the new data set to the list of data sets in the GUI
     this->ui->dataList->addItem(ds->getName());
 
-    // Select the newly added dataset. Since the new actor is appended to the 
+    // Select the newly added dataset. Since the new actor is appended to the
 	// list of actors, its index is one less than the size of the list.
 
 	this->selectData(this->actors.size() - 1);
@@ -577,14 +577,14 @@ void FiberVisualizationPlugin::dataSetChanged(data::DataSet * ds)
 		}
 	}
 
-	// Check if the data is of type "fibers", and if it in the list of 
+	// Check if the data is of type "fibers", and if it in the list of
 	// data sets that have been added to this plugin.
 
 	if (ds->getKind() != "fibers" || !this->fiberSets.contains(ds))
 	{
 		return;
 	}
-	
+
 	// Attribute value of the data set
 	double attribute;
 
@@ -752,7 +752,7 @@ void FiberVisualizationPlugin::dataSetRemoved(data::DataSet * ds)
 		}
 	}
 
-	// Check if the data is of type "fibers", and if it in the list of 
+	// Check if the data is of type "fibers", and if it in the list of
 	// data sets that have been added to this plugin.
 
 	if (ds->getKind() != "fibers" || !this->fiberSets.contains(ds))
@@ -823,7 +823,7 @@ void FiberVisualizationPlugin::dataSetRemoved(data::DataSet * ds)
 	// Delete the actor. This also deletes this actor's mapper.
 	selectedActor.actor->Delete();
 
-	// Render now to ensure that deleted fibers immediately leave the 
+	// Render now to ensure that deleted fibers immediately leave the
 	// screen (as opposed to the first time the user moves the camera)
 
 	this->core()->render();
@@ -928,12 +928,12 @@ void FiberVisualizationPlugin::settingsFromGUIToPipeline()
 	}
 
 	// Setup the coloring filter
-	currentPipeline->setupColorFilter( (FiberColor)	this->ui->coloringTypeComboBox->currentIndex(), 
-													this->ui->colorShiftValuesCheck->isChecked(), 
+	currentPipeline->setupColorFilter( (FiberColor)	this->ui->coloringTypeComboBox->currentIndex(),
+													this->ui->colorShiftValuesCheck->isChecked(),
 													this->ui->colorUseAIWeightingCheck->isChecked() );
 
 	// Setup the shape filter
-	currentPipeline->setupShapeFilter( (FiberShape) this->ui->shapeCombo->currentIndex(), 
+	currentPipeline->setupShapeFilter( (FiberShape) this->ui->shapeCombo->currentIndex(),
 													this->ui->shapeTubeSidesSpin->value(),
 													(float) this->ui->shapeTubeRadiusSpin->value(),
 													(float) this->ui->shapeTubeHyperSpin->value()	);
@@ -1006,7 +1006,7 @@ void FiberVisualizationPlugin::changeSingleColor()
     double oldColorRGB[3];
     QColor oldColor;
     actorProperty->GetColor(oldColorRGB);
-    oldColor.setRgbF(oldColorRGB[0], oldColorRGB[1], oldColorRGB[2]);    
+    oldColor.setRgbF(oldColorRGB[0], oldColorRGB[1], oldColorRGB[2]);
 
 	// Use a color dialog to get the new color
     QColor newColor = QColorDialog::getColor(oldColor, 0);
@@ -1135,7 +1135,7 @@ void FiberVisualizationPlugin::settingsFromPipelineToGUI()
 	this->ui->shadowsAmbientSpin->setValue((int) (100.0f * currentPipeline->ShadowsAmbient)	);
 	this->ui->shadowsDiffuseSpin->setValue((int) (100.0f * currentPipeline->ShadowsDiffuse)	);
 	this->ui->shadowsThicknessSpin->setValue(currentPipeline->ShadowsWidth);
-    
+
 	// Reconnect all controls to their respective "SLOT" function
     this->connectAll();
 
@@ -1197,7 +1197,7 @@ void FiberVisualizationPlugin::writeFibersToFile()
 	// Check if the fibers exist
 	if (!output)
 		return;
-	
+
 	// Create a polydata writer
 	vtkPolyDataWriter * writer = vtkPolyDataWriter::New();
 
@@ -1205,7 +1205,7 @@ void FiberVisualizationPlugin::writeFibersToFile()
 	writer->SetFileName(fileNameChar);
 	writer->SetInput(output);
 	writer->SetFileTypeToASCII();
-	
+
 	// Enable progress bar for the writer
 	this->core()->out()->createProgressBarForAlgorithm(writer, "Fiber Visualization", "Writing fibers to file...");
 
@@ -1220,7 +1220,7 @@ void FiberVisualizationPlugin::writeFibersToFile()
 
 	// Get the current fiber data set
 	data::DataSet * fiberDS = this->fiberSets.at(this->selectedData);
-	
+
 	vtkObject * attObject;
 
 	// Check if the fiber data set contains a transformation matrix
@@ -1363,8 +1363,8 @@ void FiberVisualizationPlugin::changeShape()
 	bool valid = false;
 
 	// These three shape types need eigensystem data
-	if (	this->ui->shapeCombo->currentIndex() == FS_Hyperstreamtubes		|| 
-			this->ui->shapeCombo->currentIndex() == FS_Hyperstreamprisms	|| 
+	if (	this->ui->shapeCombo->currentIndex() == FS_Hyperstreamtubes		||
+			this->ui->shapeCombo->currentIndex() == FS_Hyperstreamprisms	||
 			this->ui->shapeCombo->currentIndex() == FS_Streamribbons		)
 	{
 		// Check if the plugin contains an eigensystem data set

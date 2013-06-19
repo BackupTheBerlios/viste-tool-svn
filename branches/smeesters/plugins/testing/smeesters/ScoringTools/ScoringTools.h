@@ -38,47 +38,6 @@ namespace Ui
 namespace bmia
 {
 
-/** Generic vector3 struct */
-typedef struct
-{
-    double x, y, z;
-
-} Vec3;
-
-/** Holding pointdata and location of the most anterior point of a fiber */
-typedef struct
-{
-    QList< Vec3* > data;
-    QList< double > scalarData;
-    int anteriorPointIndex;
-    double userPointRefinement;
-
-} FiberData;
-
-/** Holding threshold settings */
-typedef struct
-{
-    double averageScoreRange[2];
-
-} ThresholdSettings;
-
-/** Holding fiberdata */
-typedef struct
-{
-    data::DataSet* ds;
-    data::DataSet* ds_processed;
-
-    QList<FiberData*> selectedLines;
-    int userSelectedLine;
-    int selectedScalarType;
-    int numberOfScalarTypes;
-
-    QList<ThresholdSettings*> scalarThresholdSettings;
-
-} SortedFibers;
-
-
-
 class ScoringTools :  public plugin::AdvancedPlugin,
                     public plugin::Visualization,
                     public plugin::GUI,
@@ -134,6 +93,44 @@ public:
      */
     void dataSetRemoved(data::DataSet * d);
 
+    /** Generic vector3 struct */
+    struct Vec3
+    {
+        double x, y, z;
+    };
+
+    /** Holding pointdata and location of the most anterior point of a fiber */
+    struct FiberData
+    {
+        QList< Vec3* > data;
+        QList< double > scalarData;
+        int anteriorPointIndex;
+        double userPointRefinement;
+    };
+
+    /** Holding threshold settings */
+    struct ThresholdSettings
+    {
+        bool set;
+        double averageScore[2];
+    };
+
+    /** Holding fiberdata */
+    struct SortedFibers
+    {
+        data::DataSet* ds;
+        data::DataSet* ds_processed;
+
+        QList<FiberData*> selectedLines;
+        int userSelectedLine;
+        int selectedScalarType;
+        int numberOfScalarTypes;
+
+        QList<ThresholdSettings*> scalarThresholdSettings;
+
+        QString outputFiberDataName;
+    };
+
 protected slots:
 
     void fibersComboChanged(int index);
@@ -143,6 +140,7 @@ protected slots:
     void averageValueMaxSliderChanged(int value);
     void averageValueMaxSpinBoxChanged(double value);
     void updateButtonClicked();
+    void outputLineEditChanged(QString text);
 
 private:
 
