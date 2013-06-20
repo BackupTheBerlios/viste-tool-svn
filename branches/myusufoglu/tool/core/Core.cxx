@@ -365,8 +365,6 @@ void Core::render()
 
 	Q_ASSERT(this->renderWindow);
 	this->renderWindow->Render();
-	//Q_ASSERT(this->medicalCanvas->GetRenderer3D());
-		//this->medicalCanvas->GetRenderer3D()->Render(); 
 }
 
 

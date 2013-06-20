@@ -13,10 +13,11 @@
  * - UpdateFibers function calls HARDIFiberTrackingFilter with a data type parameter(sphericalHarmonics) anymore, 
  * parameter is either 1 or 0 depending on the data type read.
  *
- *  * 2013-29-05 Mehmet Yusufoglu, Bart Van Knippenberg
+ * 2013-29-05 Mehmet Yusufoglu, Bart Van Knippenberg
  * - scalar volumes should not be added to the HARDI data combo box. Removed.
  *
  */
+
 
 
 
@@ -123,7 +124,8 @@ void HARDIFiberTrackingPlugin::dataSetAdded(data::DataSet * ds)
 	// Check if the data set exists
     Q_ASSERT(ds);
 	
-	// Add Spherical harmonics dataset image 
+	// Add Spherical harmonics dataset image - For the moment we just accept spherical harmonics from HARDI
+//	if (ds->getKind() == "spherical harmonics")
 		if (ds->getKind() == "discrete sphere" || ds->getKind() == "spherical harmonics")
 	{
 		qDebug() <<  "added to hardi data set:" << ds->getKind() << endl;
@@ -155,7 +157,7 @@ bool HARDIFiberTrackingPlugin::addHARDIDataSet(data::DataSet * ds)
 {
 	// Check if the data set contains an image data
 	vtkImageData * image = ds->getVtkImageData();
- 
+
 	if (!image)
 	{
 		QMessageBox::warning(this->getGUI(), "HARDI Fiber Tracking Plugin", "New HARDI data is NULL.", 

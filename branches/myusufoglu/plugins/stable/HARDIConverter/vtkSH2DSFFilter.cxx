@@ -72,7 +72,7 @@ vtkSH2DSFFilter::~vtkSH2DSFFilter()
 
 //----------------------------[ SimpleExecute ]----------------------------\\
 
-void vtkSH2DSFFilter::SimpleExecute (vtkImageData * input, vtkImageData * output)
+void vtkSH2DSFFilter::SimpleExecute(vtkImageData * input, vtkImageData * output)
 {
 	this->SetProgressText("Converting Spherical Harmonics to Discrete Sphere Function...");
 

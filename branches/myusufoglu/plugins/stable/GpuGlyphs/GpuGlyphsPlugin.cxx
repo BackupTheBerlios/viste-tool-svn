@@ -97,7 +97,7 @@ namespace bmia {
 
 //-----------------------------[ Constructor ]-----------------------------\\
 
-GpuGlyphsPlugin::GpuGlyphsPlugin() : plugin::AdvancedPlugin("GPU Glyphs")
+GpuGlyphsPlugin::GpuGlyphsPlugin() : Plugin("GPU Glyphs")
 {
 	// Create a prop and a mapper for the DTI glyphs
 	this->DTIMapper = vtkDTIGlyphMapperVA::New();
@@ -463,17 +463,8 @@ void GpuGlyphsPlugin::dataSetChanged(data::DataSet * ds)
 		if (this->seedFilter)
 			this->seedFilter->forceExecute();
 
-		vtkCamera *camera3D = this->fullCore()->canvas()->GetRenderer3D()->GetActiveCamera();
-		//this->fullCore()->canvas()->GetRenderer3D()->GetViewPoint():
-		//this->fullCore()->canvas()->GetRenderer3D()->GetWorldPoint();
-		/*this->fullCore()->canvas()->GetRenderer3D()->Get ActiveCamera()->GetPosition();
-		this->fullCore()->canvas()->GetRenderer3D()->GetActiveCamera()->GetViewTransformMatrix();
-		this->fullCore()->canvas()->GetRenderer3D()->GetActiveCamera()->Set
-		*/
 		this->seedsChanged();
-		this->fullCore()->canvas()->GetRenderer3D()->SetActiveCamera(camera3D);
-		
-		//this->fullCore()->canvas()->GetRenderer3D()-> // eski kamerayi save edersek belki olur
+
 		this->core()->render();
 	}
 	// Scalar volumes
@@ -487,7 +478,7 @@ void GpuGlyphsPlugin::dataSetChanged(data::DataSet * ds)
 
 		int dsId = this->scalarDataSets.indexOf(ds);
 		this->ui->dtiColorWeightCombo->setItemText(dsId, ds->getName());
-		
+
 		this->core()->render();
 	}
 
