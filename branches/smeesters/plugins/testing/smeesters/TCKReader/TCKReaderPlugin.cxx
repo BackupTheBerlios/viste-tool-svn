@@ -123,56 +123,121 @@ void TCKReaderPlugin::loadDataFromFile(QString filename)
             break;
     }
 
-    //TCKFile.read(reinterpret_cast<char*>(&c), sizeof(char));
-
     double inf=1.0/0.0;
     double nan = 0.0/0.0;
-    int i = 0, j = 0;
     QList< QList<float> > fibersList;
 
-    int pos;
-    while(true)
+    int headerPos = TCKFile.tellg();
+    int bugfixer = 0;
+    int MAXTRIES = 100;
+    while(bugfixer < MAXTRIES)
     {
+        TCKFile.seekg(headerPos, TCKFile.beg);
+
+        for(int i = 0; i<bugfixer; i++)
+        {
+            TCKFile.read(reinterpret_cast<char*>(&c), sizeof(char));
+        }
+
+        int i = 0, j = 0;
+        fibersList.clear();
+
+        int pos;
         float f;
-        pos = TCKFile.tellg();
-        TCKFile.read(reinterpret_cast<char*>(&f), sizeof(float));
-        printf("pos:%d, f:%f\n",pos,f);
-        if(abs(f) > 0.00000001)
-            break;
-    }
-    TCKFile.seekg(pos, TCKFile.beg);
-
-    while(true)
-    {
-        QList<float> fiber;
-
-        float f1,f2,f3;
         while(true)
         {
-            TCKFile.read(reinterpret_cast<char*>(&f1), sizeof(float));
-            TCKFile.read(reinterpret_cast<char*>(&f2), sizeof(float));
-            TCKFile.read(reinterpret_cast<char*>(&f3), sizeof(float));
+            pos = TCKFile.tellg();
+            TCKFile.read(reinterpret_cast<char*>(&f), sizeof(float));
+            //printf("pos:%d, f:%f\n",pos,f);
+            if(abs(f) > 0.01)
+                break;
+        }
+        TCKFile.seekg(pos, TCKFile.beg);
 
-            printf("j:%d, f:{%f,%f,%f}\n",j,f1,f2,f3);
+        int k = 0;
+        bool abort;
+        while(true)
+        {
+            //algo->UpdateProgress((double) j);
 
-            if(f1 != f1 && f2!=f2 && f3!=f3)
+            QList<float> fiber;
+
+            float f1,f2,f3;
+            k = 0;
+            abort = false;
+            while(true)
+            {
+                TCKFile.read(reinterpret_cast<char*>(&f1), sizeof(float));
+                TCKFile.read(reinterpret_cast<char*>(&f2), sizeof(float));
+                TCKFile.read(reinterpret_cast<char*>(&f3), sizeof(float));
+
+                //printf("j:%d, k:%d, bugfixer:%d, f:{%f,%f,%f}\n",j,k, bugfixer, f1,f2,f3);
+
+                if(f1 != f1 && f2!=f2 && f3!=f3)
+                    break;
+
+                if(f1 == inf && f2==inf && f3==inf)
+                    break;
+
+                if(TCKFile.eof())
+                    break;
+
+                fiber.append(f1);
+                fiber.append(f2);
+                fiber.append(f3);
+
+                k++;
+
+                if(f1 > 10000 || f2 > 10000 || f3 > 10000)
+                {
+                    abort = true;
+                    break;
+                }
+            }
+
+            if(abort)
+            {
+                break;
+            }
+
+            fibersList.append(fiber);
+
+            j++;
+
+            if(TCKFile.eof())
                 break;
 
             if(f1 == inf && f2==inf && f3==inf)
                 break;
-
-            fiber.append(f1);
-            fiber.append(f2);
-            fiber.append(f3);
         }
 
-        fibersList.append(fiber);
-
-        j++;
-
-        if(f1 == inf && f2==inf && f3==inf)
+        if(abort)
+        {
+            printf("bugfixer: %d\n",bugfixer);
+            bugfixer++;
+        }
+        else
             break;
+
     }
+
+    if(bugfixer == MAXTRIES)
+    {
+        this->core()->out()->logMessage("Error loading " + filename + "!");
+        return;
+    }
+
+
+
+
+
+    // create progress bar
+//	vtkAlgorithm* algo = vtkAlgorithm::New();
+//	algo->SetProgressText("Loading pathways ...");
+//	algo->UpdateProgress(0.0);
+//    this->core()->out()->createProgressBarForAlgorithm(algo, "TCK reader");
+
+
 
     // close .TCK file
     TCKFile.close();
@@ -209,7 +274,7 @@ void TCKReaderPlugin::loadDataFromFile(QString filename)
         {
             outputPoints->InsertNextPoint(fiber[j*3],fiber[j*3+1],fiber[j*3+2]);
             outputLines->InsertCellPoint(counter + j);
-            printf("-----> j:%d, f:{%f,%f,%f}\n",counter,fiber[j*3],fiber[j*3+1],fiber[j*3+2]);
+            //printf("-----> j:%d, f:{%f,%f,%f}\n",counter,fiber[j*3],fiber[j*3+1],fiber[j*3+2]);
         }
 
         counter += numberOfFiberPoints;
@@ -259,6 +324,8 @@ void TCKReaderPlugin::loadDataFromFile(QString filename)
     // Add the data set to the manager
 	this->core()->data()->addDataSet(ds);
 
+    // remove progress bar
+    //this->core()->out()->deleteProgressBarForAlgorithm(algo);
 //
 //
 //    // load header size
