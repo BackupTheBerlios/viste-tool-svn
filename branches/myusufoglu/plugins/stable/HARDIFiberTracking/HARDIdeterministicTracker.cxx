@@ -222,7 +222,7 @@ void HARDIdeterministicTracker::calculateFiber(int direction, std::vector<HARDIs
 		while (1) 
 		{
 			// Compute the next point of the fiber using a Euler step.
-			if (!this->solveIntegrationStep(currentCell, currentCellId, weights))
+			if (!this->solveIntegrationStep(currentCell, currentCellId, weights)) // weights are not used
 				break;
 
 			// Check if we've moved to a new cell
@@ -431,7 +431,7 @@ void HARDIdeterministicTracker::calculateFiber(int direction, std::vector<HARDIs
 }
 
 
-// 
+// Discrete sphere version
 
 void HARDIdeterministicTracker::calculateFiberDS(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,int numberOfIterations, bool CLEANMAXIMA, double TRESHOLD)
 {
@@ -495,7 +495,7 @@ void HARDIdeterministicTracker::calculateFiberDS(int direction, std::vector<HARD
 		//this->HARDIimageData->GetPoint()
 		
 		//	cout << "initial interpolation starts" << endl;
-		this->interpolateSH(SHAux, weights, numberSHcomponents);
+		this->interpolateSH(SHAux, weights, numberSHcomponents); // actually interpolates radius values for DS data
 	
 		DoIt.getOutputDS(SHAux, numberSHcomponents, anglesArray);
 	
@@ -550,7 +550,7 @@ void HARDIdeterministicTracker::calculateFiberDS(int direction, std::vector<HARD
 				break;
 			}
 
-			// Compute interpolated SH at new position
+			// Compute interpolated SH at new position, for DS it is radii
 			double * SHAux = new double[numberSHcomponents];
 			this->interpolateSH(SHAux, weights, numberSHcomponents);
 
@@ -764,7 +764,7 @@ bool HARDIdeterministicTracker::solveIntegrationStep(vtkCell * currentCell, vtkI
 
 void HARDIdeterministicTracker::interpolateSH(double * interpolatedSH, double * weights, int numberSHcomponents)
 {
-	//cout << "interpolateSH" << endl;
+	//spherical harmonics or radii are interpolated in the same manner
 	//set the output to zero
 	for (int i = 0; i < numberSHcomponents; ++i)
 	{
@@ -806,6 +806,23 @@ void HARDIdeterministicTracker::interpolateScalar(double * interpolatedScalar, d
 	}
 }
 
+//--------------------------[ interpolateMaximumVectors ]--------------------------\\
+/*
+void HARDIdeterministicTracker::interpolateVectors(double * interpolatedScalar, double * weights)
+{
+	// Set the output to zero
+	(*interpolatedScalar) = 0.0;
+
+	// For all eight surrounding voxels...
+	for (int i = 0; i < 8; ++i)
+	{
+		// ...get the corresponding scalar...
+		double tempScalar =  this->t 
+		// ...and add it to the interpolated scalar
+		(*interpolatedScalar) += weights[i] * tempScalar;
+	}
+}
+*/
 //--------------------------[ Find maxima for discrete sphere data]--------------------------\\
 
 void MaximumFinder::getOutputDS(double* pDarraySH, int shOrder,double treshold, std::vector<double*> anglesArray,  std::vector<int>& output, std::vector<int> &input)
@@ -854,7 +871,7 @@ void MaximumFinder::getOutputDS(double* pDarraySH, int shOrder,double treshold, 
 	{
 		//get current radius
 		double currentPointValue = this->radii_norm[(input[i])];
-		//cout << "radii-N[" << i << "]:"<<  currentPointValue ;
+	
 		//if the value is high enough
 		if (currentPointValue > (treshold))
 		{
@@ -885,14 +902,13 @@ void MaximumFinder::getOutputDS(double* pDarraySH, int shOrder,double treshold, 
 
 void MaximumFinder::getOutputDS(double* pDarraySH, int shOrder, std::vector<double*> anglesArray)
 {
-	//cout << " Max Finder Get output without treshold starts" << endl;
-	//get radii
+	
 	//this->radii =  bmia::HARDITransformationManager::CalculateDeformator(pDarraySH, &anglesArray, shOrder);
 	
 	for (int i=0; i< shOrder; i++) {
 
 		this->radii.push_back(pDarraySH[i]);
-		//cout << pDarraySH[i] << " " ;
+		
 	}
 	
 	//list with neighborhood
