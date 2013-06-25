@@ -393,7 +393,7 @@ namespace bmia {
 			anglesArray = obj->getAnglesArray();
 			trianglesArray = obj->getTrianglesArray();
 		}
-		else
+		else //discrete sphere
 		{
 
 			//this->computeGeometryFromDirections( unitVectors, anglesArray ,  trianglesArray);
