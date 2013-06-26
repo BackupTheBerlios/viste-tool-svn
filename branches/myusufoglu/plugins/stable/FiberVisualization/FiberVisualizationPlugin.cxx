@@ -856,6 +856,8 @@ void FiberVisualizationPlugin::selectData(int row)
 
 	// Update the GUI with the settings of the current fiber set
 	this->settingsFromPipelineToGUI();
+
+	
 }
 
 
@@ -1064,25 +1066,10 @@ void FiberVisualizationPlugin::changeActiveScalar()
 	currentPipeline->setupPipeline(ds->getVtkPolyData(), currentActor);
 	// Rebuild the pipeline if necessary
 	cout << this->ui->scalarArrayComboBox->currentIndex() << endl;
-	//ds->getVtkPolyData()->GetPointData()->SetActiveScalars( this->ui->scalarArrayComboBox->itemData(this->ui->scalarArrayComboBox->currentIndex()).toString().toStdString().c_str() );
-	//	ds->getVtkPolyData()->GetPointData()->GetArrayName(this->ui->scalarArrayComboBox->currentIndex()) ;
-	ds->getVtkPolyData()->GetPointData()->SetActiveScalars(ds->getVtkPolyData()->GetPointData()->GetArrayName(this->ui->scalarArrayComboBox->currentIndex()));
+		ds->getVtkPolyData()->GetPointData()->SetActiveScalars(ds->getVtkPolyData()->GetPointData()->GetArrayName(this->ui->scalarArrayComboBox->currentIndex()));
 		currentPipeline->setupSimplifyFilter((float) this->ui->shapePLLengthSpin->value(), this->ui->shapeSimplifyEnable->isChecked());
 	
-	// Setup simplification filter
-		/* if(this->ui->shapeSimplifyEnable->isChecked())
-	currentPipeline->setupSimplifyFilter((float) this->ui->shapePLLengthSpin->value(), false);
-		 else
-			 currentPipeline->setupSimplifyFilter((float) this->ui->shapePLLengthSpin->value(), true);
-		 currentPipeline->setupSimplifyFilter((float) this->ui->shapePLLengthSpin->value(),this->ui->shapeSimplifyEnable->isChecked());
-*/   currentPipeline->modifiedInput();
-		//settingsFromGUIToPipeline();
-		// Enable or disable controls based on current settings
-	//this->setGUIEnable();
-
-
-
-
+	  currentPipeline->modifiedInput();
 	// Re-render the fibers
 	this->core()->render();
 }
@@ -1199,7 +1186,13 @@ void FiberVisualizationPlugin::settingsFromPipelineToGUI()
 	this->ui->shadowsAmbientSpin->setValue((int) (100.0f * currentPipeline->ShadowsAmbient)	);
 	this->ui->shadowsDiffuseSpin->setValue((int) (100.0f * currentPipeline->ShadowsDiffuse)	);
 	this->ui->shadowsThicknessSpin->setValue(currentPipeline->ShadowsWidth);
-    
+	this->ui->scalarArrayComboBox->clear();
+	for(int i=0; i< (fiberSets.at(this->selectedData))->getVtkPolyData()->GetPointData()->GetNumberOfArrays();i++)
+						// this->ui->scalarArrayComboBox->addItem
+						{
+							this->ui->scalarArrayComboBox->addItem( (fiberSets.at(this->selectedData))->getVtkPolyData()->GetPointData()->GetArrayName(i) );
+	}
+	
 	// Reconnect all controls to their respective "SLOT" function
     this->connectAll();
 
@@ -1332,8 +1325,8 @@ void FiberVisualizationPlugin::changeColoringMethod()
 		scalars1->InsertNextTuple(&d2);
 	}
 	//currentFibers->GetPointData()->Add 2 arrays here!!! test
-//	currentFibers->GetPointData()->AddArray(scalars1);
-//	currentFibers->GetPointData()->AddArray(scalars2);
+	//currentFibers->GetPointData()->AddArray(scalars1);
+	//currentFibers->GetPointData()->AddArray(scalars2);
 	// Fiber Data using LUTs
 	if (this->ui->coloringTypeComboBox->currentIndex() == this->FC_FiberData)
 	{
@@ -1347,7 +1340,7 @@ void FiberVisualizationPlugin::changeColoringMethod()
 						for(int i=0; i<currentFibers->GetPointData()->GetNumberOfArrays();i++)
 						// this->ui->scalarArrayComboBox->addItem
 						{
-							this->ui->scalarArrayComboBox->addItem( currentFibers->GetPointData()->GetArrayName(i) );
+							 
 							allvalid = allvalid || ((currentFibers->GetPointData()->GetArray(i)->GetNumberOfTuples()== currentFibers->GetNumberOfPoints()) && ( currentFibers->GetPointData()->GetArray(i)->GetNumberOfComponents() ) > 0) ;
 				          
 						
