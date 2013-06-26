@@ -736,6 +736,312 @@ void HARDIdeterministicTracker::calculateFiberDS(int direction, std::vector<HARD
 }
 
 
+// Direction Interpolation
+
+void HARDIdeterministicTracker::calculateFiberDirInterp(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,int numberOfIterations, bool CLEANMAXIMA, double TRESHOLD)
+{
+	vtkCell *	currentCell			= NULL;						// Cell of current point
+	vtkIdType	currentCellId		= 0;						// Id of current cell
+	double		closestPoint[3]		= {0.0, 0.0, 0.0};			// Used in "EvaluatePosition"
+	double		pointDistance		= 0.0;						// Used in "EvaluatePosition"
+	double		stepDistance		= 0.0;						// Length of current step
+	int			subId				= 0;						// Used in "FindCell"
+	double		pCoords[3]			= {0.0, 0.0, 0.0};			// Used in "FindCell"
+	double		testDot				= 1.0;						// Dot product for current step
+	bool		firstStep			= true;						// True during first integration step
+	
+	// Interpolation weights
+	double *	weights = new double[8];
+
+	// Initialize interpolation weights
+	for (int i = 0; i < 8; ++i)
+	{
+		weights[i] = 0.0;
+	}
+
+	// Check if there's a point in the point list
+	if (!pointList->empty())
+	{
+		// Get the first point, and clear the list
+		currentPoint = pointList->front();
+		pointList->clear();
+
+		// Find the cell containing the seed point
+		currentCellId = this->HARDIimageData->FindCell(currentPoint.X, NULL, 0, this->tolerance, subId, pCoords, weights);
+		currentCell = this->HARDIimageData->GetCell(currentCellId);
+
+		// Set the actual step size, depending on the voxel size
+		this->step = direction * this->stepSize * sqrt((double) currentCell->GetLength2());
+
+		// Load the HARDI cell info and AI values of the cell into the "cellHARDIData" and
+		// "cellAIScalars" arrays, respectively
+		this->HARDIArray->GetTuples(currentCell->PointIds, this->cellHARDIData);
+		this->aiScalars->GetTuples( currentCell->PointIds, this->cellAIScalars );
+
+		//create a maximumfinder
+		MaximumFinder DoIt = MaximumFinder(trianglesArray); 
+		
+		//vector to store the Id's if the found maxima on the ODF
+		std::vector<int> maxima;
+		//vector to store the unit vectors of the found maxima
+		std::vector<double *> outputlistwithunitvectors;
+		//neede for search space reduction
+		bool searchRegion;
+		std::vector<int> regionList;
+		//list with ODF values
+		std::vector<double> ODFlist;
+
+		//get number of SH components
+	//	int numberSHcomponents = HARDIArray->GetNumberOfComponents();
+		int numberSHcomponents = this->HARDIimageData->GetNumberOfScalarComponents();
+
+		// Interpolate the SH at the seed point position
+		double * SHAux = new double[numberSHcomponents];
+		//this->HARDIimageData->GetPoint()
+		
+		//	cout << "initial interpolation starts" << endl;
+		this->interpolateSH(SHAux, weights, numberSHcomponents); // actually interpolates radius values for DS data
+	
+		DoIt.getOutputDS(SHAux, numberSHcomponents, anglesArray);
+	
+		//deallocate memory
+		delete [] SHAux;
+
+		// Get the AI scalar at the seed point position
+		DoIt.getGFA(&(currentPoint.AI));
+		//cout << "gfa value:" << currentPoint.AI << endl;
+		// Set the total distance to zero
+		currentPoint.D = 0.0;
+
+		// Re-add the seed point (which now contains eigenvectors and AI)
+		pointList->push_back(currentPoint);
+
+		// Set the previous point equal to the current point
+		prevPoint = currentPoint;
+
+		// Initialize the previous segment to zero
+		this->prevSegment[0] = 0.0;
+		this->prevSegment[1] = 0.0;
+		this->prevSegment[2] = 0.0;
+
+		// Loop until a stopping condition is met		 
+		while (1) 
+		{
+			 
+			// Compute the next point of the fiber using a Euler step.
+			if (!this->solveIntegrationStep(currentCell, currentCellId, weights))
+				break;
+
+			// Check if we've moved to a new cell
+			vtkIdType newCellId = this->HARDIimageData->FindCell(nextPoint.X, currentCell, currentCellId, 
+															this->tolerance, subId, pCoords, weights);
+
+			// If we're in a new cell, and we're still inside the volume...
+			if (newCellId >= 0 && newCellId != currentCellId)
+			{
+				// ...store the ID of the new cell...
+				currentCellId = newCellId;
+
+				// ...set the new cell pointer...
+				currentCell = this->HARDIimageData->GetCell(currentCellId);
+
+				// ...and fill the cell arrays with the data of the new cell
+				this->HARDIArray->GetTuples(currentCell->PointIds, this->cellHARDIData);
+				this->aiScalars->GetTuples( currentCell->PointIds, this->cellAIScalars );
+			}
+			// If we've left the volume, break here
+			else if (newCellId == -1)
+			{
+				break;
+			}
+
+			// Compute interpolated SH at new position, for DS it is radii
+			double * SHAux = new double[numberSHcomponents];
+			this->interpolateSH(SHAux, weights, numberSHcomponents);
+
+	
+			//create a maximum finder
+			MaximumFinder DoIt = MaximumFinder(trianglesArray);
+
+			//clear search region list
+			regionList.clear();
+			double tempVector[3];
+			
+			//for all directions
+			for (unsigned int i = 0; i < anglesArray.size(); ++i)
+			{
+				searchRegion = false;
+				//if its not the first step
+				if (!firstStep)
+				{
+					//get the direction
+					tempVector[0] = this->unitVectors[i][0];
+					tempVector[1] = this->unitVectors[i][1];
+					tempVector[2] = this->unitVectors[i][2];
+					//calculate dot product
+					testDot = vtkMath::Dot(this->prevSegment, tempVector);
+					searchRegion = this->parentFilter->continueTrackingTESTDOT(testDot);
+				}
+				else
+				{
+					//if its the first step, search all directions
+					searchRegion = true;
+					regionList.push_back(i);
+				}
+
+				if (searchRegion)
+				{
+					//add search directions to list
+					regionList.push_back(i);
+				}
+			}	
+			
+			//get local maxima			 
+			DoIt.getOutputDS(SHAux, numberSHcomponents,TRESHOLD, anglesArray,  maxima, regionList);
+			 
+			//if no maxima are found
+			if (!(maxima.size() > 0))	
+			{
+				//break here
+			//	cout << "break"<< endl;
+				break;
+			}
+
+			//clear vector
+			outputlistwithunitvectors.clear();
+			ODFlist.clear();
+
+			//if the maxima should be cleaned (double and triple maxima) -> get from UI
+			if (CLEANMAXIMA)
+			{
+				//clean maxima
+				DoIt.cleanOutput(maxima, outputlistwithunitvectors,SHAux, ODFlist, this->unitVectors, anglesArray);
+			}
+			else
+			{
+				//for every found maximum
+				for (unsigned int i = 0; i < maxima.size(); ++i)
+				{
+					//add the unit vector
+					double * tempout = new double[3];
+					tempout[0] = (this->unitVectors[maxima[i]])[0];
+					tempout[1] = (this->unitVectors[maxima[i]])[1];
+					tempout[2] = (this->unitVectors[maxima[i]])[2];
+					outputlistwithunitvectors.push_back(tempout);
+					//add the ODF value
+					ODFlist.push_back(DoIt.radii_norm[(maxima[i])]);
+				}
+			}
+
+			//deallocate memory
+			delete [] SHAux;
+
+			//define current maximum at zero (used to determine if a point is a maximum)
+			float currentMax = 0.0;
+			double tempDirection[3];
+			testDot = 0.0;
+			//value to compare local maxima (either random value or dot product)
+			double value;
+
+			//for all local maxima
+			for (unsigned int i = 0; i < outputlistwithunitvectors.size(); ++i)
+			{
+				//set current direction
+				tempDirection[0] = outputlistwithunitvectors[i][0];
+				tempDirection[1] = outputlistwithunitvectors[i][1];
+				tempDirection[2] = outputlistwithunitvectors[i][2];
+
+				//in case of the first step of a fiber, the dot product cannot be calculated -> set to 1.0
+				if (firstStep)
+				{
+					//set the highest ODF value as condition
+					value = ODFlist[i];	
+					//get the same directions (prevent missing/double fibers)
+					if (tempDirection[0] < 0)
+					{
+						value = 0.0;
+					}
+				}
+				else
+				{
+					//calculate the dot product
+					value = vtkMath::Dot(this->prevSegment, tempDirection);
+				}
+
+				//in case of semi-probabilistic tracking
+				if (numberOfIterations > 1)
+				{
+					//select direction based on a random number
+					value = ((double)rand()/(double)RAND_MAX);
+				}
+				
+				//get the "best" value within the range of the user-selected angle
+				if (value > currentMax)
+				{
+					currentMax = value;
+					this->newSegment[0] = tempDirection[0];
+					this->newSegment[1] = tempDirection[1];
+					this->newSegment[2] = tempDirection[2];
+				}
+			}
+
+
+			testDot = vtkMath::Dot(this->prevSegment, this->newSegment);
+			
+			if (firstStep)
+			{
+				//set the testDot to 1.0 for continueTracking function
+				testDot = 1.0;
+				
+			}
+			
+			// Interpolate the AI value at the current position
+			if (currentCellId >= 0)
+			{
+				DoIt.getGFA(&(nextPoint.AI));
+				//this->interpolateScalar(&(nextPoint.AI), weights);
+			}
+
+			// Update the total fiber length
+			stepDistance = sqrt((double) vtkMath::Distance2BetweenPoints(currentPoint.X, nextPoint.X));
+			this->nextPoint.D = this->currentPoint.D + stepDistance;
+
+			// Call "continueTracking" function of parent filter to determine if
+			// one of the stopping criteria has been met.
+			 if (!(this->parentFilter->continueTracking(&(this->nextPoint), testDot, currentCellId)))
+			{
+				// If so, stop tracking.
+				break;
+			}
+			
+			// Add the new point to the point list
+			pointList->push_back(this->nextPoint);
+
+			// If necessary, increase size of the point list
+			if (pointList->size() == pointList->capacity())
+			{
+				pointList->reserve(pointList->size() + 1000);
+			}
+
+			// Update the current and previous points
+			this->prevPoint = this->currentPoint;
+			this->currentPoint = this->nextPoint;
+
+			// Update the previous line segment
+			this->prevSegment[0] = this->newSegment[0];
+			this->prevSegment[1] = this->newSegment[1];
+			this->prevSegment[2] = this->newSegment[2];
+
+			// This is no longer the first step
+			firstStep = false;
+        }
+	}
+
+	delete [] weights;
+}
+
+
+
 
 //-------------------------[ solveIntegrationStep ]------------------------\\
 
@@ -807,22 +1113,22 @@ void HARDIdeterministicTracker::interpolateScalar(double * interpolatedScalar, d
 }
 
 //--------------------------[ interpolateMaximumVectors ]--------------------------\\
-/*
-void HARDIdeterministicTracker::interpolateVectors(double * interpolatedScalar, double * weights)
-{
-	// Set the output to zero
-	(*interpolatedScalar) = 0.0;
-
-	// For all eight surrounding voxels...
-	for (int i = 0; i < 8; ++i)
-	{
-		// ...get the corresponding scalar...
-		double tempScalar =  this->t 
-		// ...and add it to the interpolated scalar
-		(*interpolatedScalar) += weights[i] * tempScalar;
-	}
-}
-*/
+// 
+//void HARDIdeterministicTracker::interpolateVectors(double * interpolatedScalar, double * weights)
+//{
+//	// Set the output to zero
+//	(*interpolatedScalar) = 0.0;
+//
+//	// For all eight surrounding voxels...
+//	for (int i = 0; i < 8; ++i)
+//	{
+//		// ...get the corresponding scalar...
+//		double tempScalar =  this->t 
+//		// ...and add it to the interpolated scalar
+//		(*interpolatedScalar) += weights[i] * tempScalar;
+//	}
+//}
+ 
 //--------------------------[ Find maxima for discrete sphere data]--------------------------\\
 
 void MaximumFinder::getOutputDS(double* pDarraySH, int shOrder,double treshold, std::vector<double*> anglesArray,  std::vector<int>& output, std::vector<int> &input)
