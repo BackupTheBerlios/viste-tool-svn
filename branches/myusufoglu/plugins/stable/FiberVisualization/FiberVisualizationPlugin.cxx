@@ -1332,8 +1332,8 @@ void FiberVisualizationPlugin::changeColoringMethod()
 		scalars1->InsertNextTuple(&d2);
 	}
 	//currentFibers->GetPointData()->Add 2 arrays here!!! test
-	currentFibers->GetPointData()->AddArray(scalars1);
-	currentFibers->GetPointData()->AddArray(scalars2);
+//	currentFibers->GetPointData()->AddArray(scalars1);
+//	currentFibers->GetPointData()->AddArray(scalars2);
 	// Fiber Data using LUTs
 	if (this->ui->coloringTypeComboBox->currentIndex() == this->FC_FiberData)
 	{
