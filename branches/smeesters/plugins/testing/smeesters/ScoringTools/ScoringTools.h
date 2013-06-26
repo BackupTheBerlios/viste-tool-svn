@@ -26,9 +26,19 @@
 #include <vtkPointData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkDoubleArray.h>
+#include <vtkContextView.h>
+#include <vtkContextScene.h>
+#include <vtkChartXY.h>
+#include <vtkTable.h>
+#include <vtkIntArray.h>
+#include <vtkFloatArray.h>
+#include <vtkPlot.h>
+#include <vtkAxis.h>
 
 /** Includes - Custom filters */
 #include "vtkFiberSelectionFilter.h"
+
+#include "ScoringTypes.h"
 
 namespace Ui
 {
@@ -37,6 +47,54 @@ namespace Ui
 
 namespace bmia
 {
+
+//
+//  STRUCTS
+//
+
+/** Generic vector3 struct */
+typedef struct
+{
+    double x, y, z;
+
+} Vec3;
+
+/** Holding pointdata and location of the most anterior point of a fiber */
+typedef struct
+{
+    QList< Vec3* > data;
+    QList< double > scalarData;
+    int anteriorPointIndex;
+    double userPointRefinement;
+
+} FiberData;
+
+/** Holding fiberdata */
+typedef struct
+{
+    data::DataSet* ds;
+    data::DataSet* ds_processed;
+
+    QList<FiberData*> selectedLines;
+    int userSelectedLine;
+    int selectedScalarType;
+    int numberOfScalarTypes;
+
+    bool processed;
+    bool hasScalars;
+
+    QList<ThresholdSettings*> scalarThresholdSettings;
+
+    double lengthOfFiberRange[2];
+    double lengthOfFiberSetting[2];
+
+    QString outputFiberDataName;
+
+} SortedFibers;
+
+//
+//  CLASS
+//
 
 class ScoringTools :  public plugin::AdvancedPlugin,
                     public plugin::Visualization,
@@ -93,44 +151,6 @@ public:
      */
     void dataSetRemoved(data::DataSet * d);
 
-    /** Generic vector3 struct */
-    struct Vec3
-    {
-        double x, y, z;
-    };
-
-    /** Holding pointdata and location of the most anterior point of a fiber */
-    struct FiberData
-    {
-        QList< Vec3* > data;
-        QList< double > scalarData;
-        int anteriorPointIndex;
-        double userPointRefinement;
-    };
-
-    /** Holding threshold settings */
-    struct ThresholdSettings
-    {
-        bool set;
-        double averageScore[2];
-    };
-
-    /** Holding fiberdata */
-    struct SortedFibers
-    {
-        data::DataSet* ds;
-        data::DataSet* ds_processed;
-
-        QList<FiberData*> selectedLines;
-        int userSelectedLine;
-        int selectedScalarType;
-        int numberOfScalarTypes;
-
-        QList<ThresholdSettings*> scalarThresholdSettings;
-
-        QString outputFiberDataName;
-    };
-
 protected slots:
 
     void fibersComboChanged(int index);
@@ -141,6 +161,14 @@ protected slots:
     void averageValueMaxSpinBoxChanged(double value);
     void updateButtonClicked();
     void outputLineEditChanged(QString text);
+    void setActiveScalarsButtonClicked();
+    void fiberLengthSliderChanged(int value);
+    void fiberLengthSpinBoxChanged(double value);
+    void globalMinimumSliderChanged(int value);
+    void globalMinimumSpinBoxChanged(double value);
+    void globalMaximumSliderChanged(int value);
+    void globalMaximumSpinBoxChanged(double value);
+    void displayHistogramButtonClicked();
 
 private:
 
@@ -180,6 +208,22 @@ private:
 
     void SelectScalarType(int index);
     void ComputeFibers();
+
+    void BlockSignals();
+    void AllowSignals();
+
+    void UpdateGUI();
+    SortedFibers* GetSortedFibers();
+    ThresholdSettings* GetThresholdSettings();
+
+    void EnableGUI();
+    void DisableGUI();
+    void SetActiveScalars();
+
+    void ComputeFiberLengthRange();
+
+    //QWidget* histogramWindow;
+    void ShowHistogram();
 };
 
 }

@@ -22,13 +22,16 @@
 
 /** Includes - Custom Files */
 
-#include "ScoringTools.h"
+#include "ScoringTypes.h"
 
 typedef struct
 {
     bool set;
     double averageScore[2];
-} ThresholdSettings;
+    double scalarRange[2];
+    double globalSetting[2];
+
+} ThresholdSettings2;
 
 namespace bmia {
 
@@ -66,13 +69,16 @@ class vtkFiberSelectionFilter : public vtkPolyDataToPolyDataFilter
 //            thresholdSettings = settings;
 //        }
 
-        void AddThresholdSetting(bool set, double range[2])
+        void AddThresholdSetting(ThresholdSettings* ts)
         {
-            ThresholdSettings* ts = new ThresholdSettings;
-            ts->set = set;
-            ts->averageScore[0] = range[0];
-            ts->averageScore[1] = range[1];
             thresholdSettings.append(ts);
+        }
+
+        void SetMaximumFiberLength(double val)
+        {
+            maximumFiberLength = val;
+            std::cout << "adsasd" << val << std::endl;
+            printf("MAXIMUM FIBER LENGTH: %f",val);
         }
 
 	protected:
@@ -104,6 +110,8 @@ class vtkFiberSelectionFilter : public vtkPolyDataToPolyDataFilter
 		    based on scoring thresholding criteria. */
 
 		bool EvaluateFiber(vtkCell* cell, vtkPointData* inputPD);
+
+		double maximumFiberLength;
 
 }; // class vtkFiberSelectionFilter
 

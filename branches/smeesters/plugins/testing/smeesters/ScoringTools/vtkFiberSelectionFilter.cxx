@@ -204,17 +204,36 @@ void vtkFiberSelectionFilter::Execute()
 bool vtkFiberSelectionFilter::EvaluateFiber(vtkCell* cell, vtkPointData* inputPD)
 {
     int numberOfFiberPoints = cell->GetNumberOfPoints();
-    //numberOfFiberPoints = 1;
 
+    // fiber length selection
+    if(numberOfFiberPoints > (int)maximumFiberLength)
+        return true;
+
+    // number of scalar types
     int numberOfScalarTypes = inputPD->GetNumberOfArrays();
 
-    // critera
-    bool excludeFiber = false;
+    // no scalars? finish
+    if(numberOfScalarTypes == 0)
+        return false;
 
+    // prepare average score list
     QList<double> averageScores;
     for(int i = 0; i < numberOfScalarTypes; i++)
     {
         averageScores.append(0.0);
+    }
+
+    // prepare global min/max list
+    QList<double> globalMinList;
+    for(int i = 0; i < numberOfScalarTypes; i++)
+    {
+        globalMinList.append(1e30);
+    }
+
+    QList<double> globalMaxList;
+    for(int i = 0; i < numberOfScalarTypes; i++)
+    {
+        globalMaxList.append(-1e30);
     }
 
     // Loop through all points in the fiber
@@ -229,23 +248,37 @@ bool vtkFiberSelectionFilter::EvaluateFiber(vtkCell* cell, vtkPointData* inputPD
             // Get the scalar value
             double scalar = inputPD->GetArray(i)->GetTuple1(currentPointId);
 
+            // Global value
+            if(scalar > globalMaxList[i])
+                globalMaxList[i] = scalar;
+            if(scalar < globalMinList[i])
+                globalMinList[i] = scalar;
+
             // Average value of fiber
             averageScores[i] += scalar;
         }
     }
 
+    //printf("global min: %f, global max: %f \n", globalMin, globalMax);
+
     // finish critera
     for(int i = 0; i < numberOfScalarTypes; i++)
     {
-        averageScores[i] /= numberOfFiberPoints;
+        //printf("globalsetting %f %f\n", thresholdSettings[i]->globalSetting[0], thresholdSettings[i]->globalSetting[1]);
+
+        // global score
+        if(globalMinList[i] < thresholdSettings[i]->globalSetting[0] || globalMaxList[i] > thresholdSettings[i]->globalSetting[1])
+            return true;
 
          // evaluate average score.
         // must be within selected range
+        averageScores[i] /= numberOfFiberPoints;
         if(averageScores[i] < thresholdSettings[i]->averageScore[0] || averageScores[i] > thresholdSettings[i]->averageScore[1])
-            excludeFiber = true;
+            return true;
+
     }
 
-    return excludeFiber;
+    return false;
 }
 
 } // namespace bmia

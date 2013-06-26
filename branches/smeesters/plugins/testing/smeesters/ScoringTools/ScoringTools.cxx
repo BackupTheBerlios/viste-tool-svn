@@ -3,6 +3,8 @@
 #define VTK_CREATE(type, name) \
   vtkSmartPointer<type> name = vtkSmartPointer<type>::New()
 
+#define SLIDER_SUBSTEPS 100
+
 namespace bmia
 {
 
@@ -40,6 +42,9 @@ void ScoringTools::init()
 
     // default selected fiber (none)
     selectedFiberDataset = -1;
+
+    // disable GUI by default
+    DisableGUI();
 }
 
 ///
@@ -75,6 +80,8 @@ void ScoringTools::dataSetAdded(data::DataSet * d)
 		sortedFibers->userSelectedLine = 0;
 		sortedFibers->selectedScalarType = 0;
 		sortedFibers->outputFiberDataName = d->getName().append("_thresholded");
+		sortedFibers->processed = false;
+		sortedFibers->hasScalars = false;
 
         // Add the new data set to the list of currently available fiber sets
         this->sortedFibersList.append(sortedFibers);
@@ -167,7 +174,10 @@ void ScoringTools::SelectFiberDataSet(int index)
 
     // no fiber selected
     if(this->selectedFiberDataset == -1)
+    {
+        DisableGUI();
         return;
+    }
 
     // Clear scalar type list
     this->form->scalarTypeCombo->blockSignals(true);
@@ -182,6 +192,7 @@ void ScoringTools::SelectFiberDataSet(int index)
 
     // Get number of scalar types
     sortedFibers->numberOfScalarTypes = polydata->GetPointData()->GetNumberOfArrays();
+    sortedFibers->hasScalars = sortedFibers->numberOfScalarTypes > 0;
 
     // Fill scalar list with names
     for(int i = 0; i < sortedFibers->numberOfScalarTypes; i++)
@@ -191,12 +202,22 @@ void ScoringTools::SelectFiberDataSet(int index)
     this->form->scalarTypeCombo->blockSignals(false);
 
     // Create threshold settings structs for scalar types
-    if(sortedFibers->scalarThresholdSettings.length() == 0)
+    if(!sortedFibers->processed)
     {
         for(int i = 0; i<sortedFibers->numberOfScalarTypes; i++)
         {
+            // Create struct
             ThresholdSettings* ts = new ThresholdSettings;
-            ts->set = false; // no user data set
+
+            // Set scalar range
+            vtkDoubleArray* scalarData = static_cast<vtkDoubleArray*>(polydata->GetPointData()->GetArray(i));
+            double scalarRange[2];
+            scalarData->GetValueRange(scalarRange);
+            memcpy(ts->scalarRange,scalarRange,sizeof(scalarRange));
+            memcpy(ts->globalSetting,scalarRange,sizeof(scalarRange));
+            memcpy(ts->averageScore,scalarRange,sizeof(scalarRange));
+
+            // Add to settings list
             sortedFibers->scalarThresholdSettings.append(ts);
         }
     }
@@ -204,8 +225,35 @@ void ScoringTools::SelectFiberDataSet(int index)
     // Set output data name
     this->form->outputLineEdit->setText(sortedFibers->outputFiberDataName);
 
+    // Compute length
+    if(!sortedFibers->processed)
+    {
+        ComputeFiberLengthRange();
+
+        // Set default fiber length values
+        double* fiberLengthRange = sortedFibers->lengthOfFiberRange;
+        sortedFibers->lengthOfFiberSetting[0] = sortedFibers->lengthOfFiberRange[0];
+        sortedFibers->lengthOfFiberSetting[1] = sortedFibers->lengthOfFiberRange[1];
+
+        //printf("length of fiber min: %d max: %d", sortedFibers->lengthOfFiberRange[0], sortedFibers->lengthOfFiberRange[1]);
+
+        // Update fiber length slider
+        BlockSignals();
+        this->form->fiberLengthSlider->setRange(sortedFibers->lengthOfFiberSetting[0]*100,sortedFibers->lengthOfFiberSetting[1]*100);
+        this->form->fiberLengthSpinBox->setRange(sortedFibers->lengthOfFiberSetting[0],sortedFibers->lengthOfFiberSetting[1]);
+    }
+
+    // Update GUI
+    UpdateGUI();
+
+    // Set processed flag
+    sortedFibers->processed = true;
+
     // Select the standard scalar
     SelectScalarType(sortedFibers->selectedScalarType);
+
+    // Enable GUI
+    EnableGUI();
 }
 
 void ScoringTools::SelectScalarType(int index)
@@ -228,49 +276,51 @@ void ScoringTools::SelectScalarType(int index)
     vtkPolyData * polydata = sortedFibers->ds->getVtkPolyData();
     vtkDoubleArray* scalarData = static_cast<vtkDoubleArray*>(polydata->GetPointData()->GetArray(index));
 
-    // Get scalar range
-    double scalarRange[2];
-    scalarData->GetValueRange(scalarRange);
-
-    // Set default threshold values (min to max)
-    ThresholdSettings* thresholdSettings = sortedFibers->scalarThresholdSettings.at(index);
-    if(thresholdSettings->set == false)
-    {
-        thresholdSettings->averageScore[0] = scalarRange[0];
-        thresholdSettings->averageScore[1] = scalarRange[1];
-        thresholdSettings->set = true;
-    }
+    // get threshold settings struct
+    ThresholdSettings* thresholdSettings = GetThresholdSettings();
 
     // Set average value slider ranges
-    this->form->averageValueMinSlider->blockSignals(true);
-    this->form->averageValueMinSpinBox->blockSignals(true);
-    this->form->averageValueMaxSlider->blockSignals(true);
-    this->form->averageValueMaxSpinBox->blockSignals(true);
+    BlockSignals();
+    double* scalarRange = thresholdSettings->scalarRange;
     this->form->averageValueMinSlider->setRange(scalarRange[0]*100,scalarRange[1]*100);
     this->form->averageValueMinSpinBox->setRange(scalarRange[0],scalarRange[1]);
     this->form->averageValueMaxSlider->setRange(scalarRange[0]*100,scalarRange[1]*100);
     this->form->averageValueMaxSpinBox->setRange(scalarRange[0],scalarRange[1]);
 
-    // Set average value values
-    this->form->averageValueMinSlider->setValue(thresholdSettings->averageScore[0]*100);
-    this->form->averageValueMinSpinBox->setValue(thresholdSettings->averageScore[0]);
-    this->form->averageValueMaxSlider->setValue(thresholdSettings->averageScore[1]*100);
-    this->form->averageValueMaxSpinBox->setValue(thresholdSettings->averageScore[1]);
-    this->form->averageValueMinSlider->blockSignals(false);
-    this->form->averageValueMinSpinBox->blockSignals(false);
-    this->form->averageValueMaxSlider->blockSignals(false);
-    this->form->averageValueMaxSpinBox->blockSignals(false);
+    // Set global value slider ranges
+    this->form->globalMinimumSlider->setRange(scalarRange[0]*100,scalarRange[1]*100);
+    this->form->globalMinimumSpinBox->setRange(scalarRange[0],scalarRange[1]);
+    this->form->globalMaximumSlider->setRange(scalarRange[0]*100,scalarRange[1]*100);
+    this->form->globalMaximumSpinBox->setRange(scalarRange[0],scalarRange[1]);
+
+    // Update GUI
+    UpdateGUI();
 
     //printf("average score: %f %f\n",thresholdSettings->averageScore[0],thresholdSettings->averageScore[1]);
 
+
+}
+
+void ScoringTools::SetActiveScalars()
+{
+    // return if fiber is none
+    if(this->selectedFiberDataset == -1)
+        return;
+
+    // Get selected scalar type data
+    SortedFibers* sortedFibers = this->sortedFibersList.at(this->selectedFiberDataset);
+
+    // Get scalar data
+    vtkPolyData * polydata = sortedFibers->ds->getVtkPolyData();
+
     // Set active scalars of fiber dataset
-    polydata->GetPointData()->SetActiveScalars(polydata->GetPointData()->GetArray(index)->GetName());
+    polydata->GetPointData()->SetActiveScalars(polydata->GetPointData()->GetArray(sortedFibers->selectedScalarType)->GetName());
     this->core()->data()->dataSetChanged(sortedFibers->ds);
 
     if(sortedFibers->ds_processed != NULL)
     {
         vtkPolyData * polydata_processed = sortedFibers->ds_processed->getVtkPolyData();
-        polydata_processed->GetPointData()->SetActiveScalars(polydata->GetPointData()->GetArray(index)->GetName());
+        polydata_processed->GetPointData()->SetActiveScalars(polydata->GetPointData()->GetArray(sortedFibers->selectedScalarType)->GetName());
         this->core()->data()->dataSetChanged(sortedFibers->ds_processed);
     }
 }
@@ -292,24 +342,29 @@ void ScoringTools::ComputeFibers()
     // Perform fiber selection filter
     vtkFiberSelectionFilter* selectionFilter = vtkFiberSelectionFilter::New();
 	selectionFilter->SetInput(polydata);
+	selectionFilter->SetMaximumFiberLength(sortedFibers->lengthOfFiberSetting[1]);
 	//selectionFilter->SetThresholdSettings((QList<ThresholdSettings*>)sortedFibers->scalarThresholdSettings);
 	for(int i =0; i<sortedFibers->scalarThresholdSettings.length(); i++)
 	{
 	    ThresholdSettings* thresholdSettings = sortedFibers->scalarThresholdSettings.at(i);
-	    selectionFilter->AddThresholdSetting(thresholdSettings->set, thresholdSettings->averageScore);
+	    //selectionFilter->AddThresholdSetting(thresholdSettings->set, thresholdSettings->averageScore, thresholdSettings->globalSetting);
+	    selectionFilter->AddThresholdSetting(thresholdSettings);
 	}
 
 	//selectionFilter->SetAverageScoreRange(thresholdSettings->averageScore);
 	//selectionFilter->SetScalarType(sortedFibers->selectedScalarType);
+
+	// Run the filter
+	this->core()->out()->createProgressBarForAlgorithm(selectionFilter, "Fiber selection");
 	selectionFilter->Update();
+	this->core()->out()->deleteProgressBarForAlgorithm(selectionFilter);
+
 	vtkPolyData* outputPoly = vtkPolyData::New();
 	outputPoly->ShallowCopy(selectionFilter->GetOutput());  // disconnect from filter to prevent unwanted future updates
 
     // Set active scalars of output data equal to input data
-	outputPoly->GetPointData()->SetActiveScalars(polydata->GetPointData()->GetArray(sortedFibers->selectedScalarType)->GetName());
-
-	// Create a progress bar for the ranking filter
-	this->core()->out()->createProgressBarForAlgorithm(selectionFilter, "Fiber selection");
+    if(sortedFibers->hasScalars)
+        outputPoly->GetPointData()->SetActiveScalars(polydata->GetPointData()->GetArray(sortedFibers->selectedScalarType)->GetName());
 
     // Construst vIST/e dataset
     data::DataSet* ds = sortedFibers->ds_processed;
@@ -354,9 +409,277 @@ void ScoringTools::ComputeFibers()
 	this->core()->data()->dataSetChanged(sortedFibers->ds);
 }
 
+void ScoringTools::ShowHistogram()
+{
+    // return if fiber is none
+    if(this->selectedFiberDataset == -1)
+        return;
+
+    // Get polydata of original fibers
+    SortedFibers* sortedFibers = this->sortedFibersList.at(this->selectedFiberDataset);
+    vtkPolyData * polydata = sortedFibers->ds->getVtkPolyData();
+    vtkPointData * inputPD = polydata->GetPointData();
+    vtkCellArray * inputLines = polydata->GetLines();
+    ThresholdSettings* thresholdSettings = GetThresholdSettings();
+
+    // Compute scalar histogram
+    const int numberOfBins = 100;
+    int averageHist[numberOfBins];
+    for(int i = 0; i<numberOfBins; i++)
+    {
+        averageHist[i] = 0;
+    }
+
+    int perPointHist[numberOfBins];
+    for(int i = 0; i<numberOfBins; i++)
+    {
+        perPointHist[i] = 0;
+    }
+
+    double scalarNormDenominator = thresholdSettings->scalarRange[1] - thresholdSettings->scalarRange[0];
+    double scalarStep = scalarNormDenominator/(double)numberOfBins;
+    double xAxis[numberOfBins];
+    for(int i = 0; i<numberOfBins; i++)
+    {
+        xAxis[i] = thresholdSettings->scalarRange[0] + scalarStep * i;
+    }
+
+    int numberOfCells = inputLines->GetNumberOfCells();
+    int selectedScalarType = sortedFibers->selectedScalarType;
+    // Loop through all input fibers
+	for (vtkIdType lineId = 0; lineId < numberOfCells; ++lineId)
+	{
+        // Get the data of the current fiber
+        vtkCell * currentCell = polydata->GetCell(lineId);
+        int numberOfFiberPoints = currentCell->GetNumberOfPoints();
+
+        double averageValue = 0.0;
+
+        // Loop through all points in the fiber
+        for (int pointId = 0; pointId < numberOfFiberPoints; ++pointId)
+        {
+            // Get the point ID of the current fiber point
+            vtkIdType currentPointId = currentCell->GetPointId(pointId);
+
+            // Get the active scalar of the fiber point
+            double scalar = inputPD->GetArray(selectedScalarType)->GetTuple1(currentPointId);
+
+            // Average value of fiber
+            averageValue += scalar;
+
+            // per point histogram
+            int binval = floor((scalar - thresholdSettings->scalarRange[0]) / scalarNormDenominator * (double) numberOfBins + 0.5);
+            perPointHist[binval] = perPointHist[binval] + 1;
+        }
+
+        // finish average value
+        averageValue /= numberOfFiberPoints;
+
+        // normalize and place in histogram bin
+        int binval = floor((averageValue - thresholdSettings->scalarRange[0]) / scalarNormDenominator * (double) numberOfBins + 0.5);
+        averageHist[binval] = averageHist[binval] + 1;
+        //printf("binval: %d, number of bins %d", binval, numberOfBins);
+	}
+
+	// compute maximum values
+	int averageHistMaximum = 0;
+	int perPointHistMaximum = 0;
+    for(int i = 0; i<numberOfBins; i++)
+    {
+        if(averageHist[i] > averageHistMaximum)
+            averageHistMaximum = averageHist[i];
+        if(perPointHist[i] > perPointHistMaximum)
+            perPointHistMaximum = perPointHist[i];
+    }
+
+    // Create a table with histogram values in it
+    VTK_CREATE(vtkTable, table);
+
+    VTK_CREATE(vtkFloatArray, arrXAxis);
+    arrXAxis->SetName("X axis");
+    table->AddColumn(arrXAxis);
+
+    VTK_CREATE(vtkFloatArray, arrAvgHist);
+    arrAvgHist->SetName("AvgHist");
+    table->AddColumn(arrAvgHist);
+
+    VTK_CREATE(vtkFloatArray,arrPerPointHist);
+    arrPerPointHist->SetName("PerPointHist");
+    table->AddColumn(arrPerPointHist);
+
+    table->SetNumberOfRows(numberOfBins);
+    for (int i = 0; i < numberOfBins; i++)
+    {
+        table->SetValue(i,0,xAxis[i]);
+        table->SetValue(i,1,(float)averageHist[i]/(float)averageHistMaximum);
+        table->SetValue(i,2,(float)perPointHist[i]/(float)perPointHistMaximum);
+    }
+
+    // Set up QT histogram window
+    QWidget *histogramWindow = new QWidget();
+    histogramWindow->setGeometry(0, 0, 600, 600);
+
+    QVTKWidget *qvtkWidget = new QVTKWidget(histogramWindow);
+    VTK_CREATE(vtkContextView, view); // This contains a chart object
+    view->SetInteractor(qvtkWidget->GetInteractor());
+    qvtkWidget->SetRenderWindow(view->GetRenderWindow());
+
+    VTK_CREATE(vtkChartXY, chart);
+    chart->GetAxis(vtkAxis::LEFT)->SetTitle("");
+    chart->GetAxis(vtkAxis::BOTTOM)->SetTitle(polydata->GetPointData()->GetArray(sortedFibers->selectedScalarType)->GetName());
+    QString title = QString("Scalar histogram: %1").arg(sortedFibers->ds->getName());
+    chart->SetTitle(title.toUtf8().constData());
+    view->GetScene()->AddItem(chart);
+    chart->SetShowLegend(true);
+
+    // Add multiple line plots, setting the colors etc
+    vtkPlot *line = 0;
+    line = chart->AddPlot(vtkChart::LINE);
+    line->SetInput(table, 0, 1);
+    line->SetColor(0, 255, 0, 255);
+
+    line = chart->AddPlot(vtkChart::LINE);
+    line->SetInput(table, 0, 2);
+    line->SetColor(0, 0, 255, 255);
+
+    QVBoxLayout *layout = new QVBoxLayout(histogramWindow);
+    layout->addWidget(qvtkWidget);
+
+    histogramWindow->raise();
+    histogramWindow->show();
+
+}
+
+///
+///      FIBER CALCULATIONS
+///
+
+void ScoringTools::ComputeFiberLengthRange()
+{
+    // return if fiber is none
+    if(this->selectedFiberDataset == -1)
+        return;
+
+    // Get polydata of original fibers
+    SortedFibers* sortedFibers = this->sortedFibersList.at(this->selectedFiberDataset);
+    vtkPolyData * polydata = sortedFibers->ds->getVtkPolyData();
+    vtkCellArray * inputLines = polydata->GetLines();
+
+    int numberOfCells = inputLines->GetNumberOfCells();
+    int maxLength = 0;
+    // Loop through all input fibers
+	for (vtkIdType lineId = 0; lineId < numberOfCells; ++lineId)
+	{
+        // Get the data of the current fiber
+        vtkCell * currentCell = polydata->GetCell(lineId);
+        int numberOfFiberPoints = currentCell->GetNumberOfPoints();
+        printf("number of fibers: %d\n",numberOfFiberPoints);
+        if(numberOfFiberPoints > maxLength)
+            maxLength = numberOfFiberPoints;
+	}
+
+	// Update max length value
+	sortedFibers->lengthOfFiberRange[0] = 0;
+	sortedFibers->lengthOfFiberRange[1] = maxLength;
+}
+
 ///
 ///     GUI CALLBACKS
 ///
+
+void ScoringTools::EnableGUI()
+{
+    if(GetSortedFibers()->hasScalars)
+        this->form->scalarGroupBox->setEnabled(true);
+    else
+        this->form->scalarGroupBox->setEnabled(false);
+    this->form->shapeGroupBox->setEnabled(true);
+    this->form->updateButton->setEnabled(true);
+}
+
+void ScoringTools::DisableGUI()
+{
+    this->form->scalarGroupBox->setEnabled(false);
+    this->form->shapeGroupBox->setEnabled(false);
+    this->form->updateButton->setEnabled(false);
+}
+
+void ScoringTools::BlockSignals()
+{
+    this->form->averageValueMinSlider->blockSignals(true);
+    this->form->averageValueMinSpinBox->blockSignals(true);
+    this->form->averageValueMaxSlider->blockSignals(true);
+    this->form->averageValueMaxSpinBox->blockSignals(true);
+    this->form->globalMinimumSlider->blockSignals(true);
+    this->form->globalMinimumSpinBox->blockSignals(true);
+    this->form->globalMaximumSlider->blockSignals(true);
+    this->form->globalMaximumSpinBox->blockSignals(true);
+}
+
+void ScoringTools::AllowSignals()
+{
+    this->form->averageValueMinSlider->blockSignals(false);
+    this->form->averageValueMinSpinBox->blockSignals(false);
+    this->form->averageValueMaxSlider->blockSignals(false);
+    this->form->averageValueMaxSpinBox->blockSignals(false);
+    this->form->globalMinimumSlider->blockSignals(false);
+    this->form->globalMinimumSpinBox->blockSignals(false);
+    this->form->globalMaximumSlider->blockSignals(false);
+    this->form->globalMaximumSpinBox->blockSignals(false);
+}
+
+SortedFibers* ScoringTools::GetSortedFibers()
+{
+    SortedFibers* sortedFibers = this->sortedFibersList.at(this->selectedFiberDataset);
+    return sortedFibers;
+}
+
+ThresholdSettings* ScoringTools::GetThresholdSettings()
+{
+    SortedFibers* sortedFibers = this->sortedFibersList.at(this->selectedFiberDataset);
+    ThresholdSettings* thresholdSettings = sortedFibers->scalarThresholdSettings.at(sortedFibers->selectedScalarType);
+    return thresholdSettings;
+}
+
+void ScoringTools::UpdateGUI()
+{
+    // block signal propagation
+    BlockSignals();
+
+    // get sorted fibers
+    SortedFibers* sortedFibers = this->sortedFibersList.at(this->selectedFiberDataset);
+
+    // set fiber length GUI settings
+    this->form->fiberLengthSlider->setValue(sortedFibers->lengthOfFiberSetting[1]*SLIDER_SUBSTEPS);
+    this->form->fiberLengthSpinBox->setValue(sortedFibers->lengthOfFiberSetting[1]);
+
+    if(sortedFibers->hasScalars)
+    {
+        // get threshold settings struct
+        ThresholdSettings* thresholdSettings = GetThresholdSettings();
+
+        // set average value GUI settings
+        this->form->averageValueMinSlider->setValue(thresholdSettings->averageScore[0]*SLIDER_SUBSTEPS);
+        this->form->averageValueMinSpinBox->setValue(thresholdSettings->averageScore[0]);
+        this->form->averageValueMaxSlider->setValue(thresholdSettings->averageScore[1]*SLIDER_SUBSTEPS);
+        this->form->averageValueMaxSpinBox->setValue(thresholdSettings->averageScore[1]);
+        this->form->averageValueMinSlider->setMaximum(this->form->averageValueMaxSlider->value()-1);
+        this->form->averageValueMaxSlider->setMinimum(this->form->averageValueMinSlider->value()+1);
+
+        // global minimum
+        this->form->globalMinimumSlider->setValue(thresholdSettings->globalSetting[0]*SLIDER_SUBSTEPS);
+        this->form->globalMaximumSlider->setValue(thresholdSettings->globalSetting[1]*SLIDER_SUBSTEPS);
+        this->form->globalMinimumSpinBox->setValue(thresholdSettings->globalSetting[0]);
+        this->form->globalMaximumSpinBox->setValue(thresholdSettings->globalSetting[1]);
+    }
+
+    // re-enable signals
+    AllowSignals();
+}
+
+//
+//  slots
+//
 
 void ScoringTools::fibersComboChanged(int index)
 {
@@ -370,57 +693,77 @@ void ScoringTools::scalarTypeComboChanged(int index)
 
 void ScoringTools::averageValueMinSliderChanged(int value)
 {
-    averageValueMinSpinBoxChanged((double)(value/100.0));
-}
-
-void ScoringTools::averageValueMinSpinBoxChanged(double value)
-{
-    this->form->averageValueMinSlider->blockSignals(true);
-    this->form->averageValueMinSpinBox->blockSignals(true);
-
-    this->form->averageValueMinSlider->setValue(value*100);
-    this->form->averageValueMinSpinBox->setValue(value);
-
-    SortedFibers* sortedFibers = this->sortedFibersList.at(this->selectedFiberDataset);
-    ThresholdSettings* thresholdSettings = sortedFibers->scalarThresholdSettings.at(sortedFibers->selectedScalarType);
-    thresholdSettings->averageScore[0] = value;
-
-    //printf("average score: %f %f\n",thresholdSettings->averageScore[0],thresholdSettings->averageScore[1]);
-
-    this->form->averageValueMinSlider->blockSignals(false);
-    this->form->averageValueMinSpinBox->blockSignals(false);
-
-    this->form->averageValueMaxSlider->setMinimum(this->form->averageValueMinSlider->value()+1);
+    GetThresholdSettings()->averageScore[0] = (double)value / (double)SLIDER_SUBSTEPS;
+    UpdateGUI();
 }
 
 void ScoringTools::averageValueMaxSliderChanged(int value)
 {
-    averageValueMaxSpinBoxChanged((double)(value/100.0));
+    GetThresholdSettings()->averageScore[1] = (double)value / (double)SLIDER_SUBSTEPS;
+    UpdateGUI();
+}
+
+void ScoringTools::averageValueMinSpinBoxChanged(double value)
+{
+    GetThresholdSettings()->averageScore[0] = value;
+    UpdateGUI();
 }
 
 void ScoringTools::averageValueMaxSpinBoxChanged(double value)
 {
-    this->form->averageValueMaxSlider->blockSignals(true);
-    this->form->averageValueMaxSpinBox->blockSignals(true);
+    GetThresholdSettings()->averageScore[1] = value;
+    UpdateGUI();
+}
 
-    this->form->averageValueMaxSlider->setValue(value*100);
-    this->form->averageValueMaxSpinBox->setValue(value);
+void ScoringTools::fiberLengthSliderChanged(int value)
+{
+    GetSortedFibers()->lengthOfFiberSetting[1] = (double)value / (double)SLIDER_SUBSTEPS;
+    UpdateGUI();
+}
 
-    SortedFibers* sortedFibers = this->sortedFibersList.at(this->selectedFiberDataset);
-    ThresholdSettings* thresholdSettings = sortedFibers->scalarThresholdSettings.at(sortedFibers->selectedScalarType);
-    thresholdSettings->averageScore[1] = value;
+void ScoringTools::fiberLengthSpinBoxChanged(double value)
+{
+    GetSortedFibers()->lengthOfFiberSetting[1] = value;
+    UpdateGUI();
+}
 
-    //printf("average score: %f %f\n",thresholdSettings->averageScore[0],thresholdSettings->averageScore[1]);
+void ScoringTools::globalMinimumSliderChanged(int value)
+{
+    GetThresholdSettings()->globalSetting[0] = (double)value / (double)SLIDER_SUBSTEPS;
+    UpdateGUI();
+}
 
-    this->form->averageValueMaxSlider->blockSignals(false);
-    this->form->averageValueMaxSpinBox->blockSignals(false);
+void ScoringTools::globalMinimumSpinBoxChanged(double value)
+{
+    GetThresholdSettings()->globalSetting[0] = value;
+    UpdateGUI();
+}
 
-    this->form->averageValueMinSlider->setMaximum(this->form->averageValueMaxSlider->value()-1);
+void ScoringTools::globalMaximumSliderChanged(int value)
+{
+    GetThresholdSettings()->globalSetting[1] = (double)value / (double)SLIDER_SUBSTEPS;
+    UpdateGUI();
+}
+
+void ScoringTools::globalMaximumSpinBoxChanged(double value)
+{
+    GetThresholdSettings()->globalSetting[1] = value;
+    UpdateGUI();
 }
 
 void ScoringTools::updateButtonClicked()
 {
     ComputeFibers();
+}
+
+void ScoringTools::displayHistogramButtonClicked()
+{
+    ShowHistogram();
+}
+
+void ScoringTools::setActiveScalarsButtonClicked()
+{
+    SetActiveScalars();
 }
 
 void ScoringTools::outputLineEditChanged(QString text)
@@ -448,7 +791,15 @@ void ScoringTools::connectAll()
     connect(this->form->averageValueMaxSlider,SIGNAL(valueChanged(int)),this,SLOT(averageValueMaxSliderChanged(int)));
     connect(this->form->averageValueMaxSpinBox,SIGNAL(valueChanged(double)),this,SLOT(averageValueMaxSpinBoxChanged(double)));
     connect(this->form->updateButton,SIGNAL(clicked()),this,SLOT(updateButtonClicked()));
+    connect(this->form->displayHistogramButton,SIGNAL(clicked()),this,SLOT(displayHistogramButtonClicked()));
+    connect(this->form->setActiveScalarsButton,SIGNAL(clicked()),this,SLOT(setActiveScalarsButtonClicked()));
     connect(this->form->outputLineEdit,SIGNAL(textChanged(QString)),this,SLOT(outputLineEditChanged(QString)));
+    connect(this->form->fiberLengthSlider,SIGNAL(valueChanged(int)),this,SLOT(fiberLengthSliderChanged(int)));
+    connect(this->form->fiberLengthSpinBox,SIGNAL(valueChanged(double)),this,SLOT(fiberLengthSpinBoxChanged(double)));
+    connect(this->form->globalMinimumSlider,SIGNAL(valueChanged(int)),this,SLOT(globalMinimumSliderChanged(int)));
+    connect(this->form->globalMinimumSpinBox,SIGNAL(valueChanged(double)),this,SLOT(globalMinimumSpinBoxChanged(double)));
+    connect(this->form->globalMaximumSlider,SIGNAL(valueChanged(int)),this,SLOT(globalMaximumSliderChanged(int)));
+    connect(this->form->globalMaximumSpinBox,SIGNAL(valueChanged(double)),this,SLOT(globalMaximumSpinBoxChanged(double)));
 }
 
 //------------------------[ Disconnect Qt elements ]-----------------------\\

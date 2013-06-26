@@ -2045,7 +2045,7 @@ void IsosurfaceVisualization::comboBoxFiberDataChanged()
 
 
 
-
+        //QWidget *secondWindow = new QWidget();
         secondWindow.setGeometry(0, 0, 1150, 600);
 
 

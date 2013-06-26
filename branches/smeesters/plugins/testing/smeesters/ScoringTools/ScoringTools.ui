@@ -16,7 +16,7 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_2">
+  <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
     <layout class="QGridLayout" name="gridLayout">
      <item row="0" column="0">
@@ -48,9 +48,9 @@
     </layout>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox">
+    <widget class="QGroupBox" name="scalarGroupBox">
      <property name="title">
-      <string>Fiber selection</string>
+      <string>Scalar thresholding</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
@@ -66,6 +66,20 @@
          <widget class="QComboBox" name="scalarTypeCombo"/>
         </item>
        </layout>
+      </item>
+      <item>
+       <widget class="QPushButton" name="setActiveScalarsButton">
+        <property name="text">
+         <string>Set as active scalars</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="displayHistogramButton">
+        <property name="text">
+         <string>Display histogram</string>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QLabel" name="label_4">
@@ -175,27 +189,44 @@
         </item>
        </layout>
       </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="shapeGroupBox">
+     <property name="title">
+      <string>Shape thresholding</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
-       <widget class="QPushButton" name="updateButton">
+       <widget class="QLabel" name="label_8">
         <property name="text">
-         <string>Update</string>
+         <string>Length of fiber</string>
         </property>
        </widget>
       </item>
       <item>
-       <spacer name="verticalSpacer_2">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>20</width>
-          <height>289</height>
-         </size>
-        </property>
-       </spacer>
+       <layout class="QHBoxLayout" name="horizontalLayout_7">
+        <item>
+         <widget class="QSlider" name="fiberLengthSlider">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QDoubleSpinBox" name="fiberLengthSpinBox"/>
+        </item>
+       </layout>
       </item>
      </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="updateButton">
+     <property name="text">
+      <string>Update</string>
+     </property>
     </widget>
    </item>
    <item>

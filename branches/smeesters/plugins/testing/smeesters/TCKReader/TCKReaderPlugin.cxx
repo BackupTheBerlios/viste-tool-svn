@@ -182,6 +182,15 @@ void TCKReaderPlugin::loadDataFromFile(QString filename)
                 if(TCKFile.eof())
                     break;
 
+                f1 += 80;
+                f1 *= 0.5;
+
+                f2 += 120;
+                f2 *= 0.5;
+
+                f3 += 60;
+                f3 *= 0.5;
+
                 fiber.append(f1);
                 fiber.append(f2);
                 fiber.append(f3);
@@ -236,6 +245,22 @@ void TCKReaderPlugin::loadDataFromFile(QString filename)
 //	algo->SetProgressText("Loading pathways ...");
 //	algo->UpdateProgress(0.0);
 //    this->core()->out()->createProgressBarForAlgorithm(algo, "TCK reader");
+
+
+    //
+    //  Transformation
+    //
+
+    vtkMatrix4x4 * mat = vtkMatrix4x4::New();
+    mat->Identity();
+
+    vtkTransform* transform = vtkTransform::New();
+    transform->SetMatrix(mat);
+    transform->Translate(-80,-120,-60);
+    transform->Scale(2,2,2);
+    mat = transform->GetMatrix();
+
+
 
 
 
@@ -319,7 +344,7 @@ void TCKReaderPlugin::loadDataFromFile(QString filename)
 	ds->getAttributes()->addAttribute("updatePipeline", 1.0);
 
 	// Copy the transformation matrix to the output
-	//ds->getAttributes()->addAttribute("transformation matrix", vtkObject::SafeDownCast(mat));
+	ds->getAttributes()->addAttribute("transformation matrix", vtkObject::SafeDownCast(mat));
 
     // Add the data set to the manager
 	this->core()->data()->addDataSet(ds);
