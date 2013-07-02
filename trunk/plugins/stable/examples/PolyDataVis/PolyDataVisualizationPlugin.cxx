@@ -42,6 +42,10 @@
  * 2010-10-19	Evert van Aart
  * - Disabled this plugin for fiber data sets, as those are handled by the
  *   Fiber Visualization plugin.
+ *
+ *  2013-07-02	Mehmet Yusufoglu
+ * - Added an opacity slider,corresponding slot and lines to the
+ * list box data selection slot. No class variables added.
  * 
  */
 
@@ -79,6 +83,7 @@ PolyDataVisualizationPlugin::PolyDataVisualizationPlugin() : Plugin("PolyData")
     connect(this->ui->visibleCheckBox, SIGNAL(toggled(bool)), this, SLOT(setVisible(bool)));
     connect(this->ui->lightingCheckBox, SIGNAL(toggled(bool)), this, SLOT(setLighting(bool)));
     connect(this->ui->colorButton, SIGNAL(clicked()), this, SLOT(changeColor()));
+	 connect(this->ui->opacitySlider, SIGNAL(valueChanged(int)), this, SLOT(changeOpacity(int)));
 }
 
 PolyDataVisualizationPlugin::~PolyDataVisualizationPlugin()
@@ -174,6 +179,9 @@ void PolyDataVisualizationPlugin::selectData(int row)
     this->ui->dataSetName->setText(this->dataSets.at(this->selectedData)->getName());
     this->ui->visibleCheckBox->setChecked(this->actors.at(this->selectedData)->GetVisibility());
     this->ui->lightingCheckBox->setChecked(this->actors.at(this->selectedData)->GetProperty()->GetLighting());
+	//opacity
+	this->ui->opacitySlider->setValue(this->actors.at(this->selectedData)->GetProperty()->GetOpacity()*100);
+	this->ui->opacityLabel->setText( QString::number( this->actors.at(this->selectedData)->GetProperty()->GetOpacity() ));
     this->changingSelection = false;
 }
 
@@ -214,6 +222,17 @@ void PolyDataVisualizationPlugin::changeColor()
 	property->SetColor(newColor.redF(), newColor.greenF(), newColor.blueF());
 	this->core()->render();
 	}
+}
+
+void PolyDataVisualizationPlugin::changeOpacity(int value)
+{
+    if (this->changingSelection) return;
+    if (this->selectedData == -1) return;
+	 Q_ASSERT(this->actors.at(this->selectedData));
+	 this->actors.at(this->selectedData)->GetProperty()->SetOpacity(value/100.0);
+	 	this->ui->opacityLabel->setText( QString::number(value/100.0));
+     this->core()->render();
+
 }
 
 } // namespace bmia

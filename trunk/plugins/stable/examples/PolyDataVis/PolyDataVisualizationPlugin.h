@@ -43,6 +43,8 @@
  * - Disabled this plugin for fiber data sets, as those are handled by the
  *   Fiber Visualization plugin.
  * 
+ *  2013-07-02	Mehmet Yusufoglu
+ * - Added an opacity slider slot declaration.
  */
 
 // This example plugin shows how to create a plugin that uses
@@ -110,6 +112,7 @@ protected slots:
     void setVisible(bool visible);
     void setLighting(bool lighting);
     void changeColor();
+	void changeOpacity(int value);
 
 private:
     /**
