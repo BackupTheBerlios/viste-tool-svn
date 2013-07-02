@@ -70,9 +70,11 @@
  * - Moved the background color options to this settings dialog.
  * - Added comments, implemented destructor.
  *
- *  * 2013-02-12 Mehmet Yusufoglu
+ *   2013-02-12 Mehmet Yusufoglu
  * - Changed showAbout function, which shows the Help->About window. Reads the data from an xml file. AboutInfo.xml.
  *
+ *   2013-05-12 Mehmet Yusufoglu
+ * - Added Tooltips and Status Tips.
  */
 
 
