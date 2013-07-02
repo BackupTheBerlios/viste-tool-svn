@@ -212,20 +212,22 @@ class HARDIdeterministicTracker
 
 		virtual void calculateFiber(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,  int numberOfIterations, bool cLEANMAXIMA, double TRESHOLD);
 		
+
+		/** Computes a single fiber in either the positive or negative direction. Spherical Harmonics Direction Interpolation.
+			Points along the fibers are computed iteratively
+			Points are then stored in "pointList", which at the start only contains the seed point.
+			@param direction	1 for positive direction, -1 for negative 
+			@param pointList	List of fiber points */
+
+		virtual void calculateFiberSHDI(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,  int numberOfIterations, bool cLEANMAXIMA, double TRESHOLD);
+		
+
 			/** A version for Discrete Sphere data. Computes a single fiber in either the positive or negative direction. A new version of GetOutput function is used inside.
 			Points along the fibers are computed iteratively
 			Points are then stored in "pointList", which at the start only contains the seed point.
 			@param direction	1 for positive direction, -1 for negative 
 			@param pointList	List of fiber points */
 		void calculateFiberDS(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,int numberOfIterations, bool CLEANMAXIMA, double TRESHOLD);
-
-			/**  A new version that uses direction interpolation.
-			Points along the fibers are computed iteratively
-			Points are then stored in "pointList", which at the start only contains the seed point.
-			@param direction	1 for positive direction, -1 for negative 
-			@param pointList	List of fiber points */
-		void calculateFiberDirInterp(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,int numberOfIterations, bool CLEANMAXIMA, double TRESHOLD);
-
 
 
 		/** Sets the unit vectors for this class. */ 
