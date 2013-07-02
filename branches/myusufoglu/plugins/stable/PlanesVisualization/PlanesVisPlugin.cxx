@@ -62,6 +62,11 @@
  * - Version 1.1.1.
  * - Correctly update seed points when a new volume is selected.
  *
+ * 2013-06-28	Mehmet Yusufoglu
+ * - slicePosX, Y and Z attributes are added to the scalar dataset. These attributes 
+ * are set by another plugins to be able to change the position of the planes. Local plane
+ * position changes does not change the values, because calling datasetchanged causes little delay.
+ * Therefore changing planes locally does not emiited to other plugins, but changes in other plugins effect here.
  */
 
 
@@ -69,7 +74,7 @@
 
 #include "PlanesVisPlugin.h"
 
-
+ 
 namespace bmia {
 
 
@@ -278,7 +283,7 @@ void PlanesVisPlugin::dataSetAdded(data::DataSet * ds)
 	if (ds->getKind() == "scalar volume")
 	{
 		this->connectControls(false);
-
+		
 		// Add the scalar volume to the list
 		this->scalarVolumeDataSets.append(ds);
 			
@@ -304,10 +309,10 @@ void PlanesVisPlugin::dataSetAdded(data::DataSet * ds)
 			this->ui->dtiWeightCombo->setCurrentIndex(1);
 			this->changeWeightVolume(1);
 		}
-			//stephen remove
-		//ds->getAttributes()->addAttribute("SlicePosX",0);
-		//ds->getAttributes()->addAttribute("SlicePosY",0);
-		//ds->getAttributes()->addAttribute("SlicePosZ",0);
+	   //slicePosXYZ are used if another plugin wants to change the slice position
+		ds->getAttributes()->addAttribute("SlicePosX",0);
+		ds->getAttributes()->addAttribute("SlicePosY",0);
+		ds->getAttributes()->addAttribute("SlicePosZ",0);
 		this->connectControls(true);
 
 	} // if [scalar volume]
@@ -376,16 +381,22 @@ void PlanesVisPlugin::dataSetChanged(data::DataSet * ds)
 		if (this->ui->dtiWeightCombo->currentIndex() == dsIndex + 1)
 			this->changeWeightVolume(dsIndex + 1);
 	
-		this->connectControls(true);
-		//stephen
-		//int pos[3];
-		//ds->getAttributes()->getAttribute("SlicePosX",pos[0]);
-		//ds->getAttributes()->getAttribute("SlicePosY",pos[1]);
-		//ds->getAttributes()->getAttribute("SlicePosZ",pos[2]);
-		//cout << pos[0] << " " << pos[1] << " " << pos[2] << endl;
-		//emit this->setXSlice(pos[0]);
-		//emit this->setYSlice(pos[1]);
-		//emit this->setZSlice(pos[2]);
+		
+
+		//if other plugin wants to change slice position
+		int pos[3];
+		ds->getAttributes()->getAttribute("SlicePosX",pos[0]);
+		ds->getAttributes()->getAttribute("SlicePosY",pos[1]);
+		ds->getAttributes()->getAttribute("SlicePosZ",pos[2]);
+		this->ui->xPositionSpin->setValue(pos[0]); // this will trigger setXSlice
+		this->ui->yPositionSpin->setValue(pos[1]);
+		this->ui->zPositionSpin->setValue(pos[2]);
+		emit this->setXSlice(pos[0],false);
+		emit this->setYSlice(pos[1],false);
+		emit this->setZSlice(pos[2],false);
+
+		this->connectControls(true); 
+		
 	}
 
 	// Transfer Functions
@@ -1069,7 +1080,6 @@ void PlanesVisPlugin::setXSlice(int x, bool updateData)
 {
 	// Set the slice position
 	this->actor->SetX(x);
-
 	// Get the input image of the slice
 	vtkImageData * input = this->actor->GetInput();
 		

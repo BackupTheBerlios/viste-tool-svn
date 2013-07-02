@@ -1329,7 +1329,7 @@ namespace bmia {
 		//if(ds->getAttributes()->hasAttribute("SlicePosX"))
 		//{
 		//	ds->getAttributes()->addAttribute("SlicePosX",x);
-		//   cout << "Added attribute \n";
+		// //  cout << "Added attribute \n";
 		//	this->core()->data()->dataSetChanged(ds);
 		//}
 		// Get the input image of the slice

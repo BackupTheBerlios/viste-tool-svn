@@ -154,7 +154,7 @@ ProfileManager::ProfileManager(plugin::Manager * rPluginManager, DTIToolSettings
 	this->pluginTable->verticalHeader()->hide();
 	this->pluginTable->setTextElideMode(Qt::ElideMiddle);
 	this->pluginTable->setHorizontalHeaderLabels(labels);
-
+	this->pluginTable->setMinimumWidth(400);
 	// Horizontal separator line
 	this->hLine3 = new QFrame;
 	this->hLine3->setFrameShape(QFrame::HLine);
@@ -184,6 +184,7 @@ ProfileManager::ProfileManager(plugin::Manager * rPluginManager, DTIToolSettings
 
 	// Setup the main layout
 	this->mainLayout = new QVBoxLayout;
+	
 	this->mainLayout->addLayout(this->activeProfileHLayout);
 	this->mainLayout->addLayout(this->profileButtonsHLayout);
 	this->mainLayout->addWidget(this->hLine1);
@@ -197,7 +198,10 @@ ProfileManager::ProfileManager(plugin::Manager * rPluginManager, DTIToolSettings
 	this->mainLayout->addWidget(this->dataList);
 	this->mainLayout->addLayout(this->saveHLayout);
 
+	this->setSizeGripEnabled(true);
 	this->setLayout(this->mainLayout);
+    //this->resize(500,460);
+	this->mainLayout->setSizeConstraint(QLayout::SetMinimumSize);
 	// Connect all pushbuttons
 	connect(this->saveButton,				SIGNAL(clicked()), this, SLOT(save()));
 	connect(this->closeButton,				SIGNAL(clicked()), this, SLOT(close()));
