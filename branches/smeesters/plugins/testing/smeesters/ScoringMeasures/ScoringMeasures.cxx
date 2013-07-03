@@ -84,6 +84,7 @@ void ScoringMeasures::dataSetAdded(data::DataSet * d)
         sortedFibers->ds_processed = NULL;
 		sortedFibers->outputFiberDataName = d->getName().append("_[SM]");
 		sortedFibers->processed = false;
+		sortedFibers->selectedGlyphData = -1;
 
 		// Create parameter settings struct
 		ParameterSettings* ps = new ParameterSettings;
@@ -233,12 +234,84 @@ void ScoringMeasures::SelectGlyphDataSet(int index)
     SortedFibers* sortedFibers = this->sortedFibersList.at(this->selectedFiberDataset);
 
      // Update selected scalar type
-    sortedFibers->selectedGlyphData = index;
+    sortedFibers->selectedGlyphData = index - 1;
 }
 
 void ScoringMeasures::ComputeScore()
 {
+    // return if fiber is none
+    if(this->selectedFiberDataset == -1)
+        return;
 
+    // Get fiber info struct
+    SortedFibers* sortedFibers = this->sortedFibersList.at(this->selectedFiberDataset);
+
+    // return if glyph dataset is none
+    if(sortedFibers->selectedGlyphData == -1)
+        return;
+
+    // Get polydata of original fibers
+    vtkPolyData * polydata = sortedFibers->ds->getVtkPolyData();
+
+    // Get image data of DSF
+    data::DataSet * DSF = this->glyphDataSets.at(sortedFibers->selectedGlyphData);
+    vtkImageData * image = DSF->getVtkImageData();
+
+    // Create filter
+    vtkFiberScoringMeasuresFilter* scoringFilter = vtkFiberScoringMeasuresFilter::New();
+    scoringFilter->SetInput(polydata);
+    scoringFilter->SetInputVolume(image);
+
+    // Run the filter
+	this->core()->out()->createProgressBarForAlgorithm(scoringFilter, "Fiber scoring");
+	scoringFilter->Update();
+	this->core()->out()->deleteProgressBarForAlgorithm(scoringFilter);
+
+    // Copy the created polydata
+	vtkPolyData* outputPoly = vtkPolyData::New();
+	outputPoly->ShallowCopy(scoringFilter->GetOutput());  // disconnect from filter to prevent unwanted future updates
+
+    // Construst vIST/e dataset
+    data::DataSet* ds = sortedFibers->ds_processed;
+	if (ds != NULL)
+	{
+		ds->updateData(outputPoly);
+		ds->setName(sortedFibers->outputFiberDataName);
+
+		// Fibers should be visible, and the visualization pipeline should be updated
+		ds->getAttributes()->addAttribute("isVisible", 1.0);
+		ds->getAttributes()->addAttribute("updatePipeline", 1.0);
+
+		// Copy the transformation matrix to the output
+		ds->getAttributes()->copyTransformationMatrix(sortedFibers->ds);
+
+		this->core()->data()->dataSetChanged(ds);
+	}
+
+	// Otherwise, create a new data set
+	else
+	{
+		ds = new data::DataSet(sortedFibers->outputFiberDataName, "fibers", outputPoly);
+
+		// Fibers should be visible, and the visualization pipeline should be updated
+		ds->getAttributes()->addAttribute("isVisible", 1.0);
+		ds->getAttributes()->addAttribute("updatePipeline", 1.0);
+
+		// We add this attribute to make sure that output data sets are not added to the input data sets
+		ds->getAttributes()->addAttribute("isSM", 1);
+
+		// Copy the transformation matrix to the output
+		ds->getAttributes()->copyTransformationMatrix(sortedFibers->ds);
+
+		this->core()->data()->addDataSet(ds);
+	}
+
+    // Update ds locally
+	sortedFibers->ds_processed = ds;
+
+	// Hide the input data set
+	sortedFibers->ds->getAttributes()->addAttribute("isVisible", -1.0);
+	this->core()->data()->dataSetChanged(sortedFibers->ds);
 }
 
 ///

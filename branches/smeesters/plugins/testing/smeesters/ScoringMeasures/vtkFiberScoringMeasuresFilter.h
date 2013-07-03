@@ -15,6 +15,7 @@
 #include <vtkCellArray.h>
 #include <vtkCell.h>
 #include <vtkIdList.h>
+#include <vtkImageData.h>
 
 /** Includes - Qt */
 
@@ -41,6 +42,19 @@ class vtkFiberScoringMeasuresFilter : public vtkPolyDataToPolyDataFilter
 
 		vtkTypeMacro(vtkFiberScoringMeasuresFilter, vtkPolyDataToPolyDataFilter);
 
+		/** Set a new input volume.
+			@param image		New discrete sphere function volume. */
+
+		void SetInputVolume(vtkImageData * image);
+
+        /** Method for curve generation **/
+
+		enum TypeOfCurve
+        {
+            CURVE_TYPE_GEODESIC = 0,
+            CURVE_TYPE_ELASTICA
+        };
+
 
 	protected:
 
@@ -55,6 +69,12 @@ class vtkFiberScoringMeasuresFilter : public vtkPolyDataToPolyDataFilter
 		/** Destructor. */
 
 		~vtkFiberScoringMeasuresFilter();
+
+		/** Input volume, containing an array defining the spherical directions,
+			an array with the radius per direction per voxel, and (optionally)
+			a triangles array defining the topology of the glyphs. */
+
+		vtkImageData * inputVolume;
 
 }; // class vtkFiberScoringMeasuresFilter
 

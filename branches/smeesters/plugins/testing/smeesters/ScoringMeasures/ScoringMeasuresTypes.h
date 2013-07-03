@@ -14,12 +14,6 @@ typedef struct
 
 } ParameterSettings;
 
-enum TypeOfCurve
-{
-    CURVE_TYPE_GEODESIC = 0,
-    CURVE_TYPE_ELASTICA
-};
-
 }
 
 #endif  // bmia_ScoringMeasuresTypes_h
