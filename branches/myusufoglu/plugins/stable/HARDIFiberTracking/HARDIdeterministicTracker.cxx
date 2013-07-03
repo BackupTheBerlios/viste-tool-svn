@@ -493,6 +493,7 @@ void HARDIdeterministicTracker::calculateFiberSHDI(int direction, std::vector<HA
 		double * SHAux = new double[numberSHcomponents];
 		//this->interpolateSH(SHAux, weights, numberSHcomponents); //not interpolate now
 		double * tempSH = new double[numberSHcomponents];
+
 		for (int j = 0; j < 8; ++j)
 	{
 		//get the SH
@@ -502,8 +503,13 @@ void HARDIdeterministicTracker::calculateFiberSHDI(int direction, std::vector<HA
 		//get the ODF // get maxes like below 8 times
 		DoIt.getOutput(tempSH, this->parentFilter->shOrder,threshold, anglesArray,  maxima, regionList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
 		 // maxima has ids use them to get angles
-		//for(int i=0; i< maxima.size(); i++)
-		  //   anglesArray[maxima.at(i)] // choose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
+		double avgMaxAng[2];
+		for(int i=0; i< maxima.size(); i++)
+		{
+		     avgMaxAng[0]+=anglesArray[maxima.at(i)][0];   // ose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
+		     avgMaxAng[1]+=anglesArray[maxima.at(i)][1];   // ose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
+		}
+		//DoIt.cleanOutput() // clean the output there must remain two maxima how?
 			// anglelardan bizimkine en yakinini almak gerek. Ama ilk basta bizimki ne yok, ilk bastaki ortalama angle olsun!!!!
 		//chose closer of each maxs
 
@@ -1171,7 +1177,7 @@ void MaximumFinder::getOutputDS(double* pDarraySH, int shOrder,double treshold, 
 		if (currentPointValue > (treshold))
 		{
 			//get the neighbors 
-			getNeighbors(input[i], 1, neighborslist);
+			getNeighbors(input[i], 1, neighborslist); // dene 1 komsuluk yeterli mi
 			double currentMax = 0.0;
 
 			//find the highest valued neighbor
