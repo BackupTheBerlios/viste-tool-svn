@@ -444,7 +444,7 @@ void HARDIdeterministicTracker::calculateFiberSHDI(int direction, std::vector<HA
 	double		pCoords[3]			= {0.0, 0.0, 0.0};			// Used in "FindCell"
 	double		testDot				= 1.0;						// Dot product for current step
 	bool		firstStep			= true;						// True during first integration step
-	
+	double  threshold = 0;
 	// Interpolation weights
 	double *	weights = new double[8];
 
@@ -491,14 +491,23 @@ void HARDIdeterministicTracker::calculateFiberSHDI(int direction, std::vector<HA
 
 		// Interpolate the SH at the seed point position
 		double * SHAux = new double[numberSHcomponents];
-	//	this->interpolateSH(SHAux, weights, numberSHcomponents); //not interpolate now
+		//this->interpolateSH(SHAux, weights, numberSHcomponents); //not interpolate now
+		double * tempSH = new double[numberSHcomponents];
+		for (int j = 0; j < 8; ++j)
+	{
+		//get the SH
 		
-		//for(1...*)
+		this->cellHARDIData->GetTuple(j, tempSH);
 		//this->cellHARDIData has 8 hardi coeffieint sets
 		//get the ODF // get maxes like below 8 times
-		DoIt.getOutput(SHAux, this->parentFilter->shOrder, anglesArray); // SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
-		// anglelardan bizimkine en yakinini almak gerek. Ama ilk basta bizimki ne yok, ilk bastaki ortalama angle olsun!!!!
+		DoIt.getOutput(tempSH, this->parentFilter->shOrder,threshold, anglesArray,  maxima, regionList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
+		 // maxima has ids use them to get angles
+		//for(int i=0; i< maxima.size(); i++)
+		  //   anglesArray[maxima.at(i)] // choose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
+			// anglelardan bizimkine en yakinini almak gerek. Ama ilk basta bizimki ne yok, ilk bastaki ortalama angle olsun!!!!
 		//chose closer of each maxs
+
+		}
 		// use weights as interpolatin of angles...
 
 		//deallocate memory
