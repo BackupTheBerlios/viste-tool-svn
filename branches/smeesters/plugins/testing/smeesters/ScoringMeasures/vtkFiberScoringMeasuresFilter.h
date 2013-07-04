@@ -47,6 +47,11 @@ class vtkFiberScoringMeasuresFilter : public vtkPolyDataToPolyDataFilter
 
 		void SetInputVolume(vtkImageData * image);
 
+		/** Set parameter settings
+			@param ps		Parameter settings struct. */
+
+		void SetParameters(ParameterSettings* ps);
+
         /** Method for curve generation **/
 
 		enum TypeOfCurve
@@ -75,6 +80,8 @@ class vtkFiberScoringMeasuresFilter : public vtkPolyDataToPolyDataFilter
 			a triangles array defining the topology of the glyphs. */
 
 		vtkImageData * inputVolume;
+
+		ParameterSettings* ps;
 
 }; // class vtkFiberScoringMeasuresFilter
 

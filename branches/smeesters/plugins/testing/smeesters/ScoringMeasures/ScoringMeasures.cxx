@@ -89,6 +89,10 @@ void ScoringMeasures::dataSetAdded(data::DataSet * d)
 		// Create parameter settings struct
 		ParameterSettings* ps = new ParameterSettings;
 		ps->useGlyphData = true;
+		ps->lambda = 0.0;
+		ps->beta = 0.0;
+		ps->muu = 0.0;
+		ps->typeOfCurve = vtkFiberScoringMeasuresFilter::CURVE_TYPE_GEODESIC;
 		sortedFibers->ps = ps;
 
         // Add the new data set to the list of currently available fiber sets
@@ -248,19 +252,20 @@ void ScoringMeasures::ComputeScore()
 
     // return if glyph dataset is none
     if(sortedFibers->selectedGlyphData == -1)
-        return;
+        sortedFibers->
 
     // Get polydata of original fibers
     vtkPolyData * polydata = sortedFibers->ds->getVtkPolyData();
-
-    // Get image data of DSF
-    data::DataSet * DSF = this->glyphDataSets.at(sortedFibers->selectedGlyphData);
-    vtkImageData * image = DSF->getVtkImageData();
 
     // Create filter
     vtkFiberScoringMeasuresFilter* scoringFilter = vtkFiberScoringMeasuresFilter::New();
     scoringFilter->SetInput(polydata);
     scoringFilter->SetInputVolume(image);
+    scoringFilter->SetParameters(sortedFibers->ps);
+
+    // Get image data of DSF
+    data::DataSet * DSF = this->glyphDataSets.at(sortedFibers->selectedGlyphData);
+    vtkImageData * image = DSF->getVtkImageData();
 
     // Run the filter
 	this->core()->out()->createProgressBarForAlgorithm(scoringFilter, "Fiber scoring");
@@ -363,7 +368,17 @@ void ScoringMeasures::UpdateGUI()
     // block signal propagation
     BlockSignals();
 
+    // get sorted fibers
+    SortedFibers* sortedFibers = this->sortedFibersList.at(this->selectedFiberDataset);
+    ParameterSettings* ps = sortedFibers->ps;
 
+    // set GUI values
+    this->form->lambdaSlider->setValue(ps->lambda);
+    this->form->lambdaSpinBox->setValue(ps->lambda);
+    this->form->betaSlider->setValue(ps->beta);
+    this->form->betaSpinBox->setValue(ps->beta);
+    this->form->muuSlider->setValue(ps->muu);
+    this->form->muuSpinBox->setValue(ps->muu);
 
     // re-enable signals
     AllowSignals();
@@ -373,6 +388,12 @@ SortedFibers* ScoringMeasures::GetSortedFibers()
 {
     SortedFibers* sortedFibers = this->sortedFibersList.at(this->selectedFiberDataset);
     return sortedFibers;
+}
+
+ParameterSettings* ScoringMeasures::GetParameterSettings()
+{
+    SortedFibers* sortedFibers = this->sortedFibersList.at(this->selectedFiberDataset);
+    return sortedFibers->ps;
 }
 
 ///
@@ -400,6 +421,42 @@ void ScoringMeasures::usedInScoringCheckBoxChanged(bool checked)
     EnableGUI();
 }
 
+void ScoringMeasures::lambdaSliderChanged(int value)
+{
+    GetParameterSettings()->lambda = (double)value;
+    UpdateGUI();
+}
+
+void ScoringMeasures::lambdaSpinBoxChanged(double value)
+{
+    GetParameterSettings()->lambda = value;
+    UpdateGUI();
+}
+
+void ScoringMeasures::betaSliderChanged(int value)
+{
+    GetParameterSettings()->beta = (double)value;
+    UpdateGUI();
+}
+
+void ScoringMeasures::betaSpinBoxChanged(double value)
+{
+    GetParameterSettings()->beta = value;
+    UpdateGUI();
+}
+
+void ScoringMeasures::muuSliderChanged(int value)
+{
+    GetParameterSettings()->muu = (double)value;
+    UpdateGUI();
+}
+
+void ScoringMeasures::muuSpinBoxChanged(double value)
+{
+    GetParameterSettings()->muu = value;
+    UpdateGUI();
+}
+
 ///
 ///      GUI CONTROLS
 ///
@@ -412,6 +469,13 @@ void ScoringMeasures::connectAll()
     connect(this->form->glyphDataCombo,SIGNAL(currentIndexChanged(int)),this,SLOT(glyphDataComboChanged(int)));
     connect(this->form->updateButton,SIGNAL(clicked()),this,SLOT(updateButtonClicked()));
     connect(this->form->usedInScoringCheckBox,SIGNAL(toggled(bool)),this,SLOT(usedInScoringCheckBoxChanged(bool)));
+
+    connect(this->form->lambdaSlider,SIGNAL(valueChanged(int)),this,SLOT(lambdaSliderChanged(int)));
+    connect(this->form->lambdaSpinBox,SIGNAL(valueChanged(double)),this,SLOT(lambdaSpinBoxChanged(double)));
+    connect(this->form->betaSlider,SIGNAL(valueChanged(int)),this,SLOT(betaSliderChanged(int)));
+    connect(this->form->betaSpinBox,SIGNAL(valueChanged(double)),this,SLOT(betaSpinBoxChanged(double)));
+    connect(this->form->muuSlider,SIGNAL(valueChanged(int)),this,SLOT(muuSliderChanged(int)));
+    connect(this->form->muuSpinBox,SIGNAL(valueChanged(double)),this,SLOT(muuSpinBoxChanged(double)));
 }
 
 //------------------------[ Disconnect Qt elements ]-----------------------\\

@@ -114,6 +114,12 @@ protected slots:
     void glyphDataComboChanged(int index);
     void updateButtonClicked();
     void usedInScoringCheckBoxChanged(bool checked);
+    void lambdaSliderChanged(int value);
+    void lambdaSpinBoxChanged(double value);
+    void betaSliderChanged(int value);
+    void betaSpinBoxChanged(double value);
+    void muuSliderChanged(int value);
+    void muuSpinBoxChanged(double value);
 
 private:
 
@@ -163,6 +169,7 @@ private:
     void ComputeScore();
 
     SortedFibers* GetSortedFibers();
+    ParameterSettings* GetParameterSettings();
 };
 
 }

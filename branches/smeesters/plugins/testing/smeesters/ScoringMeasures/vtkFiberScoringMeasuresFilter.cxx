@@ -30,22 +30,61 @@ vtkFiberScoringMeasuresFilter::~vtkFiberScoringMeasuresFilter()
 
 void vtkFiberScoringMeasuresFilter::SetInputVolume(vtkImageData * image)
 {
-    // Do nothing if the image hasn't changed
-	if (this->inputVolume == image)
-		return;
-
-	// Unregister the previous image
-	//if (this->inputVolume)
-	//	this->inputVolume->UnRegister((vtkObjectBase *) this);
-
 	// Store the pointer
 	this->inputVolume = image;
+}
 
-	// Register the new image
-	//image->Register((vtkObjectBase *) this);
+//-------------------------------[ SetParameters ]-------------------------------\\
+
+void vtkFiberScoringMeasuresFilter::SetParameters(ParameterSettings* ps)
+{
+    // Store the pointer
+    this->ps = ps;
 }
 
 //-------------------------------[ Execute ]-------------------------------\\
+
+double* Difference(double* vec, double* vec2)
+{
+    double* dp = (double*) malloc(3*sizeof(double));
+    dp[0] = vec[0] - vec2[0];
+    dp[1] = vec[1] - vec2[1];
+    dp[2] = vec[2] - vec2[2];
+    return dp;
+}
+
+double* HalvedDifference(double* vec, double* vec2)
+{
+    double* dp = (double*) malloc(3*sizeof(double));
+    dp[0] = (vec[0] - vec2[0])/2.0;
+    dp[1] = (vec[1] - vec2[1])/2.0;
+    dp[2] = (vec[2] - vec2[2])/2.0;
+    return dp;
+}
+
+double* Normalize(double* vec)
+{
+    double length = sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
+    double* nvec = (double*) malloc(3*sizeof(double));
+    nvec[0] = vec[0]/length;
+    nvec[1] = vec[1]/length;
+    nvec[2] = vec[2]/length;
+    return nvec;
+}
+
+double* Cross(double* vec, double* vec2)
+{
+    double* c = (double*) malloc(3*sizeof(double));
+    c[0] = vec[1]*vec2[2] - vec[2]*vec2[1];
+    c[1] = vec[2]*vec2[0] - vec[0]*vec2[2];
+    c[2] = vec[0]*vec2[1] - vec[1]*vec2[0];
+    return c;
+}
+
+double Norm(double* vec)
+{
+    return abs(vec[0])*abs(vec[0]) + abs(vec[1])*abs(vec[1]) + abs(vec[2])*abs(vec[2]);
+}
 
 void vtkFiberScoringMeasuresFilter::Execute()
 {
@@ -216,10 +255,12 @@ void vtkFiberScoringMeasuresFilter::Execute()
 		vtkIdList * newFiberList = vtkIdList::New();
 
         // Previous point coordinates
-        double prev_p[3];
+        double* prev_p;
+        double* prev2_p;
+        double* prev3_p;
 
 		// Current point coordinates
-		double p[3];
+		double* p;
 
 		double PI = 3.14159265358;
 
@@ -231,72 +272,94 @@ void vtkFiberScoringMeasuresFilter::Execute()
 
 			// Copy the point coordinates to the output
 			inputPoints->GetPoint(currentPointId, p);
-			vtkIdType newPointId = outputPoints->InsertNextPoint(p);
-			newFiberList->InsertNextId(newPointId);
 
-            for(int i = 0; i < numberOfScalarTypes; i++)
+			if(pointId > 3)
             {
-                // Get the scalar value
-                double scalar = inputPD->GetArray(i)->GetTuple1(currentPointId);
+                vtkIdType newPointId = outputPoints->InsertNextPoint(p);
+                newFiberList->InsertNextId(newPointId);
 
-                // Copy the scalar value to the output
-                outputScalarsList.at(i)->InsertNextTuple1(scalar);
-            }
-
-            // Compute score for current point
-            if(pointId > 1)
-            {
-                // Find the corresponding voxel
-                vtkIdType imagePointId = this->inputVolume->FindPoint(p[0], p[1], p[2]);
-
-                // Check if the seed point lies inside the image
-                if (imagePointId == -1)
+                for(int i = 0; i < numberOfScalarTypes; i++)
                 {
-                    SMScalars->InsertNextTuple1(0.0);
+                    // Get the scalar value
+                    double scalar = inputPD->GetArray(i)->GetTuple1(currentPointId);
+
+                    // Copy the scalar value to the output
+                    outputScalarsList.at(i)->InsertNextTuple1(scalar);
                 }
-                else
+
+                //
+                // Compute score for current point
+                //
+
+                double radius;
+                if(ps->useGlyphData)
                 {
-                    // compute difference vector
-                    double dp[3];
-                    dp[0] = p[0] - prev_p[0];
-                    dp[1] = p[1] - prev_p[1];
-                    dp[2] = p[2] - prev_p[2];
-
-                    // transform to spherical coordinates
-                    double theta = acos(dp[2]);
-                    double phi = atan(dp[1]/dp[0]);
-
-                    // find nearest vector in glyph data angles list
-                    double cost = 1e30;
-                    int matchedId;
-                    for(int i = 0; i<numberOfAngles; i++)
+                    // Find the corresponding voxel
+                    vtkIdType imagePointId = this->inputVolume->FindPoint(p[0], p[1], p[2]);
+                    if (imagePointId == -1)
                     {
-                        double * angles = anglesArray->GetTuple2(i);
-                        double ncost = ((theta+PI) - (angles[0]+PI))*((theta+PI) - (angles[0]+PI)) + ((phi+PI) - (angles[1]+PI))*((phi+PI) - (angles[1]+PI));
-                        if(ncost < cost)
-                        {
-                            cost = ncost;
-                            matchedId = i;
-                        }
+                        // outside the data, return zero data dependent score
+                        radius = 0.0;
                     }
+                    else
+                    {
+                        // compute difference vector
+                        double* dp = Difference(p,prev_p);
 
-                    //double* matchedAngles = anglesArray->GetTuple2(matchedId);
+                        // transform to spherical coordinates
+                        double theta = acos(dp[2]);
+                        double phi = atan(dp[1]/dp[0]);
 
-                    double radius = radiiArray->GetComponent(imagePointId, matchedId);
+                        // find nearest vector in glyph data angles list
+                        double cost = 1e30;
+                        int matchedId;
+                        for(int i = 0; i<numberOfAngles; i++)
+                        {
+                            double * angles = anglesArray->GetTuple2(i);
+                            double ncost = ((theta+PI) - (angles[0]+PI))*((theta+PI) - (angles[0]+PI)) + ((phi+PI) - (angles[1]+PI))*((phi+PI) - (angles[1]+PI));
+                            if(ncost < cost)
+                            {
+                                cost = ncost;
+                                matchedId = i;
+                            }
+                        }
 
-                    SMScalars->InsertNextTuple1(radius);
-
-                    //printf("p:%f %f %f, prev_p:%f %f %f, dp:%f %f %f \n", p[0], p[1], p[2], prev_p[0], prev_p[1], prev_p[2], dp[0], dp[1], dp[2]);
-                    //printf("pointId: %d, theta:%f, phi:%f \n", pointId, theta, phi);
-                    //printf("matched angles: theta:%f, phi:%f radius:%f\n", matchedAngles[0], matchedAngles[1],radius);
+                        // External energy
+                        radius = radiiArray->GetComponent(imagePointId, matchedId);
+                    }
                 }
-            }
-            else
-            {
-                SMScalars->InsertNextTuple1(0.0);
+
+                // Internal energy
+                double* a1 = HalvedDifference(p,prev_p);
+                double* t0 = Normalize(a1);
+                double* prev_t0 = Normalize(HalvedDifference(prev_p, prev2_p));
+                double* prev2_t0 = Normalize(HalvedDifference(prev2_p, prev3_p));
+                double* t1 = HalvedDifference(t0,prev_t0);
+                double* n0 = Normalize(t1);
+                double* prev_n0 = Normalize(HalvedDifference(prev_t0,prev2_t0));
+                double* n1 = HalvedDifference(n0,prev_n0);
+                double* b0 = Normalize(Cross(t0,n0));
+                double* b1 = Cross(t0,n1);
+
+                double curvature = Norm(t1);
+                double torsion =  Norm(b1);
+
+                // Total score
+                double score = ps->lambda * sqrt(curvature*curvature + ps->beta*ps->beta);
+                if(ps->useGlyphData)
+                    score += radius;
+
+                SMScalars->InsertNextTuple1(score);
+
+                //double* matchedAngles = anglesArray->GetTuple2(matchedId);
+                //printf("p:%f %f %f, prev_p:%f %f %f, dp:%f %f %f \n", p[0], p[1], p[2], prev_p[0], prev_p[1], prev_p[2], dp[0], dp[1], dp[2]);
+                //printf("pointId: %d, theta:%f, phi:%f \n", pointId, theta, phi);
+                //printf("matched angles: theta:%f, phi:%f radius:%f\n", matchedAngles[0], matchedAngles[1],radius);
             }
 
-            // Set previous point
+            // Set previous points
+            prev3_p = prev2_p;
+            prev2_p = prev_p;
             memcpy(prev_p,p,sizeof(p));
 		}
 

@@ -110,13 +110,29 @@
         </item>
         <item>
          <widget class="QSlider" name="lambdaSlider">
+          <property name="minimum">
+           <number>-99</number>
+          </property>
+          <property name="maximum">
+           <number>99</number>
+          </property>
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QDoubleSpinBox" name="lambdaSpinBox"/>
+         <widget class="QDoubleSpinBox" name="lambdaSpinBox">
+          <property name="decimals">
+           <number>2</number>
+          </property>
+          <property name="minimum">
+           <double>-99.000000000000000</double>
+          </property>
+          <property name="maximum">
+           <double>99.000000000000000</double>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>
@@ -138,13 +154,29 @@
         </item>
         <item>
          <widget class="QSlider" name="betaSlider">
+          <property name="minimum">
+           <number>-99</number>
+          </property>
+          <property name="maximum">
+           <number>99</number>
+          </property>
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QDoubleSpinBox" name="betaSpinBox"/>
+         <widget class="QDoubleSpinBox" name="betaSpinBox">
+          <property name="decimals">
+           <number>2</number>
+          </property>
+          <property name="minimum">
+           <double>-99.000000000000000</double>
+          </property>
+          <property name="maximum">
+           <double>99.000000000000000</double>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>
@@ -166,13 +198,23 @@
         </item>
         <item>
          <widget class="QSlider" name="muuSlider">
+          <property name="minimum">
+           <number>-99</number>
+          </property>
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QDoubleSpinBox" name="muuSpinBox"/>
+         <widget class="QDoubleSpinBox" name="muuSpinBox">
+          <property name="decimals">
+           <number>2</number>
+          </property>
+          <property name="minimum">
+           <double>-99.000000000000000</double>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>
