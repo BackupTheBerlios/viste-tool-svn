@@ -282,7 +282,7 @@ class HARDIdeterministicTracker
 
 		void interpolateScalar(double * interpolatedScalar, double * weights);
 
-		
+		void interpolateAngles(std::vector<double *> &angles, double * weights, double *interpolatedAngle);
 
 	private:
 

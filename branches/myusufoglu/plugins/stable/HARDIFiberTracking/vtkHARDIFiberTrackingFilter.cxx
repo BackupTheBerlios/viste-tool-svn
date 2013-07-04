@@ -456,8 +456,15 @@ namespace bmia {
 
 				// Calculate the fiber in positive and negative direction
 				if(this->sphericalHarmonics) {
+					if(true)
+					{
+					tracker->calculateFiberSHDI( 1, &streamlinePointListPos, anglesArray, trianglesArray, NUMBEROFITERATIONS, CLEANMAXIMA, TRESHOLD);
+					tracker->calculateFiberSHDI(-1, &streamlinePointListNeg, anglesArray, trianglesArray, NUMBEROFITERATIONS, CLEANMAXIMA, TRESHOLD);
+					}
+					else {
 					tracker->calculateFiber( 1, &streamlinePointListPos, anglesArray, trianglesArray, NUMBEROFITERATIONS, CLEANMAXIMA, TRESHOLD);
 					tracker->calculateFiber(-1, &streamlinePointListNeg, anglesArray, trianglesArray, NUMBEROFITERATIONS, CLEANMAXIMA, TRESHOLD);
+					}
 				}
 				else
 				{

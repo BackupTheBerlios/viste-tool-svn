@@ -494,6 +494,9 @@ void HARDIdeterministicTracker::calculateFiberSHDI(int direction, std::vector<HA
 		//this->interpolateSH(SHAux, weights, numberSHcomponents); //not interpolate now
 		double * tempSH = new double[numberSHcomponents];
 
+
+		double *avgMaxAng = new double[2];
+		std::vector<double *> anglesBeforeInterpolation; 
 		for (int j = 0; j < 8; ++j)
 	{
 		//get the SH
@@ -501,17 +504,32 @@ void HARDIdeterministicTracker::calculateFiberSHDI(int direction, std::vector<HA
 		this->cellHARDIData->GetTuple(j, tempSH);
 		//this->cellHARDIData has 8 hardi coeffieint sets
 		//get the ODF // get maxes like below 8 times
-		DoIt.getOutput(tempSH, this->parentFilter->shOrder,threshold, anglesArray,  maxima, regionList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
+		//initial regionlist includes all points not some points
+		if(regionList.size()==0)
+			for(int i=0;i<anglesArray.size();i++)
+		regionList.push_back(i);
+
+		DoIt.getOutput(tempSH, this->parentFilter->shOrder,TRESHOLD, anglesArray,  maxima, regionList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
 		 // maxima has ids use them to get angles
-		double avgMaxAng[2];
+		avgMaxAng[0]=0;
+		avgMaxAng[1]=0;
 		for(int i=0; i< maxima.size(); i++)
 		{
-		     avgMaxAng[0]+=anglesArray[maxima.at(i)][0];   // ose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
-		     avgMaxAng[1]+=anglesArray[maxima.at(i)][1];   // ose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
+		     avgMaxAng[0]+=anglesArray.at(maxima.at(i))[0];   // ose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
+		     avgMaxAng[1]+=anglesArray.at(maxima.at(i))[1];   // ose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
 		}
+		 avgMaxAng[0]/=maxima.size();
+		 avgMaxAng[1]/=maxima.size();
+
+		anglesBeforeInterpolation.push_back(avgMaxAng);
+		outputlistwithunitvectors.clear();
+			DoIt.cleanOutput(maxima, outputlistwithunitvectors,SHAux, ODFlist, this->unitVectors, anglesArray);
 		//DoIt.cleanOutput() // clean the output there must remain two maxima how?
 			// anglelardan bizimkine en yakinini almak gerek. Ama ilk basta bizimki ne yok, ilk bastaki ortalama angle olsun!!!!
 		//chose closer of each maxs
+			// decrease mainmum numbers to 4 and select the closer one then interpolate
+			//vtkMath::Distance2BetweenPoints(
+			//this->interpolateAngles
 
 		}
 		// use weights as interpolatin of angles...
@@ -1124,6 +1142,24 @@ void HARDIdeterministicTracker::interpolateScalar(double * interpolatedScalar, d
 	}
 }
 
+//--------------------------[ interpolateScalar ]--------------------------\\
+
+void HARDIdeterministicTracker::interpolateAngles(std::vector<double *> &angles, double * weights, double *interpolatedAngle)
+{
+	
+
+	// For all eight surrounding voxels...
+	for (int i = 0; i < 8; ++i)
+	{
+		 
+
+		// ...and add it to the interpolated scalar
+		interpolatedAngle[0] += weights[i] * angles.at(i)[0];
+		// ...and add it to the interpolated scalar
+		interpolatedAngle[1] += weights[i] * angles.at(i)[1];
+	}
+}
+
 //--------------------------[ Find maxima for discrete sphere data]--------------------------\\
 
 void MaximumFinder::getOutputDS(double* pDarraySH, int shOrder,double treshold, std::vector<double*> anglesArray,  std::vector<int>& output, std::vector<int> &input)
@@ -1599,8 +1635,10 @@ void MaximumFinder::cleanOutput(std::vector<int> output, std::vector<double *>& 
 	}
 
 	//delete any duplicates
-	outputlistwithunitvectors.push_back(outputlistwithunitvectors1[0]);
-	ODFlist.push_back(tempODFlist[0]);
+	if(outputlistwithunitvectors1.size() != 0)
+	outputlistwithunitvectors.push_back(outputlistwithunitvectors1.at(0));
+	if(ODFlist.size()!=0)
+	ODFlist.push_back(tempODFlist.at(0));
 	bool duplicate;
 	//for every unit vector, ceck whether it is already in the final output list
 	for (unsigned int i = 1; i < (outputlistwithunitvectors1).size(); ++i)
@@ -1635,10 +1673,11 @@ void HARDIdeterministicTracker::setUnitVectors(double ** unitVectors)
 
 void MaximumFinder::getOutput(double* pDarraySH, int shOrder,double treshold, std::vector<double*> anglesArray,  std::vector<int>& output, std::vector<int> &input)
 {
+	//input is indexes
 	//clear the output
 	output.clear();
 	//get radii
-	this->radii = bmia::HARDITransformationManager::CalculateDeformator(pDarraySH, &anglesArray, shOrder);  //harmonics and angles
+	this->radii = bmia::HARDITransformationManager::CalculateDeformator(pDarraySH, &anglesArray, shOrder);  //harmonics and angles as input
 
 	//list with neighborhood
 	std::vector<int> neighborslist;
