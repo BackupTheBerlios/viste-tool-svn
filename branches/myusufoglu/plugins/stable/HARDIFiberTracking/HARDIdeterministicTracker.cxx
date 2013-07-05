@@ -524,6 +524,8 @@ void HARDIdeterministicTracker::calculateFiberSHDI(int direction, std::vector<HA
 		anglesBeforeInterpolation.push_back(avgMaxAng);
 		outputlistwithunitvectors.clear();
 			DoIt.cleanOutput(maxima, outputlistwithunitvectors,SHAux, ODFlist, this->unitVectors, anglesArray);
+			
+
 		//DoIt.cleanOutput() // clean the output there must remain two maxima how?
 			// anglelardan bizimkine en yakinini almak gerek. Ama ilk basta bizimki ne yok, ilk bastaki ortalama angle olsun!!!!
 		//chose closer of each maxs
@@ -532,6 +534,10 @@ void HARDIdeterministicTracker::calculateFiberSHDI(int direction, std::vector<HA
 			//this->interpolateAngles
 
 		}
+		double interpolatedDirection[2];
+		this->interpolateAngles(anglesBeforeInterpolation,weights, interpolatedDirection); // this average will be used as initial value. 
+
+
 		// use weights as interpolatin of angles...
 
 		//deallocate memory
