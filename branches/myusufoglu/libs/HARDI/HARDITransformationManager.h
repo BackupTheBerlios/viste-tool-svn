@@ -149,7 +149,7 @@ namespace bmia {
 	*/
 		static std::vector<double> CalculateDeformator(double * SHCoefficients, std::vector<double *> * tessellationPointsInSC, int l);
 	
-	
+	  
 	protected:
 
 //		MatrixDouble savedTransformationMatrix;

@@ -319,5 +319,47 @@ std::vector<double> HARDITransformationManager::CalculateDeformator(double * SHC
 }
 
 
+// radii values are calculated and coordinates are added as a scalar array to the discrete sphere
+void HARDITransformationManager::CalculateDeformatorPolydata(double * SHCoefficients, std::vector<double *> * tessellationPointsInSC, vtkPolyData *ODFMesh, int l)
+{
+
+	
+	 vtkDoubleArray *radiusValues = vtkDoubleArray::New();
+	 radiusValues->SetNumberOfComponents(1);
+	// Output deformator vector
+	std::vector<double> deformator;
+	// Loop through all tessellation points
+	for (unsigned int deformatorIndex = 0; deformatorIndex < tessellationPointsInSC->size(); ++deformatorIndex)
+	{
+		// Index of spherical coordinates
+		int coefficientIndex = 0;
+
+		// Current deformator value
+		double deformatorValue = 0.0;
+			
+		// Get spherical coordinates of current tessellation point
+		double * tessSC = tessellationPointsInSC->at(deformatorIndex);
+		ODFMesh->GetPoints()->InsertNextPoint(tessellationPointsInSC->at(deformatorIndex));
+		
+		// Loop through all SH coefficients
+		for (int i = 0; i <= l; i += 2)
+		{
+			for (int m = -i; m <= i; ++m, ++coefficientIndex)
+			{
+				// Compute deformator value
+				deformatorValue += SHCoefficients[coefficientIndex] * HARDIMath::RealSHTransform(i, m, tessSC[0], tessSC[1]);
+			}
+		}
+
+		// Add value to the vector
+		radiusValues->InsertNextTuple(&deformatorValue);
+		//	deformator.push_back(deformatorValue);
+	//	 radii->add
+	}
+	ODFMesh->GetPointData()->SetScalars(radiusValues);
+	// Done, return the deformator vector
+//	return deformator;
+}
+
 } // namespace bmia
 

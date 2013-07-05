@@ -1314,7 +1314,9 @@ void MaximumFinder::getNeighbors(int i, int depth, std::vector<int> &neighborlis
 //-----------------------------[ Get direct neighbors ]------------------------------\\
 
 void MaximumFinder::getDirectNeighbors(std::vector<int> seedpoints, std::vector<int> &temp_neighbors)
-{ //cout << " get direct neighbours" << " ";
+{ 
+	// get direct neighbour points in the triangles array to the seedpoints (keept as indexes actually) given
+	// namely get the other corners of the triangle if the input seed is a vertex of a trianble
 
 	//clear output vector
 	temp_neighbors.clear();
@@ -1415,7 +1417,7 @@ void MaximumFinder::cleanOutput(std::vector<int> output, std::vector<double *>& 
 	for (unsigned int i = 0; i < output.size(); ++i)
 	{	
 		//get neighbors
-		this->getNeighbors(output[i],2,neighborhood1);
+		this->getNeighbors(output[i],2,neighborhood1); //2
 		int neighborcounter = 0;
 		for (unsigned int j = 0; j < neighborhood1.size(); ++j)
 		{
@@ -1425,7 +1427,7 @@ void MaximumFinder::cleanOutput(std::vector<int> output, std::vector<double *>& 
 				neighborcounter += 1;	
 			}
 		}
-		//single- and multi-point maxima
+		//single- and multi-point maxima. why this are on good list?
 		if ((neighborcounter == 0) || (neighborcounter > 2))
 		{
 			goodlist.push_back(output[i]);
@@ -1451,9 +1453,10 @@ void MaximumFinder::cleanOutput(std::vector<int> output, std::vector<double *>& 
 			int index2 = henk[2];
 			
 			//check for triple maximum
+			// 3 MAX
 			if ((index0==doubtlist[i]) || (index1==doubtlist[i]) || (index2==doubtlist[i]))
 			{
-				if (
+				if ( // all 3 are in the doubtlist
 					(std::find(doubtlist.begin(), doubtlist.end(), index0) != doubtlist.end()) &&
 					(std::find(doubtlist.begin(), doubtlist.end(), index1) != doubtlist.end())	&&
 					(std::find(doubtlist.begin(), doubtlist.end(), index2) != doubtlist.end())
@@ -1461,8 +1464,8 @@ void MaximumFinder::cleanOutput(std::vector<int> output, std::vector<double *>& 
 				{
 					//get angles of original and calculated average directions
 					double * angles = new double[2];
-					angles[0] = (1.0/3.0)*(anglesArray[index0][0])+(1.0/3.0)*(anglesArray[index1][0])+(1.0/3.0)*(anglesArray[index2][0]);
-					angles[1] = (1.0/3.0)*(anglesArray[index0][1])+(1.0/3.0)*(anglesArray[index1][2])+(1.0/3.0)*(anglesArray[index2][3]);
+					angles[0] = (1.0/3.0)*((anglesArray[index0][0])+ (anglesArray[index1][0])+ (anglesArray[index2][0]));
+					angles[1] = (1.0/3.0)*(anglesArray[index0][1])+ (anglesArray[index1][2])+ (anglesArray[index2][3]);
 
 					double * originals1 = new double[2];
 					originals1[0] = (anglesArray[index0][0]);
@@ -1492,7 +1495,7 @@ void MaximumFinder::cleanOutput(std::vector<int> output, std::vector<double *>& 
 					delete originals2;
 					delete originals3;
 
-					//if the averagedirection has a higher ODF value than the original directions
+					//if the averagedirection has a higher ODF value than the original(corners of triangle) directions take the average value!!!
 					if ((fabs(radius[1]) < fabs(radius[0])) && (fabs(radius[2]) < fabs(radius[0])) && (fabs(radius[3]) < fabs(radius[0])))
 					{
 						double * tempout = new double[3];
@@ -1507,7 +1510,7 @@ void MaximumFinder::cleanOutput(std::vector<int> output, std::vector<double *>& 
 					}
 					else
 					{
-						//add the original direction and ODF value to the output
+						//add the original direction(ie the corner) and ODF value to the output list
 						outputlistwithunitvectors1.push_back(unitVectors[doubtlist[i]]);
 						if (doubtlist[i] == index0)
 						{
@@ -1522,18 +1525,19 @@ void MaximumFinder::cleanOutput(std::vector<int> output, std::vector<double *>& 
 							tempODFlist.push_back(fabs(radius[3]));
 						}
 					}
-					donelist.push_back(i);
-				}
-			}
-		}
-		//for all points that are not a triple maximum
-		if (!(std::find(donelist.begin(), donelist.end(), i) != donelist.end()))
+					donelist.push_back(i); // donelist is re-registered triple maxima from doubtlist, average or coners list
+				}// all in a triangle and goublist
+			}// if one triple max
+		} // triangles array and still in doublt iteration
+		//for all points that are not a triple maximum, ie  2 maxes!!!!, which are actually the remaining from double and triple
+		// 2 MAX below
+		if (!(std::find(donelist.begin(), donelist.end(), i) != donelist.end()))  // i index of doubtlist, if it is not in triple max
 		{
 			//check for double point
-			this->getNeighbors(doubtlist[i],1,neighborhood1);
+			this->getNeighbors(doubtlist[i],1,neighborhood1); // 1
 			for (unsigned int j = 0; j < neighborhood1.size(); ++j)
-			{
-				if (std::find(doubtlist.begin(), doubtlist.end(), neighborhood1[j]) != doubtlist.end())
+			{  //doubtlist include double and triple maxima
+				if (std::find(doubtlist.begin(), doubtlist.end(), neighborhood1[j]) != doubtlist.end()) // tabi doublist neigh da doublist icinde olabilir yine ayikla
 				{
 					//get angles of original and calculated average directions
 					double * angles = new double[2];
@@ -1562,7 +1566,7 @@ void MaximumFinder::cleanOutput(std::vector<int> output, std::vector<double *>& 
 					delete originals1;
 					delete originals2;
 
-					//if the averagedirection has a higher ODF value than the original directions
+					//if the averagedirection of a double max has a higher ODF value than the original directions
 					if ((fabs(radius[0]) > fabs(radius[1])) && (fabs(radius[0]) > fabs(radius[2])))
 					{
 						double * tempout = new double[3];
@@ -1580,7 +1584,7 @@ void MaximumFinder::cleanOutput(std::vector<int> output, std::vector<double *>& 
 					{
 						//add the original direction and ODF value to the output
 						outputlistwithunitvectors1.push_back(unitVectors[doubtlist[i]]);
-						tempODFlist.push_back(fabs(radius[1]));
+						tempODFlist.push_back(fabs(radius[1])); //add to the original
 					}
 					radius.clear();
 				}
@@ -1615,12 +1619,12 @@ void MaximumFinder::cleanOutput(std::vector<int> output, std::vector<double *>& 
 						//add radius to output list
 						tempODFlist.push_back(fabs(radius[0]));
 					}
-				}
-			}
-		}
+				}// if
+			}//for neighbourhodd of double maxes
+		} // if not triple max
 	}
 
-	//add the single point maxima
+	//add the single point maxima, goodlist includes single point maximas
 	for (unsigned int i = 0; i < goodlist.size(); ++i)
 	{
 		//add unit vector to the output list
@@ -1666,6 +1670,8 @@ void MaximumFinder::cleanOutput(std::vector<int> output, std::vector<double *>& 
 		}
 	}
 }
+
+
 
 //-----------------------------[ Set unit vectors ]------------------------------\\
 

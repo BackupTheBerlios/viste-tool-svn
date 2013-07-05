@@ -24,6 +24,9 @@
 
 #include "HARDIMath.h"
 #include <vtkMath.h>
+#include <vtkPolyData.h>
+#include <vtkDoubleArray.h>
+#include <vtkPointData.h>
 #include <math.h>
 #include <iostream>
 #include <iomanip>
@@ -114,7 +117,7 @@ namespace bmia {
 	*/
 		static std::vector<double> CalculateDeformator(double * SHCoefficients, std::vector<double *> * tessellationPointsInSC, int l);
 	
-	
+	 static void  CalculateDeformatorPolydata(double * SHCoefficients, std::vector<double *> * tessellationPointsInSC, vtkPolyData *ODFMesh, int l);
 	protected:
 
 //		MatrixDouble savedTransformationMatrix;
