@@ -27,6 +27,7 @@
 #include <vtkPolyData.h>
 #include <vtkDoubleArray.h>
 #include <vtkPointData.h>
+#include <vtkThresholdPoints.h>
 #include <math.h>
 #include <iostream>
 #include <iomanip>
@@ -118,6 +119,7 @@ namespace bmia {
 		static std::vector<double> CalculateDeformator(double * SHCoefficients, std::vector<double *> * tessellationPointsInSC, int l);
 	
 	 static void  CalculateDeformatorPolydata(double * SHCoefficients, std::vector<double *> * tessellationPointsInSC, vtkPolyData *ODFMesh, int l);
+	 void ThresholdODFPolydata(double value, vtkPolyData *ODFMesh, vtkPolyData *ODFMeshThresholded  );
 	protected:
 
 //		MatrixDouble savedTransformationMatrix;

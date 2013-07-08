@@ -325,6 +325,7 @@ void HARDITransformationManager::CalculateDeformatorPolydata(double * SHCoeffici
 
 	
 	 vtkDoubleArray *radiusValues = vtkDoubleArray::New();
+	 radiusValues->SetName("radii");
 	 radiusValues->SetNumberOfComponents(1);
 	// Output deformator vector
 	std::vector<double> deformator;
@@ -359,6 +360,24 @@ void HARDITransformationManager::CalculateDeformatorPolydata(double * SHCoeffici
 	ODFMesh->GetPointData()->SetScalars(radiusValues);
 	// Done, return the deformator vector
 //	return deformator;
+}
+
+
+
+void HARDITransformationManager::ThresholdODFPolydata(double value, vtkPolyData *ODFMesh, vtkPolyData *ODFMeshThresholded  ){
+ vtkThresholdPoints* threshold = 
+      vtkThresholdPoints::New();
+#if VTK_MAJOR_VERSION <= 5
+  threshold->SetInput(ODFMesh);
+#else
+  threshold->SetInputData(ODFMesh);
+#endif
+  threshold->ThresholdByLower(value);
+  threshold->SetInputArrayToProcess(0, 0, 0, vtkDataObject::FIELD_ASSOCIATION_POINTS, "radii");
+  threshold->Update();
+ 
+  //vtkPolyData* thresholdedPolydata = threshold->GetOutput();
+  ODFMeshThresholded = threshold->GetOutput();
 }
 
 } // namespace bmia
