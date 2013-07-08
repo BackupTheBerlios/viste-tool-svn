@@ -602,7 +602,7 @@ namespace bmia {
 				double tempVector[3];
 
 				//for all directions
-				for (unsigned int i = 0; i < anglesArray.size(); ++i)
+				for (unsigned int i = 0; i < anglesArray.size(); ++i)// angles array is constant for all voxels
 				{
 					searchRegion = false;
 					//if its not the first step
@@ -631,7 +631,39 @@ namespace bmia {
 				}	
 
 				//get local maxima
-				DoIt.getOutput(SHAux, this->parentFilter->shOrder,TRESHOLD, anglesArray,  maxima, regionList);
+				//DoIt.getOutput(SHAux, this->parentFilter->shOrder,TRESHOLD, anglesArray,  maxima, regionList);
+				double * tempSH = new double[numberSHcomponents];
+
+
+			double *avgMaxAng = new double[2];
+			std::vector<double *> anglesBeforeInterpolation; 
+			for (int j = 0; j < 8; ++j)
+			{
+				//get the SH
+
+				this->cellHARDIData->GetTuple(j, tempSH); //fill tempSH
+				//this->cellHARDIData has 8 hardi coeffieint sets
+				//get the ODF // get maxes like below 8 times
+				//initial regionlist includes all points not some points
+				if(regionList.size()==0)
+					for(int i=0;i<anglesArray.size();i++)
+						regionList.push_back(i);
+
+				DoIt.getOutput(tempSH, this->parentFilter->shOrder,TRESHOLD, anglesArray,  maxima, regionList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
+				// maxima has ids use them to get angles
+				avgMaxAng[0]=0;
+				avgMaxAng[1]=0;
+				for(int i=0; i< maxima.size(); i++)
+				{
+					avgMaxAng[0]+=anglesArray.at(maxima.at(i))[0];   // choose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
+					avgMaxAng[1]+=anglesArray.at(maxima.at(i))[1];   // ose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
+				}
+				avgMaxAng[0]/=maxima.size();
+				avgMaxAng[1]/=maxima.size();
+
+				anglesBeforeInterpolation.push_back(avgMaxAng);
+				outputlistwithunitvectors.clear();
+				DoIt.cleanOutput(maxima, outputlistwithunitvectors,SHAux, ODFlist, this->unitVectors, anglesArray);
 
 				//if no maxima are found
 				if (!(maxima.size() > 0))	
@@ -660,12 +692,27 @@ namespace bmia {
 						tempout[0] = (this->unitVectors[maxima[i]])[0];
 						tempout[1] = (this->unitVectors[maxima[i]])[1];
 						tempout[2] = (this->unitVectors[maxima[i]])[2];
-						outputlistwithunitvectors.push_back(tempout);
+						outputlistwithunitvectors.push_back(tempout); // this can be produced p
 						//add the ODF value
 						ODFlist.push_back(DoIt.radii_norm[(maxima[i])]);
 					}
 				}
 
+				//DoIt.cleanOutput() // clean the output there must remain two maxima how?
+				// anglelardan bizimkine en yakinini almak gerek. Ama ilk basta bizimki ne yok, ilk bastaki ortalama angle olsun!!!!
+				//chose closer of each maxs
+				// decrease mainmum numbers to 4 and select the closer one then interpolate
+				//vtkMath::Distance2BetweenPoints(
+				//this->interpolateAngles
+
+			}// for cell 8 
+			double interpolatedDirection[2];
+			this->interpolateAngles(anglesBeforeInterpolation,weights, interpolatedDirection); // this average will be used as initial value. 
+
+
+
+
+				
 				//deallocate memory
 				delete [] SHAux;
 
@@ -712,8 +759,8 @@ namespace bmia {
 					if (value > currentMax)
 					{
 						currentMax = value;
-						this->newSegment[0] = tempDirection[0];
-						this->newSegment[1] = tempDirection[1];
+						this->newSegment[0] = tempDirection[0]; // we will haveone unitvector !!! interpolation of angels will 
+						this->newSegment[1] = tempDirection[1]; // produce an angle and we will calculate tempDirection!!!!
 						this->newSegment[2] = tempDirection[2];
 					}
 				}
