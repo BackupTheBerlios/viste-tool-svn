@@ -15,7 +15,7 @@ vtkStandardNewMacro(vtkFiberScoringMeasuresFilter);
 vtkFiberScoringMeasuresFilter::vtkFiberScoringMeasuresFilter()
 {
 	// Set default options
-
+    this->inputVolume = NULL;
 }
 
 
@@ -83,7 +83,14 @@ double* Cross(double* vec, double* vec2)
 
 double Norm(double* vec)
 {
-    return abs(vec[0])*abs(vec[0]) + abs(vec[1])*abs(vec[1]) + abs(vec[2])*abs(vec[2]);
+    return vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2];
+}
+
+void PrintVector(double* vec)
+{
+    if(vec == NULL)
+        return;
+    printf("%f, %f, %f \n", vec[0], vec[1], vec[2]);
 }
 
 void vtkFiberScoringMeasuresFilter::Execute()
@@ -143,54 +150,54 @@ void vtkFiberScoringMeasuresFilter::Execute()
     //
     //      CHECK GLYPH DATA INPUT
     //
-
-	if (!this->inputVolume)
+    vtkPointData * imagePD;
+    vtkDoubleArray * radiiArray;
+    vtkDoubleArray * anglesArray;
+    int numberOfAngles;
+	if(ps->useGlyphData)
 	{
-		vtkErrorMacro(<< "Glyph data has not been set.");
-		return;
+        imagePD = this->inputVolume->GetPointData();
+        if (!imagePD)
+        {
+            vtkErrorMacro(<< "Point data in glyph data have not been set.");
+            return;
+        }
+
+        // Get the array containing the glyphs radii
+        radiiArray = vtkDoubleArray::SafeDownCast(imagePD->GetArray("Vectors"));
+        if (!radiiArray)
+        {
+            vtkErrorMacro(<< "Vectors in glyph data have not been set.");
+            return;
+        }
+
+        // Get the array containing the angles for each glyph vertex
+        anglesArray = vtkDoubleArray::SafeDownCast(imagePD->GetArray("Spherical Directions"));
+        if (!anglesArray)
+        {
+            vtkErrorMacro(<< "Spherical directions in glyph data have not been set.");
+            return;
+        }
+
+        // Angles array should have two components. Furthermore, the number of sets of
+        // angles should match the number of radii.
+        if (anglesArray->GetNumberOfComponents() != 2 || anglesArray->GetNumberOfTuples() != radiiArray->GetNumberOfComponents())
+        {
+            vtkErrorMacro(<< "Angles and radii arrays in glyph data do not match.");
+            return;
+        }
+
+        numberOfAngles = anglesArray->GetNumberOfTuples();
+        /*for(int i = 0; i<numberOfAngles; i++)
+        {
+            // Get the two angles (azimuth and zenith)
+            double * angles = anglesArray->GetTuple2(i);
+
+            double r = radiiArray->GetComponent(0, i);
+
+            printf("i:%d, anglesarray:[%f,%f], radiiarray:%f \n",i,angles[0],angles[1],r);
+        }*/
 	}
-
-	vtkPointData * imagePD = this->inputVolume->GetPointData();
-	if (!imagePD)
-	{
-		vtkErrorMacro(<< "Point data in glyph data have not been set.");
-		return;
-	}
-
-	// Get the array containing the glyphs radii
-	vtkDoubleArray * radiiArray = vtkDoubleArray::SafeDownCast(imagePD->GetArray("Vectors"));
-	if (!radiiArray)
-	{
-		vtkErrorMacro(<< "Vectors in glyph data have not been set.");
-		return;
-	}
-
-	// Get the array containing the angles for each glyph vertex
-	vtkDoubleArray * anglesArray = vtkDoubleArray::SafeDownCast(imagePD->GetArray("Spherical Directions"));
-	if (!anglesArray)
-	{
-		vtkErrorMacro(<< "Spherical directions in glyph data have not been set.");
-		return;
-	}
-
-	// Angles array should have two components. Furthermore, the number of sets of
-	// angles should match the number of radii.
-	if (anglesArray->GetNumberOfComponents() != 2 || anglesArray->GetNumberOfTuples() != radiiArray->GetNumberOfComponents())
-	{
-	    vtkErrorMacro(<< "Angles and radii arrays in glyph data do not match.");
-		return;
-	}
-
-    int numberOfAngles = anglesArray->GetNumberOfTuples();
-	/*for(int i = 0; i<numberOfAngles; i++)
-	{
-	    // Get the two angles (azimuth and zenith)
-		double * angles = anglesArray->GetTuple2(i);
-
-		double r = radiiArray->GetComponent(0, i);
-
-	    printf("i:%d, anglesarray:[%f,%f], radiiarray:%f \n",i,angles[0],angles[1],r);
-	}*/
 
     //
     //      PREPARE OUTPUT POLYDATA
@@ -209,6 +216,7 @@ void vtkFiberScoringMeasuresFilter::Execute()
     // Add new scalar list for SM
     vtkDoubleArray* SMScalars = vtkDoubleArray::New();
     SMScalars->SetName("SM");
+    SMScalars->SetNumberOfComponents(1);
 
 	// Create a point set for the output
 	vtkPoints * outputPoints = vtkPoints::New();
@@ -235,6 +243,15 @@ void vtkFiberScoringMeasuresFilter::Execute()
 	this->SetProgressText("Scoring fibers...");
 	this->UpdateProgress(0.0);
 
+	// Parameters
+	double lambda;
+	if(!ps->useGlyphData)
+        lambda = 1.0;
+    else
+        lambda = ps->lambda;
+    double beta = ps->beta;
+    double muu = ps->muu;
+
 	// Loop through all input fibers
 	for (vtkIdType lineId = 0; lineId < numberOfCells; ++lineId)
 	{
@@ -255,12 +272,12 @@ void vtkFiberScoringMeasuresFilter::Execute()
 		vtkIdList * newFiberList = vtkIdList::New();
 
         // Previous point coordinates
-        double* prev_p;
-        double* prev2_p;
-        double* prev3_p;
+        double* prev_p = (double*) malloc(3*sizeof(double));
+        double* prev2_p = (double*) malloc(3*sizeof(double));
+        double* prev3_p = (double*) malloc(3*sizeof(double));
 
 		// Current point coordinates
-		double* p;
+		double p[3];
 
 		double PI = 3.14159265358;
 
@@ -291,7 +308,7 @@ void vtkFiberScoringMeasuresFilter::Execute()
                 // Compute score for current point
                 //
 
-                double radius;
+                double radius = 0.0;
                 if(ps->useGlyphData)
                 {
                     // Find the corresponding voxel
@@ -326,47 +343,82 @@ void vtkFiberScoringMeasuresFilter::Execute()
 
                         // External energy
                         radius = radiiArray->GetComponent(imagePointId, matchedId);
+
+                        //double* matchedAngles = anglesArray->GetTuple2(matchedId);
+                        //printf("p:%f %f %f, prev_p:%f %f %f, dp:%f %f %f \n", p[0], p[1], p[2], prev_p[0], prev_p[1], prev_p[2], dp[0], dp[1], dp[2]);
+                        //printf("pointId: %d, theta:%f, phi:%f \n", pointId, theta, phi);
+                        //printf("matched angles: theta:%f, phi:%f radius:%f\n", matchedAngles[0], matchedAngles[1],radius);
                     }
                 }
 
                 // Internal energy
+//                PrintVector(p);
+//                PrintVector(prev_p);
+//                PrintVector(prev2_p);
+//                PrintVector(prev3_p);
+//                printf(" --------------\n");
                 double* a1 = HalvedDifference(p,prev_p);
+//                PrintVector(a1);
                 double* t0 = Normalize(a1);
+//                PrintVector(t0);
                 double* prev_t0 = Normalize(HalvedDifference(prev_p, prev2_p));
+//                PrintVector(prev_t0);
                 double* prev2_t0 = Normalize(HalvedDifference(prev2_p, prev3_p));
+//                PrintVector(prev2_t0);
                 double* t1 = HalvedDifference(t0,prev_t0);
+//                PrintVector(t1);
                 double* n0 = Normalize(t1);
+//                PrintVector(n0);
                 double* prev_n0 = Normalize(HalvedDifference(prev_t0,prev2_t0));
+//                PrintVector(prev_n0);
                 double* n1 = HalvedDifference(n0,prev_n0);
+//                PrintVector(n1);
                 double* b0 = Normalize(Cross(t0,n0));
+//                PrintVector(b0);
                 double* b1 = Cross(t0,n1);
+//                PrintVector( b1);
 
                 double curvature = Norm(t1);
                 double torsion =  Norm(b1);
 
+                //printf("curvature:%f, torsion:%f \n", curvature, torsion);
+
                 // Total score
-                double score = ps->lambda * sqrt(curvature*curvature + ps->beta*ps->beta);
-                if(ps->useGlyphData)
-                    score += radius;
+                double score = radius + lambda * sqrt(curvature*curvature + muu*torsion + beta*beta);
 
                 SMScalars->InsertNextTuple1(score);
-
-                //double* matchedAngles = anglesArray->GetTuple2(matchedId);
-                //printf("p:%f %f %f, prev_p:%f %f %f, dp:%f %f %f \n", p[0], p[1], p[2], prev_p[0], prev_p[1], prev_p[2], dp[0], dp[1], dp[2]);
-                //printf("pointId: %d, theta:%f, phi:%f \n", pointId, theta, phi);
-                //printf("matched angles: theta:%f, phi:%f radius:%f\n", matchedAngles[0], matchedAngles[1],radius);
             }
 
+//            printf(" --------------\n");
+//            PrintVector(&p[0]);
+//            PrintVector(prev_p);
+//            PrintVector(prev2_p);
+//            PrintVector(prev3_p);
+
             // Set previous points
-            prev3_p = prev2_p;
-            prev2_p = prev_p;
-            memcpy(prev_p,p,sizeof(p));
+            if(prev2_p != NULL)
+                memcpy(prev3_p,prev2_p,3*sizeof(double));
+            if(prev_p != NULL)
+                memcpy(prev2_p,prev_p,3*sizeof(double));
+            memcpy(prev_p,p,3*sizeof(double));
 		}
 
 		// Add the new fiber to the output
 		outputLines->InsertNextCell(newFiberList);
 
-		//break;
+//		break;
+	}
+
+	// Normalize SM
+	if(ps->normalizeScalars)
+	{
+	    double range[2];
+        SMScalars->GetValueRange(range);
+        printf("asdasdasd %d",SMScalars->GetNumberOfTuples());
+        for(vtkIdType i = 0; i < SMScalars->GetNumberOfTuples(); i++)
+        {
+            SMScalars->SetTuple1(i,(SMScalars->GetTuple1(i) - range[0])/(range[1] - range[0]) );
+        }
 	}
 
 	// Add scalar arrays

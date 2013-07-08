@@ -120,6 +120,7 @@ protected slots:
     void betaSpinBoxChanged(double value);
     void muuSliderChanged(int value);
     void muuSpinBoxChanged(double value);
+    void normalizeScalarsCheckBoxChanged(bool checked);
 
 private:
 

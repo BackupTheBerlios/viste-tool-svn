@@ -93,6 +93,7 @@ void ScoringMeasures::dataSetAdded(data::DataSet * d)
 		ps->beta = 0.0;
 		ps->muu = 0.0;
 		ps->typeOfCurve = vtkFiberScoringMeasuresFilter::CURVE_TYPE_GEODESIC;
+		ps->normalizeScalars = true;
 		sortedFibers->ps = ps;
 
         // Add the new data set to the list of currently available fiber sets
@@ -237,8 +238,10 @@ void ScoringMeasures::SelectGlyphDataSet(int index)
     // Get selected scalar type data
     SortedFibers* sortedFibers = this->sortedFibersList.at(this->selectedFiberDataset);
 
-     // Update selected scalar type
+    // Update selected scalar type
     sortedFibers->selectedGlyphData = index - 1;
+
+
 }
 
 void ScoringMeasures::ComputeScore()
@@ -250,22 +253,28 @@ void ScoringMeasures::ComputeScore()
     // Get fiber info struct
     SortedFibers* sortedFibers = this->sortedFibersList.at(this->selectedFiberDataset);
 
-    // return if glyph dataset is none
-    if(sortedFibers->selectedGlyphData == -1)
-        sortedFibers->
+    // check if glyph dataset is none
+    bool useGlyphData = sortedFibers->selectedGlyphData != -1;
+
+    // update in parameter settings if no glyph data is used
+    sortedFibers->ps->useGlyphData = useGlyphData;
 
     // Get polydata of original fibers
     vtkPolyData * polydata = sortedFibers->ds->getVtkPolyData();
+    vtkImageData * image;
+    if(useGlyphData)
+    {
+        data::DataSet * DSF = glyphDataSets.at(sortedFibers->selectedGlyphData);
+        image = DSF->getVtkImageData();
+    }
+    else
+        image = NULL;
 
     // Create filter
     vtkFiberScoringMeasuresFilter* scoringFilter = vtkFiberScoringMeasuresFilter::New();
     scoringFilter->SetInput(polydata);
     scoringFilter->SetInputVolume(image);
     scoringFilter->SetParameters(sortedFibers->ps);
-
-    // Get image data of DSF
-    data::DataSet * DSF = this->glyphDataSets.at(sortedFibers->selectedGlyphData);
-    vtkImageData * image = DSF->getVtkImageData();
 
     // Run the filter
 	this->core()->out()->createProgressBarForAlgorithm(scoringFilter, "Fiber scoring");
@@ -325,7 +334,7 @@ void ScoringMeasures::ComputeScore()
 
 void ScoringMeasures::EnableGUI()
 {
-    if(GetSortedFibers()->ps->useGlyphData)
+    if(GetSortedFibers()->ps->useGlyphData && GetSortedFibers()->selectedGlyphData != -1)
     {
         this->form->lambdaSlider->setEnabled(true);
         this->form->lambdaSpinBox->setEnabled(true);
@@ -339,6 +348,10 @@ void ScoringMeasures::EnableGUI()
         this->form->lambdaLabel->setEnabled(false);
         this->form->lambdaTopLabel->setEnabled(false);
     }
+    if(GetSortedFibers()->selectedGlyphData == -1)
+        this->form->usedInScoringCheckBox->setEnabled(false);
+    else
+        this->form->usedInScoringCheckBox->setEnabled(true);
     this->form->dataDependentGroupBox->setEnabled(true);
     this->form->dataIndependentGroupBox->setEnabled(true);
     this->form->updateButton->setEnabled(true);
@@ -373,12 +386,14 @@ void ScoringMeasures::UpdateGUI()
     ParameterSettings* ps = sortedFibers->ps;
 
     // set GUI values
-    this->form->lambdaSlider->setValue(ps->lambda);
+    this->form->lambdaSlider->setValue(ps->lambda*SLIDER_SUBSTEPS);
     this->form->lambdaSpinBox->setValue(ps->lambda);
-    this->form->betaSlider->setValue(ps->beta);
+    this->form->betaSlider->setValue(ps->beta*SLIDER_SUBSTEPS);
     this->form->betaSpinBox->setValue(ps->beta);
-    this->form->muuSlider->setValue(ps->muu);
+    this->form->muuSlider->setValue(ps->muu*SLIDER_SUBSTEPS);
     this->form->muuSpinBox->setValue(ps->muu);
+
+    this->form->normalizeScalarsCheckBox->setChecked(ps->normalizeScalars);
 
     // re-enable signals
     AllowSignals();
@@ -408,6 +423,7 @@ void ScoringMeasures::fibersComboChanged(int index)
 void ScoringMeasures::glyphDataComboChanged(int index)
 {
     SelectGlyphDataSet(index);
+    EnableGUI();
 }
 
 void ScoringMeasures::updateButtonClicked()
@@ -419,6 +435,11 @@ void ScoringMeasures::usedInScoringCheckBoxChanged(bool checked)
 {
     GetSortedFibers()->ps->useGlyphData = checked;
     EnableGUI();
+}
+
+void ScoringMeasures::normalizeScalarsCheckBoxChanged(bool checked)
+{
+    GetSortedFibers()->ps->normalizeScalars = checked;
 }
 
 void ScoringMeasures::lambdaSliderChanged(int value)
@@ -435,7 +456,7 @@ void ScoringMeasures::lambdaSpinBoxChanged(double value)
 
 void ScoringMeasures::betaSliderChanged(int value)
 {
-    GetParameterSettings()->beta = (double)value;
+    GetParameterSettings()->beta = (double)value / (double)SLIDER_SUBSTEPS;
     UpdateGUI();
 }
 
@@ -447,7 +468,7 @@ void ScoringMeasures::betaSpinBoxChanged(double value)
 
 void ScoringMeasures::muuSliderChanged(int value)
 {
-    GetParameterSettings()->muu = (double)value;
+    GetParameterSettings()->muu = (double)value / (double)SLIDER_SUBSTEPS;
     UpdateGUI();
 }
 
@@ -469,6 +490,7 @@ void ScoringMeasures::connectAll()
     connect(this->form->glyphDataCombo,SIGNAL(currentIndexChanged(int)),this,SLOT(glyphDataComboChanged(int)));
     connect(this->form->updateButton,SIGNAL(clicked()),this,SLOT(updateButtonClicked()));
     connect(this->form->usedInScoringCheckBox,SIGNAL(toggled(bool)),this,SLOT(usedInScoringCheckBoxChanged(bool)));
+    connect(this->form->normalizeScalarsCheckBox,SIGNAL(toggled(bool)),this,SLOT(normalizeScalarsCheckBoxChanged(bool)));
 
     connect(this->form->lambdaSlider,SIGNAL(valueChanged(int)),this,SLOT(lambdaSliderChanged(int)));
     connect(this->form->lambdaSpinBox,SIGNAL(valueChanged(double)),this,SLOT(lambdaSpinBoxChanged(double)));

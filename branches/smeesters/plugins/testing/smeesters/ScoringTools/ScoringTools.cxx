@@ -106,7 +106,26 @@ void ScoringTools::dataSetChanged(data::DataSet * d)
     QString kind = d->getKind();
 
     // to-do
+    // Remove fiber dataset
+    if (kind == "fibers")
+	{
+	    // Check if the data set exists
+		int dsIndex = this->FindInputDataSet(d);
 
+        // Does not exist, return
+		if (dsIndex == -1)
+			return;
+
+        // Get sorted fibers
+        SortedFibers* sortedFibers = this->sortedFibersList.at(dsIndex );
+
+        // Flag for reprocessing
+        sortedFibers->processed = false;
+
+        // Reload if this is the active fiber dataset
+        if(dsIndex == selectedFiberDataset)
+            SelectFiberDataSet(selectedFiberDataset);
+	}
 }
 
 //------------------------[ Dataset removed ]-----------------------\\

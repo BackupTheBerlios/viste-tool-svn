@@ -2045,13 +2045,13 @@ void IsosurfaceVisualization::comboBoxFiberDataChanged()
 
 
 
-        //QWidget *secondWindow = new QWidget();
-        secondWindow.setGeometry(0, 0, 1150, 600);
+        QWidget *secondWindow = new QWidget();
+        secondWindow->setGeometry(0, 0, 1150, 600);
 
 
         // QVTK set up and initialization
-        QVTKWidget *qvtkWidget = new QVTKWidget(&secondWindow);
-        QVTKWidget *qvtkWidget2 = new QVTKWidget(&secondWindow);
+        QVTKWidget *qvtkWidget = new QVTKWidget(secondWindow);
+        QVTKWidget *qvtkWidget2 = new QVTKWidget(secondWindow);
 
         // Set up my 2D world...
         VTK_CREATE(vtkContextView, view); // This contains a chart object
@@ -2152,12 +2152,12 @@ void IsosurfaceVisualization::comboBoxFiberDataChanged()
         chart2->SetSelectionMode(vtkContextScene::SELECTION_TOGGLE);
 
         // Now lets try to add a table view
-        QVBoxLayout *layout = new QVBoxLayout(&secondWindow);
+        QVBoxLayout *layout = new QVBoxLayout(secondWindow);
         layout->addWidget(qvtkWidget);
         layout->addWidget(qvtkWidget2);
 
-        secondWindow.raise();
-        secondWindow.show();
+        secondWindow->raise();
+        secondWindow->show();
 
 
 

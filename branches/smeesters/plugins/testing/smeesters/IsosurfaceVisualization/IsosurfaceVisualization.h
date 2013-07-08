@@ -331,8 +331,6 @@ protected slots:
 
 private:
 
-    QWidget secondWindow;
-
     /** If plugin inherits from plugin::GUI */
     QWidget * widget;
 
