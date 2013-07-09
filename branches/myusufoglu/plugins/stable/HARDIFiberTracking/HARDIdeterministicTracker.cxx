@@ -440,7 +440,7 @@ namespace bmia {
 	}
 
 
-	void HARDIdeterministicTracker::findMax2( std::vector<double> &array, std::vector<double> &maxima)
+	void HARDIdeterministicTracker::findMax2( std::vector<double> &array, std::vector<double> &maxima, std::vector<double*> &maximaunitvectors, std::vector<double *> &anglesReturn)
 	{
 		// find indexes of maximum and the secondary max
 		double max =0;
@@ -452,6 +452,15 @@ namespace bmia {
 			 	if(array.at(i) > max) { max = array.at(i); if(max_index1!=i) max_index2=i;  }
 		maxima.push_back(max_index1);
 		maxima.push_back(max_index2);
+
+		double * sc1 = new double[2];
+		sc1[0] = acos( maximaunitvectors[max_index1][2]);
+		sc1[1] = atan2( maximaunitvectors[max_index1][1],  maximaunitvectors[max_index1][0]);
+		anglesReturn.push_back(sc1);
+		double * sc2 = new double[2];
+		sc2[0] = acos( maximaunitvectors[max_index2][2]);
+		sc2[1] = atan2( maximaunitvectors[max_index2][1],  maximaunitvectors[max_index2][0]);
+	      anglesReturn.push_back(sc2);
 	}
 
 	//----------------------------[ calculateFiber using Spherical Harmonics Directions Interpolation for a seed point]---------------------------\\
@@ -583,14 +592,16 @@ namespace bmia {
 			this->prevSegment[0] = 0.0;
 			this->prevSegment[1] = 0.0;
 			this->prevSegment[2] = 0.0;
-
+			double previousAngle[2];
 			// Loop until a stopping condition is met
 			while (1) 
 			{
 				// Compute the next point of the fiber using a Euler step.
 				if (!this->solveIntegrationStep(currentCell, currentCellId, weights))
 					break;
-
+				
+				previousAngle[0] = acos( this->newSegment[2]);
+		previousAngle[1] = atan2( this->newSegment[1],  this->newSegment[0]);
 				// Check if we've moved to a new cell
 				vtkIdType newCellId = this->HARDIimageData->FindCell(nextPoint.X, currentCell, currentCellId, 
 					this->tolerance, subId, pCoords, weights);
@@ -660,7 +671,7 @@ namespace bmia {
 
 
 			double *avgMaxAng = new double[2];
-			std::vector<double *> anglesBeforeInterpolation; 
+			std::vector<double *> anglesBeforeInterpolation; // this consists 8 angles
 			for (int j = 0; j < 8; ++j)
 			{
 				//get the SH
@@ -682,19 +693,21 @@ namespace bmia {
 				// maxima has ids use them to get angles
 				avgMaxAng[0]=0;
 				avgMaxAng[1]=0;
-
-				//this->findMax2(ODFlist,ODFlistMaxTwo,outputlistwithunitvectors,angelsMaxTwo);  // get max 2 angels 
-				//d1 = this->distanceSpherical(vector1, anglesMaxTwo.at(1))
-				// d2 = this->distanceSpherical(vector1, anglesMaxTwo.at(2))
-				// if(d1 >d2) ....else ..avgMaxAng = closerone so we will have 8 anglesBeforeInterpolation
-				for(int i=0; i< maxima.size(); i++)
-				{
-					avgMaxAng[0]+=anglesArray.at(maxima.at(i))[0];   // choose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
-					avgMaxAng[1]+=anglesArray.at(maxima.at(i))[1];   // ose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
-				}
+				std::vector<double *> anglesMaxTwo;
+				
+				this->findMax2(ODFlist,ODFlistMaxTwo,outputlistwithunitvectors,anglesMaxTwo);  // get max 2 angels 
+				double d1; double d2;
+				d1 = this->distanceSpherical(previousAngle, anglesMaxTwo.at(0),2);
+				 d2 = this->distanceSpherical(previousAngle, anglesMaxTwo.at(1),2);
+				 if(d1 >d2)  avgMaxAng = anglesMaxTwo.at(1); else avgMaxAng = anglesMaxTwo.at(0); //so we will have 8 anglesBeforeInterpolation
+				//for(int i=0; i< maxima.size(); i++)
+				//{
+				//	avgMaxAng[0]+=anglesArray.at(maxima.at(i))[0];   // choose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
+				//	avgMaxAng[1]+=anglesArray.at(maxima.at(i))[1];   // ose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
+				//}
 			 
-				avgMaxAng[0]/=maxima.size();
-				avgMaxAng[1]/=maxima.size();
+				//avgMaxAng[0]/=maxima.size();
+				//avgMaxAng[1]/=maxima.size();
 
 				anglesBeforeInterpolation.push_back(avgMaxAng);
 				//outputlistwithunitvectors.clear();

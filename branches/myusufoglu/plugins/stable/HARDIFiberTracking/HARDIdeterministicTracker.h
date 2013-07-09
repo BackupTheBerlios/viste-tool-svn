@@ -230,7 +230,7 @@ class HARDIdeterministicTracker
 		void calculateFiberDS(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,int numberOfIterations, bool CLEANMAXIMA, double TRESHOLD);
 
 		double distanceSpherical(double *point1, double *point2, int n); 
-		void findMax2( std::vector<double> &array, std::vector<double> &maxima);
+		void findMax2( std::vector<double> &array, std::vector<double> &maxima, std::vector<double*> &maximaunitvectors, std::vector<double *> &anglesReturn);
 		/** Sets the unit vectors for this class. */ 
 		void setUnitVectors(double ** unitVectors);
 
