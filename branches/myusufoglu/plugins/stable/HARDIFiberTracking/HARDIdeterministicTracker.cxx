@@ -431,6 +431,29 @@ namespace bmia {
 	}
 
 
+	double HARDIdeterministicTracker::distanceSpherical(double *pointA, double *pointB, int n)
+	{ //l2 distance
+		double sum;
+		for(int i=0;i<n;i++)
+			sum+=pow((pointA[i]-pointB[i]),2);
+		return sqrt(sum);
+	}
+
+
+	void HARDIdeterministicTracker::findMax2( std::vector<double> &array, std::vector<double> &maxima)
+	{
+		// find indexes of maximum and the secondary max
+		double max =0;
+		int max_index1=0;
+		int max_index2=0;
+		for(int i=0; i< array.size(); i++)
+			if(array.at(i) > max) { max = array.at(i); max_index1=i;  }
+		for(int i=0; i< array.size(); i++)
+			 	if(array.at(i) > max) { max = array.at(i); if(max_index1!=i) max_index2=i;  }
+		maxima.push_back(max_index1);
+		maxima.push_back(max_index2);
+	}
+
 	//----------------------------[ calculateFiber using Spherical Harmonics Directions Interpolation for a seed point]---------------------------\\
 
 	void HARDIdeterministicTracker::calculateFiberSHDI(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,int numberOfIterations, bool CLEANMAXIMA, double TRESHOLD)
@@ -485,6 +508,7 @@ namespace bmia {
 			std::vector<int> regionList;
 			//list with ODF values
 			std::vector<double> ODFlist;
+			std::vector<double> ODFlistMaxTwo;
 
 			//get number of SH components
 			int numberSHcomponents = HARDIArray->GetNumberOfComponents();
@@ -650,20 +674,32 @@ namespace bmia {
 						regionList.push_back(i);
 
 				DoIt.getOutput(tempSH, this->parentFilter->shOrder,TRESHOLD, anglesArray,  maxima, regionList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
+				
+				//Below 3 necessary?
+				outputlistwithunitvectors.clear();
+				if (CLEANMAXIMA)
+				DoIt.cleanOutput(maxima, outputlistwithunitvectors,SHAux, ODFlist, this->unitVectors, anglesArray);
 				// maxima has ids use them to get angles
 				avgMaxAng[0]=0;
 				avgMaxAng[1]=0;
+
+				//this->findMax2(ODFlist,ODFlistMaxTwo,outputlistwithunitvectors,angelsMaxTwo);  // get max 2 angels 
+				//d1 = this->distanceSpherical(vector1, anglesMaxTwo.at(1))
+				// d2 = this->distanceSpherical(vector1, anglesMaxTwo.at(2))
+				// if(d1 >d2) ....else ..avgMaxAng = closerone so we will have 8 anglesBeforeInterpolation
 				for(int i=0; i< maxima.size(); i++)
 				{
 					avgMaxAng[0]+=anglesArray.at(maxima.at(i))[0];   // choose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
 					avgMaxAng[1]+=anglesArray.at(maxima.at(i))[1];   // ose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
 				}
+			 
 				avgMaxAng[0]/=maxima.size();
 				avgMaxAng[1]/=maxima.size();
 
 				anglesBeforeInterpolation.push_back(avgMaxAng);
-				outputlistwithunitvectors.clear();
-				DoIt.cleanOutput(maxima, outputlistwithunitvectors,SHAux, ODFlist, this->unitVectors, anglesArray);
+				//outputlistwithunitvectors.clear();
+				//if (CLEANMAXIMA)
+				//DoIt.cleanOutput(maxima, outputlistwithunitvectors,SHAux, ODFlist, this->unitVectors, anglesArray);
 
 				//if no maxima are found
 				if (!(maxima.size() > 0))	
@@ -673,31 +709,11 @@ namespace bmia {
 				}
 
 				//clear vector
-				outputlistwithunitvectors.clear();
-				ODFlist.clear();
+				//outputlistwithunitvectors.clear();
+				//ODFlist.clear();
 
 				//if the maxima should be cleaned (double and triple maxima) -> get from UI
-				if (CLEANMAXIMA)
-				{
-					//clean maxima
-					DoIt.cleanOutput(maxima, outputlistwithunitvectors,SHAux, ODFlist, this->unitVectors, anglesArray);
-				}
-				else
-				{
-					//for every found maximum
-					for (unsigned int i = 0; i < maxima.size(); ++i)
-					{
-						//add the unit vector
-						double * tempout = new double[3];
-						tempout[0] = (this->unitVectors[maxima[i]])[0];
-						tempout[1] = (this->unitVectors[maxima[i]])[1];
-						tempout[2] = (this->unitVectors[maxima[i]])[2];
-						outputlistwithunitvectors.push_back(tempout); // this can be produced p
-						//add the ODF value
-						ODFlist.push_back(DoIt.radii_norm[(maxima[i])]);
-					}
-				}
-
+				 
 				//DoIt.cleanOutput() // clean the output there must remain two maxima how?
 				// anglelardan bizimkine en yakinini almak gerek. Ama ilk basta bizimki ne yok, ilk bastaki ortalama angle olsun!!!!
 				//chose closer of each maxs
@@ -706,11 +722,13 @@ namespace bmia {
 				//this->interpolateAngles
 
 			}// for cell 8 
-			double interpolatedDirection[2];
-			this->interpolateAngles(anglesBeforeInterpolation,weights, interpolatedDirection); // this average will be used as initial value. 
+			double interpolatedPolarCoordinate[2];
+			this->interpolateAngles(anglesBeforeInterpolation,weights, interpolatedPolarCoordinate); // this average will be used as initial value. 
 
-
-
+				double tempDirection[3];
+			tempDirection[0] = sinf(interpolatedPolarCoordinate[0]) * cosf(interpolatedPolarCoordinate[1]);
+		tempDirection[1] = sinf(interpolatedPolarCoordinate[0]) * sinf(interpolatedPolarCoordinate[1]);
+		tempDirection[2] = cosf(interpolatedPolarCoordinate[0]);
 
 				
 				//deallocate memory
@@ -718,54 +736,47 @@ namespace bmia {
 
 				//define current maximum at zero (used to determine if a point is a maximum)
 				float currentMax = 0.0;
-				double tempDirection[3];
+			
 				testDot = 0.0;
 				//value to compare local maxima (either random value or dot product)
 				double value;
 
 				//for all local maxima
-				for (unsigned int i = 0; i < outputlistwithunitvectors.size(); ++i)
-				{
-					//set current direction
-					tempDirection[0] = outputlistwithunitvectors[i][0];
-					tempDirection[1] = outputlistwithunitvectors[i][1];
-					tempDirection[2] = outputlistwithunitvectors[i][2];
-
-					//in case of the first step of a fiber, the dot product cannot be calculated -> set to 1.0
+				 
 					if (firstStep)
 					{
 						//set the highest ODF value as condition
-						value = ODFlist[i];	
+						//value = ODFlist[i];	
 						//get the same directions (prevent missing/double fibers)
-						if (tempDirection[0] < 0)
-						{
-							value = 0.0;
-						}
+						//if (tempDirection[0] < 0)
+						//{
+						//	value = 0.0;
+						//}
 					}
-					else
-					{
+					//else
+					//{
 						//calculate the dot product
-						value = vtkMath::Dot(this->prevSegment, tempDirection);
-					}
+						//value = vtkMath::Dot(this->prevSegment, tempDirection);// find the maximum of angle??, we should have one tempDirection
+					//}
 
 					//in case of semi-probabilistic tracking
-					if (numberOfIterations > 1)
-					{
+					//if (numberOfIterations > 1)
+					//{
 						//select direction based on a random number
-						value = ((double)rand()/(double)RAND_MAX);
-					}
+						//value = ((double)rand()/(double)RAND_MAX);
+					//}
 
 					//get the "best" value (or the maximum) within the range of the user-selected angle
-					if (value > currentMax)
-					{
-						currentMax = value;
+					//if (value > currentMax)
+					//{
+						//currentMax = value;
 						this->newSegment[0] = tempDirection[0]; // we will haveone unitvector !!! interpolation of angels will 
 						this->newSegment[1] = tempDirection[1]; // produce an angle and we will calculate tempDirection!!!!
 						this->newSegment[2] = tempDirection[2];
-					}
-				}
+					//}
+				 
 
-				testDot = vtkMath::Dot(this->prevSegment, this->newSegment);
+				testDot = vtkMath::Dot(this->prevSegment, this->newSegment); // stop condition
 
 				if (firstStep)
 				{
