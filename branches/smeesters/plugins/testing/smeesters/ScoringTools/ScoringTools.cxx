@@ -88,10 +88,6 @@ void ScoringTools::dataSetAdded(data::DataSet * d)
 
         // Add to UI combobox for distance measurements to fibers
         this->form->fibersCombo->addItem(d->getName());
-
-        // If first fiber set, select by default
-        if(this->sortedFibersList.count() == 1)
-            SelectFiberDataSet(0);
 	}
 }
 
@@ -105,27 +101,31 @@ void ScoringTools::dataSetChanged(data::DataSet * d)
 	// Get the kind of the data set
     QString kind = d->getKind();
 
-    // to-do
-    // Remove fiber dataset
-    if (kind == "fibers")
-	{
-	    // Check if the data set exists
-		int dsIndex = this->FindInputDataSet(d);
-
-        // Does not exist, return
-		if (dsIndex == -1)
-			return;
-
-        // Get sorted fibers
-        SortedFibers* sortedFibers = this->sortedFibersList.at(dsIndex );
-
-        // Flag for reprocessing
-        sortedFibers->processed = false;
-
-        // Reload if this is the active fiber dataset
-        if(dsIndex == selectedFiberDataset)
-            SelectFiberDataSet(selectedFiberDataset);
-	}
+    // Update fiber dataset
+//    if (kind == "fibers")
+//	{
+//	    // Check if the data set exists
+//		int dsIndex = this->FindInputDataSet(d);
+//
+//        // Does not exist, return
+//		if (dsIndex == -1)
+//			return;
+//
+//        if (d->getAttributes()->hasIntAttribute("isScoreThresholded"))
+//			return;
+//
+//        this->core()->out()->logMessage(d->getName());
+//
+//        // Get sorted fibers
+//        SortedFibers* sortedFibers = this->sortedFibersList.at(dsIndex );
+//
+//        // Flag for reprocessing
+//        sortedFibers->processed = false;
+//
+//        // Reload if this is the active fiber dataset
+//        if(dsIndex == selectedFiberDataset)
+//            SelectFiberDataSet(selectedFiberDataset+1);
+//	}
 }
 
 //------------------------[ Dataset removed ]-----------------------\\
@@ -223,6 +223,8 @@ void ScoringTools::SelectFiberDataSet(int index)
     // Create threshold settings structs for scalar types
     if(!sortedFibers->processed)
     {
+        // remove old threshold settings in case there were any
+        sortedFibers->scalarThresholdSettings.clear();
         for(int i = 0; i<sortedFibers->numberOfScalarTypes; i++)
         {
             // Create struct
@@ -396,6 +398,9 @@ void ScoringTools::ComputeFibers()
 		ds->getAttributes()->addAttribute("isVisible", 1.0);
 		ds->getAttributes()->addAttribute("updatePipeline", 1.0);
 
+		// We add this attribute to make sure that output data sets are not added to the input data sets
+		ds->getAttributes()->addAttribute("isScoreThresholded", 1);
+
 		// Copy the transformation matrix to the output
 		ds->getAttributes()->copyTransformationMatrix(sortedFibers->ds);
 
@@ -426,17 +431,26 @@ void ScoringTools::ComputeFibers()
 	// Hide the input data set
 	sortedFibers->ds->getAttributes()->addAttribute("isVisible", -1.0);
 	this->core()->data()->dataSetChanged(sortedFibers->ds);
+
+    // Update gui enablers
+	EnableGUI();
 }
 
-void ScoringTools::ShowHistogram()
+void ScoringTools::ShowHistogram(HistogramType histType)
 {
     // return if fiber is none
     if(this->selectedFiberDataset == -1)
         return;
 
-    // Get polydata of original fibers
+    // Get polydata of fibers
     SortedFibers* sortedFibers = this->sortedFibersList.at(this->selectedFiberDataset);
-    vtkPolyData * polydata = sortedFibers->ds->getVtkPolyData();
+
+    vtkPolyData * polydata;
+    if(histType == HISTOGRAM_INPUT)
+        polydata = sortedFibers->ds->getVtkPolyData();
+    else if(histType == HISTOGRAM_OUTPUT)
+        polydata = sortedFibers->ds_processed->getVtkPolyData();
+
     vtkPointData * inputPD = polydata->GetPointData();
     vtkCellArray * inputLines = polydata->GetLines();
     ThresholdSettings* thresholdSettings = GetThresholdSettings();
@@ -566,7 +580,6 @@ void ScoringTools::ShowHistogram()
 
     histogramWindow->raise();
     histogramWindow->show();
-
 }
 
 ///
@@ -592,7 +605,6 @@ void ScoringTools::ComputeFiberLengthRange()
         // Get the data of the current fiber
         vtkCell * currentCell = polydata->GetCell(lineId);
         int numberOfFiberPoints = currentCell->GetNumberOfPoints();
-        printf("number of fibers: %d\n",numberOfFiberPoints);
         if(numberOfFiberPoints > maxLength)
             maxLength = numberOfFiberPoints;
 	}
@@ -614,6 +626,10 @@ void ScoringTools::EnableGUI()
         this->form->scalarGroupBox->setEnabled(false);
     this->form->shapeGroupBox->setEnabled(true);
     this->form->updateButton->setEnabled(true);
+    if(GetSortedFibers()->ds_processed != NULL)
+        this->form->displayOutputHistogramButton->setEnabled(true);
+    else
+        this->form->displayOutputHistogramButton->setEnabled(false);
 }
 
 void ScoringTools::DisableGUI()
@@ -690,6 +706,9 @@ void ScoringTools::UpdateGUI()
         this->form->globalMaximumSlider->setValue(thresholdSettings->globalSetting[1]*SLIDER_SUBSTEPS);
         this->form->globalMinimumSpinBox->setValue(thresholdSettings->globalSetting[0]);
         this->form->globalMaximumSpinBox->setValue(thresholdSettings->globalSetting[1]);
+
+        // set scalar combobox
+        this->form->scalarTypeCombo->setCurrentIndex(sortedFibers->selectedScalarType);
     }
 
     // re-enable signals
@@ -777,7 +796,12 @@ void ScoringTools::updateButtonClicked()
 
 void ScoringTools::displayHistogramButtonClicked()
 {
-    ShowHistogram();
+    ShowHistogram(HISTOGRAM_INPUT);
+}
+
+void ScoringTools::displayOutputHistogramButtonClicked()
+{
+    ShowHistogram(HISTOGRAM_OUTPUT);
 }
 
 void ScoringTools::setActiveScalarsButtonClicked()
@@ -811,6 +835,7 @@ void ScoringTools::connectAll()
     connect(this->form->averageValueMaxSpinBox,SIGNAL(valueChanged(double)),this,SLOT(averageValueMaxSpinBoxChanged(double)));
     connect(this->form->updateButton,SIGNAL(clicked()),this,SLOT(updateButtonClicked()));
     connect(this->form->displayHistogramButton,SIGNAL(clicked()),this,SLOT(displayHistogramButtonClicked()));
+    connect(this->form->displayOutputHistogramButton,SIGNAL(clicked()),this,SLOT(displayOutputHistogramButtonClicked()));
     connect(this->form->setActiveScalarsButton,SIGNAL(clicked()),this,SLOT(setActiveScalarsButtonClicked()));
     connect(this->form->outputLineEdit,SIGNAL(textChanged(QString)),this,SLOT(outputLineEditChanged(QString)));
     connect(this->form->fiberLengthSlider,SIGNAL(valueChanged(int)),this,SLOT(fiberLengthSliderChanged(int)));

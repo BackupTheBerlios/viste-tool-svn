@@ -169,6 +169,7 @@ protected slots:
     void globalMaximumSliderChanged(int value);
     void globalMaximumSpinBoxChanged(double value);
     void displayHistogramButtonClicked();
+    void displayOutputHistogramButtonClicked();
 
 private:
 
@@ -195,6 +196,12 @@ private:
     //
     //  Plugin base
     //
+
+    enum HistogramType
+    {
+        HISTOGRAM_INPUT = 0,
+        HISTOGRAM_OUTPUT
+    };
 
     /** Fiber information structs */
     QList<SortedFibers*> sortedFibersList;
@@ -223,7 +230,9 @@ private:
     void ComputeFiberLengthRange();
 
     //QWidget* histogramWindow;
-    void ShowHistogram();
+    void ShowHistogram(HistogramType histType);
+
+
 };
 
 }

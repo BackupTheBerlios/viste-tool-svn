@@ -69,10 +69,19 @@
  * - Added the settings dialog, which can be used to change general settings.
  * - Moved the background color options to this settings dialog.
  * - Added comments, implemented destructor.
+<<<<<<< .working
  *
  *  * 2013-02-12 Mehmet Yusufoglu
  * - Changed showAbout function, which shows the Help->About window. Reads the data from an xml file. AboutInfo.xml.
  *
+=======
+ *
+ *   2013-02-12 Mehmet Yusufoglu
+ * - Changed showAbout function, which shows the Help->About window. Reads the data from an xml file. AboutInfo.xml.
+ *
+>>>>>>> .merge-right.r211
+ *   2013-05-12 Mehmet Yusufoglu
+ * - Added Tooltips and Status Tips.
  */
 
 

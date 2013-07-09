@@ -77,7 +77,14 @@
       <item>
        <widget class="QPushButton" name="displayHistogramButton">
         <property name="text">
-         <string>Display histogram</string>
+         <string>Display input histogram</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="displayOutputHistogramButton">
+        <property name="text">
+         <string>Display output histogram</string>
         </property>
        </widget>
       </item>

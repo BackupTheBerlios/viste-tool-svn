@@ -413,11 +413,23 @@ void vtkFiberScoringMeasuresFilter::Execute()
 	if(ps->normalizeScalars)
 	{
 	    double range[2];
-        SMScalars->GetValueRange(range);
-        printf("asdasdasd %d",SMScalars->GetNumberOfTuples());
+        SMScalars->GetRange(range);
+        //printf("asdasdasd %d",SMScalars->GetNumberOfTuples());
+        double maxval = -1e30;
+        double minval = 1e30;
+        for(vtkIdType i = 0; i < SMScalars->GetNumberOfTuples(); i++)
+        {
+            double val = SMScalars->GetTuple1(i);
+            if(val > maxval)
+                maxval = val;
+            if(val < minval)
+                minval = val;
+        }
+
         for(vtkIdType i = 0; i < SMScalars->GetNumberOfTuples(); i++)
         {
             SMScalars->SetTuple1(i,(SMScalars->GetTuple1(i) - range[0])/(range[1] - range[0]) );
+            printf("%f %f %f %f %f %f \n", range[0], range[1], minval, maxval, SMScalars->GetTuple1(i), (SMScalars->GetTuple1(i) - range[0])/(range[1] - range[0]));
         }
 	}
 

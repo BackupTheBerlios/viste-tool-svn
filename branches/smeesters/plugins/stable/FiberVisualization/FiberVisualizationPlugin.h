@@ -94,6 +94,11 @@
  * - Version 1.0.3.
  * - "isVisible" attribute is now also checked for new data sets, not just changed ones.
  *
+ *  2013-06-28	Mehmet Yusufoglu
+ * - If the fiber is loaded before the scalar, it remains outside the view frustum.
+ * The plugin changed to AdvancedPlugin so that camera can be reset. Resetting is 
+ * done as soon as the data is added.
+ *
  */
 
 
@@ -165,7 +170,7 @@ class FiberVisualizationPipeline;
 */
 
 
-class FiberVisualizationPlugin : 	public plugin::Plugin,
+class FiberVisualizationPlugin : 	public plugin::AdvancedPlugin,
 									public data::Consumer,
 									public plugin::Visualization,
 									public plugin::GUI
@@ -173,7 +178,8 @@ class FiberVisualizationPlugin : 	public plugin::Plugin,
 	/** Qt Macros */
 
     Q_OBJECT
-    Q_INTERFACES(bmia::plugin::Plugin)
+	Q_INTERFACES(bmia::plugin::Plugin)
+    Q_INTERFACES(bmia::plugin::AdvancedPlugin)
     Q_INTERFACES(bmia::data::Consumer)
     Q_INTERFACES(bmia::plugin::Visualization)
     Q_INTERFACES(bmia::plugin::GUI)

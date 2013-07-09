@@ -94,12 +94,15 @@
 * - Version 1.0.3.
 * - "isVisible" attribute is now also checked for new data sets, not just changed ones.
 *
-* * 2013-06-27	Mehmet Yusufoglu
+*  2013-06-27	Mehmet Yusufoglu
 * - If fiber (polydata) includes scalar arrays they are listed in a new combo box. When LUT option 
 * is selected the combo box is enabled and the user can choose the scalar array to be used to colorize the fiber. 
 * changeActiveScalar function added and a few functions changed.
 *
-*
+*  2013-06-28	Mehmet Yusufoglu
+* - If the fiber is loaded before the scalar, it remains outside the view frustum.
+* The plugin changed to AdvancedPlugin so that camera can be reset. Resetting is 
+* done as soon as the data is added.
 */
 
 
@@ -111,10 +114,10 @@
 
 namespace bmia {
 
-
+	
 	//-----------------------------[ Constructor ]-----------------------------\\
 
-	FiberVisualizationPlugin::FiberVisualizationPlugin() : Plugin("Fiber Visualization")
+	FiberVisualizationPlugin::FiberVisualizationPlugin() : AdvancedPlugin("Fiber Visualization")
 	{
 		// No data selected
 		this->selectedData = -1;
@@ -433,13 +436,17 @@ namespace bmia {
 		// list of actors, its index is one less than the size of the list.
 
 		this->selectData(this->actors.size() - 1);
-
+		
+		
 		// Automatically color the fibers
 		this->changeSingleColorToAuto();
 
 		// Copy GUI settings to pipeline to setup the pipeline
 		this->settingsFromGUIToPipeline();
 
+		//If fibers are loaded before the volumes they may not be in the view of camera
+		// resetting camera updates the view so that the actors will be visible
+		this->fullCore()->canvas()->GetRenderer3D()->ResetCamera();
 		return true;
 	}
 
@@ -884,7 +891,7 @@ namespace bmia {
 
 		// Set the visibility of the fiber set
 		currentActor->SetVisibility((int) this->ui->visibleCheckBox->isChecked());
-
+		
 		// Get pipeline of the selected actor
 		FiberVisualizationPipeline * currentPipeline = this->actors.at(this->selectedData).actorPipeline;
 
