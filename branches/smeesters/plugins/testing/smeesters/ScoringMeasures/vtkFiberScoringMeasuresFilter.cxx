@@ -308,7 +308,7 @@ void vtkFiberScoringMeasuresFilter::Execute()
                 // Compute score for current point
                 //
 
-                double radius = 0.0;
+                double external_energy = 0.0;
                 if(ps->useGlyphData)
                 {
                     // Find the corresponding voxel
@@ -342,7 +342,7 @@ void vtkFiberScoringMeasuresFilter::Execute()
                         }
 
                         // External energy
-                        radius = radiiArray->GetComponent(imagePointId, matchedId);
+                        external_energy = radiiArray->GetComponent(imagePointId, matchedId);
 
                         //double* matchedAngles = anglesArray->GetTuple2(matchedId);
                         //printf("p:%f %f %f, prev_p:%f %f %f, dp:%f %f %f \n", p[0], p[1], p[2], prev_p[0], prev_p[1], prev_p[2], dp[0], dp[1], dp[2]);
@@ -352,39 +352,45 @@ void vtkFiberScoringMeasuresFilter::Execute()
                 }
 
                 // Internal energy
-//                PrintVector(p);
-//                PrintVector(prev_p);
-//                PrintVector(prev2_p);
-//                PrintVector(prev3_p);
-//                printf(" --------------\n");
-                double* a1 = HalvedDifference(p,prev_p);
-//                PrintVector(a1);
-                double* t0 = Normalize(a1);
-//                PrintVector(t0);
-                double* prev_t0 = Normalize(HalvedDifference(prev_p, prev2_p));
-//                PrintVector(prev_t0);
-                double* prev2_t0 = Normalize(HalvedDifference(prev2_p, prev3_p));
-//                PrintVector(prev2_t0);
-                double* t1 = HalvedDifference(t0,prev_t0);
-//                PrintVector(t1);
-                double* n0 = Normalize(t1);
-//                PrintVector(n0);
-                double* prev_n0 = Normalize(HalvedDifference(prev_t0,prev2_t0));
-//                PrintVector(prev_n0);
-                double* n1 = HalvedDifference(n0,prev_n0);
-//                PrintVector(n1);
-                double* b0 = Normalize(Cross(t0,n0));
-//                PrintVector(b0);
-                double* b1 = Cross(t0,n1);
-//                PrintVector( b1);
+                double internal_energy = 0.0;
+                if(lambda != 0.0)
+                {
+    //                PrintVector(p);
+    //                PrintVector(prev_p);
+    //                PrintVector(prev2_p);
+    //                PrintVector(prev3_p);
+    //                printf(" --------------\n");
+                    double* a1 = HalvedDifference(p,prev_p);
+    //                PrintVector(a1);
+                    double* t0 = Normalize(a1);
+    //                PrintVector(t0);
+                    double* prev_t0 = Normalize(HalvedDifference(prev_p, prev2_p));
+    //                PrintVector(prev_t0);
+                    double* prev2_t0 = Normalize(HalvedDifference(prev2_p, prev3_p));
+    //                PrintVector(prev2_t0);
+                    double* t1 = HalvedDifference(t0,prev_t0);
+    //                PrintVector(t1);
+                    double* n0 = Normalize(t1);
+    //                PrintVector(n0);
+                    double* prev_n0 = Normalize(HalvedDifference(prev_t0,prev2_t0));
+    //                PrintVector(prev_n0);
+                    double* n1 = HalvedDifference(n0,prev_n0);
+    //                PrintVector(n1);
+                    double* b0 = Normalize(Cross(t0,n0));
+    //                PrintVector(b0);
+                    double* b1 = Cross(t0,n1);
+    //                PrintVector( b1);
 
-                double curvature = Norm(t1);
-                double torsion =  Norm(b1);
+                    double curvature = Norm(t1);
+                    double torsion =  Norm(b1);
+
+                    internal_energy = sqrt(curvature*curvature + muu*torsion + beta*beta);
+                }
 
                 //printf("curvature:%f, torsion:%f \n", curvature, torsion);
 
                 // Total score
-                double score = radius + lambda * sqrt(curvature*curvature + muu*torsion + beta*beta);
+                double score = external_energy + lambda * internal_energy;
 
                 SMScalars->InsertNextTuple1(score);
             }
