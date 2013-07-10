@@ -433,7 +433,7 @@ namespace bmia {
 
 	double HARDIdeterministicTracker::distanceSpherical(double *pointA, double *pointB, int n)
 	{ //l2 distance
-		double sum;
+		double sum=0;
 		for(int i=0;i<n;i++)
 			sum+=pow((pointA[i]-pointB[i]),2);
 		return sqrt(sum);
@@ -545,6 +545,7 @@ namespace bmia {
 
 				DoIt.getOutput(tempSH, this->parentFilter->shOrder,TRESHOLD, anglesArray,  maxima, regionList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
 				// maxima has ids use them to get angles
+				// TAKE HERE DoIt.cleanOutput(maxima, outputlistwithunitvectors,SHAux, ODFlist, this->unitVectors, anglesArray);
 				avgMaxAng[0]=0;
 				avgMaxAng[1]=0;
 				for(int i=0; i< maxima.size(); i++)
@@ -558,8 +559,8 @@ namespace bmia {
 				anglesBeforeInterpolation.push_back(avgMaxAng);
 				outputlistwithunitvectors.clear();
 				DoIt.cleanOutput(maxima, outputlistwithunitvectors,SHAux, ODFlist, this->unitVectors, anglesArray);
-
-
+				ODFlist.clear();
+				maxima.clear();
 				//DoIt.cleanOutput() // clean the output there must remain two maxima how?
 				// anglelardan bizimkine en yakinini almak gerek. Ama ilk basta bizimki ne yok, ilk bastaki ortalama angle olsun!!!!
 				//chose closer of each maxs
@@ -656,7 +657,7 @@ namespace bmia {
 					{
 						//if its the first step, search all directions so pushback all
 						searchRegion = true;
-						regionList.push_back(i);
+						//regionList.push_back(i);
 					}
 
 					if (searchRegion)
@@ -689,14 +690,14 @@ namespace bmia {
 				
 				//Below 3 necessary?
 				outputlistwithunitvectors.clear();
-				if (CLEANMAXIMA)
+				//if (CLEANMAXIMA)
 				DoIt.cleanOutput(maxima, outputlistwithunitvectors,SHAux, ODFlist, this->unitVectors, anglesArray);
 				// maxima has ids use them to get angles
 				avgMaxAng[0]=0;
 				avgMaxAng[1]=0;
 				std::vector<double *> anglesMaxTwo;
 				
-				this->findMax2(ODFlist,ODFlistMaxTwo,outputlistwithunitvectors,anglesMaxTwo);  // get max 2 angels 
+				this->findMax2(ODFlist,ODFlistMaxTwo,outputlistwithunitvectors,anglesMaxTwo); // WE DO NOT NEED!!!  // get max 2 angels // maxima ve radii 
 				double d1; double d2;
 				d1 = this->distanceSpherical(previousAngle, anglesMaxTwo.at(0),2);
 				 d2 = this->distanceSpherical(previousAngle, anglesMaxTwo.at(1),2);
@@ -734,11 +735,13 @@ namespace bmia {
 				// decrease mainmum numbers to 4 and select the closer one then interpolate
 				//vtkMath::Distance2BetweenPoints(
 				//this->interpolateAngles
-
+				ODFlistMaxTwo.clear();
+				maxima.clear();
+				ODFlist.clear();
 			}// for cell 8 
 			double interpolatedPolarCoordinate[2];
 			this->interpolateAngles(anglesBeforeInterpolation,weights, interpolatedPolarCoordinate); // this average will be used as initial value. 
-
+			anglesBeforeInterpolation.clear(); // INTERPOLATE VECTORS !!!
 				double tempDirection[3];
 			tempDirection[0] = sinf(interpolatedPolarCoordinate[0]) * cosf(interpolatedPolarCoordinate[1]);
 		tempDirection[1] = sinf(interpolatedPolarCoordinate[0]) * sinf(interpolatedPolarCoordinate[1]);
