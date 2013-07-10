@@ -448,6 +448,7 @@ namespace bmia {
 		int max_index2=0;
 		for(int i=0; i< array.size(); i++)
 			if(array.at(i) > max) { max = array.at(i); max_index1=i;  }
+			max=0;
 		for(int i=0; i< array.size(); i++)
 			 	if(array.at(i) > max) { max = array.at(i); if(max_index1!=i) max_index2=i;  }
 		maxima.push_back(max_index1);
