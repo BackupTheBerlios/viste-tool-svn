@@ -316,7 +316,7 @@ void vtkFiberScoringMeasuresFilter::Execute()
                     if (imagePointId == -1)
                     {
                         // outside the data, return zero data dependent score
-                        radius = 0.0;
+                        external_energy = 0.0;
                     }
                     else
                     {
@@ -343,6 +343,8 @@ void vtkFiberScoringMeasuresFilter::Execute()
 
                         // External energy
                         external_energy = radiiArray->GetComponent(imagePointId, matchedId);
+                        if(external_energy > 0.0)
+                            external_energy = log10(external_energy);
 
                         //double* matchedAngles = anglesArray->GetTuple2(matchedId);
                         //printf("p:%f %f %f, prev_p:%f %f %f, dp:%f %f %f \n", p[0], p[1], p[2], prev_p[0], prev_p[1], prev_p[2], dp[0], dp[1], dp[2]);
@@ -435,7 +437,7 @@ void vtkFiberScoringMeasuresFilter::Execute()
         for(vtkIdType i = 0; i < SMScalars->GetNumberOfTuples(); i++)
         {
             SMScalars->SetTuple1(i,(SMScalars->GetTuple1(i) - range[0])/(range[1] - range[0]) );
-            printf("%f %f %f %f %f %f \n", range[0], range[1], minval, maxval, SMScalars->GetTuple1(i), (SMScalars->GetTuple1(i) - range[0])/(range[1] - range[0]));
+            //printf("%f %f %f %f %f %f \n", range[0], range[1], minval, maxval, SMScalars->GetTuple1(i), (SMScalars->GetTuple1(i) - range[0])/(range[1] - range[0]));
         }
 	}
 
