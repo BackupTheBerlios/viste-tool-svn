@@ -185,6 +185,26 @@ void HARDIMeasuresPlugin::dataSetAdded(data::DataSet * ds)
 		// Add the output information object to the list
 		this->images.append(newInfo);
 	}
+
+
+	// Discrete Sphere Functions
+	if (ds->getKind() == "spherical harmonics" && this->findInputImage(ds) == -1)
+	{
+		// Check if the data set contains an image
+		vtkImageData * image = ds->getVtkImageData();
+
+		if (!image)
+			return;
+
+		// Check if the image contains point data
+		vtkPointData * imagePD = image->GetPointData();
+
+		if (!imagePD)
+			return;
+		 
+		 
+		 
+	}
 }
 
 

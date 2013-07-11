@@ -602,8 +602,8 @@ namespace bmia {
 				if (!this->solveIntegrationStep(currentCell, currentCellId, weights))
 					break;
 				
-				previousAngle[0] = acos( this->newSegment[2]);
-		previousAngle[1] = atan2( this->newSegment[1],  this->newSegment[0]);
+				//previousAngle[0] = acos( this->newSegment[2]);
+		//previousAngle[1] = atan2( this->newSegment[1],  this->newSegment[0]);
 				// Check if we've moved to a new cell
 				vtkIdType newCellId = this->HARDIimageData->FindCell(nextPoint.X, currentCell, currentCellId, 
 					this->tolerance, subId, pCoords, weights);
@@ -697,19 +697,19 @@ namespace bmia {
 				avgMaxAng[1]=0;
 				std::vector<double *> anglesMaxTwo;
 				
-				this->findMax2(ODFlist,ODFlistMaxTwo,outputlistwithunitvectors,anglesMaxTwo); // WE DO NOT NEED!!!  // get max 2 angels // maxima ve radii 
-				double d1; double d2;
-				d1 = this->distanceSpherical(previousAngle, anglesMaxTwo.at(0),2);
-				 d2 = this->distanceSpherical(previousAngle, anglesMaxTwo.at(1),2);
-				 if(d1 >d2)  avgMaxAng = anglesMaxTwo.at(1); else avgMaxAng = anglesMaxTwo.at(0); //so we will have 8 anglesBeforeInterpolation
-				//for(int i=0; i< maxima.size(); i++)
-				//{
-				//	avgMaxAng[0]+=anglesArray.at(maxima.at(i))[0];   // choose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
-				//	avgMaxAng[1]+=anglesArray.at(maxima.at(i))[1];   // ose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
-				//}
-			 
-				//avgMaxAng[0]/=maxima.size();
-				//avgMaxAng[1]/=maxima.size();
+				//this->findMax2(ODFlist,ODFlistMaxTwo,outputlistwithunitvectors,anglesMaxTwo); // WE DO NOT NEED!!!  // get max 2 angels // maxima ve radii 
+				double value =0 , angularSimilarity =0;
+				int indexHighestSimilarity;
+				for( int i=0;i< outputlistwithunitvectors.size()  ;i++ )
+				{ 
+					angularSimilarity = vtkMath::Dot(this->prevSegment, outputlistwithunitvectors.at(i));
+
+	 		if( value > angularSimilarity   ) 
+				 {  value = angularSimilarity; indexHighestSimilarity = i;
+				}
+				}
+			avgMaxAng[0] = acos( outputlistwithunitvectors[indexHighestSimilarity][2]);
+		avgMaxAng[1] = atan2( outputlistwithunitvectors[indexHighestSimilarity][1],  outputlistwithunitvectors[indexHighestSimilarity][0]);
 
 				anglesBeforeInterpolation.push_back(avgMaxAng);
 				//outputlistwithunitvectors.clear();
@@ -756,7 +756,7 @@ namespace bmia {
 			
 				testDot = 0.0;
 				//value to compare local maxima (either random value or dot product)
-				double value;
+				//double value;
 
 				//for all local maxima
 				 
