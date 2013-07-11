@@ -159,6 +159,10 @@ protected slots:
     void averageValueMinSpinBoxChanged(double value);
     void averageValueMaxSliderChanged(int value);
     void averageValueMaxSpinBoxChanged(double value);
+    void minkowskiAverageValueMinSliderChanged(int value);
+    void minkowskiAverageValueMinSpinBoxChanged(double value);
+    void minkowskiAverageValueMaxSliderChanged(int value);
+    void minkowskiAverageValueMaxSpinBoxChanged(double value);
     void updateButtonClicked();
     void outputLineEditChanged(QString text);
     void setActiveScalarsButtonClicked();
@@ -170,6 +174,7 @@ protected slots:
     void globalMaximumSpinBoxChanged(double value);
     void displayHistogramButtonClicked();
     void displayOutputHistogramButtonClicked();
+    void minkowskiOrderSpinBoxChanged(int value);
 
 private:
 

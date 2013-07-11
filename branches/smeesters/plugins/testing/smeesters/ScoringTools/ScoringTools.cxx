@@ -237,6 +237,8 @@ void ScoringTools::SelectFiberDataSet(int index)
             memcpy(ts->scalarRange,scalarRange,sizeof(scalarRange));
             memcpy(ts->globalSetting,scalarRange,sizeof(scalarRange));
             memcpy(ts->averageScore,scalarRange,sizeof(scalarRange));
+            memcpy(ts->minkowskiAverageScore,scalarRange,sizeof(scalarRange));
+            ts->minkowskiOrder = 5;
 
             // Add to settings list
             sortedFibers->scalarThresholdSettings.append(ts);
@@ -307,6 +309,12 @@ void ScoringTools::SelectScalarType(int index)
     this->form->averageValueMinSpinBox->setRange(scalarRange[0],scalarRange[1]);
     this->form->averageValueMaxSlider->setRange(scalarRange[0]*100,scalarRange[1]*100);
     this->form->averageValueMaxSpinBox->setRange(scalarRange[0],scalarRange[1]);
+
+    // Set minkowski average value slider ranges
+    this->form->minkowskiAverageValueMinSlider->setRange(scalarRange[0]*100,scalarRange[1]*100);
+    this->form->minkowskiAverageValueMinSpinBox->setRange(scalarRange[0],scalarRange[1]);
+    this->form->minkowskiAverageValueMaxSlider->setRange(scalarRange[0]*100,scalarRange[1]*100);
+    this->form->minkowskiAverageValueMaxSpinBox->setRange(scalarRange[0],scalarRange[1]);
 
     // Set global value slider ranges
     this->form->globalMinimumSlider->setRange(scalarRange[0]*100,scalarRange[1]*100);
@@ -463,6 +471,12 @@ void ScoringTools::ShowHistogram(HistogramType histType)
         averageHist[i] = 0;
     }
 
+    int minkowskiAverageHist[numberOfBins];
+    for(int i = 0; i<numberOfBins; i++)
+    {
+        minkowskiAverageHist[i] = 0;
+    }
+
     int perPointHist[numberOfBins];
     for(int i = 0; i<numberOfBins; i++)
     {
@@ -487,6 +501,7 @@ void ScoringTools::ShowHistogram(HistogramType histType)
         int numberOfFiberPoints = currentCell->GetNumberOfPoints();
 
         double averageValue = 0.0;
+        double minkowskiAverageValue = 0.0;
 
         // Loop through all points in the fiber
         for (int pointId = 0; pointId < numberOfFiberPoints; ++pointId)
@@ -500,6 +515,12 @@ void ScoringTools::ShowHistogram(HistogramType histType)
             // Average value of fiber
             averageValue += scalar;
 
+            // Minkowski average value of fiber
+            if(thresholdSettings->minkowskiOrder > 1)
+                minkowskiAverageValue += pow(scalar, thresholdSettings->minkowskiOrder);
+            else
+                minkowskiAverageValue += scalar;
+
             // per point histogram
             int binval = floor((scalar - thresholdSettings->scalarRange[0]) / scalarNormDenominator * (double) numberOfBins + 0.5);
             perPointHist[binval] = perPointHist[binval] + 1;
@@ -508,19 +529,29 @@ void ScoringTools::ShowHistogram(HistogramType histType)
         // finish average value
         averageValue /= numberOfFiberPoints;
 
-        // normalize and place in histogram bin
+        // finish minkowski average value
+        minkowskiAverageValue /= numberOfFiberPoints;
+        minkowskiAverageValue = pow(minkowskiAverageValue, 1.0/(double)thresholdSettings->minkowskiOrder);
+
+        // normalize average value and place in histogram bin
         int binval = floor((averageValue - thresholdSettings->scalarRange[0]) / scalarNormDenominator * (double) numberOfBins + 0.5);
         averageHist[binval] = averageHist[binval] + 1;
-        //printf("binval: %d, number of bins %d", binval, numberOfBins);
+
+        // normalize minkowski average value and place in histogram bin
+        binval = floor((minkowskiAverageValue - thresholdSettings->scalarRange[0]) / scalarNormDenominator * (double) numberOfBins + 0.5);
+        minkowskiAverageHist[binval] = minkowskiAverageHist[binval] + 1;
 	}
 
 	// compute maximum values
 	int averageHistMaximum = 0;
+	int minkowskiAverageHistMaximum = 0;
 	int perPointHistMaximum = 0;
     for(int i = 0; i<numberOfBins; i++)
     {
         if(averageHist[i] > averageHistMaximum)
             averageHistMaximum = averageHist[i];
+        if(minkowskiAverageHist[i] > minkowskiAverageHistMaximum)
+            minkowskiAverageHistMaximum = minkowskiAverageHist[i];
         if(perPointHist[i] > perPointHistMaximum)
             perPointHistMaximum = perPointHist[i];
     }
@@ -536,6 +567,10 @@ void ScoringTools::ShowHistogram(HistogramType histType)
     arrAvgHist->SetName("AvgHist");
     table->AddColumn(arrAvgHist);
 
+    VTK_CREATE(vtkFloatArray, arrMinkowskiAvgHist);
+    arrMinkowskiAvgHist->SetName("MinkowskiAvgHist");
+    table->AddColumn(arrMinkowskiAvgHist);
+
     VTK_CREATE(vtkFloatArray,arrPerPointHist);
     arrPerPointHist->SetName("PerPointHist");
     table->AddColumn(arrPerPointHist);
@@ -545,7 +580,8 @@ void ScoringTools::ShowHistogram(HistogramType histType)
     {
         table->SetValue(i,0,xAxis[i]);
         table->SetValue(i,1,(float)averageHist[i]/(float)averageHistMaximum);
-        table->SetValue(i,2,(float)perPointHist[i]/(float)perPointHistMaximum);
+        table->SetValue(i,2,(float)minkowskiAverageHist[i]/(float)minkowskiAverageHistMaximum);
+        table->SetValue(i,3,(float)perPointHist[i]/(float)perPointHistMaximum);
     }
 
     // Set up QT histogram window
@@ -574,6 +610,10 @@ void ScoringTools::ShowHistogram(HistogramType histType)
     line = chart->AddPlot(vtkChart::LINE);
     line->SetInput(table, 0, 2);
     line->SetColor(0, 0, 255, 255);
+
+    line = chart->AddPlot(vtkChart::LINE);
+    line->SetInput(table, 0, 3);
+    line->SetColor(255, 0, 0, 255);
 
     QVBoxLayout *layout = new QVBoxLayout(histogramWindow);
     layout->addWidget(qvtkWidget);
@@ -649,6 +689,10 @@ void ScoringTools::BlockSignals()
     this->form->globalMinimumSpinBox->blockSignals(true);
     this->form->globalMaximumSlider->blockSignals(true);
     this->form->globalMaximumSpinBox->blockSignals(true);
+    this->form->minkowskiAverageValueMinSlider->blockSignals(true);
+    this->form->minkowskiAverageValueMinSpinBox->blockSignals(true);
+    this->form->minkowskiAverageValueMaxSlider->blockSignals(true);
+    this->form->minkowskiAverageValueMaxSpinBox->blockSignals(true);
 }
 
 void ScoringTools::AllowSignals()
@@ -661,6 +705,10 @@ void ScoringTools::AllowSignals()
     this->form->globalMinimumSpinBox->blockSignals(false);
     this->form->globalMaximumSlider->blockSignals(false);
     this->form->globalMaximumSpinBox->blockSignals(false);
+    this->form->minkowskiAverageValueMinSlider->blockSignals(false);
+    this->form->minkowskiAverageValueMinSpinBox->blockSignals(false);
+    this->form->minkowskiAverageValueMaxSlider->blockSignals(false);
+    this->form->minkowskiAverageValueMaxSpinBox->blockSignals(false);
 }
 
 SortedFibers* ScoringTools::GetSortedFibers()
@@ -700,6 +748,15 @@ void ScoringTools::UpdateGUI()
         this->form->averageValueMaxSpinBox->setValue(thresholdSettings->averageScore[1]);
         this->form->averageValueMinSlider->setMaximum(this->form->averageValueMaxSlider->value()-1);
         this->form->averageValueMaxSlider->setMinimum(this->form->averageValueMinSlider->value()+1);
+
+        // minkowski average value GUI settings
+        this->form->minkowskiAverageValueMinSlider->setValue(thresholdSettings->minkowskiAverageScore[0]*SLIDER_SUBSTEPS);
+        this->form->minkowskiAverageValueMinSpinBox->setValue(thresholdSettings->minkowskiAverageScore[0]);
+        this->form->minkowskiAverageValueMaxSlider->setValue(thresholdSettings->minkowskiAverageScore[1]*SLIDER_SUBSTEPS);
+        this->form->minkowskiAverageValueMaxSpinBox->setValue(thresholdSettings->minkowskiAverageScore[1]);
+        this->form->minkowskiAverageValueMinSlider->setMaximum(this->form->minkowskiAverageValueMaxSlider->value()-1);
+        this->form->minkowskiAverageValueMaxSlider->setMinimum(this->form->minkowskiAverageValueMinSlider->value()+1);
+        this->form->minkowskiOrderSpinBox->setValue(thresholdSettings->minkowskiOrder);
 
         // global minimum
         this->form->globalMinimumSlider->setValue(thresholdSettings->globalSetting[0]*SLIDER_SUBSTEPS);
@@ -789,6 +846,36 @@ void ScoringTools::globalMaximumSpinBoxChanged(double value)
     UpdateGUI();
 }
 
+void ScoringTools::minkowskiAverageValueMinSliderChanged(int value)
+{
+    GetThresholdSettings()->minkowskiAverageScore[0] = (double)value / (double)SLIDER_SUBSTEPS;
+    UpdateGUI();
+}
+
+void ScoringTools::minkowskiAverageValueMaxSliderChanged(int value)
+{
+    GetThresholdSettings()->minkowskiAverageScore[1] = (double)value / (double)SLIDER_SUBSTEPS;
+    UpdateGUI();
+}
+
+void ScoringTools::minkowskiAverageValueMinSpinBoxChanged(double value)
+{
+    GetThresholdSettings()->minkowskiAverageScore[0] = value;
+    UpdateGUI();
+}
+
+void ScoringTools::minkowskiAverageValueMaxSpinBoxChanged(double value)
+{
+    GetThresholdSettings()->minkowskiAverageScore[1] = value;
+    UpdateGUI();
+}
+
+void ScoringTools::minkowskiOrderSpinBoxChanged(int value)
+{
+    GetThresholdSettings()->minkowskiOrder = value;
+    UpdateGUI();
+}
+
 void ScoringTools::updateButtonClicked()
 {
     ComputeFibers();
@@ -844,6 +931,11 @@ void ScoringTools::connectAll()
     connect(this->form->globalMinimumSpinBox,SIGNAL(valueChanged(double)),this,SLOT(globalMinimumSpinBoxChanged(double)));
     connect(this->form->globalMaximumSlider,SIGNAL(valueChanged(int)),this,SLOT(globalMaximumSliderChanged(int)));
     connect(this->form->globalMaximumSpinBox,SIGNAL(valueChanged(double)),this,SLOT(globalMaximumSpinBoxChanged(double)));
+    connect(this->form->minkowskiAverageValueMinSlider,SIGNAL(valueChanged(int)),this,SLOT(minkowskiAverageValueMinSliderChanged(int)));
+    connect(this->form->minkowskiAverageValueMinSpinBox,SIGNAL(valueChanged(double)),this,SLOT(minkowskiAverageValueMinSpinBoxChanged(double)));
+    connect(this->form->minkowskiAverageValueMaxSlider,SIGNAL(valueChanged(int)),this,SLOT(minkowskiAverageValueMaxSliderChanged(int)));
+    connect(this->form->minkowskiAverageValueMaxSpinBox,SIGNAL(valueChanged(double)),this,SLOT(minkowskiAverageValueMaxSpinBoxChanged(double)));
+    connect(this->form->minkowskiOrderSpinBox,SIGNAL(valueChanged(int)),this,SLOT(minkowskiOrderSpinBoxChanged(int)));
 }
 
 //------------------------[ Disconnect Qt elements ]-----------------------\\

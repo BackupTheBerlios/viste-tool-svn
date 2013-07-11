@@ -10,6 +10,8 @@ typedef struct
     double averageScore[2];
     double scalarRange[2];
     double globalSetting[2];
+    double minkowskiAverageScore[2];
+    int minkowskiOrder;
 
 } ThresholdSettings;
 

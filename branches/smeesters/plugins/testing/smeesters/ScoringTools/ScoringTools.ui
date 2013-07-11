@@ -129,28 +129,75 @@
          </widget>
         </item>
         <item>
-         <widget class="QDoubleSpinBox" name="averageValueMaxSpinBox"/>
+         <widget class="QDoubleSpinBox" name="averageValueMaxSpinBox">
+          <property name="singleStep">
+           <double>0.010000000000000</double>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>
       <item>
        <widget class="QLabel" name="label_5">
         <property name="text">
-         <string>Local average value</string>
+         <string>Minkowski average value</string>
         </property>
        </widget>
       </item>
       <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_8">
+        <item>
+         <widget class="QLabel" name="label_9">
+          <property name="text">
+           <string>Order (p)</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSpinBox" name="minkowskiOrderSpinBox">
+          <property name="minimum">
+           <number>1</number>
+          </property>
+          <property name="value">
+           <number>5</number>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
-         <widget class="QSlider" name="localAverageValueSlider">
+         <widget class="QSlider" name="minkowskiAverageValueMinSlider">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QDoubleSpinBox" name="localAverageValueSpinBox"/>
+         <widget class="QDoubleSpinBox" name="minkowskiAverageValueMinSpinBox">
+          <property name="singleStep">
+           <double>0.010000000000000</double>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_9">
+        <item>
+         <widget class="QSlider" name="minkowskiAverageValueMaxSlider">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QDoubleSpinBox" name="minkowskiAverageValueMaxSpinBox">
+          <property name="singleStep">
+           <double>0.010000000000000</double>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>
@@ -171,7 +218,11 @@
          </widget>
         </item>
         <item>
-         <widget class="QDoubleSpinBox" name="globalMinimumSpinBox"/>
+         <widget class="QDoubleSpinBox" name="globalMinimumSpinBox">
+          <property name="singleStep">
+           <double>0.010000000000000</double>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>
@@ -192,7 +243,11 @@
          </widget>
         </item>
         <item>
-         <widget class="QDoubleSpinBox" name="globalMaximumSpinBox"/>
+         <widget class="QDoubleSpinBox" name="globalMaximumSpinBox">
+          <property name="singleStep">
+           <double>0.010000000000000</double>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>

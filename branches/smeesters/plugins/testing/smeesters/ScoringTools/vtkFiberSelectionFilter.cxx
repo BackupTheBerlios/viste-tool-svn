@@ -223,6 +223,13 @@ bool vtkFiberSelectionFilter::EvaluateFiber(vtkCell* cell, vtkPointData* inputPD
         averageScores.append(0.0);
     }
 
+    // minkowski average score list
+    QList<double> minkowskiAverageScores;
+    for(int i = 0; i < numberOfScalarTypes; i++)
+    {
+        minkowskiAverageScores.append(0.0);
+    }
+
     // prepare global min/max list
     QList<double> globalMinList;
     for(int i = 0; i < numberOfScalarTypes; i++)
@@ -256,6 +263,12 @@ bool vtkFiberSelectionFilter::EvaluateFiber(vtkCell* cell, vtkPointData* inputPD
 
             // Average value of fiber
             averageScores[i] += scalar;
+
+            // Minkowski average value of fiber
+            if(thresholdSettings[i]->minkowskiOrder > 1)
+                minkowskiAverageScores[i] += pow(scalar, thresholdSettings[i]->minkowskiOrder);
+            else
+                minkowskiAverageScores[i] += scalar;
         }
     }
 
@@ -276,6 +289,11 @@ bool vtkFiberSelectionFilter::EvaluateFiber(vtkCell* cell, vtkPointData* inputPD
         if(averageScores[i] < thresholdSettings[i]->averageScore[0] || averageScores[i] > thresholdSettings[i]->averageScore[1])
             return true;
 
+        // minkowski average score
+        minkowskiAverageScores[i] /= numberOfFiberPoints;
+        minkowskiAverageScores[i] = pow(minkowskiAverageScores[i], 1.0/(double)thresholdSettings[i]->minkowskiOrder);
+        if(minkowskiAverageScores[i] < thresholdSettings[i]->minkowskiAverageScore[0] || minkowskiAverageScores[i] > thresholdSettings[i]->minkowskiAverageScore[1])
+            return true;
     }
 
     return false;
