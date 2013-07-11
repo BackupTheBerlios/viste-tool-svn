@@ -264,6 +264,7 @@ void vtkFiberScoringMeasuresFilter::Execute()
         // Get the data of the current fiber
         vtkCell * currentCell = input->GetCell(lineId);
         int numberOfFiberPoints = currentCell->GetNumberOfPoints();
+        double inv_numberOfFiberPoints = 1.0/(double)numberOfFiberPoints;
 
         // Get cell containing fiber
 		inputLines->GetNextCell(numberOfPoints, pointList);
@@ -386,7 +387,7 @@ void vtkFiberScoringMeasuresFilter::Execute()
                     double curvature = Norm(t1);
                     double torsion =  Norm(b1);
 
-                    internal_energy = sqrt(curvature*curvature + muu*torsion + beta*beta);
+                    internal_energy = sqrt(curvature*curvature + muu*torsion + beta*beta*inv_numberOfFiberPoints*inv_numberOfFiberPoints);
                 }
 
                 //printf("curvature:%f, torsion:%f \n", curvature, torsion);
