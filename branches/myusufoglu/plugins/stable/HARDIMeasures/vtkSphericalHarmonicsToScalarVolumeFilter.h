@@ -34,7 +34,7 @@
  */
 
 /*
- * vtkDiscreteSphereToScalarVolumeFilter.h
+ * vtkSphericalHarmonicsToScalarVolumeFilter.h
  *
  * 2011-04-29	Evert van Aart
  * - First version.
@@ -48,8 +48,8 @@
  */
 
 
-#ifndef bmia_HARDIMeasures_vtkDiscreteSphereToScalarVolumeFilter_h
-#define bmia_HARDIMeasures_vtkDiscreteSphereToScalarVolumeFilter_h
+#ifndef bmia_HARDIMeasures_vtkSphericalHarmonicsToScalarVolumeFilter_h
+#define bmia_HARDIMeasures_vtkSphericalHarmonicsToScalarVolumeFilter_h
 
 
 /** Includes - VTK */
@@ -80,13 +80,13 @@ namespace bmia {
 	The output is a scalar volume of doubles with one value per voxel. 
 */
 
-class vtkDiscreteSphereToScalarVolumeFilter : public vtkSimpleImageToImageFilter
+class vtkSphericalHarmonicsToScalarVolumeFilter : public vtkSimpleImageToImageFilter
 {
 	public:
 
 		/** Constructor Call */
 
-		static vtkDiscreteSphereToScalarVolumeFilter * New();
+		static vtkSphericalHarmonicsToScalarVolumeFilter * New();
 
 		/** Set the triangles array, which defines the topology of the discrete
 			sphere function. 
@@ -126,16 +126,19 @@ class vtkDiscreteSphereToScalarVolumeFilter : public vtkSimpleImageToImageFilter
 		{
 			currentMeasure = (Measure) m;
 		}
+			/** Measure used to classify the seed points. */
+
+		HARDIMeasures::HARDIMeasureType measure;
 
 	protected:
 
 		/** Constructor. */
 
-		vtkDiscreteSphereToScalarVolumeFilter();
+		vtkSphericalHarmonicsToScalarVolumeFilter();
 
 		/** Destructor. */
 
-		~vtkDiscreteSphereToScalarVolumeFilter();
+		~vtkSphericalHarmonicsToScalarVolumeFilter();
 
 		/** Execute the filter. Takes a volume containing a discrete sphere function
 			as input, and uses it to generate a volume containing a scalar measure.
@@ -207,10 +210,10 @@ class vtkDiscreteSphereToScalarVolumeFilter : public vtkSimpleImageToImageFilter
 
 		bool computeAverageRadius(vtkDoubleArray * outArray);
 
-}; // vtkDiscreteSphereToScalarVolumeFilter
+}; // vtkSphericalHarmonicsToScalarVolumeFilter
 
 
 } // namespace bmia
 
 
-#endif // bmia_HARDIMeasures_vtkDiscreteSphereToScalarVolumeFilter_h
+#endif // bmia_HARDIMeasures_vtkSphericalHarmonicsToScalarVolumeFilter_h

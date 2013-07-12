@@ -48,6 +48,8 @@ set(SRCS
 	HARDIMeasuresPlugin.h
 	vtkDiscreteSphereToScalarVolumeFilter.cxx
 	vtkDiscreteSphereToScalarVolumeFilter.h
+    vtkSphericalHarmonicsToScalarVolumeFilter.cxx
+	vtkSphericalHarmonicsToScalarVolumeFilter.h
 )
 
 qt4_wrap_cpp( MOC_SRCS HARDIMeasuresPlugin.h )
