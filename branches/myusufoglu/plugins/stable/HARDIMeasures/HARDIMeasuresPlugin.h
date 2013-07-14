@@ -85,6 +85,8 @@
 #include "HARDI/SphereTriangulator.h"
 #include "vtkDiscreteSphereToScalarVolumeFilter.h"
 
+#include "vtkSphericalHarmonicsToScalarVolumeFilter.h"
+
 
 namespace bmia {
 

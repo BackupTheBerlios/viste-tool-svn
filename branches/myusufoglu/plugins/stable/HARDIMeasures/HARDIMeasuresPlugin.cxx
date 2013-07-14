@@ -187,7 +187,7 @@ void HARDIMeasuresPlugin::dataSetAdded(data::DataSet * ds)
 	}
 
 
-	// Discrete Sphere Functions
+	// Spherical Harmonics
 	if (ds->getKind() == "spherical harmonics" && this->findInputImage(ds) == -1)
 	{
 		// Check if the data set contains an image
@@ -202,6 +202,9 @@ void HARDIMeasuresPlugin::dataSetAdded(data::DataSet * ds)
 		if (!imagePD)
 			return;
 		 
+		vtkSphericalHarmonicsToScalarVolumeFilter * filter = vtkSphericalHarmonicsToScalarVolumeFilter::New();
+			filter->SetInput(image);
+			
 		 
 		 
 	}

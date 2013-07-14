@@ -90,7 +90,8 @@ class HARDIMeasures
 			Iso,			// Isotropic component
 			SE,				// ShannonEntropy
 			CRE,			// Cumulative Residual Entropy
-			NM				// Number of Maxima
+			NM,				// Number of Maxima
+			SHARM_NumberOfMeasures
 		};
    
 		/** Number of measures. Should always match the "HARDIMeasureType" enumeration. */

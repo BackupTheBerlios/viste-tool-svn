@@ -110,16 +110,32 @@ vtkSphericalHarmonicsToScalarVolumeFilter::~vtkSphericalHarmonicsToScalarVolumeF
 
 QString vtkSphericalHarmonicsToScalarVolumeFilter::getShortMeasureName(int index)
 {
-	if (index < 0 || index >= DSPHM_NumberOfMeasures)
+	if (index < 0 || index >= HARDIMeasures::SHARM_NumberOfMeasures)
 		return "ERROR";
 
 	// Return the short name of the selected measure
 	switch(index)
 	{
-		case DSPHM_SurfaceArea:		return "Area";
-		case DSPHM_Volume:			return "Volume";
-		case DSPHM_Average:			return "Average";
+		//case DSPHM_SurfaceArea:		return "Area";
+		//case DSPHM_Volume:			return "Volume";
+		//case DSPHM_Average:			return "Average";
+		case HARDIMeasures::GA  : return "GA"; 		// General Anisotropy
+		case	HARDIMeasures::V : return "Variance";				// Variance
+		case	HARDIMeasures::GFA : return "GFA";			// General Fractional Anisotropy
+		//	FMI,			// Fractional Multi-Fiber Index
+		//	R0,				// Rank 0
+		//	R2,				// Rank 2
+		//	Ri,				// Rank i
+		//	Iso,			// Isotropic component
+		//	SE,				// ShannonEntropy
+		//	CRE,			// Cumulative Residual Entropy
+		//	NM				// Number of Maxima
+		
+		
 		default:					return "ERROR";
+
+
+
 	}
 }
 
@@ -128,16 +144,18 @@ QString vtkSphericalHarmonicsToScalarVolumeFilter::getShortMeasureName(int index
 
 QString vtkSphericalHarmonicsToScalarVolumeFilter::getLongMeasureName(int index)
 {
-	if (index < 0 || index >= DSPHM_NumberOfMeasures)
+	if (index < 0 || index >= HARDIMeasures::SHARM_NumberOfMeasures)
 		return "ERROR";
 
 	// Return the long name of the selected measure
 	switch(index)
 	{
-		case DSPHM_SurfaceArea:		return "Glyph Surface Area";
-		case DSPHM_Volume:			return "Glyph Volume";
-		case DSPHM_Average:			return "Average Radius";
-		default:					return "ERROR";
+		case HARDIMeasures::GA: return "General Anisotropy"; 		// General Anisotropy
+		case	HARDIMeasures::V: return "Variance";				// Variance
+		case	HARDIMeasures::GFA: return "General Fractional Anisotropy";			// General Fractional Anisotropy
+		 
+	
+	default:					return "ERROR";
 	}
 }
 
@@ -268,9 +286,9 @@ void vtkSphericalHarmonicsToScalarVolumeFilter::SimpleExecute(vtkImageData * inp
 	// Compute the desired measure
 	switch (this->currentMeasure)
 	{
-		case DSPHM_SurfaceArea:		this->computeSurfaceArea(outArray);		break; // change this to sphericalharm2scalar types !!!
-		case DSPHM_Volume:			this->computeVolume(outArray);			break;
-		case DSPHM_Average:			this->computeAverageRadius(outArray);	break;
+	case HARDIMeasures::GA:		this->computeSurfaceArea(outArray);		break; //  for all points do GA!!!
+	case HARDIMeasures::V:			this->computeVolume(outArray);			break;
+	case HARDIMeasures::GFA:			this->computeAverageRadius(outArray);	break;
 
 		default:
 			vtkErrorMacro(<<"Unknown scalar measure!");
