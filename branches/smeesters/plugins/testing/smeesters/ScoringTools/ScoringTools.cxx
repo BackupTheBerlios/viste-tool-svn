@@ -535,11 +535,15 @@ void ScoringTools::ShowHistogram(HistogramType histType)
 
         // normalize average value and place in histogram bin
         int binval = floor((averageValue - thresholdSettings->scalarRange[0]) / scalarNormDenominator * (double) numberOfBins + 0.5);
-        averageHist[binval] = averageHist[binval] + 1;
+        std::cout << binval << std::endl;
+        if(binval > 0)
+            averageHist[binval] = averageHist[binval] + 1;
 
         // normalize minkowski average value and place in histogram bin
         binval = floor((minkowskiAverageValue - thresholdSettings->scalarRange[0]) / scalarNormDenominator * (double) numberOfBins + 0.5);
-        minkowskiAverageHist[binval] = minkowskiAverageHist[binval] + 1;
+        std::cout << binval << std::endl;
+        if(binval > 0)
+            minkowskiAverageHist[binval] = minkowskiAverageHist[binval] + 1;
 	}
 
 	// compute maximum values

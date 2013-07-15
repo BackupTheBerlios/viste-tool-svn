@@ -421,23 +421,47 @@ void vtkFiberScoringMeasuresFilter::Execute()
 	// Normalize SM
 	if(ps->normalizeScalars)
 	{
-	    double range[2];
-        SMScalars->GetRange(range);
-        //printf("asdasdasd %d",SMScalars->GetNumberOfTuples());
-        double maxval = -1e30;
-        double minval = 1e30;
-        for(vtkIdType i = 0; i < SMScalars->GetNumberOfTuples(); i++)
+	    double mean = 0.0;
+	    int nrTuples = SMScalars->GetNumberOfTuples();
+	    for(vtkIdType i = 0; i < nrTuples; i++)
+        {
+            mean += SMScalars->GetTuple1(i);
+        }
+	    mean /= nrTuples;
+
+	    double std_dev = 0.0;
+	    for(vtkIdType i = 0; i < nrTuples; i++)
         {
             double val = SMScalars->GetTuple1(i);
-            if(val > maxval)
-                maxval = val;
-            if(val < minval)
-                minval = val;
+            std_dev += (val - mean)*(val - mean);
         }
+        std_dev = sqrt(std_dev/nrTuples);
+
+        printf("mean: %f, std dev: %f \n", mean, std_dev);
+//
+//
+//	    double range[2];
+//        SMScalars->GetRange(range);
+//
+//
+//
+//
+//        //printf("asdasdasd %d",SMScalars->GetNumberOfTuples());
+//        double maxval = -1e30;
+//        double minval = 1e30;
+//        for(vtkIdType i = 0; i < SMScalars->GetNumberOfTuples(); i++)
+//        {
+//            double val = SMScalars->GetTuple1(i);
+//            if(val > maxval)
+//                maxval = val;
+//            if(val < minval)
+//                minval = val;
+//        }
 
         for(vtkIdType i = 0; i < SMScalars->GetNumberOfTuples(); i++)
         {
-            SMScalars->SetTuple1(i,(SMScalars->GetTuple1(i) - range[0])/(range[1] - range[0]) );
+            SMScalars->SetTuple1(i,(SMScalars->GetTuple1(i) - mean)/std_dev );
+            //SMScalars->SetTuple1(i,(SMScalars->GetTuple1(i) - range[0])/(range[1] - range[0]) );
             //printf("%f %f %f %f %f %f \n", range[0], range[1], minval, maxval, SMScalars->GetTuple1(i), (SMScalars->GetTuple1(i) - range[0])/(range[1] - range[0]));
         }
 	}
