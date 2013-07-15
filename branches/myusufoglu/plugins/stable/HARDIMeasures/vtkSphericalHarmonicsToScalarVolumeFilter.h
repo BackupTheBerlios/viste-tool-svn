@@ -193,6 +193,8 @@ class vtkSphericalHarmonicsToScalarVolumeFilter : public vtkSimpleImageToImageFi
 
 		bool computeUnitVectors();
 
+		void computeSHARMMeasureScalarVolume();
+
 		/** Compute the surface area of the 3D glyphs, which can be used as a scalar
 			measure ("DSPHM_SurfaceArea"). Requires a triangle array. 
 			@param outArray		Output scalar array. */

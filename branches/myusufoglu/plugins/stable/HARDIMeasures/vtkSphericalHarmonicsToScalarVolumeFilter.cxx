@@ -228,78 +228,100 @@ void vtkSphericalHarmonicsToScalarVolumeFilter::SimpleExecute(vtkImageData * inp
 		return;
 	}
 
-	// Check if the triangles array has been set (if we need it)
-	if (this->currentMeasure == DSPHM_SurfaceArea)
-	{
-		if (!(this->trianglesArray))	
-		{
-			vtkErrorMacro(<<"Triangles array has not been set!");
-			return;
-		}
-	}
-
-	// Get the array containing the angles of the sample points
-	this->anglesArray = vtkDoubleArray::SafeDownCast(inPD->GetArray("Spherical Directions"));
-
-	if (!(this->anglesArray))
-	{
-		vtkErrorMacro(<<"Spherical directions array has not been set!");
-		return;
-	}
-
-	// Get the array containing the radius for each sample points per voxel
-	this->radiiArray = vtkDoubleArray::SafeDownCast(inPD->GetArray("Vectors"));
-
-	if (!(this->radiiArray))
-	{
-		vtkErrorMacro(<<"Radius array has not been set!");
-		return;
-	}
-
-	// Check if the radius array matches the angles array
-	if (this->anglesArray->GetNumberOfComponents() != 2 || this->anglesArray->GetNumberOfTuples() != this->radiiArray->GetNumberOfComponents())
-	{
-		vtkErrorMacro(<<"Radius array does not match angles array!");
-		return;
-	}
-
+	 
 	// Set the dimensions of the output
 	int dims[3];
 	input->GetDimensions(dims);
 	output->SetDimensions(dims);
 
-	// Create the output scalar array
-	vtkDoubleArray * outArray = vtkDoubleArray::New();
-	outArray->SetNumberOfComponents(1);
-	outArray->SetNumberOfTuples(numberOfPoints);
+	 
 	
 	// Compute the step size for the progress bar
 	this->progressStepSize = numberOfPoints / 25;
 	this->progressStepSize += (this->progressStepSize == 0) ? 1 : 0;
 
 	// Set the progress bar text
-	this->SetProgressText("Computing scalar measure for discrete sphere function...");
+	this->SetProgressText("Computing scalar measure for spherical harmonics...");
 
 
-	HARDIMeasures * HMeasures = new HARDIMeasures; // THIS will be used 
+ 
 
+    // Define output scalar array
+    vtkDoubleArray * outArray = vtkDoubleArray::New();
+    outArray->SetNumberOfComponents(1);
+    outArray->SetNumberOfTuples(numberOfPoints);
+
+    // ID of the current point
+	vtkIdType ptId;
+	int l=SHCoefficientsArray->GetNumberOfComponents();
+	// Current tensor value
+	double *tensor = new double(l) ;
+
+    // Loop through all points of the image
+	for(ptId = 0; ptId < numberOfPoints; ++ptId)
+	{
+        // Get tensor value at current point
+		SHCoefficientsArray->GetTuple(ptId, tensor);
+		HARDIMeasures * HMeasures = new HARDIMeasures; // THIS will be used 
+	
+        // Check if tensor is NULL. This check is not necessary but can
+        // save time on sparse datasets
+		//if (vtkTensorMath::IsNullTensor(tensor))
+		//{
+            // Set output value to zero
+       //     outArray->SetTuple1(ptId, 0.0);
+		//}
+
+        // Compute the output scalar value
+		//else
+		//{
+			double outScalar = HMeasures->Variance(tensor,l); // DO FOR ALL MEASURES ACCORDING TO GIVEN MEASURE
+
+            // Add scalar value to output array
+            outArray->SetTuple1(ptId, outScalar);
+		//}
+	//
+        // Update progress value
+        if(ptId % 50000 == 0)
+        {
+            this->UpdateProgress(((float) ptId) / ((float) numberOfPoints));
+        }
+	}
+
+    // Add scalars to the output
+    outPD->SetScalars(outArray);
+
+    outArray->Delete();
+    outArray = NULL;
+
+    // We're done!
+    this->UpdateProgress(1.0);
+
+
+//	this->computeSHARMMeasureScalarVolume();
+	
+
+	// Add the scalar array to the output image
+	//outPD->SetScalars(outArray);
+	//outArray->Delete();
+}
+
+
+void vtkSphericalHarmonicsToScalarVolumeFilter::computeSHARMMeasureScalarVolume()
+{
+	
 	// Compute the desired measure
 	switch (this->currentMeasure)
 	{
-	case HARDIMeasures::GA:		this->computeSurfaceArea(outArray);		break; //  for all points do GA!!!
-	case HARDIMeasures::V:			this->computeVolume(outArray);			break;
-	case HARDIMeasures::GFA:			this->computeAverageRadius(outArray);	break;
+//	case HARDIMeasures::GA:		this->computeSurfaceArea(outArray);		break; //  for all points do GA!!!
+//	case HARDIMeasures::V:			this->computeVolume(outArray);			break;
+//	case HARDIMeasures::GFA:			this->computeAverageRadius(outArray);	break;
 
 		default:
 			vtkErrorMacro(<<"Unknown scalar measure!");
 			return;
 	}
-
-	// Add the scalar array to the output image
-	outPD->SetScalars(outArray);
-	outArray->Delete();
 }
-
 
 //--------------------------[ computeUnitVectors ]-------------------------\\
 

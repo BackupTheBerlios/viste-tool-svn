@@ -204,7 +204,7 @@ void HARDIMeasuresPlugin::dataSetAdded(data::DataSet * ds)
 		 
 		vtkSphericalHarmonicsToScalarVolumeFilter * filter = vtkSphericalHarmonicsToScalarVolumeFilter::New();
 			filter->SetInput(image);
-			
+			//filter->setCurrentMeasure(
 		 
 		 
 	}
