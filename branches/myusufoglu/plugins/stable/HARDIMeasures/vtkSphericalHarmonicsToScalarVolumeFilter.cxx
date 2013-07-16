@@ -122,14 +122,14 @@ QString vtkSphericalHarmonicsToScalarVolumeFilter::getShortMeasureName(int index
 		case HARDIMeasures::GA  : return "GA"; 		// General Anisotropy
 		case	HARDIMeasures::V : return "Variance";				// Variance
 		case	HARDIMeasures::GFA : return "GFA";			// General Fractional Anisotropy
-		//	FMI,			// Fractional Multi-Fiber Index
-		//	R0,				// Rank 0
-		//	R2,				// Rank 2
-		//	Ri,				// Rank i
-		//	Iso,			// Isotropic component
-		//	SE,				// ShannonEntropy
-		//	CRE,			// Cumulative Residual Entropy
-		//	NM				// Number of Maxima
+		case	HARDIMeasures::FMI : return "FMI";			// Fractional Multi-Fiber Index
+		case	HARDIMeasures::R0 : return "R0";			// Rank 0
+		case	HARDIMeasures::R2 : return "R2";
+		case	HARDIMeasures::Ri : return "Ri";
+		case	HARDIMeasures::Iso : return "Iso";			// Isotropic component
+		case	HARDIMeasures::SE : return "SE";				// ShannonEntropy
+		case	HARDIMeasures::CRE : return "CRE";				// Cumulative Residual Entropy
+		case	HARDIMeasures::NM : return "NM";				// Number of Maxima
 		
 		
 		default:					return "ERROR";
@@ -153,7 +153,14 @@ QString vtkSphericalHarmonicsToScalarVolumeFilter::getLongMeasureName(int index)
 		case HARDIMeasures::GA: return "General Anisotropy"; 		// General Anisotropy
 		case	HARDIMeasures::V: return "Variance";				// Variance
 		case	HARDIMeasures::GFA: return "General Fractional Anisotropy";			// General Fractional Anisotropy
-		 
+		case	HARDIMeasures::FMI:	return "Fractional Multi-Fiber Index";
+		case	HARDIMeasures::R0:	return "Rank 0";
+		case	HARDIMeasures::R2:	return "Rank 2";
+		case	HARDIMeasures::Ri:	return "Rank i";
+		case	HARDIMeasures::Iso:	return "Isotropic component";
+		case	HARDIMeasures::SE:	return "ShannonEntropy";
+		case	HARDIMeasures::CRE:	return "Cumulative Residual Entropy";
+		case	HARDIMeasures::NM:	return "Number of Maxima";
 	
 	default:					return "ERROR";
 	}
@@ -275,8 +282,24 @@ void vtkSphericalHarmonicsToScalarVolumeFilter::SimpleExecute(vtkImageData * inp
         // Compute the output scalar value
 		//else
 		//{
-			double outScalar = HMeasures->Variance(tensor,l); // DO FOR ALL MEASURES ACCORDING TO GIVEN MEASURE
-
+		double outScalar;
+	 // DO FOR ALL MEASURES ACCORDING TO GIVEN MEASURE
+			switch (this->currentMeasure)
+	{
+		case HARDIMeasures::GA:				outScalar = HMeasures->GeneralAnisotropy(tensor,l);	break; //  for all points do GA!!!
+		case HARDIMeasures::V:			outScalar = HMeasures->Variance(tensor,l);			break;
+		case HARDIMeasures::GFA:		outScalar = HMeasures->GeneralFractionalAnisotropy(tensor,l);	break;
+		case	HARDIMeasures::FMI:	outScalar = HMeasures->FractionalMultifiberIndex(tensor,l); break; // "Fractional Multi-Fiber Index";
+		case	HARDIMeasures::R0:	outScalar = HMeasures->Rank0(tensor,l); break; // 
+		case	HARDIMeasures::R2:	outScalar = HMeasures->Rank2(tensor,l); break; // 
+		case	HARDIMeasures::Ri:	outScalar = HMeasures->RankI(tensor,l); break; // 
+		case	HARDIMeasures::Iso:	outScalar = HMeasures->IsotropicComponent(tensor,l); break; // 
+		case	HARDIMeasures::CRE:	outScalar = HMeasures->CummulativeResidualEntropy(tensor,l); break; // 
+		case	HARDIMeasures::NM:	outScalar = HMeasures->NumberMaxima(tensor,l); break; // 
+		default:
+			vtkErrorMacro(<<"Unknown scalar measure!");
+			return;
+	}
             // Add scalar value to output array
             outArray->SetTuple1(ptId, outScalar);
 		//}
@@ -306,7 +329,7 @@ void vtkSphericalHarmonicsToScalarVolumeFilter::SimpleExecute(vtkImageData * inp
 	//outArray->Delete();
 }
 
-
+// Not used
 void vtkSphericalHarmonicsToScalarVolumeFilter::computeSHARMMeasureScalarVolume()
 {
 	
@@ -325,7 +348,7 @@ void vtkSphericalHarmonicsToScalarVolumeFilter::computeSHARMMeasureScalarVolume(
 
 //--------------------------[ computeUnitVectors ]-------------------------\\
 
-bool vtkSphericalHarmonicsToScalarVolumeFilter::computeUnitVectors()
+bool vtkSphericalHarmonicsToScalarVolumeFilter::computeUnitVectors() // for DS not SHARM
 {
 	if (this->trianglesArray == NULL || this->anglesArray == NULL)
 		return false;

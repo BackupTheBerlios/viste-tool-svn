@@ -204,8 +204,42 @@ void HARDIMeasuresPlugin::dataSetAdded(data::DataSet * ds)
 		 
 		vtkSphericalHarmonicsToScalarVolumeFilter * filter = vtkSphericalHarmonicsToScalarVolumeFilter::New();
 			filter->SetInput(image);
-			//filter->setCurrentMeasure(
+			filter->setCurrentMeasure(HARDIMeasures::GA);
 		 
+			// Create an output information object
+		OutputInformation newInfo;
+		newInfo.input = ds;
+
+		// Loop through all supported measures
+		for (int i = 0; i < (int) HARDIMeasures::SHARM_NumberOfMeasures; ++i)
+		{
+			// Create a filter for the current measure
+			vtkSphericalHarmonicsToScalarVolumeFilter * filter = vtkSphericalHarmonicsToScalarVolumeFilter::New();
+			filter->SetInput(image);
+			filter->setCurrentMeasure(i);
+
+			// Create a progress bar for this filter
+			this->core()->out()->createProgressBarForAlgorithm(filter, "HARDI Measures");
+			this->discreteSphereFilters.append(filter);// Spherical Harmonics List !!!
+
+			// Create an output data set for the filter output
+			data::DataSet * outDS = new data::DataSet(ds->getName() + " [" + 
+				filter->getShortMeasureName(i) + "]", "scalar volume", filter->GetOutput());
+
+			// If available, copy the input transformation matrix to the output
+			outDS->getAttributes()->copyTransformationMatrix(ds);
+
+			// Add the output data set to the data manager...
+			this->core()->data()->addDataSet(outDS);
+
+			// ...and to the list of outputs
+			newInfo.outputs.append(outDS);
+		}
+
+		// Add the output information object to the list
+		this->images.append(newInfo);
+
+
 		 
 	}
 }
