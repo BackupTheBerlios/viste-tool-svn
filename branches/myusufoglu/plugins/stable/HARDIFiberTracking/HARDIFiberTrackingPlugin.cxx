@@ -13,7 +13,7 @@
  * - UpdateFibers function calls HARDIFiberTrackingFilter with a data type parameter(sphericalHarmonics) anymore, 
  * parameter is either 1 or 0 depending on the data type read.
  *
- * 2013-29-05 Mehmet Yusufoglu, Bart Van Knippenberg
+ * 2013-29-05 Mehmet Yusufoglu
  * - scalar volumes should not be added to the HARDI data combo box. Removed.
  *
  */
