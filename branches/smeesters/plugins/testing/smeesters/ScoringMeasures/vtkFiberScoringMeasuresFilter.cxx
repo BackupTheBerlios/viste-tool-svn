@@ -358,34 +358,33 @@ void vtkFiberScoringMeasuresFilter::Execute()
                 double internal_energy = 0.0;
                 if(lambda != 0.0)
                 {
-    //                PrintVector(p);
-    //                PrintVector(prev_p);
-    //                PrintVector(prev2_p);
-    //                PrintVector(prev3_p);
-    //                printf(" --------------\n");
+                    // compute frenet frame and its derivates
                     double* a1 = HalvedDifference(p,prev_p);
-    //                PrintVector(a1);
                     double* t0 = Normalize(a1);
-    //                PrintVector(t0);
                     double* prev_t0 = Normalize(HalvedDifference(prev_p, prev2_p));
-    //                PrintVector(prev_t0);
                     double* prev2_t0 = Normalize(HalvedDifference(prev2_p, prev3_p));
-    //                PrintVector(prev2_t0);
                     double* t1 = HalvedDifference(t0,prev_t0);
-    //                PrintVector(t1);
                     double* n0 = Normalize(t1);
-    //                PrintVector(n0);
                     double* prev_n0 = Normalize(HalvedDifference(prev_t0,prev2_t0));
-    //                PrintVector(prev_n0);
                     double* n1 = HalvedDifference(n0,prev_n0);
-    //                PrintVector(n1);
                     double* b0 = Normalize(Cross(t0,n0));
-    //                PrintVector(b0);
                     double* b1 = Cross(t0,n1);
-    //                PrintVector( b1);
 
+                    // compute scalars
                     double curvature = Norm(t1);
                     double torsion =  Norm(b1);
+
+                    // release memory
+                    free(a1);
+                    free(t0);
+                    free(prev_t0);
+                    free(prev2_t0);
+                    free(t1);
+                    free(n0);
+                    free(prev_n0);
+                    free(n1);
+                    free(b0);
+                    free(b1);
 
                     internal_energy = sqrt(curvature*curvature + muu*torsion + beta*beta*inv_numberOfFiberPoints*inv_numberOfFiberPoints);
                 }
@@ -398,12 +397,6 @@ void vtkFiberScoringMeasuresFilter::Execute()
                 SMScalars->InsertNextTuple1(score);
             }
 
-//            printf(" --------------\n");
-//            PrintVector(&p[0]);
-//            PrintVector(prev_p);
-//            PrintVector(prev2_p);
-//            PrintVector(prev3_p);
-
             // Set previous points
             if(prev2_p != NULL)
                 memcpy(prev3_p,prev2_p,3*sizeof(double));
@@ -415,7 +408,10 @@ void vtkFiberScoringMeasuresFilter::Execute()
 		// Add the new fiber to the output
 		outputLines->InsertNextCell(newFiberList);
 
-//		break;
+        // release memory
+        free(prev_p);
+        free(prev2_p);
+        free(prev3_p);
 	}
 
 	// Normalize SM
@@ -437,32 +433,9 @@ void vtkFiberScoringMeasuresFilter::Execute()
         }
         std_dev = sqrt(std_dev/nrTuples);
 
-        printf("mean: %f, std dev: %f \n", mean, std_dev);
-//
-//
-//	    double range[2];
-//        SMScalars->GetRange(range);
-//
-//
-//
-//
-//        //printf("asdasdasd %d",SMScalars->GetNumberOfTuples());
-//        double maxval = -1e30;
-//        double minval = 1e30;
-//        for(vtkIdType i = 0; i < SMScalars->GetNumberOfTuples(); i++)
-//        {
-//            double val = SMScalars->GetTuple1(i);
-//            if(val > maxval)
-//                maxval = val;
-//            if(val < minval)
-//                minval = val;
-//        }
-
         for(vtkIdType i = 0; i < SMScalars->GetNumberOfTuples(); i++)
         {
             SMScalars->SetTuple1(i,(SMScalars->GetTuple1(i) - mean)/std_dev );
-            //SMScalars->SetTuple1(i,(SMScalars->GetTuple1(i) - range[0])/(range[1] - range[0]) );
-            //printf("%f %f %f %f %f %f \n", range[0], range[1], minval, maxval, SMScalars->GetTuple1(i), (SMScalars->GetTuple1(i) - range[0])/(range[1] - range[0]));
         }
 	}
 

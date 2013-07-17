@@ -1,6 +1,10 @@
 #ifndef bmia_ConnectivityMeasurePlugin_vtkFiberSelectionFilter_h
 #define bmia_ConnectivityMeasurePlugin_vtkFiberSelectionFilter_h
 
+/** Includes - STD */
+
+#include <algorithm>
+#include <vector>
 
 /** Includes - VTK */
 
@@ -77,8 +81,11 @@ class vtkFiberSelectionFilter : public vtkPolyDataToPolyDataFilter
         void SetMaximumFiberLength(double val)
         {
             maximumFiberLength = val;
-            std::cout << "adsasd" << val << std::endl;
-            printf("MAXIMUM FIBER LENGTH: %f",val);
+        }
+
+        void SetPrunePercentage(int val)
+        {
+            prunePercentage = val;
         }
 
 	protected:
@@ -112,6 +119,7 @@ class vtkFiberSelectionFilter : public vtkPolyDataToPolyDataFilter
 		bool EvaluateFiber(vtkCell* cell, vtkPointData* inputPD);
 
 		double maximumFiberLength;
+		int prunePercentage;
 
 }; // class vtkFiberSelectionFilter
 

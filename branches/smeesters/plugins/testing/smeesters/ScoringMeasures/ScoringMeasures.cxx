@@ -326,6 +326,9 @@ void ScoringMeasures::ComputeScore()
 	// Hide the input data set
 	sortedFibers->ds->getAttributes()->addAttribute("isVisible", -1.0);
 	this->core()->data()->dataSetChanged(sortedFibers->ds);
+
+	// Clean up
+    scoringFilter->Delete();
 }
 
 ///

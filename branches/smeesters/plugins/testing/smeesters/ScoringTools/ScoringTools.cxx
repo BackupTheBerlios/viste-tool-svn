@@ -82,6 +82,7 @@ void ScoringTools::dataSetAdded(data::DataSet * d)
 		sortedFibers->outputFiberDataName = d->getName().append("_thresholded");
 		sortedFibers->processed = false;
 		sortedFibers->hasScalars = false;
+		sortedFibers->prunePercentage = 100;
 
         // Add the new data set to the list of currently available fiber sets
         this->sortedFibersList.append(sortedFibers);
@@ -372,6 +373,7 @@ void ScoringTools::ComputeFibers()
     vtkFiberSelectionFilter* selectionFilter = vtkFiberSelectionFilter::New();
 	selectionFilter->SetInput(polydata);
 	selectionFilter->SetMaximumFiberLength(sortedFibers->lengthOfFiberSetting[1]);
+	selectionFilter->SetPrunePercentage(sortedFibers->prunePercentage);
 	//selectionFilter->SetThresholdSettings((QList<ThresholdSettings*>)sortedFibers->scalarThresholdSettings);
 	for(int i =0; i<sortedFibers->scalarThresholdSettings.length(); i++)
 	{
@@ -770,6 +772,9 @@ void ScoringTools::UpdateGUI()
 
         // set scalar combobox
         this->form->scalarTypeCombo->setCurrentIndex(sortedFibers->selectedScalarType);
+
+        // prune percentage
+        this->form->prunePercentageSpinBox->setValue(sortedFibers->prunePercentage);
     }
 
     // re-enable signals
@@ -880,6 +885,12 @@ void ScoringTools::minkowskiOrderSpinBoxChanged(int value)
     UpdateGUI();
 }
 
+void ScoringTools::prunePercentageSpinBoxChanged(int value)
+{
+    GetSortedFibers()->prunePercentage = value;
+    UpdateGUI();
+}
+
 void ScoringTools::updateButtonClicked()
 {
     ComputeFibers();
@@ -940,6 +951,7 @@ void ScoringTools::connectAll()
     connect(this->form->minkowskiAverageValueMaxSlider,SIGNAL(valueChanged(int)),this,SLOT(minkowskiAverageValueMaxSliderChanged(int)));
     connect(this->form->minkowskiAverageValueMaxSpinBox,SIGNAL(valueChanged(double)),this,SLOT(minkowskiAverageValueMaxSpinBoxChanged(double)));
     connect(this->form->minkowskiOrderSpinBox,SIGNAL(valueChanged(int)),this,SLOT(minkowskiOrderSpinBoxChanged(int)));
+    connect(this->form->prunePercentageSpinBox,SIGNAL(valueChanged(int)),this,SLOT(prunePercentageSpinBoxChanged(int)));
 }
 
 //------------------------[ Disconnect Qt elements ]-----------------------\\

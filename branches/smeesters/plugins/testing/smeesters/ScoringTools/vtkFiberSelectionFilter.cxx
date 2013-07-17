@@ -134,9 +134,32 @@ void vtkFiberSelectionFilter::Execute()
 	this->SetProgressText("Selecting fibers...");
 	this->UpdateProgress(0.0);
 
+	// randomly prune
+	bool randomlyPrune = this->prunePercentage != 100;
+	std::vector<bool> prune;
+	if(randomlyPrune)
+	{
+        int prune_thresh = floor((double)numberOfCells*(double)(this->prunePercentage/100.0));
+        for (vtkIdType lineId = 0; lineId < numberOfCells; ++lineId)
+        {
+            if(lineId > prune_thresh)
+                prune.push_back(true);
+            else
+                prune.push_back(false);
+        }
+        std::random_shuffle(prune.begin(), prune.end());
+	}
+
 	// Loop through all input fibers
 	for (vtkIdType lineId = 0; lineId < numberOfCells; ++lineId)
 	{
+	    // prune fiber?
+	    if(randomlyPrune)
+	    {
+	        if(prune[lineId] == false)
+                continue;
+	    }
+
 	    // Update the progress bar
 		if ((lineId % progressStep) == 0)
 		{

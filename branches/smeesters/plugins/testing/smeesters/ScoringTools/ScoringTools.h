@@ -4,7 +4,6 @@
 /** Includes - Main Header */
 
 #include "DTITool.h"
-//#include "../src/smeesters/plugins/stable/PlanesVisualization/PlanesVisPlugin.h"
 
 /** Includes - Qt */
 
@@ -87,6 +86,8 @@ typedef struct
 
     double lengthOfFiberRange[2];
     double lengthOfFiberSetting[2];
+
+    int prunePercentage;
 
     QString outputFiberDataName;
 
@@ -175,6 +176,7 @@ protected slots:
     void displayHistogramButtonClicked();
     void displayOutputHistogramButtonClicked();
     void minkowskiOrderSpinBoxChanged(int value);
+    void prunePercentageSpinBoxChanged(int value);
 
 private:
 
