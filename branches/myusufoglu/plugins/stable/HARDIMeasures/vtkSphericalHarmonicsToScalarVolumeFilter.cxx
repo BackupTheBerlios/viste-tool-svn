@@ -261,8 +261,21 @@ namespace bmia {
 		// ID of the current point
 		vtkIdType ptId;
 		int size=SHCoefficientsArray->GetNumberOfComponents();
+		// shOrder
 		int l = 4 ;
-		// Current tensor value
+			switch( SHCoefficientsArray->GetNumberOfComponents())
+			{
+			case 1:		l = 0;	break; // shOrder
+			case 6:		l = 2;	break;
+			case 15:	l = 4;	break;
+			case 28:	l = 6;	break;
+			case 45:	l = 8;	break;
+
+			default:
+				vtkErrorMacro(<< "Number of SH coefficients is not supported!");
+				return;
+			}
+		// Current coefficients
 		double *tensor = new double[size] ;
 
 		// Loop through all points of the image
