@@ -217,7 +217,7 @@ void HARDIMeasuresPlugin::dataSetAdded(data::DataSet * ds)
 			vtkSphericalHarmonicsToScalarVolumeFilter * filter = vtkSphericalHarmonicsToScalarVolumeFilter::New();
 			filter->SetInput(image);
 			filter->setCurrentMeasure(i);
-
+			//filter->Update(); // NECESSARY OR NOT?
 			// Create a progress bar for this filter
 			this->core()->out()->createProgressBarForAlgorithm(filter, "HARDI Measures");
 			this->discreteSphereFilters.append(filter);// Spherical Harmonics List !!!

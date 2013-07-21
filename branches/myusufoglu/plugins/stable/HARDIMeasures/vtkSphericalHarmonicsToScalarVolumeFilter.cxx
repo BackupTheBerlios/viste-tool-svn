@@ -260,9 +260,10 @@ namespace bmia {
 
 		// ID of the current point
 		vtkIdType ptId;
-		int l=SHCoefficientsArray->GetNumberOfComponents();
+		int size=SHCoefficientsArray->GetNumberOfComponents();
+		int l = 4 ;
 		// Current tensor value
-		double *tensor = new double[l] ;
+		double *tensor = new double[size] ;
 
 		// Loop through all points of the image
 		for(ptId = 0; ptId < numberOfPoints; ++ptId)
@@ -294,6 +295,7 @@ namespace bmia {
 			case	HARDIMeasures::R2:	outScalar = HMeasures->Rank2(tensor,l); break; // 
 			case	HARDIMeasures::Ri:	outScalar = HMeasures->RankI(tensor,l); break; // 
 			case	HARDIMeasures::Iso:	outScalar = HMeasures->IsotropicComponent(tensor,l); break; // 
+			case	HARDIMeasures::SE:	outScalar = HMeasures->ShannonEntropy(tensor,l); break; // 
 			case	HARDIMeasures::CRE:	outScalar = HMeasures->CummulativeResidualEntropy(tensor,l); break; // 
 			case	HARDIMeasures::NM:	outScalar = HMeasures->NumberMaxima(tensor,l); break; // 
 			default:

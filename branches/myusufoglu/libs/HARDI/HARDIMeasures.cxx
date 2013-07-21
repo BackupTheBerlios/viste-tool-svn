@@ -211,6 +211,7 @@ double HARDIMeasures::Variance(double * coeff, int l)
 		{
 			result += pow(coeff[r], 2);
 		} 
+		
 	}
 
 	// Divide by square of first coefficient times nine
