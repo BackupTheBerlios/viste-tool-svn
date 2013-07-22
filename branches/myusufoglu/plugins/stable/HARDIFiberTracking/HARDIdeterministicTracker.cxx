@@ -571,10 +571,13 @@ namespace bmia {
 			}// for cell 8 
 			double interpolatedDirection[2];
 			this->interpolateAngles(anglesBeforeInterpolation,weights, interpolatedDirection); // this average will be used as initial value. 
-
+			double tempDirection[3];
+			tempDirection[0] = sinf(interpolatedDirection[0]) * cosf(interpolatedDirection[1]);
+		tempDirection[1] = sinf(interpolatedDirection[0]) * sinf(interpolatedDirection[1]);
+		tempDirection[2] = cosf(interpolatedDirection[0]);
 
 			// use weights as interpolatin of angles...
-
+			// add 
 			//deallocate memory
 			delete [] SHAux;
 
@@ -591,9 +594,9 @@ namespace bmia {
 			prevPoint = currentPoint;
 
 			// Initialize the previous segment to zero
-			this->prevSegment[0] = 0.0;
-			this->prevSegment[1] = 0.0;
-			this->prevSegment[2] = 0.0;
+			this->prevSegment[0] = tempDirection[0]; // 0.0;
+			this->prevSegment[1] = tempDirection[1];// 0.0;
+			this->prevSegment[2] = tempDirection[2];//0.0;
 			double previousAngle[2];
 			// Loop until a stopping condition is met
 			while (1) 
@@ -699,7 +702,7 @@ namespace bmia {
 				
 				//this->findMax2(ODFlist,ODFlistMaxTwo,outputlistwithunitvectors,anglesMaxTwo); // WE DO NOT NEED!!!  // get max 2 angels // maxima ve radii 
 				double value =0 , angularSimilarity =0;
-				int indexHighestSimilarity;
+				int indexHighestSimilarity=0;
 				for( int i=0;i< outputlistwithunitvectors.size()  ;i++ )
 				{ 
 					angularSimilarity = vtkMath::Dot(this->prevSegment, outputlistwithunitvectors.at(i));
