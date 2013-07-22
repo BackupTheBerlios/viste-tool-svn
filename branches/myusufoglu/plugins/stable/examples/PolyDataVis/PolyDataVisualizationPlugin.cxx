@@ -42,6 +42,10 @@
  * 2010-10-19	Evert van Aart
  * - Disabled this plugin for fiber data sets, as those are handled by the
  *   Fiber Visualization plugin.
+ *
+ *  2013-07-02	Mehmet Yusufoglu
+ * - Added an opacity slider,corresponding slot and lines to the
+ * list box data selection slot. No class variables added.
  * 
  */
 
@@ -60,7 +64,7 @@
 
 namespace bmia {
 
-PolyDataVisualizationPlugin::PolyDataVisualizationPlugin() : Plugin("PolyData")
+PolyDataVisualizationPlugin::PolyDataVisualizationPlugin() : AdvancedPlugin("PolyData")
 {
     this->selectedData = -1;
     this->changingSelection = false;
@@ -74,11 +78,15 @@ PolyDataVisualizationPlugin::PolyDataVisualizationPlugin() : Plugin("PolyData")
     // disable the options frame if there is no data
     this->ui->optionsFrame->setEnabled(false);
 
+	
+
+
     // Link events in the GUI to function calls:
     connect(this->ui->dataList, SIGNAL(currentRowChanged(int)), this, SLOT(selectData(int)));
     connect(this->ui->visibleCheckBox, SIGNAL(toggled(bool)), this, SLOT(setVisible(bool)));
     connect(this->ui->lightingCheckBox, SIGNAL(toggled(bool)), this, SLOT(setLighting(bool)));
     connect(this->ui->colorButton, SIGNAL(clicked()), this, SLOT(changeColor()));
+	 connect(this->ui->opacitySlider, SIGNAL(valueChanged(int)), this, SLOT(changeOpacity(int)));
 }
 
 PolyDataVisualizationPlugin::~PolyDataVisualizationPlugin()
@@ -120,6 +128,7 @@ void PolyDataVisualizationPlugin::dataSetAdded(data::DataSet* ds)
     mapper->ScalarVisibilityOff();
    mapper->SetInput(polydata);
     vtkActor* actor = vtkActor::New();
+		
     actor->SetMapper(mapper);
     mapper->Delete(); mapper = NULL;
     // Note that the mapper was not actually deleted because it was
@@ -151,6 +160,14 @@ void PolyDataVisualizationPlugin::dataSetAdded(data::DataSet* ds)
 
     // TODO: select the newly added dataset
 //		this->fullCore()->canvas()->GetRenderer3D()->ResetCamera();
+	// Depth Peeling
+	this->fullCore()->canvas()->GetRenderer3D()->GetRenderWindow()->SetOffScreenRendering(1);
+	this->fullCore()->canvas()->GetRenderer3D()->GetRenderWindow()->SetAlphaBitPlanes(1);
+	this->fullCore()->canvas()->GetRenderer3D()->GetRenderWindow()->SetMultiSamples(0);
+	this->fullCore()->canvas()->GetRenderer3D()->SetUseDepthPeeling(1);
+	this->fullCore()->canvas()->GetRenderer3D()->SetMaximumNumberOfPeels(100);
+	//this->fullCore()->canvas()->GetRenderer3D()->GetRenderWindow()->For
+	this->fullCore()->canvas()->GetRenderer3D()->SetOcclusionRatio(0.1);
     this->core()->render();
 }
 
@@ -174,6 +191,9 @@ void PolyDataVisualizationPlugin::selectData(int row)
     this->ui->dataSetName->setText(this->dataSets.at(this->selectedData)->getName());
     this->ui->visibleCheckBox->setChecked(this->actors.at(this->selectedData)->GetVisibility());
     this->ui->lightingCheckBox->setChecked(this->actors.at(this->selectedData)->GetProperty()->GetLighting());
+	//opacity
+	this->ui->opacitySlider->setValue(this->actors.at(this->selectedData)->GetProperty()->GetOpacity()*100);
+	this->ui->opacityLabel->setText( QString::number( this->actors.at(this->selectedData)->GetProperty()->GetOpacity() ));
     this->changingSelection = false;
 }
 
@@ -183,6 +203,8 @@ void PolyDataVisualizationPlugin::setVisible(bool visible)
     if (this->selectedData == -1) return;
     this->actors.at(this->selectedData)->SetVisibility(visible);
     this->core()->render();
+	if(this->fullCore()->canvas()->GetRenderer3D()->GetLastRenderingUsedDepthPeeling())
+		cout << " depth peeling used" << endl; 
 }
 
 void PolyDataVisualizationPlugin::setLighting(bool lighting)
@@ -214,6 +236,17 @@ void PolyDataVisualizationPlugin::changeColor()
 	property->SetColor(newColor.redF(), newColor.greenF(), newColor.blueF());
 	this->core()->render();
 	}
+}
+
+void PolyDataVisualizationPlugin::changeOpacity(int value)
+{
+    if (this->changingSelection) return;
+    if (this->selectedData == -1) return;
+	 Q_ASSERT(this->actors.at(this->selectedData));
+	 this->actors.at(this->selectedData)->GetProperty()->SetOpacity(value/100.0);
+	 	this->ui->opacityLabel->setText( QString::number(value/100.0));
+     this->core()->render();
+
 }
 
 } // namespace bmia

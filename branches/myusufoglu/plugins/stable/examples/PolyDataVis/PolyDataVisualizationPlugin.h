@@ -43,6 +43,8 @@
  * - Disabled this plugin for fiber data sets, as those are handled by the
  *   Fiber Visualization plugin.
  * 
+ *  2013-07-02	Mehmet Yusufoglu
+ * - Added an opacity slider slot declaration.
  */
 
 // This example plugin shows how to create a plugin that uses
@@ -69,13 +71,14 @@ namespace bmia {
  * also implements the interfaces data::Consumer, plugin::Visualization,
  * and plugin::GUI respectively.
  */
-class PolyDataVisualizationPlugin : 	public plugin::Plugin,
+class PolyDataVisualizationPlugin : 	public plugin::AdvancedPlugin,
 					public data::Consumer,
 					public plugin::Visualization,
 					public plugin::GUI
 {
     Q_OBJECT
     Q_INTERFACES(bmia::plugin::Plugin)
+	 Q_INTERFACES(bmia::plugin::AdvancedPlugin)
     Q_INTERFACES(bmia::data::Consumer)
     Q_INTERFACES(bmia::plugin::Visualization)
     Q_INTERFACES(bmia::plugin::GUI)
@@ -110,6 +113,7 @@ protected slots:
     void setVisible(bool visible);
     void setLighting(bool lighting);
     void changeColor();
+	void changeOpacity(int value);
 
 private:
     /**
