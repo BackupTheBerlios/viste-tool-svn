@@ -221,7 +221,7 @@ namespace bmia {
 			// Loop until a stopping condition is met
 			while (1) 
 			{
-				// Compute the next point of the fiber using a Euler step.
+				// Compute the next point of the fiber using a Euler step. 
 				if (!this->solveIntegrationStep(currentCell, currentCellId, weights))
 					break;
 
@@ -491,7 +491,7 @@ namespace bmia {
 		if (!pointList->empty())
 		{
 			// Get the first point, and clear the list
-			currentPoint = pointList->front();
+			currentPoint = pointList->front(); // first point
 			pointList->clear();
 
 			// Find the cell containing the seed point
@@ -531,6 +531,9 @@ namespace bmia {
 
 			double *avgMaxAng = new double[2];
 			std::vector<double *> anglesBeforeInterpolation; 
+			if(regionList.size()==0)
+					for(int i=0;i<anglesArray.size();i++)
+						regionList.push_back(i);
 			for (int j = 0; j < 8; ++j)
 			{
 				//get the SH
@@ -538,14 +541,12 @@ namespace bmia {
 				this->cellHARDIData->GetTuple(j, tempSH);
 				//this->cellHARDIData has 8 hardi coeffieint sets
 				//get the ODF // get maxes like below 8 times
-				//initial regionlist includes all points not some points
-				if(regionList.size()==0)
-					for(int i=0;i<anglesArray.size();i++)
-						regionList.push_back(i);
+				//initial regionlist includes all points not some points of the ODF
+				
 
 				DoIt.getOutput(tempSH, this->parentFilter->shOrder,TRESHOLD, anglesArray,  maxima, regionList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
 				// maxima has ids use them to get angles
-				// TAKE HERE DoIt.cleanOutput(maxima, outputlistwithunitvectors,SHAux, ODFlist, this->unitVectors, anglesArray);
+			DoIt.cleanOutput(maxima, outputlistwithunitvectors,SHAux, ODFlist, this->unitVectors, anglesArray);
 				avgMaxAng[0]=0;
 				avgMaxAng[1]=0;
 				for(int i=0; i< maxima.size(); i++)
@@ -555,10 +556,10 @@ namespace bmia {
 				}
 				avgMaxAng[0]/=maxima.size();
 				avgMaxAng[1]/=maxima.size();
-
+				cout << avgMaxAng[0] << " " << avgMaxAng[1] << endl;
 				anglesBeforeInterpolation.push_back(avgMaxAng);
 				outputlistwithunitvectors.clear();
-				DoIt.cleanOutput(maxima, outputlistwithunitvectors,SHAux, ODFlist, this->unitVectors, anglesArray);
+				// TAKEN BEFORE THE AVERAGING DoIt.cleanOutput(maxima, outputlistwithunitvectors,SHAux, ODFlist, this->unitVectors, anglesArray);
 				ODFlist.clear();
 				maxima.clear();
 				//DoIt.cleanOutput() // clean the output there must remain two maxima how?
@@ -571,6 +572,7 @@ namespace bmia {
 			}// for cell 8 
 			double interpolatedDirection[2];
 			this->interpolateAngles(anglesBeforeInterpolation,weights, interpolatedDirection); // this average will be used as initial value. 
+			anglesBeforeInterpolation.clear();
 			double tempDirection[3];
 			tempDirection[0] = sinf(interpolatedDirection[0]) * cosf(interpolatedDirection[1]);
 		tempDirection[1] = sinf(interpolatedDirection[0]) * sinf(interpolatedDirection[1]);
@@ -601,8 +603,8 @@ namespace bmia {
 			// Loop until a stopping condition is met
 			while (1) 
 			{
-				// Compute the next point of the fiber using a Euler step.
-				if (!this->solveIntegrationStep(currentCell, currentCellId, weights))
+				// Compute the next point (nextPoint) of the fiber using a Euler step.
+				if (!this->solveIntegrationStep(currentCell, currentCellId, weights)) //Add NEwSegment to Current Point to Determine NEXT Point!!!
 					break;
 				
 				//previousAngle[0] = acos( this->newSegment[2]);
@@ -610,6 +612,10 @@ namespace bmia {
 				// Check if we've moved to a new cell
 				vtkIdType newCellId = this->HARDIimageData->FindCell(nextPoint.X, currentCell, currentCellId, 
 					this->tolerance, subId, pCoords, weights);
+					for (unsigned int i = 0; i <8; ++i)// angles array is constant for all voxels
+				{
+					cout <<  "weight[" << i << "]:" << weights[i] << endl;
+					}
 
 				// If we're in a new cell, and we're still inside the volume...
 				if (newCellId >= 0 && newCellId != currentCellId)
@@ -713,7 +719,7 @@ namespace bmia {
 				}
 			avgMaxAng[0] = acos( outputlistwithunitvectors[indexHighestSimilarity][2]);
 		avgMaxAng[1] = atan2( outputlistwithunitvectors[indexHighestSimilarity][1],  outputlistwithunitvectors[indexHighestSimilarity][0]);
-
+		cout << " "<< avgMaxAng[0] << " " << avgMaxAng[1] << endl;
 				anglesBeforeInterpolation.push_back(avgMaxAng);
 				//outputlistwithunitvectors.clear();
 				//if (CLEANMAXIMA)
@@ -814,6 +820,8 @@ namespace bmia {
 
 				// Update the total fiber length
 				stepDistance = sqrt((double) vtkMath::Distance2BetweenPoints(currentPoint.X, nextPoint.X)); // next point nerede dolar ??
+				cout << "current point: "<< currentPoint.X[0] << " " << currentPoint.X[1] << " " << currentPoint.X[2] << " " << endl;
+				cout << "next point: "<< nextPoint.X[0] << " " << nextPoint.X[1] << " " << nextPoint.X[2] << " " << endl;
 				this->nextPoint.D = this->currentPoint.D + stepDistance;
 
 				// Call "continueTracking" function of parent filter to determine if
