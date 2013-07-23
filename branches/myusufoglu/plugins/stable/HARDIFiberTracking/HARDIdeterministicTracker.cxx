@@ -600,13 +600,17 @@ namespace bmia {
 			this->prevSegment[1] = tempDirection[1];// 0.0;
 			this->prevSegment[2] = tempDirection[2];//0.0;
 			double previousAngle[2];
+			this->newSegment[0]=this->newSegment[1]=this->newSegment[2]= 0.0; // CHECK!!!
+			//WHILE LOOP MAIN
 			// Loop until a stopping condition is met
 			while (1) 
 			{
+				cout <<"new segment before:" << this->newSegment[0] << " " << this->newSegment[1] << " "<< this->newSegment[2] << endl;
+		
 				// Compute the next point (nextPoint) of the fiber using a Euler step.
 				if (!this->solveIntegrationStep(currentCell, currentCellId, weights)) //Add NEwSegment to Current Point to Determine NEXT Point!!!
 					break;
-				
+				cout <<"new segment after:" << this->newSegment[0] << " " << this->newSegment[1] << " "<< this->newSegment[2] << endl;
 				//previousAngle[0] = acos( this->newSegment[2]);
 		//previousAngle[1] = atan2( this->newSegment[1],  this->newSegment[0]);
 				// Check if we've moved to a new cell
