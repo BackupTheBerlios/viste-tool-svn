@@ -612,7 +612,7 @@ namespace bmia {
 				cout << "===== while ========" << endl;
 				cout <<"prev segment before:" << this->prevSegment[0] << " " << this->prevSegment[1] << " "<< this->prevSegment[2] << endl;
 				cout <<"new segment before:" << this->newSegment[0] << " " << this->newSegment[1] << " "<< this->newSegment[2] << endl;
-				cout <<"currentpoimt before:" << this->currentPoint.X[0] << " " << this->currentPoint.X[1]  << " "<< this->currentPoint.X[2]  << endl;
+				cout <<"currentpoint before:" << this->currentPoint.X[0] << " " << this->currentPoint.X[1]  << " "<< this->currentPoint.X[2]  << endl;
 				
 				cout <<"this->step:" << this->step << endl;
 				// Compute the next point (nextPoint) of the fiber using a Euler step.
