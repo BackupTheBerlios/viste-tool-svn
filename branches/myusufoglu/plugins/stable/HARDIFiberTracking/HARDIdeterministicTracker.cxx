@@ -612,11 +612,14 @@ namespace bmia {
 				cout << "===== while ========" << endl;
 				cout <<"prev segment before:" << this->prevSegment[0] << " " << this->prevSegment[1] << " "<< this->prevSegment[2] << endl;
 				cout <<"new segment before:" << this->newSegment[0] << " " << this->newSegment[1] << " "<< this->newSegment[2] << endl;
+				cout <<"currentpoimt before:" << this->currentPoint.X[0] << " " << this->currentPoint.X[1]  << " "<< this->currentPoint.X[2]  << endl;
+				
 				cout <<"this->step:" << this->step << endl;
 				// Compute the next point (nextPoint) of the fiber using a Euler step.
 				if (!this->solveIntegrationStep(currentCell, currentCellId, weights)) //Add NEwSegment to Current Point to Determine NEXT Point!!!
 					break;
-				cout <<"new segment after:" << this->newSegment[0] << " " << this->newSegment[1] << " "<< this->newSegment[2] << endl;
+				 	cout <<"nextpoimt after:" << this->nextPoint.X[0] << " " << this->nextPoint.X[1]  << " "<< this->nextPoint.X[2]  << endl;
+				
 				//previousAngle[0] = acos( this->newSegment[2]);
 				//previousAngle[1] = atan2( this->newSegment[1],  this->newSegment[0]);
 				// Check if we've moved to a new cell
@@ -829,14 +832,17 @@ namespace bmia {
 				// Update the current and previous points
 				this->prevPoint = this->currentPoint;
 				this->currentPoint = this->nextPoint;
+
+					// Update the previous line segment
+				this->prevSegment[0] = this->newSegment[0];
+				this->prevSegment[1] = this->newSegment[1];
+				this->prevSegment[2] = this->newSegment[2];
+
 					this->newSegment[0] = tempDirection[0]; // we will haveone unitvector !!! interpolation of angels will 
 				this->newSegment[1] = tempDirection[1]; // produce an angle and we will calculate tempDirection!!!!
 				this->newSegment[2] = tempDirection[2];
 			
-				// Update the previous line segment
-				this->prevSegment[0] = this->newSegment[0];
-				this->prevSegment[1] = this->newSegment[1];
-				this->prevSegment[2] = this->newSegment[2];
+			
 
 				// This is no longer the first step
 				firstStep = false;
@@ -919,7 +925,7 @@ namespace bmia {
 			delete [] SHAux;
 
 			// Get the AI scalar at the seed point position
-			DoIt.getGFA(&(currentPoint.AI));
+			DoIt.getGFA(&(currentPoint.AI)); // USE INTERPOLATION ??????? AND SCALAR IMAGE ????
 			//cout << "gfa value:" << currentPoint.AI << endl;
 			// Set the total distance to zero
 			currentPoint.D = 0.0;
