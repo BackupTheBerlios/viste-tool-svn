@@ -139,6 +139,7 @@ namespace bmia {
 		double testDot, vtkIdType currentCellId)
 	{
 		cout << "ContTracking?:"<< (currentPoint->D <= this->MaximumPropagationDistance) << (testDot >= (double) this->StopDotProduct) << (currentPoint->AI <= this->MaxScalarThreshold) << (currentPoint->AI >= this->MinScalarThreshold) << endl;
+		cout << "Intensity current point" << currentPoint->AI << endl;
 		return (	currentCellId >= 0									&&	// Fiber has left the volume
 			currentPoint->D <= this->MaximumPropagationDistance	&&	// Maximum fiber length exceeded
 			testDot >= (double) this->StopDotProduct			&&	// Maximum fiber angle exceeded

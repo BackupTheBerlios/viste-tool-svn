@@ -469,7 +469,7 @@ namespace bmia {
 	void HARDIdeterministicTracker::calculateFiberSHDI(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,int numberOfIterations, bool CLEANMAXIMA, double TRESHOLD)
 	{
 
-		cout << "--------New Seed for a New Fiber -------------"<< endl;
+		cout << "----------------  New Seed for a New Fiber - calculateFiberSHDI ---------------"<< direction << endl;
 		vtkCell *	currentCell			= NULL;						// Cell of current point
 		vtkIdType	currentCellId		= 0;						// Id of current cell
 		double		closestPoint[3]		= {0.0, 0.0, 0.0};			// Used in "EvaluatePosition"
@@ -609,7 +609,7 @@ namespace bmia {
 			// Loop until a stopping condition is met
 			while (1) 
 			{
-				cout << "===== while ========" << endl;
+				cout << endl << "===== while ================== " << direction << "==" << endl;
 				cout <<"prev segment before:" << this->prevSegment[0] << " " << this->prevSegment[1] << " "<< this->prevSegment[2] << endl;
 				cout <<"new segment before:" << this->newSegment[0] << " " << this->newSegment[1] << " "<< this->newSegment[2] << endl;
 				cout <<"currentpoint before:" << this->currentPoint.X[0] << " " << this->currentPoint.X[1]  << " "<< this->currentPoint.X[2]  << endl;
@@ -622,7 +622,7 @@ namespace bmia {
 				
 				//previousAngle[0] = acos( this->newSegment[2]);
 				//previousAngle[1] = atan2( this->newSegment[1],  this->newSegment[0]);
-				// Check if we've moved to a new cell
+				// Check if we've moved to a new cell. NEXT POINT is USE DTO FIND CURRENT CELL!!
 				vtkIdType newCellId = this->HARDIimageData->FindCell(nextPoint.X, currentCell, currentCellId, 
 					this->tolerance, subId, pCoords, weights);
 				for (unsigned int i = 0; i <8; ++i)// angles array is constant for all voxels
@@ -698,7 +698,7 @@ namespace bmia {
 					int indexHighestSimilarity=0;
 					for( int i=0;i< outputlistwithunitvectors.size()  ;i++ )
 					{ 
-						angularSimilarity = vtkMath::Dot(this->newSegment, outputlistwithunitvectors.at(i));
+						angularSimilarity = vtkMath::Dot(this->newSegment, outputlistwithunitvectors.at(i)); // new segment is actually old increment for coming to xextpoint.
 
 						if( value > angularSimilarity   ) 
 						{  value = angularSimilarity; indexHighestSimilarity = i;
@@ -706,7 +706,7 @@ namespace bmia {
 					}
 					avgMaxAng[0] = acos( outputlistwithunitvectors[indexHighestSimilarity][2]);
 					avgMaxAng[1] = atan2( outputlistwithunitvectors[indexHighestSimilarity][1],  outputlistwithunitvectors[indexHighestSimilarity][0]);
-					cout << "angles "<< avgMaxAng[0] << " " << avgMaxAng[1] << endl;
+					cout << "angles w/ highest angular sim."<< avgMaxAng[0] << " " << avgMaxAng[1] << endl;
 					anglesBeforeInterpolation.push_back(avgMaxAng);
 					//outputlistwithunitvectors.clear();
 					//if (CLEANMAXIMA)
