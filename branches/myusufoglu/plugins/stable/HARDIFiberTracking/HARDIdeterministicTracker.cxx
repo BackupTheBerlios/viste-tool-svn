@@ -469,12 +469,12 @@ namespace bmia {
 	void HARDIdeterministicTracker::calculateFiberSHDI(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,int numberOfIterations, bool CLEANMAXIMA, double TRESHOLD)
 	{
 
-		cout << "----------------  New Seed for a New Fiber - calculateFiberSHDI ---------------"<< direction << endl;
+		cout << "----------------  New Seed for a New Fiber - calculateFiberSHDI ---------------("<< direction <<")"<<  endl;
 		vtkCell *	currentCell			= NULL;						// Cell of current point
 		vtkIdType	currentCellId		= 0;						// Id of current cell
 		double		closestPoint[3]		= {0.0, 0.0, 0.0};			// Used in "EvaluatePosition"
 		double		pointDistance		= 0.0;						// Used in "EvaluatePosition"
-		double		stepDistance		= 0.0;						// Length of current step
+		double		incrementalDistance		= 0.0;						// Length of current step
 		int			subId				= 0;						// Used in "FindCell"
 		double		pCoords[3]			= {0.0, 0.0, 0.0};			// Used in "FindCell"
 		double		testDot				= 1.0;						// Dot product for current step
@@ -607,23 +607,35 @@ namespace bmia {
 			this->prevSegment[0]=this->prevSegment[1]=this->prevSegment[2]= 0.0; // CHECK!!!
 			//WHILE LOOP MAIN
 			// Loop until a stopping condition is met
-			while (1) 
-			{
-				cout << endl << "===== while ================== " << direction << "==" << endl;
+
+			
 				cout <<"prev segment before:" << this->prevSegment[0] << " " << this->prevSegment[1] << " "<< this->prevSegment[2] << endl;
 				cout <<"new segment before:" << this->newSegment[0] << " " << this->newSegment[1] << " "<< this->newSegment[2] << endl;
 				cout <<"currentpoint before:" << this->currentPoint.X[0] << " " << this->currentPoint.X[1]  << " "<< this->currentPoint.X[2]  << endl;
 				
-				cout <<"this->step:" << this->step << endl;
 				// Compute the next point (nextPoint) of the fiber using a Euler step.
 				if (!this->solveIntegrationStep(currentCell, currentCellId, weights)) //Add NEwSegment to Current Point to Determine NEXT Point!!!
-					break;
+				{ cout << "Problem at the first integratioon step"<< endl; return; } 
 				 	cout <<"nextpoimt after:" << this->nextPoint.X[0] << " " << this->nextPoint.X[1]  << " "<< this->nextPoint.X[2]  << endl;
+
+					// Update the current and previous points
+				this->prevPoint = this->currentPoint;
+				this->currentPoint = this->nextPoint;
+
+					// Update the previous line segment
+				this->prevSegment[0] = this->newSegment[0];
+				this->prevSegment[1] = this->newSegment[1];
+				this->prevSegment[2] = this->newSegment[2];
+
+				// Check AI values of initial step, otherwise we cannot check the dot product etc
+			while (1) 
+			{
 				
-				//previousAngle[0] = acos( this->newSegment[2]);
-				//previousAngle[1] = atan2( this->newSegment[1],  this->newSegment[0]);
+				cout << endl << "===== while ==================== " << direction << " ==" << endl;
+				 
 				// Check if we've moved to a new cell. NEXT POINT is USE DTO FIND CURRENT CELL!!
-				vtkIdType newCellId = this->HARDIimageData->FindCell(nextPoint.X, currentCell, currentCellId, 
+				vtkIdType newCellId = this->HARDIimageData->FindCell(currentPoint.X, currentCell, currentCellId, 
+					cout << "newCellId"<< newCellId <<   endl;
 					this->tolerance, subId, pCoords, weights);
 				for (unsigned int i = 0; i <8; ++i)// angles array is constant for all voxels
 				{
@@ -660,9 +672,6 @@ namespace bmia {
 				regionList.clear();
 				double tempVector[3];
 
-				//for all directions
-
-
 				//get local maxima
 				//DoIt.getOutput(SHAux, this->parentFilter->shOrder,TRESHOLD, anglesArray,  maxima, regionList);
 				double * tempSH = new double[numberSHcomponents];
@@ -681,7 +690,7 @@ namespace bmia {
 					//this->cellHARDIData has 8 hardi coeffieint sets
 					//get the ODF // get maxes like below 8 times
 
-
+					//get maxima
 					DoIt.getOutput(tempSH, this->parentFilter->shOrder,TRESHOLD, anglesArray,  maxima, regionList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
 
 					//Below 3 necessary?
@@ -691,46 +700,33 @@ namespace bmia {
 					// maxima has ids use them to get angles
 					avgMaxAng[0]=0;
 					avgMaxAng[1]=0;
-					std::vector<double *> anglesMaxTwo;
-
-					//this->findMax2(ODFlist,ODFlistMaxTwo,outputlistwithunitvectors,anglesMaxTwo); // WE DO NOT NEED!!!  // get max 2 angels // maxima ve radii 
 					double value =0 , angularSimilarity =0;
 					int indexHighestSimilarity=0;
+						cout << "similarities" << endl;
 					for( int i=0;i< outputlistwithunitvectors.size()  ;i++ )
 					{ 
 						angularSimilarity = vtkMath::Dot(this->newSegment, outputlistwithunitvectors.at(i)); // new segment is actually old increment for coming to xextpoint.
 
-						if( value > angularSimilarity   ) 
-						{  value = angularSimilarity; indexHighestSimilarity = i;
+						if( value < angularSimilarity   ) 
+						{  
+							value = angularSimilarity; indexHighestSimilarity = i; cout << value << " ";
+						 
 						}
 					}
+						cout << endl;
 					avgMaxAng[0] = acos( outputlistwithunitvectors[indexHighestSimilarity][2]);
 					avgMaxAng[1] = atan2( outputlistwithunitvectors[indexHighestSimilarity][1],  outputlistwithunitvectors[indexHighestSimilarity][0]);
-					cout << "angles w/ highest angular sim."<< avgMaxAng[0] << " " << avgMaxAng[1] << endl;
+					cout << "angles w/ highest angular sim."<< avgMaxAng[0] << " " << avgMaxAng[1] << "ïndex of highest similarity vertex:" << indexHighestSimilarity << endl;
 					anglesBeforeInterpolation.push_back(avgMaxAng);
 					//outputlistwithunitvectors.clear();
-					//if (CLEANMAXIMA)
-					//DoIt.cleanOutput(maxima, outputlistwithunitvectors,SHAux, ODFlist, this->unitVectors, anglesArray);
-
-					//if no maxima are found
+				   //if no maxima are found
 					if (!(maxima.size() > 0))	
 					{
-						//break here
+						cout << "No Maxima" << endl;
 						break;
 					}
 
-					//clear vector
-					//outputlistwithunitvectors.clear();
-					//ODFlist.clear();
-
-					//if the maxima should be cleaned (double and triple maxima) -> get from UI
-
-					//DoIt.cleanOutput() // clean the output there must remain two maxima how?
-					// anglelardan bizimkine en yakinini almak gerek. Ama ilk basta bizimki ne yok, ilk bastaki ortalama angle olsun!!!!
-					//chose closer of each maxs
-					// decrease mainmum numbers to 4 and select the closer one then interpolate
-					//vtkMath::Distance2BetweenPoints(
-					//this->interpolateAngles
+				 
 					ODFlistMaxTwo.clear();
 					maxima.clear();
 					ODFlist.clear();
@@ -748,79 +744,56 @@ namespace bmia {
 
 				//deallocate memory
 				delete [] SHAux;
-
-				//define current maximum at zero (used to determine if a point is a maximum)
-				float currentMax = 0.0;
-
+				 
 				testDot = 0.0;
 				//value to compare local maxima (either random value or dot product)
 				//double value;
 
-				//for all local maxima
-
-				if (firstStep)
-				{
-					//set the highest ODF value as condition
-					//value = ODFlist[i];	
-					//get the same directions (prevent missing/double fibers)
-					//if (tempDirection[0] < 0)
-					//{
-					//	value = 0.0;
-					//}
-				}
-				//else
-				//{
-				//calculate the dot product
-				//value = vtkMath::Dot(this->prevSegment, tempDirection);// find the maximum of angle??, we should have one tempDirection
-				//}
-
-				//in case of semi-probabilistic tracking
-				//if (numberOfIterations > 1)
-				//{
-				//select direction based on a random number
-				//value = ((double)rand()/(double)RAND_MAX);
-				//}
-
-				//get the "best" value (or the maximum) within the range of the user-selected angle
-				//if (value > currentMax)
-				//{
-				//currentMax = value;
-				//}
-
+				this->newSegment[0] = tempDirection[0]; // we will haveone unitvector !!! interpolation of angels will 
+				this->newSegment[1] = tempDirection[1]; // produce an angle and we will calculate tempDirection!!!!
+				this->newSegment[2] = tempDirection[2];
+			
+			
 
 				testDot = vtkMath::Dot(this->prevSegment, this->newSegment); // stop condition
 
-				if (firstStep)
-				{
-					//set the testDot to 1.0 for continueTracking function
-					testDot = 1.0;
+				 
+				cout <<"prev segment before:" << this->prevSegment[0] << " " << this->prevSegment[1] << " "<< this->prevSegment[2] << endl;
+				cout <<"new segment before:" << this->newSegment[0] << " " << this->newSegment[1] << " "<< this->newSegment[2] << endl;
+				cout <<"currentpoint before:" << this->currentPoint.X[0] << " " << this->currentPoint.X[1]  << " "<< this->currentPoint.X[2]  << endl;
+				
+				cout <<"this->step:" << this->step << endl;
+				// Compute the next point (nextPoint) of the fiber using a Euler step.
+				if (!this->solveIntegrationStep(currentCell, currentCellId, weights)) //Add NEwSegment to Current Point to Determine NEXT Point!!!
+					break;
+				 	cout <<"nextpoimt after:" << this->nextPoint.X[0] << " " << this->nextPoint.X[1]  << " "<< this->nextPoint.X[2]  << endl;
 
-				}
-
-				// Interpolate the AI value at the current position
+					// Update the total fiber length
+				incrementalDistance = sqrt((double) vtkMath::Distance2BetweenPoints(currentPoint.X, nextPoint.X)); // next point nerede dolar ??
+				cout << "current point: "<< currentPoint.X[0] << " " << currentPoint.X[1] << " " << currentPoint.X[2] << " " << endl;
+				cout << "next point: "<< nextPoint.X[0] << " " << nextPoint.X[1] << " " << nextPoint.X[2] << " " << endl;
+				cout << "incremental Distance" << incrementalDistance << endl;
+				this->nextPoint.D = this->currentPoint.D + incrementalDistance;
+               // Interpolate the AI value at the current position
 				if (currentCellId >= 0)
 				{
-					DoIt.getGFA(&(nextPoint.AI));
+					DoIt.getGFA(&(currentPoint.AI));
 					//this->interpolateScalar(&(nextPoint.AI), weights);
 				}
 
-				// Update the total fiber length
-				stepDistance = sqrt((double) vtkMath::Distance2BetweenPoints(currentPoint.X, nextPoint.X)); // next point nerede dolar ??
-				cout << "current point: "<< currentPoint.X[0] << " " << currentPoint.X[1] << " " << currentPoint.X[2] << " " << endl;
-				cout << "next point: "<< nextPoint.X[0] << " " << nextPoint.X[1] << " " << nextPoint.X[2] << " " << endl;
-				cout << "stepDistance" << stepDistance << endl;
-				this->nextPoint.D = this->currentPoint.D + stepDistance;
-						cout << "testDot: " << testDot  <<   endl;
+				
+						cout << "testDot: " << testDot  <<  "current point AI: " << currentPoint.AI << endl;
 				// Call "continueTracking" function of parent filter to determine if
 				// one of the stopping criteria has been met.
-				if (!(this->parentFilter->continueTracking(&(this->nextPoint), testDot, currentCellId)))
+				if (!(this->parentFilter->continueTracking(&(this->currentPoint), testDot, currentCellId)))
 				{
 					// If so, stop tracking.
-					cout << "testDot: " << testDot  <<   endl;
+					cout << "Stop tracking. testDot: " << testDot  <<   endl;
 					break;
 				}
 
-				// Add the new point to the point list
+
+						// Add the new point to the point list
 				pointList->push_back(this->nextPoint);
 
 				// If necessary, increase size of the point list
@@ -829,7 +802,7 @@ namespace bmia {
 					pointList->reserve(pointList->size() + 1000);
 				}
 
-				// Update the current and previous points
+					// Update the current and previous points
 				this->prevPoint = this->currentPoint;
 				this->currentPoint = this->nextPoint;
 
@@ -837,17 +810,8 @@ namespace bmia {
 				this->prevSegment[0] = this->newSegment[0];
 				this->prevSegment[1] = this->newSegment[1];
 				this->prevSegment[2] = this->newSegment[2];
-
-					this->newSegment[0] = tempDirection[0]; // we will haveone unitvector !!! interpolation of angels will 
-				this->newSegment[1] = tempDirection[1]; // produce an angle and we will calculate tempDirection!!!!
-				this->newSegment[2] = tempDirection[2];
-			
-			
-
-				// This is no longer the first step
-				firstStep = false;
-			}
-		}
+			} //while 
+		}//if
 
 		delete [] weights;
 	}
@@ -861,7 +825,7 @@ namespace bmia {
 		vtkIdType	currentCellId		= 0;						// Id of current cell
 		double		closestPoint[3]		= {0.0, 0.0, 0.0};			// Used in "EvaluatePosition"
 		double		pointDistance		= 0.0;						// Used in "EvaluatePosition"
-		double		stepDistance		= 0.0;						// Length of current step
+		double		incrementalDistance		= 0.0;						// Length of current step
 		int			subId				= 0;						// Used in "FindCell"
 		double		pCoords[3]			= {0.0, 0.0, 0.0};			// Used in "FindCell"
 		double		testDot				= 1.0;						// Dot product for current step
@@ -1120,8 +1084,8 @@ namespace bmia {
 				}
 
 				// Update the total fiber length
-				stepDistance = sqrt((double) vtkMath::Distance2BetweenPoints(currentPoint.X, nextPoint.X));
-				this->nextPoint.D = this->currentPoint.D + stepDistance;
+				incrementalDistance = sqrt((double) vtkMath::Distance2BetweenPoints(currentPoint.X, nextPoint.X));
+				this->nextPoint.D = this->currentPoint.D + incrementalDistance;
 
 				// Call "continueTracking" function of parent filter to determine if
 				// one of the stopping criteria has been met.
