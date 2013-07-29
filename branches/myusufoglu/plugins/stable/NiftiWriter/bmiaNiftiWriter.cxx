@@ -485,6 +485,9 @@ namespace bmia {
 				}
 
 				// convert transformation matrix to quaternion
+				// matrixf exists if qformcode >0 
+				// convert transformation matrix to quaternion
+				if(m_NiftiImage->qform_code > 0)
 				nifti_mat44_to_quatern(matrixf, &( m_NiftiImage->quatern_b), &( m_NiftiImage->quatern_c), &( m_NiftiImage->quatern_d), 
 					&( m_NiftiImage->qoffset_x), &(m_NiftiImage->qoffset_y), &(m_NiftiImage->qoffset_z), &(m_NiftiImage->dx) , &(m_NiftiImage->dy) ,&(m_NiftiImage->dz) , &(m_NiftiImage->qfac));
 				// in case the matrix is not pure transform, quaternion can not include scaling part. Therefore if the matris is not a pure transform matrix use scaling factor in spacing?

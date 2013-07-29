@@ -634,9 +634,8 @@ namespace bmia {
 				cout << endl << "===== while ==================== " << direction << " ==" << endl;
 				 
 				// Check if we've moved to a new cell. NEXT POINT is USE DTO FIND CURRENT CELL!!
-				vtkIdType newCellId = this->HARDIimageData->FindCell(currentPoint.X, currentCell, currentCellId, 
-					cout << "newCellId"<< newCellId <<   endl;
-					this->tolerance, subId, pCoords, weights);
+				vtkIdType newCellId = this->HARDIimageData->FindCell(currentPoint.X, currentCell, currentCellId,this->tolerance, subId, pCoords, weights);
+				cout << "newCellId"<< newCellId <<   endl;
 				for (unsigned int i = 0; i <8; ++i)// angles array is constant for all voxels
 				{
 					cout <<  "weight[" << i << "]:" << weights[i] << endl;
@@ -680,12 +679,12 @@ namespace bmia {
 					for(int i=0;i<anglesArray.size();i++)
 						regionList.push_back(i);
 
-				double *avgMaxAng = new double[2];
+				double **avgMaxAng = new double*[8];
 				std::vector<double *> anglesBeforeInterpolation; // this consists 8 angles
 				for (int j = 0; j < 8; ++j)
 				{
 					//get the SH
-
+					avgMaxAng[j] = new double[2];
 					this->cellHARDIData->GetTuple(j, tempSH); //fill tempSH
 					//this->cellHARDIData has 8 hardi coeffieint sets
 					//get the ODF // get maxes like below 8 times
@@ -698,11 +697,11 @@ namespace bmia {
 					//if (CLEANMAXIMA)
 					DoIt.cleanOutput(maxima, outputlistwithunitvectors,SHAux, ODFlist, this->unitVectors, anglesArray);
 					// maxima has ids use them to get angles
-					avgMaxAng[0]=0;
-					avgMaxAng[1]=0;
+					avgMaxAng[j][0]=0;
+					avgMaxAng[j][1]=0;
 					double value =0 , angularSimilarity =0;
 					int indexHighestSimilarity=0;
-						cout << "similarities" << endl;
+					//	cout << "choose the max with highest angular similariyt similarities" << endl;
 					for( int i=0;i< outputlistwithunitvectors.size()  ;i++ )
 					{ 
 						angularSimilarity = vtkMath::Dot(this->newSegment, outputlistwithunitvectors.at(i)); // new segment is actually old increment for coming to xextpoint.
@@ -714,10 +713,10 @@ namespace bmia {
 						}
 					}
 						cout << endl;
-					avgMaxAng[0] = acos( outputlistwithunitvectors[indexHighestSimilarity][2]);
-					avgMaxAng[1] = atan2( outputlistwithunitvectors[indexHighestSimilarity][1],  outputlistwithunitvectors[indexHighestSimilarity][0]);
-					cout << "angles w/ highest angular sim."<< avgMaxAng[0] << " " << avgMaxAng[1] << "ïndex of highest similarity vertex:" << indexHighestSimilarity << endl;
-					anglesBeforeInterpolation.push_back(avgMaxAng);
+					avgMaxAng[j][0] = acos( outputlistwithunitvectors[indexHighestSimilarity][2]);
+					avgMaxAng[j][1] = atan2( outputlistwithunitvectors[indexHighestSimilarity][1],  outputlistwithunitvectors[indexHighestSimilarity][0]);
+					cout << "angles w/ highest ang sim."<< avgMaxAng[j][0] << " " << avgMaxAng[j][1] << " n highest :" << indexHighestSimilarity << endl;
+					anglesBeforeInterpolation.push_back(avgMaxAng[j]);
 					//outputlistwithunitvectors.clear();
 				   //if no maxima are found
 					if (!(maxima.size() > 0))	
@@ -795,7 +794,7 @@ namespace bmia {
 
 						// Add the new point to the point list
 				pointList->push_back(this->nextPoint);
-
+				cout << "pointList.size"<< pointList->size() << endl;
 				// If necessary, increase size of the point list
 				if (pointList->size() == pointList->capacity())
 				{
