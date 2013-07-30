@@ -265,6 +265,16 @@ class HARDIdeterministicTracker
 			@param currentCellId	Index of the current cell
 			@param weights			Interpolation weights for current point */
 
+		virtual bool solveIntegrationStepSHDI(vtkCell * currentCell, vtkIdType currentCellId, double * weights);
+
+
+		/** Computes the coordinates of the next point along the fiber by means of
+			a second-order Runge-Kutta step. Returns false if the intermediate
+			step leaves the volume.
+			@param currentCell		Grid cell containing the current point
+			@param currentCellId	Index of the current cell
+			@param weights			Interpolation weights for current point */
+
 		virtual bool solveIntegrationStep(vtkCell * currentCell, vtkIdType currentCellId, double * weights);
 
 		/** Interpolates (to fill in)
@@ -285,6 +295,7 @@ class HARDIdeterministicTracker
 
 		void interpolateAngles(std::vector<double *> &angles, double * weights, double *interpolatedAngle);
 
+		void interpolateVectors(std::vector<double *> &angles, double * weights, double *interpolatedVector);
 	private:
 
 		/** Arrays containing the HARDI and AI scalar values of the
