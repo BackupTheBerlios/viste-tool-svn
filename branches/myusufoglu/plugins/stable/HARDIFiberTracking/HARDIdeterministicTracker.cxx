@@ -900,6 +900,7 @@ cout <<"prev segment1.1:" << this->prevSegment[0] << " " << this->prevSegment[1]
 
 			// Get the AI scalar at the seed point position
 			DoIt.getGFA(&(currentPoint.AI)); // USE INTERPOLATION ??????? AND SCALAR IMAGE ????
+			// this->parentFilter->GetAnisotropyIndexImage()->GetPointData()->GetAI // GETAI value like here!!!!
 			//cout << "gfa value:" << currentPoint.AI << endl;
 			// Set the total distance to zero
 			currentPoint.D = 0.0;
