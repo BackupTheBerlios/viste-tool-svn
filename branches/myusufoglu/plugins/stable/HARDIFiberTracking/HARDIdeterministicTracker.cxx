@@ -588,8 +588,8 @@ namespace bmia {
 			delete [] SHAux;
 
 			// Get the AI scalar at the seed point position
-			DoIt.getGFA(&(currentPoint.AI));
-
+			//DoIt.getGFA(&(currentPoint.AI));
+			this->interpolateScalar(&(currentPoint.AI), weights);
 			// Set the total distance to zero
 			currentPoint.D = 0.0;
 
@@ -783,15 +783,16 @@ cout <<"prev segment1.1:" << this->prevSegment[0] << " " << this->prevSegment[1]
                // Interpolate the AI value at the current position
 				if (currentCellId >= 0)
 				{
-					DoIt.getGFA(&(currentPoint.AI));
-					//this->interpolateScalar(&(nextPoint.AI), weights);
+					//DoIt.getGFA(&(currentPoint.AI));
+					this->interpolateScalar(&(nextPoint.AI), weights);
+					 
 				}
 
 				
 						cout << "testDot: " << testDot  <<  "current point AI: " << currentPoint.AI << endl;
 				// Call "continueTracking" function of parent filter to determine if
 				// one of the stopping criteria has been met.
-				if (!(this->parentFilter->continueTracking(&(this->currentPoint), testDot, currentCellId)))
+				if (!(this->parentFilter->continueTracking(&(this->nextPoint), testDot, currentCellId)))// Current of NExt Point???
 				{
 					// If so, stop tracking.
 					cout << "STOP TRACKING. testDot: " << testDot  <<   endl;
@@ -899,8 +900,8 @@ cout <<"prev segment1.1:" << this->prevSegment[0] << " " << this->prevSegment[1]
 			delete [] SHAux;
 
 			// Get the AI scalar at the seed point position
-			DoIt.getGFA(&(currentPoint.AI)); // USE INTERPOLATION ??????? AND SCALAR IMAGE ????
-			// this->parentFilter->GetAnisotropyIndexImage()->GetPointData()->GetAI // GETAI value like here!!!!
+			DoIt.getGFA(&(currentPoint.AI)); // 
+			 
 			//cout << "gfa value:" << currentPoint.AI << endl;
 			// Set the total distance to zero
 			currentPoint.D = 0.0;

@@ -135,16 +135,16 @@ namespace bmia {
 
 	//--------------------------[ continueTracking ]---------------------------\\
 
-	bool vtkHARDIFiberTrackingFilter::continueTracking(bmia::HARDIstreamlinePoint * currentPoint, 
+	bool vtkHARDIFiberTrackingFilter::continueTracking(bmia::HARDIstreamlinePoint * thisPoint, 
 		double testDot, vtkIdType currentCellId)
 	{
-		cout << "ContTracking?:"<< (currentPoint->D <= this->MaximumPropagationDistance) << (testDot >= (double) this->StopDotProduct) << (currentPoint->AI <= this->MaxScalarThreshold) << (currentPoint->AI >= this->MinScalarThreshold) << endl;
-		cout << "Intensity current point" << currentPoint->AI << endl;
+		cout << "ContTracking?:"<< (thisPoint->D <= this->MaximumPropagationDistance) << (testDot >= (double) this->StopDotProduct) << (thisPoint->AI <= this->MaxScalarThreshold) << (thisPoint->AI >= this->MinScalarThreshold) << endl;
+		cout << "Intensity current point" << thisPoint->AI << endl;
 		return (	currentCellId >= 0									&&	// Fiber has left the volume
-			 currentPoint->D <= this->MaximumPropagationDistance	&&	// Maximum fiber length exceeded
+			 thisPoint->D <= this->MaximumPropagationDistance	&&	// Maximum fiber length exceeded
 			testDot >= (double) this->StopDotProduct			&&	// Maximum fiber angle exceeded
-			currentPoint->AI <= this->MaxScalarThreshold		&&  // High scalar value
-			currentPoint->AI >= this->MinScalarThreshold		);	// Low scalar value
+			thisPoint->AI <= this->MaxScalarThreshold		&&  // High scalar value
+			thisPoint->AI >= this->MinScalarThreshold		);	// Low scalar value
 	}
 
 
