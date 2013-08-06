@@ -88,7 +88,7 @@ void ScoringMeasures::dataSetAdded(data::DataSet * d)
 
 		// Create parameter settings struct
 		ParameterSettings* ps = new ParameterSettings;
-		ps->useGlyphData = true;
+		ps->useGlyphData = false;
 		ps->lambda = 0.0;
 		ps->beta = 0.0;
 		ps->muu = 0.0;
@@ -447,7 +447,7 @@ void ScoringMeasures::normalizeScalarsCheckBoxChanged(bool checked)
 
 void ScoringMeasures::lambdaSliderChanged(int value)
 {
-    GetParameterSettings()->lambda = (double)value;
+    GetParameterSettings()->lambda = (double)value / (double)SLIDER_SUBSTEPS;
     UpdateGUI();
 }
 

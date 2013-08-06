@@ -209,11 +209,20 @@ void vtkFiberScoringMeasuresFilter::Execute()
     for(int i = 0; i < numberOfScalarTypes; i++)
     {
         vtkDoubleArray* outputScalars = vtkDoubleArray::New();
+        //char* name = inputPD->GetArray(i)->GetName();
         outputScalars->SetName(inputPD->GetArray(i)->GetName());
         outputScalarsList.append(outputScalars);
     }
 
     // Add new scalar list for SM
+    /*vtkDoubleArray* SMScalars_external = vtkDoubleArray::New();
+    SMScalars->SetName("SM_external");
+    SMScalars->SetNumberOfComponents(1);
+
+    vtkDoubleArray* SMScalars_internal = vtkDoubleArray::New();
+    SMScalars->SetName("SM_internal");
+    SMScalars->SetNumberOfComponents(1);*/
+
     vtkDoubleArray* SMScalars = vtkDoubleArray::New();
     SMScalars->SetName("SM");
     SMScalars->SetNumberOfComponents(1);
@@ -251,6 +260,8 @@ void vtkFiberScoringMeasuresFilter::Execute()
         lambda = ps->lambda;
     double beta = ps->beta;
     double muu = ps->muu;
+
+    //printf("LAMBDA: %f\n",lambda);
 
 	// Loop through all input fibers
 	for (vtkIdType lineId = 0; lineId < numberOfCells; ++lineId)
@@ -358,7 +369,7 @@ void vtkFiberScoringMeasuresFilter::Execute()
                 double internal_energy = 0.0;
                 if(lambda != 0.0)
                 {
-                    // compute frenet frame and its derivates
+                    // compute frenet frame and its derivatives
                     double* a1 = HalvedDifference(p,prev_p);
                     double* t0 = Normalize(a1);
                     double* prev_t0 = Normalize(HalvedDifference(prev_p, prev2_p));
@@ -414,11 +425,45 @@ void vtkFiberScoringMeasuresFilter::Execute()
         free(prev3_p);
 	}
 
+	// Smooth scalars
+	const int SMOOTH_RANGE = 5;
+    for (vtkIdType lineId = 0; lineId < numberOfCells; ++lineId)
+	{
+        // Get the data of the current fiber
+        vtkCell * currentCell = input->GetCell(lineId);
+        int numberOfFiberPoints = currentCell->GetNumberOfPoints();
+
+        // Loop through all points in the fiber
+		for (int pointId = 0; pointId < numberOfFiberPoints; ++pointId)
+		{
+		    double accVal = 0.0;
+            int rangeMin = std::max(0,pointId-SMOOTH_RANGE);
+            int rangeMax = std::min(numberOfFiberPoints-1,pointId+SMOOTH_RANGE);
+
+            for(int j = rangeMin; j < rangeMax; j++)
+            {
+                accVal += SMScalars->GetTuple1(currentCell->GetPointId(pointId+j));
+            }
+            printf("MIN: %i MAX: %i VAL: %f MVAL: %f\n",rangeMin,rangeMax,accVal,accVal/(double)(rangeMax-rangeMin));
+
+            SMScalars->SetTuple1(currentCell->GetPointId(pointId),accVal/(double)(rangeMax-rangeMin));
+		}
+    }
+
+
+
+	int numTuples = SMScalars->GetNumberOfTuples();
+
+    for(int i = 0; i < numTuples; i++)
+    {
+
+    }
+
 	// Normalize SM
 	if(ps->normalizeScalars)
 	{
 	    double mean = 0.0;
-	    int nrTuples = SMScalars->GetNumberOfTuples();
+	    int nrTuples = numTuples;
 	    for(vtkIdType i = 0; i < nrTuples; i++)
         {
             mean += SMScalars->GetTuple1(i);
@@ -433,7 +478,7 @@ void vtkFiberScoringMeasuresFilter::Execute()
         }
         std_dev = sqrt(std_dev/nrTuples);
 
-        for(vtkIdType i = 0; i < SMScalars->GetNumberOfTuples(); i++)
+        for(vtkIdType i = 0; i < numTuples; i++)
         {
             SMScalars->SetTuple1(i,(SMScalars->GetTuple1(i) - mean)/std_dev );
         }
