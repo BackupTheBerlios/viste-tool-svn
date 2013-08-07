@@ -64,6 +64,10 @@ namespace bmia {
 
 		// Initialize the ROI name
 		this->roiName = "Unnamed ROI";
+
+		//debug options
+		bool printStepInfo =0;
+		bool breakLoop=0;
 	}
 
 
@@ -135,7 +139,7 @@ namespace bmia {
 
 	//--------------------------[ continueTracking ]---------------------------\\
 
-	bool vtkHARDIFiberTrackingFilter::continueTracking(bmia::HARDIstreamlinePoint * thisPoint, 
+	bool vtkHARDIFiberTrackingFilter:: continueTracking(bmia::HARDIstreamlinePoint * thisPoint, 
 		double testDot, vtkIdType currentCellId)
 	{
 		cout << "ContTracking?:"<< (thisPoint->D <= this->MaximumPropagationDistance) << (testDot >= (double) this->StopDotProduct) << (thisPoint->AI <= this->MaxScalarThreshold) << (thisPoint->AI >= this->MinScalarThreshold) << endl;
@@ -507,7 +511,7 @@ namespace bmia {
 	//Discrete Sphere data comes with its own directions and triangles. No need to use this function.
 	void vtkHARDIFiberTrackingFilter::computeGeometryFromDirections(double **unitVectors, std::vector<double*> &anglesArray2 ,vtkIntArray * trianglesArray) {
 
-		//cout << "Compute geometry from directions \n";
+		//cout << "Compute geometry from directions \n";  
 	 
 		 
 		vtkPoints *directionPoints =  vtkPoints::New();

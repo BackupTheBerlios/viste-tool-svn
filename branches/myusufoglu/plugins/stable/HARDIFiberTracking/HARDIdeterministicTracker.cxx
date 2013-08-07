@@ -55,6 +55,10 @@ namespace bmia {
 		this->tolerance			= 1.0;
 
 		//initializations
+		//debug options
+		  printStepInfo =0;
+		 breakLoop=0;
+		
 
 	}
 
@@ -464,6 +468,7 @@ namespace bmia {
 				anglesReturn.push_back(sc2);
 	}
 
+
 	//----------------------------[ calculateFiber using Spherical Harmonics Directions Interpolation for ONLY one seed point]---------------------------\\
 
 	void HARDIdeterministicTracker::calculateFiberSHDI(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,int numberOfIterations, bool CLEANMAXIMA, double TRESHOLD)
@@ -489,6 +494,7 @@ namespace bmia {
 			weights[i] = 0.0;
 		}
 
+	
 		// Check if there's a point in the point list
 		if (!pointList->empty())
 		{
@@ -557,21 +563,17 @@ namespace bmia {
 				{
 					avgMaxAng[0]+=anglesArray.at(maxima.at(i))[0];   // choose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
 					avgMaxAng[1]+=anglesArray.at(maxima.at(i))[1];   // ose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
+				   cout << "anglesOfmaxOfCorner"  << anglesArray.at(maxima.at(i))[0] << " " << anglesArray.at(maxima.at(i))[1] << endl;
 				}
 				avgMaxAng[0]/=maxima.size();
 				avgMaxAng[1]/=maxima.size();
 				cout << avgMaxAng[0] << " " << avgMaxAng[1] << endl;
-				anglesBeforeInterpolation.push_back(avgMaxAng);
+				anglesBeforeInterpolation.push_back(avgMaxAng); // if angles are in the range of [-pi,pi] interpolation is ok
 				outputlistwithunitvectors.clear();
 				// TAKEN BEFORE THE AVERAGING DoIt.cleanOutput(maxima, outputlistwithunitvectors,SHAux, ODFlist, this->unitVectors, anglesArray);
 				ODFlist.clear();
 				maxima.clear();
-				//DoIt.cleanOutput() // clean the output there must remain two maxima how?
-				// anglelardan bizimkine en yakinini almak gerek. Ama ilk basta bizimki ne yok, ilk bastaki ortalama angle olsun!!!!
-				//chose closer of each maxs
-				// decrease mainmum numbers to 4 and select the closer one then interpolate
-				//vtkMath::Distance2BetweenPoints(
-				//this->interpolateAngles
+			
 
 			}// for cell 8 
 			double interpolatedDirection[2];
@@ -581,7 +583,7 @@ namespace bmia {
 			tempDirection[0] = sinf(interpolatedDirection[0]) * cosf(interpolatedDirection[1]);
 			tempDirection[1] = sinf(interpolatedDirection[0]) * sinf(interpolatedDirection[1]);
 			tempDirection[2] = cosf(interpolatedDirection[0]);
-
+			//	tempDirection already normalized!!!
 			// use weights as interpolatin of angles...
 			// add 
 			//deallocate memory
@@ -607,7 +609,7 @@ namespace bmia {
 			this->prevSegment[0]=this->prevSegment[1]=this->prevSegment[2]= 0.0; // CHECK!!!
 	
 			// Loop until a stopping condition is met
-
+		
 			
 				cout <<"prev segment before:" << this->prevSegment[0] << " " << this->prevSegment[1] << " "<< this->prevSegment[2] << endl;
 				cout <<"new segment before:" << this->newSegment[0] << " " << this->newSegment[1] << " "<< this->newSegment[2] << endl;
@@ -635,12 +637,16 @@ namespace bmia {
 			 
 				// Check if we've moved to a new cell. NEXT POINT is USE DTO FIND CURRENT CELL!!
 				vtkIdType newCellId = this->HARDIimageData->FindCell(currentPoint.X, currentCell, currentCellId,this->tolerance, subId, pCoords, weights);
+					if(this->breakLoop) break;
+		if(this->printStepInfo)
+		{
 				cout << "newCellId"<< newCellId <<   endl;
 				for (unsigned int i = 0; i <8; ++i)// angles array is constant for all voxels
 				{
 					cout <<  "weight[" << i << "]:" << weights[i] << endl;
 				}
 
+		}
 				// If we're in a new cell, and we're still inside the volume...
 				if (newCellId >= 0 && newCellId != currentCellId)
 				{
@@ -657,7 +663,7 @@ namespace bmia {
 				// If we've left the volume, break here
 				else if (newCellId == -1)
 				{
-					cout << "NOT  A NEW CELL; BREAK " << endl; 
+					cout << "NOT  A CELL; BREAK " << endl; 
 					break;
 				}
 
@@ -680,13 +686,16 @@ namespace bmia {
 					for(int i=0;i<anglesArray.size();i++)
 						regionList.push_back(i);
 
-				double **avgMaxAng = new double*[8];
+				double **avgMaxVect = new double*[8];
 				std::vector<double *> anglesBeforeInterpolation; // this consists 8 angles
 				for (int j = 0; j < 8; ++j)
 				{
 					//get the SH
-					avgMaxAng[j] = new double[3];
+					avgMaxVect[j] = new double[3];
 					this->cellHARDIData->GetTuple(j, tempSH); //fill tempSH
+					avgMaxVect[j][0]=0;
+					avgMaxVect[j][1]=0;
+					avgMaxVect[j][2]=0;
 					//this->cellHARDIData has 8 hardi coeffieint sets
 					//get the ODF // get maxes like below 8 times
 
@@ -698,9 +707,7 @@ namespace bmia {
 					//if (CLEANMAXIMA)
 					DoIt.cleanOutput(maxima, outputlistwithunitvectors,SHAux, ODFlist, this->unitVectors, anglesArray);
 					// maxima has ids use them to get angles
-					avgMaxAng[j][0]=0;
-					avgMaxAng[j][1]=0;
-					avgMaxAng[j][2]=0;
+					
 					double value =-1 , angularSimilarity = -1;
 					int indexHighestSimilarity=-1;
 					//	cout << "choose the max with highest angular similariyt similarities" << endl;
@@ -719,13 +726,13 @@ namespace bmia {
 						cout << "No Maxima or no similarity" << endl;
 						break;
 					}
-						avgMaxAng[j][0]=outputlistwithunitvectors[indexHighestSimilarity][0];
-						avgMaxAng[j][1]=outputlistwithunitvectors[indexHighestSimilarity][1];
-						avgMaxAng[j][2]=outputlistwithunitvectors[indexHighestSimilarity][2];
+						avgMaxVect[j][0]=outputlistwithunitvectors[indexHighestSimilarity][0];
+						avgMaxVect[j][1]=outputlistwithunitvectors[indexHighestSimilarity][1];
+						avgMaxVect[j][2]=outputlistwithunitvectors[indexHighestSimilarity][2];
 					//avgMaxAng[j][0] = acos( outputlistwithunitvectors[indexHighestSimilarity][2]);
 					//avgMaxAng[j][1] = atan2( outputlistwithunitvectors[indexHighestSimilarity][1],  outputlistwithunitvectors[indexHighestSimilarity][0]);
 					//cout << "angles w/ highest ang sim."<< avgMaxAng[j][0] << " " << avgMaxAng[j][1] << " n highest :" << indexHighestSimilarity << endl;
-					anglesBeforeInterpolation.push_back(avgMaxAng[j]); // give real pointers here DELETED!!!!
+					anglesBeforeInterpolation.push_back(avgMaxVect[j]); // give real pointers here DELETED!!!!
 					//outputlistwithunitvectors.clear();
 				   //if no maxima are found
 					
@@ -757,28 +764,42 @@ namespace bmia {
 				this->newSegment[1] = interpolatedPolarCoordinate[1]; // produce an angle and we will calculate tempDirection!!!!
 				this->newSegment[2] = interpolatedPolarCoordinate[2];
 			
-			
+				if(this->breakLoop) break;
+		if(this->printStepInfo)
+		{
 				cout <<"prev segment1:" << this->prevSegment[0] << " " << this->prevSegment[1] << " "<< this->prevSegment[2] << endl;
 				cout <<"new segment1:" << this->newSegment[0] << " " << this->newSegment[1] << " "<< this->newSegment[2] << endl;
-			
-				testDot = vtkMath::Dot(this->prevSegment, this->newSegment); // stop condition
+				 
+				
 
 				 
 					cout <<"currentpoint before:" << this->currentPoint.X[0] << " " << this->currentPoint.X[1]  << " "<< this->currentPoint.X[2]  << endl;
 				
 				cout <<"this->step:" << this->step << endl;
 				// Compute the next point (nextPoint) of the fiber using a Euler step.
+		}
+
+
 				if (!this->solveIntegrationStepSHDI(currentCell, currentCellId, weights)) //Add NEwSegment to Current Point to Determine NEXT Point!!!
 					break;
+
+			 
+		if(this->printStepInfo)
+
+		{
 				 	cout <<"nextpoimt after:" << this->nextPoint.X[0] << " " << this->nextPoint.X[1]  << " "<< this->nextPoint.X[2]  << endl;
 cout <<"prev segment1.1:" << this->prevSegment[0] << " " << this->prevSegment[1] << " "<< this->prevSegment[2] << endl;
 				cout <<"new segment1.1:" << this->newSegment[0] << " " << this->newSegment[1] << " "<< this->newSegment[2] << endl;
-			
+		}	
 					// Update the total fiber length
 				incrementalDistance = sqrt((double) vtkMath::Distance2BetweenPoints(currentPoint.X, nextPoint.X)); // next point nerede dolar ??
+			 
+		if(this->printStepInfo)
+		{
 				cout << "current point: "<< currentPoint.X[0] << " " << currentPoint.X[1] << " " << currentPoint.X[2] << " " << endl;
 				cout << "next point: "<< nextPoint.X[0] << " " << nextPoint.X[1] << " " << nextPoint.X[2] << " " << endl;
 				cout << "incremental Distance" << incrementalDistance << endl;
+		}
 				this->nextPoint.D = this->currentPoint.D + incrementalDistance;
                // Interpolate the AI value at the current position
 				if (currentCellId >= 0)
@@ -788,7 +809,9 @@ cout <<"prev segment1.1:" << this->prevSegment[0] << " " << this->prevSegment[1]
 					 
 				}
 
-				
+				testDot = vtkMath::Dot(this->prevSegment, this->newSegment); // stop condition new segment is normalized after the increment for dotproduct
+				 
+		if(this->printStepInfo)
 						cout << "testDot: " << testDot  <<  "current point AI: " << currentPoint.AI << endl;
 				// Call "continueTracking" function of parent filter to determine if
 				// one of the stopping criteria has been met.
@@ -802,6 +825,9 @@ cout <<"prev segment1.1:" << this->prevSegment[0] << " " << this->prevSegment[1]
 
 						// Add the new point to the point list
 				pointList->push_back(this->nextPoint);
+
+					 
+		if(this->printStepInfo)
 				cout << "pointList.size"<< pointList->size() << endl;
 				// If necessary, increase size of the point list
 				if (pointList->size() == pointList->capacity())
@@ -816,10 +842,13 @@ cout <<"prev segment1.1:" << this->prevSegment[0] << " " << this->prevSegment[1]
 					// Update the previous line segment
 				this->prevSegment[0] = this->newSegment[0];
 				this->prevSegment[1] = this->newSegment[1];
-				this->prevSegment[2] = this->newSegment[2];
+				this->prevSegment[2] = this->newSegment[2]; // prevseg becomes automaticly normalized!!!
+
+					if(this->breakLoop) break;
+		if(this->printStepInfo) {
 				cout <<"prev segment2:" << this->prevSegment[0] << " " << this->prevSegment[1] << " "<< this->prevSegment[2] << endl;
 				cout <<"new segment2:" << this->newSegment[0] << " " << this->newSegment[1] << " "<< this->newSegment[2] << endl;
-			
+		}
 
 			} //while 
 		}//if
@@ -1169,7 +1198,7 @@ cout <<"prev segment1.1:" << this->prevSegment[0] << " " << this->prevSegment[1]
 		this->nextPoint.X[2] = this->currentPoint.X[2] + this->newSegment[2] * (this->step);
 
 		// Normalize the new line segment
-		//vtkMath::Normalize(this->newSegment);
+		vtkMath::Normalize(this->newSegment);
 
 		return true;
 	}

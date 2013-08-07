@@ -162,12 +162,12 @@ void PolyDataVisualizationPlugin::dataSetAdded(data::DataSet* ds)
 //		this->fullCore()->canvas()->GetRenderer3D()->ResetCamera();
 	//// Depth Peeling
 	//this->fullCore()->canvas()->GetRenderer3D()->GetRenderWindow()->SetOffScreenRendering(1);
-	//this->fullCore()->canvas()->GetRenderer3D()->GetRenderWindow()->SetAlphaBitPlanes(1);
-	//this->fullCore()->canvas()->GetRenderer3D()->GetRenderWindow()->SetMultiSamples(0);
-	//this->fullCore()->canvas()->GetRenderer3D()->SetUseDepthPeeling(1);
-	//this->fullCore()->canvas()->GetRenderer3D()->SetMaximumNumberOfPeels(100);
+	this->fullCore()->canvas()->GetRenderer3D()->GetRenderWindow()->SetAlphaBitPlanes(1); // can be put to main window!!
+	this->fullCore()->canvas()->GetRenderer3D()->GetRenderWindow()->SetMultiSamples(0);
+	this->fullCore()->canvas()->GetRenderer3D()->SetUseDepthPeeling(1);
+	this->fullCore()->canvas()->GetRenderer3D()->SetMaximumNumberOfPeels(1);
 	////this->fullCore()->canvas()->GetRenderer3D()->GetRenderWindow()->For
-	//this->fullCore()->canvas()->GetRenderer3D()->SetOcclusionRatio(0.1);
+	this->fullCore()->canvas()->GetRenderer3D()->SetOcclusionRatio(0.1);
     this->core()->render();
 }
 

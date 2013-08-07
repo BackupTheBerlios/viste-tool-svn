@@ -234,6 +234,10 @@ class HARDIdeterministicTracker
 		/** Sets the unit vectors for this class. */ 
 		void setUnitVectors(double ** unitVectors);
 
+		// debug variables
+			bool printStepInfo; // before cout
+		bool breakLoop; // breaks the main looop
+
 	protected:
 
 		vtkImageData *  HARDIimageData;	// HARDI image data
@@ -306,6 +310,7 @@ class HARDIdeterministicTracker
 
 		/** Array containing the unit vectors obtained from the tesselation. */
 		double ** unitVectors;
+		
 
 }; // class HARDIdeterministicTracker
 

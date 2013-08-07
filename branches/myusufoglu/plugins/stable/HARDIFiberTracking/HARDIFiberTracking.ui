@@ -134,7 +134,7 @@
       <attribute name="label">
        <string notr="true">Tracking Parameters</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout">
+      <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
         <widget class="QLabel" name="parametersMinLengthLabel">
          <property name="text">
@@ -445,6 +445,24 @@
         </layout>
        </item>
        <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_7">
+         <item>
+          <widget class="QCheckBox" name="printCheckBox">
+           <property name="text">
+            <string>Print Step Info</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="breakLoopButton">
+           <property name="text">
+            <string>Break Loop</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
         <widget class="QCheckBox" name="cleanBox">
          <property name="text">
           <string>Clean ODF maxima</string>
@@ -471,8 +489,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>98</width>
-        <height>28</height>
+        <width>272</width>
+        <height>456</height>
        </rect>
       </property>
       <attribute name="label">
