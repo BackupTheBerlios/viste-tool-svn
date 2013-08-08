@@ -56,7 +56,7 @@ namespace bmia {
 
 		//initializations
 		//debug options
-		  printStepInfo =0;
+		  printStepInfo =1;
 		 breakLoop=0;
 		
 
@@ -180,7 +180,7 @@ namespace bmia {
 			this->aiScalars->GetTuples( currentCell->PointIds, this->cellAIScalars );
 
 			//create a maximumfinder
-			MaximumFinder DoIt = MaximumFinder(trianglesArray);
+			MaximumFinder MaxFinder = MaximumFinder(trianglesArray);
 
 			//vector to store the Id's if the found maxima on the ODF
 			std::vector<int> maxima;
@@ -200,13 +200,13 @@ namespace bmia {
 			this->interpolateSH(SHAux, weights, numberSHcomponents);
 
 			//get the ODF
-			DoIt.getOutput(SHAux, this->parentFilter->shOrder, anglesArray);
+			MaxFinder.getOutput(SHAux, this->parentFilter->shOrder, anglesArray);
 
 			//deallocate memory
 			delete [] SHAux;
 
 			// Get the AI scalar at the seed point position
-			DoIt.getGFA(&(currentPoint.AI));
+			MaxFinder.getGFA(&(currentPoint.AI));
 
 			// Set the total distance to zero
 			currentPoint.D = 0.0;
@@ -257,7 +257,7 @@ namespace bmia {
 				this->interpolateSH(SHAux, weights, numberSHcomponents);
 
 				//create a maximum finder
-				MaximumFinder DoIt = MaximumFinder(trianglesArray);
+				MaximumFinder MaxFinder = MaximumFinder(trianglesArray);
 
 				//clear search region list
 				regionList.clear();
@@ -293,7 +293,7 @@ namespace bmia {
 				}	
 
 				//get local maxima
-				DoIt.getOutput(SHAux, this->parentFilter->shOrder,TRESHOLD, anglesArray,  maxima, regionList);
+				MaxFinder.getOutput(SHAux, this->parentFilter->shOrder,TRESHOLD, anglesArray,  maxima, regionList);
 
 				//if no maxima are found
 				if (!(maxima.size() > 0))	
@@ -310,7 +310,7 @@ namespace bmia {
 				if (CLEANMAXIMA)
 				{
 					//clean maxima
-					DoIt.cleanOutput(maxima, outputlistwithunitvectors,SHAux, ODFlist, this->unitVectors, anglesArray);
+					MaxFinder.cleanOutput(maxima, outputlistwithunitvectors,SHAux, ODFlist, this->unitVectors, anglesArray);
 				}
 				else
 				{
@@ -324,7 +324,7 @@ namespace bmia {
 						tempout[2] = (this->unitVectors[maxima[i]])[2];
 						outputlistwithunitvectors.push_back(tempout);
 						//add the ODF value
-						ODFlist.push_back(DoIt.radii_norm[(maxima[i])]);
+						ODFlist.push_back(MaxFinder.radii_norm[(maxima[i])]);
 					}
 				}
 
@@ -392,7 +392,7 @@ namespace bmia {
 				// Interpolate the AI value at the current position
 				if (currentCellId >= 0)
 				{
-					DoIt.getGFA(&(nextPoint.AI));
+					MaxFinder.getGFA(&(nextPoint.AI));
 					//this->interpolateScalar(&(nextPoint.AI), weights);
 				}
 
@@ -515,7 +515,7 @@ namespace bmia {
 			this->aiScalars->GetTuples( currentCell->PointIds, this->cellAIScalars );
 
 			//create a maximumfinder
-			MaximumFinder DoIt = MaximumFinder(trianglesArray); // what does this arr do
+			MaximumFinder MaxFinder = MaximumFinder(trianglesArray); // what does this arr do
 
 			//vector to store the Id's if the found maxima on the ODF
 			std::vector<int> maxima;
@@ -532,7 +532,7 @@ namespace bmia {
 			int numberSHcomponents = HARDIArray->GetNumberOfComponents();
 
 			// Interpolate the SH at the seed point position
-			double * SHAux = new double[numberSHcomponents];
+			//double * SHAux = new double[numberSHcomponents];
 			//this->interpolateSH(SHAux, weights, numberSHcomponents); //not interpolate now
 			double * tempSH = new double[numberSHcomponents];
 
@@ -554,9 +554,9 @@ namespace bmia {
 
 
 
-				DoIt.getOutput(tempSH, this->parentFilter->shOrder,TRESHOLD, anglesArray,  maxima, regionList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
+				MaxFinder.getOutput(tempSH, this->parentFilter->shOrder,TRESHOLD, anglesArray,  maxima, regionList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
 				// maxima has ids use them to get angles
-				DoIt.cleanOutput(maxima, outputlistwithunitvectors,SHAux, ODFlist, this->unitVectors, anglesArray);
+				MaxFinder.cleanOutput(maxima, outputlistwithunitvectors,tempSH, ODFlist, this->unitVectors, anglesArray);
 				avgMaxAng[0]=0;
 				avgMaxAng[1]=0;
 				for(int i=0; i< maxima.size(); i++)
@@ -570,7 +570,7 @@ namespace bmia {
 				cout << avgMaxAng[0] << " " << avgMaxAng[1] << endl;
 				anglesBeforeInterpolation.push_back(avgMaxAng); // if angles are in the range of [-pi,pi] interpolation is ok
 				outputlistwithunitvectors.clear();
-				// TAKEN BEFORE THE AVERAGING DoIt.cleanOutput(maxima, outputlistwithunitvectors,SHAux, ODFlist, this->unitVectors, anglesArray);
+				// TAKEN BEFORE THE AVERAGING MaxFinder.cleanOutput(maxima, outputlistwithunitvectors,SHAux, ODFlist, this->unitVectors, anglesArray);
 				ODFlist.clear();
 				maxima.clear();
 			
@@ -587,10 +587,10 @@ namespace bmia {
 			// use weights as interpolatin of angles...
 			// add 
 			//deallocate memory
-			delete [] SHAux;
+			 
 
 			// Get the AI scalar at the seed point position
-			//DoIt.getGFA(&(currentPoint.AI));
+			//MaxFinder.getGFA(&(currentPoint.AI));
 			this->interpolateScalar(&(currentPoint.AI), weights);
 			// Set the total distance to zero
 			currentPoint.D = 0.0;
@@ -628,6 +628,9 @@ namespace bmia {
 				this->prevSegment[0] = this->newSegment[0];
 				this->prevSegment[1] = this->newSegment[1];
 				this->prevSegment[2] = this->newSegment[2];
+
+					//create a maximum finder
+			//	M
 
 				// Check AI values of initial step, otherwise we cannot check the dot product etc
 			while (1) 
@@ -668,26 +671,27 @@ namespace bmia {
 				}
 
 				// Compute interpolated SH at new position
-				double * SHAux = new double[numberSHcomponents];
+				//double * SHAux = new double[numberSHcomponents];
 				//this->interpolateSH(SHAux, weights, numberSHcomponents);
 
-				//create a maximum finder
-				MaximumFinder DoIt = MaximumFinder(trianglesArray);
+			
 
 				//clear search region list
 				regionList.clear();
 				double tempVector[3];
 
 				//get local maxima
-				//DoIt.getOutput(SHAux, this->parentFilter->shOrder,TRESHOLD, anglesArray,  maxima, regionList);
-				double * tempSH = new double[numberSHcomponents];
+				//MaxFinder.getOutput(SHAux, this->parentFilter->shOrder,TRESHOLD, anglesArray,  maxima, regionList);
+				
 				//initial regionlist includes all points not some points
 				if(regionList.size()==0)
 					for(int i=0;i<anglesArray.size();i++)
 						regionList.push_back(i);
 
+				double * tempSH = new double[numberSHcomponents];
 				double **avgMaxVect = new double*[8];
 				std::vector<double *> anglesBeforeInterpolation; // this consists 8 angles
+				MaximumFinder MaxFinder = MaximumFinder(trianglesArray); // while icinde gerek var mi?!!!
 				for (int j = 0; j < 8; ++j)
 				{
 					//get the SH
@@ -699,13 +703,14 @@ namespace bmia {
 					//this->cellHARDIData has 8 hardi coeffieint sets
 					//get the ODF // get maxes like below 8 times
 
+					
 					//get maxima
-					DoIt.getOutput(tempSH, this->parentFilter->shOrder,TRESHOLD, anglesArray,  maxima, regionList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
+					MaxFinder.getOutput(tempSH, this->parentFilter->shOrder,TRESHOLD, anglesArray,  maxima, regionList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
 
 					//Below 3 necessary?
 					outputlistwithunitvectors.clear();
 					//if (CLEANMAXIMA)
-					DoIt.cleanOutput(maxima, outputlistwithunitvectors,SHAux, ODFlist, this->unitVectors, anglesArray);
+					MaxFinder.cleanOutput(maxima, outputlistwithunitvectors,tempSH, ODFlist, this->unitVectors, anglesArray);
 					// maxima has ids use them to get angles
 					
 					double value =-1 , angularSimilarity = -1;
@@ -737,7 +742,7 @@ namespace bmia {
 				   //if no maxima are found
 					
 
-				 
+			 
 					ODFlistMaxTwo.clear();
 					maxima.clear();
 					ODFlist.clear();
@@ -747,14 +752,14 @@ namespace bmia {
 				double interpolatedPolarCoordinate[3];
 				this->interpolateVectors(anglesBeforeInterpolation,weights, interpolatedPolarCoordinate); // this average will be used as initial value. 
 				anglesBeforeInterpolation.clear(); // INTERPOLATE VECTORS !!!
-				double tempDirection[3];
+			 
 				//tempDirection[0] = sinf(interpolatedPolarCoordinate[0]) * cosf(interpolatedPolarCoordinate[1]);
 				//tempDirection[1] = sinf(interpolatedPolarCoordinate[0]) * sinf(interpolatedPolarCoordinate[1]);
 				//tempDirection[2] = cosf(interpolatedPolarCoordinate[0]);
 				//cout << "incremental movement" << 	tempDirection[0]  << " "<< 	tempDirection[1] << " " << 	tempDirection[2] << endl; 
 
 				//deallocate memory
-				delete [] SHAux;
+				//delete [] SHAux;
 				 
 				testDot = 0.0;
 				//value to compare local maxima (either random value or dot product)
@@ -804,8 +809,8 @@ cout <<"prev segment1.1:" << this->prevSegment[0] << " " << this->prevSegment[1]
                // Interpolate the AI value at the current position
 				if (currentCellId >= 0)
 				{
-					//DoIt.getGFA(&(currentPoint.AI));
-					this->interpolateScalar(&(nextPoint.AI), weights);
+					//MaxFinder.getGFA(&(currentPoint.AI));
+					this->interpolateScalar(&(currentPoint.AI), weights); // WEIGHTS are OLD for next point?
 					 
 				}
 
@@ -815,7 +820,7 @@ cout <<"prev segment1.1:" << this->prevSegment[0] << " " << this->prevSegment[1]
 						cout << "testDot: " << testDot  <<  "current point AI: " << currentPoint.AI << endl;
 				// Call "continueTracking" function of parent filter to determine if
 				// one of the stopping criteria has been met.
-				if (!(this->parentFilter->continueTracking(&(this->nextPoint), testDot, currentCellId)))// Current of NExt Point???
+				if (!(this->parentFilter->continueTracking(&(this->currentPoint), testDot, currentCellId)))// Current of NExt Point???
 				{
 					// If so, stop tracking.
 					cout << "STOP TRACKING. testDot: " << testDot  <<   endl;
@@ -858,7 +863,78 @@ cout <<"prev segment1.1:" << this->prevSegment[0] << " " << this->prevSegment[1]
 
 
 	// 
+		void HARDIdeterministicTracker::findIncrementalStep(int threshold, std::vector<double*> &anglesArray, double *weights,  vtkIntArray *trianglesArray, std::vector<int> &regionList)
+		
+		{
+			std::vector<double> ODFlist; // null can be used 
+			std::vector<int> maxima;
 
+			std::vector<double *> outputlistwithunitvectors;
+			int numberSHcomponents = HARDIArray->GetNumberOfComponents();
+		double * tempSH = new double[numberSHcomponents];
+				double **avgMaxVect = new double*[8];
+				std::vector<double *> anglesBeforeInterpolation; // this consists 8 angles
+				MaximumFinder MaxFinder = MaximumFinder(trianglesArray); // while icinde gerek var mi?!!!
+				for (int j = 0; j < 8; ++j)
+				{
+					//get the SH
+					avgMaxVect[j] = new double[3];
+					this->cellHARDIData->GetTuple(j, tempSH); //fill tempSH
+					avgMaxVect[j][0]=0;
+					avgMaxVect[j][1]=0;
+					avgMaxVect[j][2]=0;
+					//this->cellHARDIData has 8 hardi coeffieint sets
+					//get the ODF // get maxes like below 8 times
+
+					
+					//get maxima
+					MaxFinder.getOutput(tempSH, this->parentFilter->shOrder,threshold, anglesArray,  maxima, regionList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
+
+					//Below 3 necessary?
+					outputlistwithunitvectors.clear();
+					//if (CLEANMAXIMA)
+					MaxFinder.cleanOutput(maxima, outputlistwithunitvectors,tempSH, ODFlist, this->unitVectors, anglesArray);
+					// maxima has ids use them to get angles
+					
+					double value =-1 , angularSimilarity = -1;
+					int indexHighestSimilarity=-1;
+					//	cout << "choose the max with highest angular similariyt similarities" << endl;
+					for( int i=0;i< outputlistwithunitvectors.size()  ;i++ )
+					{ 
+						angularSimilarity = vtkMath::Dot(this->newSegment, outputlistwithunitvectors.at(i)); // new segment is actually old increment for coming to xextpoint.
+
+						if( value < angularSimilarity   ) 
+						{  
+							value = angularSimilarity; indexHighestSimilarity = i; cout << value << " ";
+						 
+						}
+					}
+						if (!(maxima.size() > 0) || (indexHighestSimilarity==-1) )	
+					{
+						cout << "No Maxima or no similarity" << endl;
+						break;
+					}
+						avgMaxVect[j][0]=outputlistwithunitvectors[indexHighestSimilarity][0];
+						avgMaxVect[j][1]=outputlistwithunitvectors[indexHighestSimilarity][1];
+						avgMaxVect[j][2]=outputlistwithunitvectors[indexHighestSimilarity][2];
+					//avgMaxAng[j][0] = acos( outputlistwithunitvectors[indexHighestSimilarity][2]);
+					//avgMaxAng[j][1] = atan2( outputlistwithunitvectors[indexHighestSimilarity][1],  outputlistwithunitvectors[indexHighestSimilarity][0]);
+					//cout << "angles w/ highest ang sim."<< avgMaxAng[j][0] << " " << avgMaxAng[j][1] << " n highest :" << indexHighestSimilarity << endl;
+					anglesBeforeInterpolation.push_back(avgMaxVect[j]); // give real pointers here DELETED!!!!
+					//outputlistwithunitvectors.clear();
+				   //if no maxima are found
+					// here interpolate and find the vectir?
+
+			  
+					maxima.clear();
+					ODFlist.clear();
+				}// for cell 8 
+
+
+				double interpolatedPolarCoordinate[3];
+				this->interpolateVectors(anglesBeforeInterpolation,weights, interpolatedPolarCoordinate); // this average will be used as initial value. 
+				anglesBeforeInterpolation.clear(); // INTERPOLATE VECTORS !!!
+	}
 	void HARDIdeterministicTracker::calculateFiberDS(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,int numberOfIterations, bool CLEANMAXIMA, double TRESHOLD)
 	{
 		vtkCell *	currentCell			= NULL;						// Cell of current point
@@ -900,7 +976,7 @@ cout <<"prev segment1.1:" << this->prevSegment[0] << " " << this->prevSegment[1]
 			this->aiScalars->GetTuples( currentCell->PointIds, this->cellAIScalars );
 
 			//create a maximumfinder
-			MaximumFinder DoIt = MaximumFinder(trianglesArray);
+			MaximumFinder MaxFinder = MaximumFinder(trianglesArray);
 
 			//vector to store the Id's if the found maxima on the ODF
 			std::vector<int> maxima;
@@ -923,13 +999,13 @@ cout <<"prev segment1.1:" << this->prevSegment[0] << " " << this->prevSegment[1]
 			//	cout << "initial interpolation starts" << endl;
 			this->interpolateSH(SHAux, weights, numberSHcomponents); // find two maximums then chose closer ones then interpolate
 
-			DoIt.getOutputDS(SHAux, numberSHcomponents, anglesArray);// normalizes radii fill this->radii_norm
+			MaxFinder.getOutputDS(SHAux, numberSHcomponents, anglesArray);// normalizes radii fill this->radii_norm
 
 			//deallocate memory
 			delete [] SHAux;
 
 			// Get the AI scalar at the seed point position
-			DoIt.getGFA(&(currentPoint.AI)); // 
+			MaxFinder.getGFA(&(currentPoint.AI)); // 
 			 
 			//cout << "gfa value:" << currentPoint.AI << endl;
 			// Set the total distance to zero
@@ -983,7 +1059,7 @@ cout <<"prev segment1.1:" << this->prevSegment[0] << " " << this->prevSegment[1]
 
 
 				//create a maximum finder
-				MaximumFinder DoIt = MaximumFinder(trianglesArray);
+				MaximumFinder MaxFinder = MaximumFinder(trianglesArray);
 
 				//clear search region list
 				regionList.clear();
@@ -1019,7 +1095,7 @@ cout <<"prev segment1.1:" << this->prevSegment[0] << " " << this->prevSegment[1]
 				}	
 
 				//get local maxima			 
-				DoIt.getOutputDS(SHAux, numberSHcomponents,TRESHOLD, anglesArray,  maxima, regionList);
+				MaxFinder.getOutputDS(SHAux, numberSHcomponents,TRESHOLD, anglesArray,  maxima, regionList);
 
 				//if no maxima are found
 				if (!(maxima.size() > 0))	
@@ -1037,7 +1113,7 @@ cout <<"prev segment1.1:" << this->prevSegment[0] << " " << this->prevSegment[1]
 				if (CLEANMAXIMA)
 				{
 					//clean maxima
-					DoIt.cleanOutput(maxima, outputlistwithunitvectors,SHAux, ODFlist, this->unitVectors, anglesArray);
+					MaxFinder.cleanOutput(maxima, outputlistwithunitvectors,SHAux, ODFlist, this->unitVectors, anglesArray);
 				}
 				else
 				{
@@ -1051,7 +1127,7 @@ cout <<"prev segment1.1:" << this->prevSegment[0] << " " << this->prevSegment[1]
 						tempout[2] = (this->unitVectors[maxima[i]])[2];
 						outputlistwithunitvectors.push_back(tempout);
 						//add the ODF value
-						ODFlist.push_back(DoIt.radii_norm[(maxima[i])]);
+						ODFlist.push_back(MaxFinder.radii_norm[(maxima[i])]);
 					}
 				}
 
@@ -1120,7 +1196,7 @@ cout <<"prev segment1.1:" << this->prevSegment[0] << " " << this->prevSegment[1]
 				// Interpolate the AI value at the current position
 				if (currentCellId >= 0)
 				{
-					DoIt.getGFA(&(nextPoint.AI));
+					MaxFinder.getGFA(&(nextPoint.AI));
 					//this->interpolateScalar(&(nextPoint.AI), weights);
 				}
 
@@ -1190,6 +1266,20 @@ cout <<"prev segment1.1:" << this->prevSegment[0] << " " << this->prevSegment[1]
 
 
 	bool HARDIdeterministicTracker::solveIntegrationStepSHDI(vtkCell * currentCell, vtkIdType currentCellId, double * weights)
+	{
+		
+		// Compute the next point
+		this->nextPoint.X[0] = this->currentPoint.X[0] +  this->newSegment[0] * (this->step);
+		this->nextPoint.X[1] = this->currentPoint.X[1] + this->newSegment[1] * (this->step);
+		this->nextPoint.X[2] = this->currentPoint.X[2] + this->newSegment[2] * (this->step);
+
+		// Normalize the new line segment
+		vtkMath::Normalize(this->newSegment);
+
+		return true;
+	}
+
+	bool HARDIdeterministicTracker::solveIntegrationStepSHDIRK4(vtkCell * currentCell, vtkIdType currentCellId, double * weights)
 	{
 		
 		// Compute the next point

@@ -65,9 +65,7 @@ namespace bmia {
 		// Initialize the ROI name
 		this->roiName = "Unnamed ROI";
 
-		//debug options
-		bool printStepInfo =0;
-		bool breakLoop=0;
+		
 	}
 
 

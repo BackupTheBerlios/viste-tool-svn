@@ -277,7 +277,7 @@ class vtkHARDIFiberTrackingFilter : public vtkDataSetToPolyDataFilter
 		  */
 		void  computeGeometryFromDirections(double **unitVectors, std::vector<double*> &anglesArray2 ,vtkIntArray * trianglesArray) ;
 
-
+	
 
 }; // class vtkHARDIFiberTrackingFilter
  

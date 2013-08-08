@@ -228,7 +228,7 @@ class HARDIdeterministicTracker
 			@param direction	1 for positive direction, -1 for negative 
 			@param pointList	List of fiber points */
 		void calculateFiberDS(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,int numberOfIterations, bool CLEANMAXIMA, double TRESHOLD);
-
+		void findIncrementalStep(int threshold, std::vector<double*> &anglesArray, double *weights,  vtkIntArray *trianglesArray, std::vector<int> &regionList);
 		double distanceSpherical(double *point1, double *point2, int n); 
 		void findMax2( std::vector<double> &array, std::vector<double> &maxima, std::vector<double*> &maximaunitvectors, std::vector<double *> &anglesReturn);
 		/** Sets the unit vectors for this class. */ 
@@ -269,8 +269,16 @@ class HARDIdeterministicTracker
 			@param currentCellId	Index of the current cell
 			@param weights			Interpolation weights for current point */
 
-		virtual bool solveIntegrationStepSHDI(vtkCell * currentCell, vtkIdType currentCellId, double * weights);
+		virtual bool solveIntegrationStepSHDIRK4(vtkCell * currentCell, vtkIdType currentCellId, double * weights);
 
+		/** Computes the coordinates of the next point along the fiber by means of
+			 Eulers Algorithm. Returns false if the intermediate
+			step leaves the volume.
+			@param currentCell		Grid cell containing the current point
+			@param currentCellId	Index of the current cell
+			@param weights			Interpolation weights for current point */
+
+		virtual bool solveIntegrationStepSHDI(vtkCell * currentCell, vtkIdType currentCellId, double * weights);
 
 		/** Computes the coordinates of the next point along the fiber by means of
 			a second-order Runge-Kutta step. Returns false if the intermediate
