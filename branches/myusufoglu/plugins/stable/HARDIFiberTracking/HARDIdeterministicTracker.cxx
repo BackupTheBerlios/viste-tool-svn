@@ -56,9 +56,9 @@ namespace bmia {
 
 		//initializations
 		//debug options
-		  printStepInfo =1;
-		 breakLoop=0;
-		
+		printStepInfo =1;
+		breakLoop=0;
+
 
 	}
 
@@ -494,7 +494,7 @@ namespace bmia {
 			weights[i] = 0.0;
 		}
 
-	
+
 		// Check if there's a point in the point list
 		if (!pointList->empty())
 		{
@@ -563,7 +563,7 @@ namespace bmia {
 				{
 					avgMaxAng[0]+=anglesArray.at(maxima.at(i))[0];   // choose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
 					avgMaxAng[1]+=anglesArray.at(maxima.at(i))[1];   // ose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
-				   cout << "anglesOfmaxOfCorner"  << anglesArray.at(maxima.at(i))[0] << " " << anglesArray.at(maxima.at(i))[1] << endl;
+					cout << "anglesOfmaxOfCorner"  << anglesArray.at(maxima.at(i))[0] << " " << anglesArray.at(maxima.at(i))[1] << endl;
 				}
 				avgMaxAng[0]/=maxima.size();
 				avgMaxAng[1]/=maxima.size();
@@ -573,7 +573,7 @@ namespace bmia {
 				// TAKEN BEFORE THE AVERAGING MaxFinder.cleanOutput(maxima, outputlistwithunitvectors,SHAux, ODFlist, this->unitVectors, anglesArray);
 				ODFlist.clear();
 				maxima.clear();
-			
+
 
 			}// for cell 8 
 			double interpolatedDirection[2];
@@ -587,7 +587,7 @@ namespace bmia {
 			// use weights as interpolatin of angles...
 			// add 
 			//deallocate memory
-			 
+
 
 			// Get the AI scalar at the seed point position
 			//MaxFinder.getGFA(&(currentPoint.AI));
@@ -607,49 +607,52 @@ namespace bmia {
 			this->newSegment[2] = tempDirection[2];//0.0;
 			double previousAngle[2];
 			this->prevSegment[0]=this->prevSegment[1]=this->prevSegment[2]= 0.0; // CHECK!!!
-	
+
 			// Loop until a stopping condition is met
-		
-			
-				cout <<"prev segment before:" << this->prevSegment[0] << " " << this->prevSegment[1] << " "<< this->prevSegment[2] << endl;
-				cout <<"new segment before:" << this->newSegment[0] << " " << this->newSegment[1] << " "<< this->newSegment[2] << endl;
-				cout <<"currentpoint before:" << this->currentPoint.X[0] << " " << this->currentPoint.X[1]  << " "<< this->currentPoint.X[2]  << endl;
-				
-				// Compute the next point (nextPoint) of the fiber using a Euler step.
-				if (!this->solveIntegrationStepSHDI(currentCell, currentCellId, weights)) //Add NEwSegment to Current Point to Determine NEXT Point!!!
-				{ cout << "Problem at the first integratioon step"<< endl; return; } 
-				 	cout <<"nextpoimt after:" << this->nextPoint.X[0] << " " << this->nextPoint.X[1]  << " "<< this->nextPoint.X[2]  << endl;
 
-					// Update the current and previous points
-				this->prevPoint = this->currentPoint;
-				this->currentPoint = this->nextPoint;
 
-					// Update the previous line segment
-				this->prevSegment[0] = this->newSegment[0];
-				this->prevSegment[1] = this->newSegment[1];
-				this->prevSegment[2] = this->newSegment[2];
+			cout <<"prev segment before:" << this->prevSegment[0] << " " << this->prevSegment[1] << " "<< this->prevSegment[2] << endl;
+			cout <<"new segment before:" << this->newSegment[0] << " " << this->newSegment[1] << " "<< this->newSegment[2] << endl;
+			cout <<"currentpoint before:" << this->currentPoint.X[0] << " " << this->currentPoint.X[1]  << " "<< this->currentPoint.X[2]  << endl;
 
-					//create a maximum finder
+			// Compute the next point (nextPoint) of the fiber using a Euler step.
+			if (!this->solveIntegrationStepSHDI(currentCell, currentCellId, weights)) //Add NEwSegment to Current Point to Determine NEXT Point!!!
+			{ cout << "Problem at the first integratioon step"<< endl; return; } 
+			cout <<"nextpoimt after:" << this->nextPoint.X[0] << " " << this->nextPoint.X[1]  << " "<< this->nextPoint.X[2]  << endl;
+
+			// Update the current and previous points
+			this->prevPoint = this->currentPoint;
+			this->currentPoint = this->nextPoint;
+
+			// Update the previous line segment
+			this->prevSegment[0] = this->newSegment[0];
+			this->prevSegment[1] = this->newSegment[1];
+			this->prevSegment[2] = this->newSegment[2];
+
+			//create a maximum finder
 			//	M
-
-				// Check AI values of initial step, otherwise we cannot check the dot product etc
+			//initial regionlist includes all points not some points
+			if(regionList.size()==0)
+				for(int i=0;i<anglesArray.size();i++)
+					regionList.push_back(i);
+			// Check AI values of initial step, otherwise we cannot check the dot product etc
 			while (1) 
 			{
-				
+
 				cout << endl << "===== while ==================== " << direction << " ==" << endl;
-			 
+
 				// Check if we've moved to a new cell. NEXT POINT is USE DTO FIND CURRENT CELL!!
 				vtkIdType newCellId = this->HARDIimageData->FindCell(currentPoint.X, currentCell, currentCellId,this->tolerance, subId, pCoords, weights);
-					if(this->breakLoop) break;
-		if(this->printStepInfo)
-		{
-				cout << "newCellId"<< newCellId <<   endl;
-				for (unsigned int i = 0; i <8; ++i)// angles array is constant for all voxels
+				if(this->breakLoop) break;
+				if(this->printStepInfo)
 				{
-					cout <<  "weight[" << i << "]:" << weights[i] << endl;
-				}
+					cout << "newCellId"<< newCellId <<   endl;
+					for (unsigned int i = 0; i <8; ++i)// angles array is constant for all voxels
+					{
+						cout <<  "weight[" << i << "]:" << weights[i] << endl;
+					}
 
-		}
+				}
 				// If we're in a new cell, and we're still inside the volume...
 				if (newCellId >= 0 && newCellId != currentCellId)
 				{
@@ -674,150 +677,62 @@ namespace bmia {
 				//double * SHAux = new double[numberSHcomponents];
 				//this->interpolateSH(SHAux, weights, numberSHcomponents);
 
-			
-
-				//clear search region list
-				regionList.clear();
 				double tempVector[3];
 
 				//get local maxima
 				//MaxFinder.getOutput(SHAux, this->parentFilter->shOrder,TRESHOLD, anglesArray,  maxima, regionList);
-				
-				//initial regionlist includes all points not some points
-				if(regionList.size()==0)
-					for(int i=0;i<anglesArray.size();i++)
-						regionList.push_back(i);
 
-				double * tempSH = new double[numberSHcomponents];
-				double **avgMaxVect = new double*[8];
-				std::vector<double *> anglesBeforeInterpolation; // this consists 8 angles
-				MaximumFinder MaxFinder = MaximumFinder(trianglesArray); // while icinde gerek var mi?!!!
-				for (int j = 0; j < 8; ++j)
-				{
-					//get the SH
-					avgMaxVect[j] = new double[3];
-					this->cellHARDIData->GetTuple(j, tempSH); //fill tempSH
-					avgMaxVect[j][0]=0;
-					avgMaxVect[j][1]=0;
-					avgMaxVect[j][2]=0;
-					//this->cellHARDIData has 8 hardi coeffieint sets
-					//get the ODF // get maxes like below 8 times
+				double *interpolatedVector;
+				interpolatedVector = findIncrementalStep(TRESHOLD, anglesArray, weights,  trianglesArray, regionList, maxima);
 
-					
-					//get maxima
-					MaxFinder.getOutput(tempSH, this->parentFilter->shOrder,TRESHOLD, anglesArray,  maxima, regionList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
-
-					//Below 3 necessary?
-					outputlistwithunitvectors.clear();
-					//if (CLEANMAXIMA)
-					MaxFinder.cleanOutput(maxima, outputlistwithunitvectors,tempSH, ODFlist, this->unitVectors, anglesArray);
-					// maxima has ids use them to get angles
-					
-					double value =-1 , angularSimilarity = -1;
-					int indexHighestSimilarity=-1;
-					//	cout << "choose the max with highest angular similariyt similarities" << endl;
-					for( int i=0;i< outputlistwithunitvectors.size()  ;i++ )
-					{ 
-						angularSimilarity = vtkMath::Dot(this->newSegment, outputlistwithunitvectors.at(i)); // new segment is actually old increment for coming to xextpoint.
-
-						if( value < angularSimilarity   ) 
-						{  
-							value = angularSimilarity; indexHighestSimilarity = i; cout << value << " ";
-						 
-						}
-					}
-						if (!(maxima.size() > 0) || (indexHighestSimilarity==-1) )	
-					{
-						cout << "No Maxima or no similarity" << endl;
-						break;
-					}
-						avgMaxVect[j][0]=outputlistwithunitvectors[indexHighestSimilarity][0];
-						avgMaxVect[j][1]=outputlistwithunitvectors[indexHighestSimilarity][1];
-						avgMaxVect[j][2]=outputlistwithunitvectors[indexHighestSimilarity][2];
-					//avgMaxAng[j][0] = acos( outputlistwithunitvectors[indexHighestSimilarity][2]);
-					//avgMaxAng[j][1] = atan2( outputlistwithunitvectors[indexHighestSimilarity][1],  outputlistwithunitvectors[indexHighestSimilarity][0]);
-					//cout << "angles w/ highest ang sim."<< avgMaxAng[j][0] << " " << avgMaxAng[j][1] << " n highest :" << indexHighestSimilarity << endl;
-					anglesBeforeInterpolation.push_back(avgMaxVect[j]); // give real pointers here DELETED!!!!
-					//outputlistwithunitvectors.clear();
-				   //if no maxima are found
-					
-
-			 
-					ODFlistMaxTwo.clear();
-					maxima.clear();
-					ODFlist.clear();
-				}// for cell 8 
-
-
-				double interpolatedPolarCoordinate[3];
-				this->interpolateVectors(anglesBeforeInterpolation,weights, interpolatedPolarCoordinate); // this average will be used as initial value. 
-				anglesBeforeInterpolation.clear(); // INTERPOLATE VECTORS !!!
-			 
-				//tempDirection[0] = sinf(interpolatedPolarCoordinate[0]) * cosf(interpolatedPolarCoordinate[1]);
-				//tempDirection[1] = sinf(interpolatedPolarCoordinate[0]) * sinf(interpolatedPolarCoordinate[1]);
-				//tempDirection[2] = cosf(interpolatedPolarCoordinate[0]);
-				//cout << "incremental movement" << 	tempDirection[0]  << " "<< 	tempDirection[1] << " " << 	tempDirection[2] << endl; 
-
-				//deallocate memory
-				//delete [] SHAux;
-				 
 				testDot = 0.0;
 				//value to compare local maxima (either random value or dot product)
 				//double value;
 
-				this->newSegment[0] = interpolatedPolarCoordinate[0]; // we will haveone unitvector !!! interpolation of angels will 
-				this->newSegment[1] = interpolatedPolarCoordinate[1]; // produce an angle and we will calculate tempDirection!!!!
-				this->newSegment[2] = interpolatedPolarCoordinate[2];
-			
+				this->newSegment[0] = interpolatedVector[0]; // we will haveone unitvector !!! interpolation of angels will 
+				this->newSegment[1] = interpolatedVector[1]; // produce an angle and we will calculate tempDirection!!!!
+				this->newSegment[2] = interpolatedVector[2];
+
 				if(this->breakLoop) break;
-		if(this->printStepInfo)
-		{
-				cout <<"prev segment1:" << this->prevSegment[0] << " " << this->prevSegment[1] << " "<< this->prevSegment[2] << endl;
-				cout <<"new segment1:" << this->newSegment[0] << " " << this->newSegment[1] << " "<< this->newSegment[2] << endl;
-				 
-				
-
-				 
-					cout <<"currentpoint before:" << this->currentPoint.X[0] << " " << this->currentPoint.X[1]  << " "<< this->currentPoint.X[2]  << endl;
-				
-				cout <<"this->step:" << this->step << endl;
-				// Compute the next point (nextPoint) of the fiber using a Euler step.
-		}
-
+				if(this->printStepInfo)
+				{
+					cout <<"prev segment1:" << this->prevSegment[0] << " " << this->prevSegment[1] << " "<< this->prevSegment[2] << endl;
+					cout <<"new segment1:" << this->newSegment[0] << " " << this->newSegment[1] << " "<< this->newSegment[2] << endl;
+					cout <<"currentpoint before:" << this->currentPoint.X[0] << " " << this->currentPoint.X[1]  << " "<< this->currentPoint.X[2]  << endl;				
+					cout <<"this->step:" << this->step << endl;
+					// Compute the next point (nextPoint) of the fiber using a Euler step.
+				}
 
 				if (!this->solveIntegrationStepSHDI(currentCell, currentCellId, weights)) //Add NEwSegment to Current Point to Determine NEXT Point!!!
-					break;
+					break;	
 
-			 
-		if(this->printStepInfo)
-
-		{
-				 	cout <<"nextpoimt after:" << this->nextPoint.X[0] << " " << this->nextPoint.X[1]  << " "<< this->nextPoint.X[2]  << endl;
-cout <<"prev segment1.1:" << this->prevSegment[0] << " " << this->prevSegment[1] << " "<< this->prevSegment[2] << endl;
-				cout <<"new segment1.1:" << this->newSegment[0] << " " << this->newSegment[1] << " "<< this->newSegment[2] << endl;
-		}	
-					// Update the total fiber length
+				if(this->printStepInfo)
+				{
+					cout <<"nextpoimt after:" << this->nextPoint.X[0] << " " << this->nextPoint.X[1]  << " "<< this->nextPoint.X[2]  << endl;
+					cout <<"prev segment1.1:" << this->prevSegment[0] << " " << this->prevSegment[1] << " "<< this->prevSegment[2] << endl;
+					cout <<"new segment1.1:" << this->newSegment[0] << " " << this->newSegment[1] << " "<< this->newSegment[2] << endl;
+				}	
+				// Update the total fiber length
 				incrementalDistance = sqrt((double) vtkMath::Distance2BetweenPoints(currentPoint.X, nextPoint.X)); // next point nerede dolar ??
-			 
-		if(this->printStepInfo)
-		{
-				cout << "current point: "<< currentPoint.X[0] << " " << currentPoint.X[1] << " " << currentPoint.X[2] << " " << endl;
-				cout << "next point: "<< nextPoint.X[0] << " " << nextPoint.X[1] << " " << nextPoint.X[2] << " " << endl;
-				cout << "incremental Distance" << incrementalDistance << endl;
-		}
+
+				if(this->printStepInfo)
+				{
+					cout << "current point: "<< currentPoint.X[0] << " " << currentPoint.X[1] << " " << currentPoint.X[2] << " " << endl;
+					cout << "next point: "<< nextPoint.X[0] << " " << nextPoint.X[1] << " " << nextPoint.X[2] << " " << endl;
+					cout << "incremental Distance" << incrementalDistance << endl;
+				}
 				this->nextPoint.D = this->currentPoint.D + incrementalDistance;
-               // Interpolate the AI value at the current position
+				// Interpolate the AI value at the current position
 				if (currentCellId >= 0)
 				{
 					//MaxFinder.getGFA(&(currentPoint.AI));
-					this->interpolateScalar(&(currentPoint.AI), weights); // WEIGHTS are OLD for next point?
-					 
+					this->interpolateScalar(&(currentPoint.AI), weights); // WEIGHTS are OLD for next point?				 
 				}
 
 				testDot = vtkMath::Dot(this->prevSegment, this->newSegment); // stop condition new segment is normalized after the increment for dotproduct
-				 
-		if(this->printStepInfo)
-						cout << "testDot: " << testDot  <<  "current point AI: " << currentPoint.AI << endl;
+
+				if(this->printStepInfo)
+					cout << "testDot: " << testDot  <<  "current point AI: " << currentPoint.AI << endl;
 				// Call "continueTracking" function of parent filter to determine if
 				// one of the stopping criteria has been met.
 				if (!(this->parentFilter->continueTracking(&(this->currentPoint), testDot, currentCellId)))// Current of NExt Point???
@@ -827,33 +742,31 @@ cout <<"prev segment1.1:" << this->prevSegment[0] << " " << this->prevSegment[1]
 					break;
 				}
 
-
-						// Add the new point to the point list
+				// Add the new point to the point list
 				pointList->push_back(this->nextPoint);
 
-					 
-		if(this->printStepInfo)
-				cout << "pointList.size"<< pointList->size() << endl;
+				if(this->printStepInfo)
+					cout << "pointList.size"<< pointList->size() << endl;
 				// If necessary, increase size of the point list
 				if (pointList->size() == pointList->capacity())
 				{
 					pointList->reserve(pointList->size() + 1000);
 				}
 
-					// Update the current and previous points
+				// Update the current and previous points
 				this->prevPoint = this->currentPoint;
 				this->currentPoint = this->nextPoint;
 
-					// Update the previous line segment
+				// Update the previous line segment
 				this->prevSegment[0] = this->newSegment[0];
 				this->prevSegment[1] = this->newSegment[1];
 				this->prevSegment[2] = this->newSegment[2]; // prevseg becomes automaticly normalized!!!
 
-					if(this->breakLoop) break;
-		if(this->printStepInfo) {
-				cout <<"prev segment2:" << this->prevSegment[0] << " " << this->prevSegment[1] << " "<< this->prevSegment[2] << endl;
-				cout <<"new segment2:" << this->newSegment[0] << " " << this->newSegment[1] << " "<< this->newSegment[2] << endl;
-		}
+				if(this->breakLoop) break;
+				if(this->printStepInfo) {
+					cout <<"prev segment2:" << this->prevSegment[0] << " " << this->prevSegment[1] << " "<< this->prevSegment[2] << endl;
+					cout <<"new segment2:" << this->newSegment[0] << " " << this->newSegment[1] << " "<< this->newSegment[2] << endl;
+				}
 
 			} //while 
 		}//if
@@ -863,78 +776,82 @@ cout <<"prev segment1.1:" << this->prevSegment[0] << " " << this->prevSegment[1]
 
 
 	// 
-		void HARDIdeterministicTracker::findIncrementalStep(int threshold, std::vector<double*> &anglesArray, double *weights,  vtkIntArray *trianglesArray, std::vector<int> &regionList)
-		
-		{
-			std::vector<double> ODFlist; // null can be used 
-			std::vector<int> maxima;
+	double *HARDIdeterministicTracker::findIncrementalStep(int threshold, std::vector<double*> &anglesArray, double *weights,  vtkIntArray *trianglesArray, std::vector<int> &regionList, std::vector<int> &maxima)
 
-			std::vector<double *> outputlistwithunitvectors;
-			int numberSHcomponents = HARDIArray->GetNumberOfComponents();
+	{
+		std::vector<double> ODFlist; // null can be used 
+
+
+		std::vector<double *> outputlistwithunitvectors;
+		int numberSHcomponents = HARDIArray->GetNumberOfComponents();
 		double * tempSH = new double[numberSHcomponents];
-				double **avgMaxVect = new double*[8];
-				std::vector<double *> anglesBeforeInterpolation; // this consists 8 angles
-				MaximumFinder MaxFinder = MaximumFinder(trianglesArray); // while icinde gerek var mi?!!!
-				for (int j = 0; j < 8; ++j)
-				{
-					//get the SH
-					avgMaxVect[j] = new double[3];
-					this->cellHARDIData->GetTuple(j, tempSH); //fill tempSH
-					avgMaxVect[j][0]=0;
-					avgMaxVect[j][1]=0;
-					avgMaxVect[j][2]=0;
-					//this->cellHARDIData has 8 hardi coeffieint sets
-					//get the ODF // get maxes like below 8 times
-
-					
-					//get maxima
-					MaxFinder.getOutput(tempSH, this->parentFilter->shOrder,threshold, anglesArray,  maxima, regionList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
-
-					//Below 3 necessary?
-					outputlistwithunitvectors.clear();
-					//if (CLEANMAXIMA)
-					MaxFinder.cleanOutput(maxima, outputlistwithunitvectors,tempSH, ODFlist, this->unitVectors, anglesArray);
-					// maxima has ids use them to get angles
-					
-					double value =-1 , angularSimilarity = -1;
-					int indexHighestSimilarity=-1;
-					//	cout << "choose the max with highest angular similariyt similarities" << endl;
-					for( int i=0;i< outputlistwithunitvectors.size()  ;i++ )
-					{ 
-						angularSimilarity = vtkMath::Dot(this->newSegment, outputlistwithunitvectors.at(i)); // new segment is actually old increment for coming to xextpoint.
-
-						if( value < angularSimilarity   ) 
-						{  
-							value = angularSimilarity; indexHighestSimilarity = i; cout << value << " ";
-						 
-						}
-					}
-						if (!(maxima.size() > 0) || (indexHighestSimilarity==-1) )	
-					{
-						cout << "No Maxima or no similarity" << endl;
-						break;
-					}
-						avgMaxVect[j][0]=outputlistwithunitvectors[indexHighestSimilarity][0];
-						avgMaxVect[j][1]=outputlistwithunitvectors[indexHighestSimilarity][1];
-						avgMaxVect[j][2]=outputlistwithunitvectors[indexHighestSimilarity][2];
-					//avgMaxAng[j][0] = acos( outputlistwithunitvectors[indexHighestSimilarity][2]);
-					//avgMaxAng[j][1] = atan2( outputlistwithunitvectors[indexHighestSimilarity][1],  outputlistwithunitvectors[indexHighestSimilarity][0]);
-					//cout << "angles w/ highest ang sim."<< avgMaxAng[j][0] << " " << avgMaxAng[j][1] << " n highest :" << indexHighestSimilarity << endl;
-					anglesBeforeInterpolation.push_back(avgMaxVect[j]); // give real pointers here DELETED!!!!
-					//outputlistwithunitvectors.clear();
-				   //if no maxima are found
-					// here interpolate and find the vectir?
-
-			  
-					maxima.clear();
-					ODFlist.clear();
-				}// for cell 8 
+		double **avgMaxVect = new double*[8];
+		std::vector<double *> anglesBeforeInterpolation; // this consists 8 angles
+		MaximumFinder MaxFinder = MaximumFinder(trianglesArray); // while icinde gerek var mi?!!!
+		for (int j = 0; j < 8; ++j)
+		{
+			//get the SH
+			avgMaxVect[j] = new double[3];
+			this->cellHARDIData->GetTuple(j, tempSH); //fill tempSH
+			avgMaxVect[j][0]=0;
+			avgMaxVect[j][1]=0;
+			avgMaxVect[j][2]=0;
+			//this->cellHARDIData has 8 hardi coeffieint sets
+			//get the ODF // get maxes like below 8 times
 
 
-				double interpolatedPolarCoordinate[3];
-				this->interpolateVectors(anglesBeforeInterpolation,weights, interpolatedPolarCoordinate); // this average will be used as initial value. 
-				anglesBeforeInterpolation.clear(); // INTERPOLATE VECTORS !!!
+			//get maxima
+			MaxFinder.getOutput(tempSH, this->parentFilter->shOrder,threshold, anglesArray,  maxima, regionList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
+
+			//Below 3 necessary?
+			outputlistwithunitvectors.clear();
+			//if (CLEANMAXIMA)
+			MaxFinder.cleanOutput(maxima, outputlistwithunitvectors,tempSH, ODFlist, this->unitVectors, anglesArray);
+			// maxima has ids use them to get angles
+
+			double value =-1 , angularSimilarity = -1;
+			int indexHighestSimilarity=-1;
+			//	cout << "choose the max with highest angular similariyt similarities" << endl;
+			for( int i=0;i< outputlistwithunitvectors.size()  ;i++ )
+			{ 
+				angularSimilarity = vtkMath::Dot(this->newSegment, outputlistwithunitvectors.at(i)); // new segment is actually old increment for coming to xextpoint.
+
+				if( value < angularSimilarity   ) 
+				{  
+					value = angularSimilarity; indexHighestSimilarity = i; cout << value << " ";
+
+				}
+			}
+			if (!(maxima.size() > 0) || (indexHighestSimilarity==-1) )	
+			{
+				cout << "No Maxima or no similarity" << endl;
+				break;
+			}
+			avgMaxVect[j][0]=outputlistwithunitvectors[indexHighestSimilarity][0];
+			avgMaxVect[j][1]=outputlistwithunitvectors[indexHighestSimilarity][1];
+			avgMaxVect[j][2]=outputlistwithunitvectors[indexHighestSimilarity][2];
+			//avgMaxAng[j][0] = acos( outputlistwithunitvectors[indexHighestSimilarity][2]);
+			//avgMaxAng[j][1] = atan2( outputlistwithunitvectors[indexHighestSimilarity][1],  outputlistwithunitvectors[indexHighestSimilarity][0]);
+			//cout << "angles w/ highest ang sim."<< avgMaxAng[j][0] << " " << avgMaxAng[j][1] << " n highest :" << indexHighestSimilarity << endl;
+			anglesBeforeInterpolation.push_back(avgMaxVect[j]); // give real pointers here DELETED!!!!
+			//outputlistwithunitvectors.clear();
+			//if no maxima are found
+			// here interpolate and find the vectir?
+
+
+			maxima.clear();
+			ODFlist.clear();
+		}// for cell 8 
+
+
+		double interpolatedVector[3];
+		this->interpolateVectors(anglesBeforeInterpolation,weights, interpolatedVector); // this average will be used as initial value. 
+		anglesBeforeInterpolation.clear(); // INTERPOLATE VECTORS !!!
+		return interpolatedVector;
 	}
+
+
+
 	void HARDIdeterministicTracker::calculateFiberDS(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,int numberOfIterations, bool CLEANMAXIMA, double TRESHOLD)
 	{
 		vtkCell *	currentCell			= NULL;						// Cell of current point
@@ -1006,7 +923,7 @@ cout <<"prev segment1.1:" << this->prevSegment[0] << " " << this->prevSegment[1]
 
 			// Get the AI scalar at the seed point position
 			MaxFinder.getGFA(&(currentPoint.AI)); // 
-			 
+
 			//cout << "gfa value:" << currentPoint.AI << endl;
 			// Set the total distance to zero
 			currentPoint.D = 0.0;
@@ -1262,12 +1179,12 @@ cout <<"prev segment1.1:" << this->prevSegment[0] << " " << this->prevSegment[1]
 		return true;
 	}
 
-		//-------------------------[ solveIntegrationStepSHDI ]------------------------\\
+	//-------------------------[ solveIntegrationStepSHDI ]------------------------\\
 
 
 	bool HARDIdeterministicTracker::solveIntegrationStepSHDI(vtkCell * currentCell, vtkIdType currentCellId, double * weights)
 	{
-		
+
 		// Compute the next point
 		this->nextPoint.X[0] = this->currentPoint.X[0] +  this->newSegment[0] * (this->step);
 		this->nextPoint.X[1] = this->currentPoint.X[1] + this->newSegment[1] * (this->step);
@@ -1281,7 +1198,7 @@ cout <<"prev segment1.1:" << this->prevSegment[0] << " " << this->prevSegment[1]
 
 	bool HARDIdeterministicTracker::solveIntegrationStepSHDIRK4(vtkCell * currentCell, vtkIdType currentCellId, double * weights)
 	{
-		
+
 		// Compute the next point
 		this->nextPoint.X[0] = this->currentPoint.X[0] +  this->newSegment[0] * (this->step);
 		this->nextPoint.X[1] = this->currentPoint.X[1] + this->newSegment[1] * (this->step);
@@ -1345,7 +1262,7 @@ cout <<"prev segment1.1:" << this->prevSegment[0] << " " << this->prevSegment[1]
 
 		interpolatedAngle[0]=0.0;
 		interpolatedAngle[1]=0.0;
-	 
+
 		// For all eight surrounding voxels...
 		for (int i = 0; i < 8; ++i)
 		{
@@ -1355,7 +1272,7 @@ cout <<"prev segment1.1:" << this->prevSegment[0] << " " << this->prevSegment[1]
 			interpolatedAngle[0] += weights[i] * angles.at(i)[0];
 			// ...and add it to the interpolated scalar
 			interpolatedAngle[1] += weights[i] * angles.at(i)[1];
-			 
+
 		}
 	}
 
@@ -1367,7 +1284,7 @@ cout <<"prev segment1.1:" << this->prevSegment[0] << " " << this->prevSegment[1]
 
 		interpolatedVector[0]=0.0;
 		interpolatedVector[1]=0.0;
-			interpolatedVector[2]=0.0;
+		interpolatedVector[2]=0.0;
 		// For all eight surrounding voxels...
 		for (int i = 0; i < 8; ++i)
 		{
