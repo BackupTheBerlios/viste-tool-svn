@@ -111,6 +111,7 @@ public:
 protected slots:
     void selectData(int row);
     void setVisible(bool visible);
+	 void setDepthPeeling(bool visible);
     void setLighting(bool lighting);
     void changeColor();
 	void changeOpacity(int value);

@@ -65,6 +65,13 @@
         </property>
        </widget>
       </item>
+       <item>
+         <widget class="QCheckBox" name="depthPeelingCheckBox">
+           <property name="text">
+             <string>Depth Peeling</string>
+           </property>
+         </widget>
+       </item>
       <item>
        <widget class="QCheckBox" name="lightingCheckBox">
         <property name="text">
