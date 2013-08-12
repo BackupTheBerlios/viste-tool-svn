@@ -435,13 +435,7 @@ namespace bmia {
 	}
 
 
-	double HARDIdeterministicTracker::distanceSpherical(double *pointA, double *pointB, int n)
-	{ //l2 distance
-		double sum=0;
-		for(int i=0;i<n;i++)
-			sum+=pow((pointA[i]-pointB[i]),2);
-		return sqrt(sum);
-	}
+
 
 
 	void HARDIdeterministicTracker::findMax2( std::vector<double> &array, std::vector<double> &maxima, std::vector<double*> &maximaunitvectors, std::vector<double *> &anglesReturn)
@@ -673,17 +667,9 @@ namespace bmia {
 					break;
 				}
 
-				// Compute interpolated SH at new position
-				//double * SHAux = new double[numberSHcomponents];
-				//this->interpolateSH(SHAux, weights, numberSHcomponents);
-
-				double tempVector[3];
-
-				//get local maxima
-				//MaxFinder.getOutput(SHAux, this->parentFilter->shOrder,TRESHOLD, anglesArray,  maxima, regionList);
 
 				double *interpolatedVector;
-				interpolatedVector = findIncrementalStep(TRESHOLD, anglesArray, weights,  trianglesArray, regionList, maxima);
+				interpolatedVector = findFunctionValue(TRESHOLD, anglesArray, weights,  trianglesArray, regionList, maxima);
 
 				testDot = 0.0;
 				//value to compare local maxima (either random value or dot product)
@@ -776,7 +762,7 @@ namespace bmia {
 
 
 	// 
-	double *HARDIdeterministicTracker::findIncrementalStep(int threshold, std::vector<double*> &anglesArray, double *weights,  vtkIntArray *trianglesArray, std::vector<int> &regionList, std::vector<int> &maxima)
+	double *HARDIdeterministicTracker::findFunctionValue(int threshold, std::vector<double*> &anglesArray, double *weights,  vtkIntArray *trianglesArray, std::vector<int> &regionList, std::vector<int> &maxima)
 
 	{
 		std::vector<double> ODFlist; // null can be used 
@@ -848,6 +834,52 @@ namespace bmia {
 		this->interpolateVectors(anglesBeforeInterpolation,weights, interpolatedVector); // this average will be used as initial value. 
 		anglesBeforeInterpolation.clear(); // INTERPOLATE VECTORS !!!
 		return interpolatedVector;
+	}
+
+
+
+	bool HARDIdeterministicTracker::findFunctionValueAtPoint(double pos[3],vtkCell * currentCell, vtkIdType currentCellId, int threshold, std::vector<double*> &anglesArray, double *interpolatedVector,  vtkIntArray *trianglesArray, std::vector<int> &regionList, std::vector<int> &maxima){
+		double pCoords[3] = { 0.0, 0.0,0.0};
+		int subId=0;
+	 double weights[8];
+		vtkIdType newCellId = this->HARDIimageData->FindCell(pos,currentCell, currentCellId,this->tolerance, subId, pCoords, weights);
+				
+				// If we're in a new cell, and we're still inside the volume...
+				if (newCellId >= 0 && newCellId != currentCellId)
+				{
+					// ...store the ID of the new cell...
+					currentCellId = newCellId;
+
+					// ...set the new cell pointer...
+					currentCell = this->HARDIimageData->GetCell(currentCellId);
+
+					// ...and fill the cell arrays with the data of the new cell
+					this->HARDIArray->GetTuples(currentCell->PointIds, this->cellHARDIData);
+					this->aiScalars->GetTuples( currentCell->PointIds, this->cellAIScalars );
+				}
+				// If we've left the volume, break here
+				else if (newCellId == -1)
+				{
+					return false;
+				}
+				int numberSHcomponents = HARDIArray->GetNumberOfComponents();
+				 
+				interpolatedVector = findFunctionValue(threshold, anglesArray, weights,  trianglesArray, regionList, maxima);
+				return true;
+	}
+
+	void  HARDIdeterministicTracker::findFunctionValueRK4(double pos[3],vtkCell * currentCell, vtkIdType currentCellId, int threshold, std::vector<double*> &anglesArray, double *interpolatedVector,  vtkIntArray *trianglesArray, std::vector<int> &regionList, std::vector<int> &maxima)
+	{
+		double H= this->step;
+		double vec[3];
+		findFunctionValueAtPoint( pos,currentCell, currentCellId,threshold, anglesArray, vec, trianglesArray, regionList,maxima);
+		// double K1[0]    = (H * vecK1[0]);
+    //double K2    = (H * f((x + 1 / 2 * H), (y + 1 / 2 * K1)));  // use new segment
+   // double K3    = (H * f((x + 1 / 2 * H), (y + 1 / 2 * K2)));
+   // double K4    = (H * f((x + H), (y + K3)));
+	//double runge = (y + (1 / 6) * (K1 + 2 * K2 + 2 * K3 + K4));
+	 
+		 
 	}
 
 
