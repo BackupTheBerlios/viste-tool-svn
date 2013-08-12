@@ -17,6 +17,9 @@
 #include <vtkActor2D.h>
 #include <vtkImageData.h>
 #include <vtkPointData.h>
+#include <vtkDecimatePro.h>
+#include <vtkSmoothPolyDataFilter.h>
+#include <vtkSplineFilter.h>
 
 /** Includes - Custom */
 #include "vtkFiberScoringMeasuresFilter.h"
@@ -46,6 +49,8 @@ typedef struct
     int selectedGlyphData;
 
     ParameterSettings* ps;
+
+    vtkPolyData* preprocessedPolyData;
 
 } SortedFibers;
 

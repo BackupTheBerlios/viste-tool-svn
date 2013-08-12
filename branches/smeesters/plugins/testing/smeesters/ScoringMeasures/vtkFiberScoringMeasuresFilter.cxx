@@ -397,7 +397,7 @@ void vtkFiberScoringMeasuresFilter::Execute()
                     free(b0);
                     free(b1);
 
-                    internal_energy = sqrt(curvature*curvature + muu*torsion + beta*beta*inv_numberOfFiberPoints*inv_numberOfFiberPoints);
+                    internal_energy = sqrt(curvature*curvature + muu*torsion + beta*inv_numberOfFiberPoints*inv_numberOfFiberPoints);
                 }
 
                 //printf("curvature:%f, torsion:%f \n", curvature, torsion);
@@ -425,41 +425,8 @@ void vtkFiberScoringMeasuresFilter::Execute()
         free(prev3_p);
 	}
 
-	// Smooth scalars
-	const int SMOOTH_RANGE = 5;
-    for (vtkIdType lineId = 0; lineId < numberOfCells; ++lineId)
-	{
-        // Get the data of the current fiber
-        vtkCell * currentCell = input->GetCell(lineId);
-        int numberOfFiberPoints = currentCell->GetNumberOfPoints();
-
-        // Loop through all points in the fiber
-		for (int pointId = 0; pointId < numberOfFiberPoints; ++pointId)
-		{
-		    double accVal = 0.0;
-            int rangeMin = std::max(0,pointId-SMOOTH_RANGE);
-            int rangeMax = std::min(numberOfFiberPoints-1,pointId+SMOOTH_RANGE);
-
-            for(int j = rangeMin; j < rangeMax; j++)
-            {
-                accVal += SMScalars->GetTuple1(currentCell->GetPointId(pointId+j));
-            }
-            printf("MIN: %i MAX: %i VAL: %f MVAL: %f\n",rangeMin,rangeMax,accVal,accVal/(double)(rangeMax-rangeMin));
-
-            SMScalars->SetTuple1(currentCell->GetPointId(pointId),accVal/(double)(rangeMax-rangeMin));
-		}
-    }
-
-
-
-	int numTuples = SMScalars->GetNumberOfTuples();
-
-    for(int i = 0; i < numTuples; i++)
-    {
-
-    }
-
 	// Normalize SM
+	int numTuples = SMScalars->GetNumberOfTuples();
 	if(ps->normalizeScalars)
 	{
 	    double mean = 0.0;

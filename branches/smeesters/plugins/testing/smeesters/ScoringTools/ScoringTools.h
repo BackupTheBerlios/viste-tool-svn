@@ -36,7 +36,9 @@
 
 /** Includes - Custom filters */
 #include "vtkFiberSelectionFilter.h"
+#include "vtkFiberROICutting.h"
 
+/** Includes - Common types */
 #include "ScoringTypes.h"
 
 namespace Ui
@@ -239,7 +241,8 @@ private:
     //QWidget* histogramWindow;
     void ShowHistogram(HistogramType histType);
 
-
+    /** ROI scalar data list */
+    QList<data::DataSet *> roiDataSets;
 };
 
 }

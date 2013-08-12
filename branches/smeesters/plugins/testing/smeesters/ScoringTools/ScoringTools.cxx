@@ -90,6 +90,16 @@ void ScoringTools::dataSetAdded(data::DataSet * d)
         // Add to UI combobox for distance measurements to fibers
         this->form->fibersCombo->addItem(d->getName());
 	}
+
+	// Load scalar volume
+    else if(kind == "scalar volume")
+    {
+        // Keep track of the datasets used by this plugin
+        this->roiDataSets.append(d);
+
+        // Add to UI combobox for selection of data
+        this->form->selectROICombo->addItem(d->getName());
+    }
 }
 
 //------------------------[ Dataset changed ]-----------------------\\
@@ -166,6 +176,23 @@ void ScoringTools::dataSetRemoved(data::DataSet * d)
         // Remove from collection
         this->sortedFibersList.removeAt(dsIndex);
 	}
+
+	// Load scalar volume
+    else if(kind == "scalar volume")
+    {
+        // Check if the data set has been added to this plugin
+        if (!(this->roiDataSets.contains(d)))
+            return;
+
+        // Get index
+        int dsIndex = this->roiDataSets.indexOf(d);
+
+        // Remove from UI combobox for selection of data
+        this->form->selectROICombo->removeItem(dsIndex+1);
+
+        // Remove from datasets list
+        this->roiDataSets.removeAt(dsIndex);
+    }
 }
 
 int ScoringTools::FindInputDataSet(data::DataSet * ds)
@@ -390,8 +417,38 @@ void ScoringTools::ComputeFibers()
 	selectionFilter->Update();
 	this->core()->out()->deleteProgressBarForAlgorithm(selectionFilter);
 
-	vtkPolyData* outputPoly = vtkPolyData::New();
-	outputPoly->ShallowCopy(selectionFilter->GetOutput());  // disconnect from filter to prevent unwanted future updates
+    // Prepare output polydata
+    vtkPolyData* outputPoly = vtkPolyData::New();
+
+	// In case ROI cutting is enabled, run the filter
+    if(this->form->selectROICombo->currentIndex() > 0)
+    {
+        vtkFiberROICutting* roiCutting = vtkFiberROICutting::New();
+        roiCutting->SetInput(selectionFilter->GetOutput());
+        roiCutting->SetROIData(this->roiDataSets.at(this->form->selectROICombo->currentIndex()-1));
+
+        // Get the transformation matrix
+        vtkObject* tfm;
+        vtkMatrix4x4* transformationMatrix;
+        if (sortedFibers->ds->getAttributes()->getAttribute("transformation matrix", tfm ))
+        {
+            transformationMatrix = vtkMatrix4x4::SafeDownCast(tfm);
+            if (transformationMatrix == 0)
+            {
+                return;
+            }
+        }
+        roiCutting->SetFiberTransformationMatrix(transformationMatrix);
+
+        // Run the filter
+        this->core()->out()->createProgressBarForAlgorithm(roiCutting, "ROI cutting");
+        roiCutting->Update();
+        this->core()->out()->deleteProgressBarForAlgorithm(roiCutting);
+
+        outputPoly->ShallowCopy(roiCutting->GetOutput());  // disconnect from filter to prevent unwanted future updates
+    }
+    else
+    	outputPoly->ShallowCopy(selectionFilter->GetOutput());  // disconnect from filter to prevent unwanted future updates
 
     // Set active scalars of output data equal to input data
     if(sortedFibers->hasScalars)
@@ -466,7 +523,7 @@ void ScoringTools::ShowHistogram(HistogramType histType)
     ThresholdSettings* thresholdSettings = GetThresholdSettings();
 
     // Compute scalar histogram
-    const int numberOfBins = 100;
+    const int numberOfBins = 200;
     int averageHist[numberOfBins];
     for(int i = 0; i<numberOfBins; i++)
     {

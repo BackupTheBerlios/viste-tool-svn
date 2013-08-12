@@ -85,6 +85,7 @@ void ScoringMeasures::dataSetAdded(data::DataSet * d)
 		sortedFibers->outputFiberDataName = d->getName().append("_[SM]");
 		sortedFibers->processed = false;
 		sortedFibers->selectedGlyphData = -1;
+		sortedFibers->preprocessedPolyData = NULL;
 
 		// Create parameter settings struct
 		ParameterSettings* ps = new ParameterSettings;
@@ -181,6 +182,7 @@ void ScoringMeasures::dataSetRemoved(data::DataSet * d)
         SortedFibers* sortedFibers = this->sortedFibersList.at(dsIndex);
         sortedFibers->ds = NULL;
         sortedFibers->ds_processed = NULL;
+        sortedFibers->preprocessedPolyData = NULL;
 
         // Remove from collection
         this->sortedFibersList.removeAt(dsIndex);
@@ -270,9 +272,34 @@ void ScoringMeasures::ComputeScore()
     else
         image = NULL;
 
+    // Perform fiber preprocessing if not already done
+    vtkPolyData* preprocessedPolyData = sortedFibers->preprocessedPolyData;
+    if(preprocessedPolyData == NULL)
+    {
+        // Smooth the lines
+        vtkSmoothPolyDataFilter* smoothPoly = vtkSmoothPolyDataFilter::New();
+        smoothPoly->SetInput(polydata);
+        smoothPoly->SetNumberOfIterations(50);
+        this->core()->out()->createProgressBarForAlgorithm(smoothPoly, "Scoring measure", "Smoothing the fibers...");
+        smoothPoly->Update();
+        this->core()->out()->deleteProgressBarForAlgorithm(smoothPoly);
+
+        // Spline sample
+        vtkSplineFilter* splineFilter = vtkSplineFilter::New();
+        splineFilter->SetInput(smoothPoly->GetOutput());
+        splineFilter->SetSubdivideToLength();
+        splineFilter->SetLength(0.2);
+        this->core()->out()->createProgressBarForAlgorithm(splineFilter, "Scoring measure", "Spline sampling the fibers...");
+        splineFilter->Update();
+        this->core()->out()->deleteProgressBarForAlgorithm(splineFilter);
+
+        sortedFibers->preprocessedPolyData = preprocessedPolyData = splineFilter->GetOutput();
+    }
+
+
     // Create filter
     vtkFiberScoringMeasuresFilter* scoringFilter = vtkFiberScoringMeasuresFilter::New();
-    scoringFilter->SetInput(polydata);
+    scoringFilter->SetInput(preprocessedPolyData);
     scoringFilter->SetInputVolume(image);
     scoringFilter->SetParameters(sortedFibers->ps);
 
@@ -328,6 +355,7 @@ void ScoringMeasures::ComputeScore()
 	this->core()->data()->dataSetChanged(sortedFibers->ds);
 
 	// Clean up
+	//deci->Delete();
     scoringFilter->Delete();
 }
 

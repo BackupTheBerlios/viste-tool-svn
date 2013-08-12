@@ -15,6 +15,8 @@ if(PLUGINS_BUILD_SCORINGTOOLS)
 		vtkFiberSelectionFilter.cxx
 		vtkFiberSelectionFilter.h
 		ScoringTypes.h
+		vtkFiberROICutting.cxx
+		vtkFiberROICutting.h
 	)
 
 	include_directories(${CMAKE_CURRENT_BINARY_DIR})

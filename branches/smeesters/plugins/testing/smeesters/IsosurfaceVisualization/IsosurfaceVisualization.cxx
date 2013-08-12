@@ -285,6 +285,9 @@ void IsosurfaceVisualization::dataSetRemoved(data::DataSet * d)
 
         // Remove model info
         this->modelInfoList.removeAt(dsIndex);
+
+        //
+        // ALSO REMOVE FROM DATASETS
     }
 
     // Transfer Functions (LUTs)
