@@ -55,7 +55,7 @@
 
 class vtkPropAssembly;
 class vtkActor;
-
+class vtkRenderWindow;
 namespace Ui {
     class PolyDataForm;
 }
@@ -156,6 +156,15 @@ private:
      */
     int selectedData;
 
+
+
+	bool  SetupEnvironmentForDepthPeeling(
+ vtkRenderWindow *renderWindow,
+   vtkRenderer *renderer, int maxNoOfPeels,
+  double occlusionRatio);
+bool  IsDepthPeelingSupported( vtkRenderWindow *renderWindow,
+                             vtkRenderer *renderer,
+                             bool doItOffScreen);
 }; // class PolyDataVisualizationPlugin
 } // namespace bmia
 #endif // bmia_PolyDataVisualizationPlugin_h

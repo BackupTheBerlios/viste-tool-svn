@@ -56,7 +56,7 @@ namespace bmia {
 
 		//initializations
 		//debug options
-		printStepInfo =1;
+		printStepInfo =0;
 		breakLoop=0;
 
 
@@ -638,15 +638,15 @@ namespace bmia {
 				// Check if we've moved to a new cell. NEXT POINT is USE DTO FIND CURRENT CELL!!
 				vtkIdType newCellId = this->HARDIimageData->FindCell(currentPoint.X, currentCell, currentCellId,this->tolerance, subId, pCoords, weights);
 				if(this->breakLoop) break;
-				if(this->printStepInfo)
-				{
-					cout << "newCellId"<< newCellId <<   endl;
-					for (unsigned int i = 0; i <8; ++i)// angles array is constant for all voxels
-					{
-						cout <<  "weight[" << i << "]:" << weights[i] << endl;
-					}
+				//if(this->printStepInfo)
+				//{
+				//	cout << "newCellId"<< newCellId <<   endl;
+				//	for (unsigned int i = 0; i <8; ++i)// angles array is constant for all voxels
+				//	{
+				//		cout <<  "weight[" << i << "]:" << weights[i] << endl;
+				//	}
 
-				}
+				//}
 				// If we're in a new cell, and we're still inside the volume...
 				if (newCellId >= 0 && newCellId != currentCellId)
 				{
@@ -682,7 +682,7 @@ namespace bmia {
 				if(this->breakLoop) break;
 				if(this->printStepInfo)
 				{
-					cout <<"prev segment1:" << this->prevSegment[0] << " " << this->prevSegment[1] << " "<< this->prevSegment[2] << endl;
+				//	cout <<"prev segment1:" << this->prevSegment[0] << " " << this->prevSegment[1] << " "<< this->prevSegment[2] << endl;
 					cout <<"new segment1:" << this->newSegment[0] << " " << this->newSegment[1] << " "<< this->newSegment[2] << endl;
 					cout <<"currentpoint before:" << this->currentPoint.X[0] << " " << this->currentPoint.X[1]  << " "<< this->currentPoint.X[2]  << endl;				
 					cout <<"this->step:" << this->step << endl;
@@ -705,7 +705,7 @@ namespace bmia {
 				{
 					cout << "current point: "<< currentPoint.X[0] << " " << currentPoint.X[1] << " " << currentPoint.X[2] << " " << endl;
 					cout << "next point: "<< nextPoint.X[0] << " " << nextPoint.X[1] << " " << nextPoint.X[2] << " " << endl;
-					cout << "incremental Distance" << incrementalDistance << endl;
+					//cout << "incremental Distance" << incrementalDistance << endl;
 				}
 				this->nextPoint.D = this->currentPoint.D + incrementalDistance;
 				// Interpolate the AI value at the current position
@@ -731,8 +731,8 @@ namespace bmia {
 				// Add the new point to the point list
 				pointList->push_back(this->nextPoint);
 
-				if(this->printStepInfo)
-					cout << "pointList.size"<< pointList->size() << endl;
+				//if(this->printStepInfo)
+				//	cout << "pointList.size"<< pointList->size() << endl;
 				// If necessary, increase size of the point list
 				if (pointList->size() == pointList->capacity())
 				{
@@ -749,10 +749,10 @@ namespace bmia {
 				this->prevSegment[2] = this->newSegment[2]; // prevseg becomes automaticly normalized!!!
 
 				if(this->breakLoop) break;
-				if(this->printStepInfo) {
-					cout <<"prev segment2:" << this->prevSegment[0] << " " << this->prevSegment[1] << " "<< this->prevSegment[2] << endl;
-					cout <<"new segment2:" << this->newSegment[0] << " " << this->newSegment[1] << " "<< this->newSegment[2] << endl;
-				}
+			//	if(this->printStepInfo) {
+				//	cout <<"prev segment2:" << this->prevSegment[0] << " " << this->prevSegment[1] << " "<< this->prevSegment[2] << endl;
+			//		cout <<"new segment2:" << this->newSegment[0] << " " << this->newSegment[1] << " "<< this->newSegment[2] << endl;
+			//	}
 
 			} //while 
 		}//if
