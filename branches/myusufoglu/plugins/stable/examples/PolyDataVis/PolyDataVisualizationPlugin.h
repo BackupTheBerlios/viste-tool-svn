@@ -143,6 +143,11 @@ private:
      */
     QList<vtkActor*> actors;
 
+	  /**
+     * The actors associated with the data sets in dataSets.
+     */
+    QList<vtkPolyData*> polydatas;
+
     /**
      * Keep track whether the selection is being changed.
      * If this is set to true, then parameters in the GUI can

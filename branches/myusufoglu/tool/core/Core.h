@@ -34,7 +34,7 @@
  */
 
 /*
- * Core.h
+ * Core.h 
  *
  * 2009-11-05	Tim Peeters
  * - First version

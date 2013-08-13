@@ -697,6 +697,14 @@ void MainWindow::initializeVtkRenderWindow()
 
 	// Store the 3D renderer of the meta-canvas
 	this->renderer = this->metaCanvas->GetRenderer3D();
+
+	// this can be put to polydata visualisation plugin
+	this->vtkWidget->GetRenderWindow()->SetAlphaBitPlanes(1);
+this->vtkWidget->GetRenderWindow()->SetMultiSamples(0);
+this->renderer->SetUseDepthPeeling(1);
+this->renderer->SetMaximumNumberOfPeels(50);
+this->renderer->SetOcclusionRatio(0.1);
+
 }
 
 

@@ -129,9 +129,9 @@ namespace bmia {
 		mapper->ScalarVisibilityOff();
 		mapper->SetInput(polydata);
 		vtkActor* actor = vtkActor::New();
-
+		
 		actor->SetMapper(mapper);
-		mapper->Delete(); mapper = NULL;
+		//mapper->Delete(); mapper = NULL;
 		// Note that the mapper was not actually deleted because it was
 		// registered by the actor. And it can still be accessed through
 		// actor->GetMapper().
@@ -206,7 +206,7 @@ namespace bmia {
 		this->core()->render();
 		//if(this->fullCore()->canvas()->GetRenderer3D()->GetLastRenderingUsedDepthPeeling())
 			//cout << " depth peeling used" << endl; 
-		cout << "IsDepthPeelingSupported (offscreen false):" << IsDepthPeelingSupported(this->fullCore()->canvas()->GetRenderWindow(), this->fullCore()->canvas()->GetRenderer3D(), true);
+		cout << "IsDepthPeelingSupported (offscreen true):" << IsDepthPeelingSupported(this->fullCore()->canvas()->GetRenderWindow(), this->fullCore()->canvas()->GetRenderer3D(), true) << endl;
 	  // cout << "IsDepthPeelingSupported (offscreen false):" << IsDepthPeelingSupported(this->fullCore()->canvas()->GetRenderWindow(), this->fullCore()->canvas()->GetRenderer3D(), false);
 	
 	}
@@ -281,12 +281,24 @@ bool PolyDataVisualizationPlugin::IsDepthPeelingSupported( vtkRenderWindow *rend
   int origMaxPeels = renderer->GetMaximumNumberOfPeels();
   double origOcclusionRatio = renderer->GetOcclusionRatio();
  
+  cout << "origOffScreenRendering" << origOffScreenRendering << endl;
+   cout << "origAlphaBitPlanes" << origAlphaBitPlanes << endl;
+cout << "origMultiSamples" << origMultiSamples << endl;
+cout << "origUseDepthPeeling" << origUseDepthPeeling << endl;
+cout << "origMaxPeels" << origMaxPeels << endl;
+cout << "origOcclusionRatio" << origOcclusionRatio << endl;
+ 
+
+
+
+
+
   // Activate off screen rendering on demand
   renderWindow->SetOffScreenRendering(doItOffScreen);
  
   // Setup environment for depth peeling (with some default parametrization)
   success = success && SetupEnvironmentForDepthPeeling(renderWindow, renderer,
-                                                       8, 0.1);
+                                                       50, 0.1);
  
   // Do a test render
   renderWindow->Render();
@@ -312,32 +324,52 @@ bool PolyDataVisualizationPlugin::IsDepthPeelingSupported( vtkRenderWindow *rend
 	{
 		if (this->changingSelection) return;
 		if (this->selectedData == -1) return;
-		this->fullCore()->canvas()->GetRenderer3D()->SetUseDepthPeeling(value);
+		//vtkRenderer *renderer= this->fullCore()->canvas()->GetRenderer3D();
+		//vtkRenderWindow *renderWindow = this->fullCore()->canvas()->GetRenderer3D()->GetRenderWindow();
+		vtkRenderer *renderer= this->fullCore()->canvas()->GetRenderer3D();
+		vtkRenderWindow *renderWindow = this->fullCore()->canvas()->GetRenderWindow();
+	
+		renderer->SetUseDepthPeeling(value);
 		if(value)
 		{
-			this->fullCore()->canvas()->GetRenderer3D()->GetRenderWindow()->SetAlphaBitPlanes(1); // default 0 can be put to main window!!
-			this->fullCore()->canvas()->GetRenderer3D()->GetRenderWindow()->SetMultiSamples(0); //default 8 Set the number of multisamples to use for hardware antialiasing.
+			renderWindow->SetAlphaBitPlanes(1); // default 0 can be put to main window!!
+			renderWindow->SetMultiSamples(0); //default 8 Set the number of multisamples to use for hardware antialiasing.
 
-			this->fullCore()->canvas()->GetRenderer3D()->SetMaximumNumberOfPeels(1); // default 4
-			////this->fullCore()->canvas()->GetRenderer3D()->GetRenderWindow()->For
-			this->fullCore()->canvas()->GetRenderer3D()->SetOcclusionRatio(0.1); 
+			renderer->SetMaximumNumberOfPeels(50); // default 4
+			////renderer->GetRenderWindow()->For
+			renderer->SetOcclusionRatio(0.1); 
+			//renderWindow->SetOffScreenRendering(1);
 		}
 		else
 		{
-			this->fullCore()->canvas()->GetRenderer3D()->GetRenderWindow()->SetAlphaBitPlanes(0); // default 0 can be put to main window!!
-			this->fullCore()->canvas()->GetRenderer3D()->GetRenderWindow()->SetMultiSamples(8); //default 8 Set the number of multisamples to use for hardware antialiasing.
+			renderWindow->SetAlphaBitPlanes(0); // default 0 can be put to main window!!
+			renderWindow->SetMultiSamples(8); //default 8 Set the number of multisamples to use for hardware antialiasing.
 
-			this->fullCore()->canvas()->GetRenderer3D()->SetMaximumNumberOfPeels(4); // default 4
-			////this->fullCore()->canvas()->GetRenderer3D()->GetRenderWindow()->For
-			this->fullCore()->canvas()->GetRenderer3D()->SetOcclusionRatio(0.0); // default value is 0.0
+			renderer->SetMaximumNumberOfPeels(4); // default 4
+			////renderer->GetRenderWindow()->For
+			renderer->SetOcclusionRatio(0.0); // default value is 0.0
 		}
+	 
 
+		bool origOffScreenRendering = renderWindow->GetOffScreenRendering() == 1;
+  bool origAlphaBitPlanes = renderWindow->GetAlphaBitPlanes() == 1;
+  int origMultiSamples = renderWindow->GetMultiSamples();
+  bool origUseDepthPeeling = renderer->GetUseDepthPeeling() == 1;
+  int origMaxPeels = renderer->GetMaximumNumberOfPeels();
+  double origOcclusionRatio = renderer->GetOcclusionRatio();
+ 
+  cout << "origOffScreenRendering" << origOffScreenRendering << endl;
+   cout << "origAlphaBitPlanes" << origAlphaBitPlanes << endl;
+cout << "origMultiSamples" << origMultiSamples << endl;
+cout << "origUseDepthPeeling" << origUseDepthPeeling << endl;
+cout << "origMaxPeels" << origMaxPeels << endl;
+cout << "origOcclusionRatio" << origOcclusionRatio << endl;
 
-
-		this->core()->render();
 		 
-		//if(this->fullCore()->canvas()->GetRenderer3D()->GetLastRenderingUsedDepthPeeling())
-			//cout << " depth peeling used" << endl; 
+		this->core()->render();
+		  
+		if(renderer->GetLastRenderingUsedDepthPeeling())
+			cout << " depth peeling used" << endl; 
 	}
 	void PolyDataVisualizationPlugin::setLighting(bool lighting)
 	{

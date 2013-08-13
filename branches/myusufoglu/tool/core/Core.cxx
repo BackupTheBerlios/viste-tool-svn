@@ -348,14 +348,17 @@ void Core::setMainWindow(gui::MainWindowInterface * mwi)
 void Core::setRenderWindow(vtkRenderWindow * rw)
 {
 	this->renderWindow = rw;
+	
 }
 
+ 
 
 gui::MainWindowInterface * Core::gui()
 {
 	return this->mainWindow;
 }
 
+ 
 
 void Core::render()
 {
