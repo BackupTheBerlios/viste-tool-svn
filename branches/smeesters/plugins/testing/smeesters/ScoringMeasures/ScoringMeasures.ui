@@ -73,16 +73,6 @@
         </item>
        </layout>
       </item>
-      <item>
-       <widget class="QCheckBox" name="usedInScoringCheckBox">
-        <property name="text">
-         <string>Used in scoring</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
      </layout>
     </widget>
    </item>

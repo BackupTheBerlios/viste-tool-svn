@@ -257,6 +257,7 @@ void ScoringMeasures::ComputeScore()
 
     // check if glyph dataset is none
     bool useGlyphData = sortedFibers->selectedGlyphData != -1;
+    bool useInternalEnergy = sortedFibers->ps->lambda != 0;
 
     // update in parameter settings if no glyph data is used
     sortedFibers->ps->useGlyphData = useGlyphData;
@@ -274,7 +275,7 @@ void ScoringMeasures::ComputeScore()
 
     // Perform fiber preprocessing if not already done
     vtkPolyData* preprocessedPolyData = sortedFibers->preprocessedPolyData;
-    if(preprocessedPolyData == NULL)
+    if(useInternalEnergy && preprocessedPolyData == NULL)
     {
         // Smooth the lines
         vtkSmoothPolyDataFilter* smoothPoly = vtkSmoothPolyDataFilter::New();
@@ -296,10 +297,12 @@ void ScoringMeasures::ComputeScore()
         sortedFibers->preprocessedPolyData = preprocessedPolyData = splineFilter->GetOutput();
     }
 
-
     // Create filter
     vtkFiberScoringMeasuresFilter* scoringFilter = vtkFiberScoringMeasuresFilter::New();
-    scoringFilter->SetInput(preprocessedPolyData);
+    if(useInternalEnergy)
+        scoringFilter->SetInput(preprocessedPolyData);
+    else
+        scoringFilter->SetInput(polydata);
     scoringFilter->SetInputVolume(image);
     scoringFilter->SetParameters(sortedFibers->ps);
 
@@ -365,7 +368,7 @@ void ScoringMeasures::ComputeScore()
 
 void ScoringMeasures::EnableGUI()
 {
-    if(GetSortedFibers()->ps->useGlyphData && GetSortedFibers()->selectedGlyphData != -1)
+    if(GetSortedFibers()->selectedGlyphData != -1)
     {
         this->form->lambdaSlider->setEnabled(true);
         this->form->lambdaSpinBox->setEnabled(true);
@@ -379,10 +382,6 @@ void ScoringMeasures::EnableGUI()
         this->form->lambdaLabel->setEnabled(false);
         this->form->lambdaTopLabel->setEnabled(false);
     }
-    if(GetSortedFibers()->selectedGlyphData == -1)
-        this->form->usedInScoringCheckBox->setEnabled(false);
-    else
-        this->form->usedInScoringCheckBox->setEnabled(true);
     this->form->dataDependentGroupBox->setEnabled(true);
     this->form->dataIndependentGroupBox->setEnabled(true);
     this->form->updateButton->setEnabled(true);
@@ -462,12 +461,6 @@ void ScoringMeasures::updateButtonClicked()
     ComputeScore();
 }
 
-void ScoringMeasures::usedInScoringCheckBoxChanged(bool checked)
-{
-    GetSortedFibers()->ps->useGlyphData = checked;
-    EnableGUI();
-}
-
 void ScoringMeasures::normalizeScalarsCheckBoxChanged(bool checked)
 {
     GetSortedFibers()->ps->normalizeScalars = checked;
@@ -520,7 +513,6 @@ void ScoringMeasures::connectAll()
     connect(this->form->fibersCombo,SIGNAL(currentIndexChanged(int)),this,SLOT(fibersComboChanged(int)));
     connect(this->form->glyphDataCombo,SIGNAL(currentIndexChanged(int)),this,SLOT(glyphDataComboChanged(int)));
     connect(this->form->updateButton,SIGNAL(clicked()),this,SLOT(updateButtonClicked()));
-    connect(this->form->usedInScoringCheckBox,SIGNAL(toggled(bool)),this,SLOT(usedInScoringCheckBoxChanged(bool)));
     connect(this->form->normalizeScalarsCheckBox,SIGNAL(toggled(bool)),this,SLOT(normalizeScalarsCheckBoxChanged(bool)));
 
     connect(this->form->lambdaSlider,SIGNAL(valueChanged(int)),this,SLOT(lambdaSliderChanged(int)));

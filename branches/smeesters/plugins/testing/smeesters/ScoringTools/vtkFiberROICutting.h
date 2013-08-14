@@ -58,6 +58,11 @@ class vtkFiberROICutting : public vtkPolyDataToPolyDataFilter
             this->fiberMatrix = m;
         }
 
+        void SetCutFibersAtROIEnds(bool b)
+        {
+            this->cutAtROIEnds = b;
+        }
+
 	protected:
 
 		/** Main entry point of the filter. */
@@ -75,7 +80,11 @@ class vtkFiberROICutting : public vtkPolyDataToPolyDataFilter
 		/** ROI data */
         data::DataSet * roiData;
 
+        /** Fiber transformation matrix */
         vtkMatrix4x4* fiberMatrix;
+
+        /** Option: cut at ROI ends */
+        bool cutAtROIEnds;
 
         /** Selected scalar value type */
 

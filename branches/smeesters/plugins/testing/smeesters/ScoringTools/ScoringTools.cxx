@@ -426,6 +426,7 @@ void ScoringTools::ComputeFibers()
         vtkFiberROICutting* roiCutting = vtkFiberROICutting::New();
         roiCutting->SetInput(selectionFilter->GetOutput());
         roiCutting->SetROIData(this->roiDataSets.at(this->form->selectROICombo->currentIndex()-1));
+        roiCutting->SetCutFibersAtROIEnds(this->form->checkCutFibersAtROI->isChecked());
 
         // Get the transformation matrix
         vtkObject* tfm;
