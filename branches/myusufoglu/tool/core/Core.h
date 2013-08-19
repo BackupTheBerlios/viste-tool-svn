@@ -158,6 +158,10 @@ class Core : public SimpleCoreInterface
 
 		void setRenderWindow(vtkRenderWindow * rw);
 
+
+		 
+
+
 		/** Set the pointer to the canvas of the main window, on which the 
 			visualization components are drawn. Called by the constructor of the
 			main window class. 

@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
   
 	// Create the main window
 	bmia::gui::MainWindow * mw = new bmia::gui::MainWindow(core);
-
+	 
 	// Get the current application path
 	QDir appDir = QDir(qApp->applicationDirPath());
 

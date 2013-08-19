@@ -703,7 +703,7 @@ void MainWindow::initializeVtkRenderWindow()
 this->vtkWidget->GetRenderWindow()->SetMultiSamples(0);
 this->renderer->SetUseDepthPeeling(1);
 this->renderer->SetMaximumNumberOfPeels(50);
-this->renderer->SetOcclusionRatio(0.1);
+this->renderer->SetOcclusionRatio(0.1); 
 
 }
 

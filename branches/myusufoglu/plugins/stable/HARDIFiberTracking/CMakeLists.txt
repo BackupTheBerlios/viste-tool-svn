@@ -14,6 +14,8 @@ set(SRCS
 	HARDIdeterministicTracker.h
 	vtkHARDIFiberTrackingFilter.h
 	vtkHARDIFiberTrackingFilter.cxx
+	MaximumFinder.cxx
+	MaximumFinder.h
 	HARDI/sphereTesselator.cxx
 	HARDI/sphereTesselator.h
 	HARDI/SphereTriangulator.cxx

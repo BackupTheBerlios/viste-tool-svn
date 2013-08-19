@@ -326,15 +326,15 @@ cout << "origOcclusionRatio" << origOcclusionRatio << endl;
 		if (this->selectedData == -1) return;
 		//vtkRenderer *renderer= this->fullCore()->canvas()->GetRenderer3D();
 		//vtkRenderWindow *renderWindow = this->fullCore()->canvas()->GetRenderer3D()->GetRenderWindow();
-		vtkRenderer *renderer= this->fullCore()->canvas()->GetRenderer3D();
-		vtkRenderWindow *renderWindow = this->fullCore()->canvas()->GetRenderWindow();
+		vtkRenderer *renderer=  this->fullCore()->canvas()->GetRenderer3D();  
+		vtkRenderWindow *renderWindow =  this->fullCore()->canvas()->GetRenderWindow();
 	
-		renderer->SetUseDepthPeeling(value);
+			renderer->SetUseDepthPeeling(value);
 		if(value)
 		{
 			renderWindow->SetAlphaBitPlanes(1); // default 0 can be put to main window!!
 			renderWindow->SetMultiSamples(0); //default 8 Set the number of multisamples to use for hardware antialiasing.
-
+		
 			renderer->SetMaximumNumberOfPeels(50); // default 4
 			////renderer->GetRenderWindow()->For
 			renderer->SetOcclusionRatio(0.1); 
@@ -344,13 +344,14 @@ cout << "origOcclusionRatio" << origOcclusionRatio << endl;
 		{
 			renderWindow->SetAlphaBitPlanes(0); // default 0 can be put to main window!!
 			renderWindow->SetMultiSamples(8); //default 8 Set the number of multisamples to use for hardware antialiasing.
-
+			 
 			renderer->SetMaximumNumberOfPeels(4); // default 4
 			////renderer->GetRenderWindow()->For
 			renderer->SetOcclusionRatio(0.0); // default value is 0.0
 		}
 	 
-
+		
+		renderer->Render();
 		bool origOffScreenRendering = renderWindow->GetOffScreenRendering() == 1;
   bool origAlphaBitPlanes = renderWindow->GetAlphaBitPlanes() == 1;
   int origMultiSamples = renderWindow->GetMultiSamples();
