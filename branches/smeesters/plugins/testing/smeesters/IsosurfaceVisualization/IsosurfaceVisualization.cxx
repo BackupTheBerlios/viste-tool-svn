@@ -35,12 +35,15 @@ IsosurfaceVisualization::~IsosurfaceVisualization()
 
 void IsosurfaceVisualization::init()
 {
+	// Initialize widget and form
     this->widget = new QWidget();
     this->form = new Ui::IsosurfaceVisualizationForm();
     this->form->setupUi(this->widget);
 
     // Link events in the GUI to function calls
     this->connectAll();
+
+	// Prepare an actor assembly for the scene
     this->assembly = vtkPropAssembly::New();
 
     this->current_modelInfo = NULL;
@@ -54,7 +57,6 @@ void IsosurfaceVisualization::init()
 
     // Get the canvas
 	vtkMedicalCanvas * canvas = this->fullCore()->canvas();
-
 	QString sliceActorNames[3];
     sliceActorNames[0] = "X Plane";
     sliceActorNames[1] = "Y Plane";
@@ -113,10 +115,12 @@ void IsosurfaceVisualization::init()
 	}
 
 	this->measuredLine = NULL;
-
     this->scalarBar = NULL; //temp
 
-
+	// Prepare a dataset to save settings
+	vtkObject* dummyObj = vtkObject::New();
+	this->settings = new data::DataSet("IsosurfaceVisualizationSettings", "settings",dummyObj);
+	this->core()->data()->addDataSet(this->settings);
 }
 
 //------------[ Setup pointer interactor for clipping planes ]----------------\\
@@ -592,8 +596,6 @@ void IsosurfaceVisualization::createLookupTable(data::DataSet * d, int index)
 
 void IsosurfaceVisualization::updateRenderingModels()
 {
-
-
     // recalculate model
     if(bModelDirty)
     {
@@ -1095,6 +1097,12 @@ void IsosurfaceVisualization::setClippingPlanesPosition(double* pos)
                         break;
                 }
             }
+
+			// Update settings dataset
+			this->settings->getAttributes()->addAttribute("SlicePosX", local_pos[0]);
+			this->settings->getAttributes()->addAttribute("SlicePosY", local_pos[1]);
+			this->settings->getAttributes()->addAttribute("SlicePosZ", local_pos[2]);
+			this->core()->data()->dataSetChanged(this->settings);
         }
 
         this->core()->data()->dataSetChanged(this->current_modelInfo->ds);

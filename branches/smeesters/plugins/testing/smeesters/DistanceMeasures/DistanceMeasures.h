@@ -146,6 +146,9 @@ private:
     //  Plugin base
     //
 
+	/** Settings dataset */
+	data::DataSet * settings;
+
     /** Fiber information structs */
     QList<SortedFibers*> sortedFibersList;
 

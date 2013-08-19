@@ -46,6 +46,7 @@
 #include "vtkVersion.h"
 #include "vtkDepthSortPolyData.h"
 #include "vtkLineSource.h"
+#include <vtkObject.h>
 
 // picker
 #include "vtkInteractorStyleTrackballPositionPicker.h"
@@ -438,6 +439,8 @@ private:
     void fiberPointSelect();
 
     vtkSmartPointer<vtkScalarBarActor> scalarBar; //temp
+
+	data::DataSet* settings;
 };
 
 }

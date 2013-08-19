@@ -73,6 +73,13 @@ void DistanceMeasures::dataSetAdded(data::DataSet * d)
         // Add to UI combobox for distance measurements to fibers
         this->form->comboBoxFiberData->addItem(d->getName());
 	}
+
+	// Load settings (should be only one)
+	else if(kind == "settings")
+	{
+		printf("SETTIGNS ADDED!");
+		this->settings = d;
+	}
 }
 
 //------------------------[ Dataset changed ]-----------------------\\
@@ -85,8 +92,22 @@ void DistanceMeasures::dataSetChanged(data::DataSet * d)
 	// Get the kind of the data set
     QString kind = d->getKind();
 
-    // to-do
+	// Update fibers
+	if (kind == "fibers")
+	{
+		// to-do
+	}
 
+	// Update settings
+	else if(kind == "settings")
+	{
+		int pos[3];
+		d->getAttributes()->getAttribute("SlicePosX",pos[0]);
+		d->getAttributes()->getAttribute("SlicePosY",pos[1]);
+		d->getAttributes()->getAttribute("SlicePosZ",pos[2]);
+
+		printf("new settings: x:%f y:%f z:%f \n",pos[0],pos[1],pos[2]);
+	}
 }
 
 //------------------------[ Dataset removed ]-----------------------\\
