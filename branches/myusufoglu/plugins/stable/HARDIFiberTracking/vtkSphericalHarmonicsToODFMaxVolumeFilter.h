@@ -68,6 +68,7 @@
 /** Includes - Custom Files */
 
 #include "HARDI/HARDIMeasures.h"
+#include "MaximumFinder.h"
 
 namespace bmia {
 
@@ -169,6 +170,7 @@ class vtkSphericalHarmonicsToODFMaxVolumeFilter : public vtkSimpleImageToImageFi
 
 		vtkDoubleArray * anglesArray;
 
+		double treshold;
 		/** Array containing, for each voxel in the volume, a vector of radii for
 			the sample points of the discrete sphere function. The angles of these
 			sample points (which are the same for all voxels) are stored in the

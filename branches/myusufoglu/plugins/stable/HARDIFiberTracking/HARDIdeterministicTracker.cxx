@@ -775,7 +775,7 @@ namespace bmia {
 			outputlistwithunitvectors.clear();
 			//remove repeated maxima
 			MaxFinder.cleanOutput(maxima, outputlistwithunitvectors,tempSH, ODFlist, this->unitVectors, anglesArray);
-			// maxima has ids use them to get angles
+			// maxima has ids use them to  get angles
 
 			double value =-1 , angularSimilarity = -1;
 			int indexHighestSimilarity=-1;

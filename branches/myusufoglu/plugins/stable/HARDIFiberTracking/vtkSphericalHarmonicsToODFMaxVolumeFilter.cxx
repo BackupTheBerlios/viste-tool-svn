@@ -78,6 +78,7 @@ namespace bmia {
 		this->anglesArray		= NULL;
 		this->radiiArray		= NULL;
 		this->unitVectors		= NULL;
+	//this->regionList = NULL;
 
 		// Set default parameter values
 		this->currentMeasure	= DSPHM_SurfaceArea;
@@ -110,8 +111,8 @@ namespace bmia {
 
 	QString vtkSphericalHarmonicsToODFMaxVolumeFilter::getShortMeasureName(int index)
 	{
-		if (index < 0 || index >= HARDIMeasures::SHARM_NumberOfMeasures)
-			return "ERROR";
+		//if (index < 0 || index >= HARDIMeasures::SHARM_NumberOfMeasures)
+		//	return "ERROR";
 
 		// Return the short name of the selected measure
 		switch(index)
@@ -119,17 +120,17 @@ namespace bmia {
 			//case DSPHM_SurfaceArea:		return "Area";
 			//case DSPHM_Volume:			return "Volume";
 			//case DSPHM_Average:			return "Average";
-		case HARDIMeasures::GA  : return "GA"; 		// General Anisotropy
-		case	HARDIMeasures::V : return "Variance";				// Variance
-		case	HARDIMeasures::GFA : return "GFA";			// General Fractional Anisotropy
-		case	HARDIMeasures::FMI : return "FMI";			// Fractional Multi-Fiber Index
-		case	HARDIMeasures::R0 : return "R0";			// Rank 0
-		case	HARDIMeasures::R2 : return "R2";
-		case	HARDIMeasures::Ri : return "Ri";
-		case	HARDIMeasures::Iso : return "Iso";			// Isotropic component
-		case	HARDIMeasures::SE : return "SE";				// ShannonEntropy
-		case	HARDIMeasures::CRE : return "CRE";				// Cumulative Residual Entropy
-		case	HARDIMeasures::NM : return "NM";				// Number of Maxima
+		//case HARDIMeasures::GA  : return "GA"; 		// General Anisotropy
+		//case	HARDIMeasures::V : return "Variance";				// Variance
+		//case	HARDIMeasures::GFA : return "GFA";			// General Fractional Anisotropy
+		//case	HARDIMeasures::FMI : return "FMI";			// Fractional Multi-Fiber Index
+		//case	HARDIMeasures::R0 : return "R0";			// Rank 0
+		//case	HARDIMeasures::R2 : return "R2";
+		//case	HARDIMeasures::Ri : return "Ri";
+		//case	HARDIMeasures::Iso : return "Iso";			// Isotropic component
+		//case	HARDIMeasures::SE : return "SE";				// ShannonEntropy
+		//case	HARDIMeasures::CRE : return "CRE";				// Cumulative Residual Entropy
+		//case	HARDIMeasures::NM : return "NM";				// Number of Maxima
 
 
 		default:					return "ERROR";
@@ -144,23 +145,23 @@ namespace bmia {
 
 	QString vtkSphericalHarmonicsToODFMaxVolumeFilter::getLongMeasureName(int index)
 	{
-		if (index < 0 || index >= HARDIMeasures::SHARM_NumberOfMeasures)
-			return "ERROR";
+		//if (index < 0 || index >= HARDIMeasures::SHARM_NumberOfMeasures)
+		//	return "ERROR";
 
-		// Return the long name of the selected measure
+		//// Return the long name of the selected measure
 		switch(index)
 		{
-		case HARDIMeasures::GA: return "General Anisotropy"; 		// General Anisotropy
-		case	HARDIMeasures::V: return "Variance";				// Variance
-		case	HARDIMeasures::GFA: return "General Fractional Anisotropy";			// General Fractional Anisotropy
-		case	HARDIMeasures::FMI:	return "Fractional Multi-Fiber Index";
-		case	HARDIMeasures::R0:	return "Rank 0";
-		case	HARDIMeasures::R2:	return "Rank 2";
-		case	HARDIMeasures::Ri:	return "Rank i";
-		case	HARDIMeasures::Iso:	return "Isotropic component";
-		case	HARDIMeasures::SE:	return "ShannonEntropy";
-		case	HARDIMeasures::CRE:	return "Cumulative Residual Entropy";
-		case	HARDIMeasures::NM:	return "Number of Maxima";
+		//case HARDIMeasures::GA: return "General Anisotropy"; 		// General Anisotropy
+		//case	HARDIMeasures::V: return "Variance";				// Variance
+		//case	HARDIMeasures::GFA: return "General Fractional Anisotropy";			// General Fractional Anisotropy
+		//case	HARDIMeasures::FMI:	return "Fractional Multi-Fiber Index";
+		//case	HARDIMeasures::R0:	return "Rank 0";
+		//case	HARDIMeasures::R2:	return "Rank 2";
+		//case	HARDIMeasures::Ri:	return "Rank i";
+		//case	HARDIMeasures::Iso:	return "Isotropic component";
+		//case	HARDIMeasures::SE:	return "ShannonEntropy";
+		//case	HARDIMeasures::CRE:	return "Cumulative Residual Entropy";
+		//case	HARDIMeasures::NM:	return "Number of Maxima";
 
 		default:					return "ERROR";
 		}
@@ -171,6 +172,20 @@ namespace bmia {
 
 	void vtkSphericalHarmonicsToODFMaxVolumeFilter::SimpleExecute(vtkImageData * input, vtkImageData * output)
 	{
+		//vector to store the Id's if the found maxima on the ODF
+			std::vector<int> maxima;
+			//vector to store the unit vectors of the found maxima
+			std::vector<double *> outputlistwithunitvectors;
+			//neede for search space reduction
+			bool searchRegion;
+			std::vector<int> regionList;
+			std::vector<double*> anglesArray1;
+
+			std::vector<double> ODFlist;
+
+			//create a maximumfinder
+			MaximumFinder MaxFinder(trianglesArray); // what does this arr do
+		 
 		// Start reporting the progress of this filter
 		this->UpdateProgress(0.0);
 
@@ -276,14 +291,25 @@ namespace bmia {
 				return;
 			}
 		// Current coefficients
-		double *tensor = new double[size] ;
-
+		double *tempSH = new double[size] ; // size of l
+		if(regionList.size()==0)
+			for(int i=0;i< anglesArray1.size(); i++)
+					regionList.push_back(i);
 		// Loop through all points of the image
 		for(ptId = 0; ptId < numberOfPoints; ++ptId)
 		{
 			// Get tensor value at current point
-			SHCoefficientsArray->GetTuple(ptId, tensor);
-			HARDIMeasures * HMeasures = new HARDIMeasures; // THIS will be used 
+			SHCoefficientsArray->GetTuple(ptId, tempSH);
+
+				//get maxima // correct angles array
+			MaxFinder.getOutput(tempSH, l,this->treshold,  anglesArray1,  maxima, regionList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
+
+			//Below 3 necessary?
+			outputlistwithunitvectors.clear();
+			//remove repeated maxima
+			MaxFinder.cleanOutput(maxima, outputlistwithunitvectors,tempSH, ODFlist, this->unitVectors, anglesArray1);
+		
+			//HARDIMeasures * HMeasures = new HARDIMeasures; // THIS will be used 
 
 			// Check if tensor is NULL. This check is not necessary but can
 			// save time on sparse datasets
@@ -300,17 +326,17 @@ namespace bmia {
 			// DO FOR ALL MEASURES ACCORDING TO GIVEN MEASURE
 			switch (this->currentMeasure)
 			{
-			case HARDIMeasures::GA:		outScalar = HMeasures->GeneralAnisotropy(tensor,l);	break; //  for all points do GA!!!
-			case HARDIMeasures::V:		outScalar = HMeasures->Variance(tensor,l);			break;
-			case HARDIMeasures::GFA:    outScalar = HMeasures->GeneralFractionalAnisotropy(tensor,l);	break;
-			case	HARDIMeasures::FMI:	outScalar = HMeasures->FractionalMultifiberIndex(tensor,l); break; // "Fractional Multi-Fiber Index";
-			case	HARDIMeasures::R0:	outScalar = HMeasures->Rank0(tensor,l); break; // 
-			case	HARDIMeasures::R2:	outScalar = HMeasures->Rank2(tensor,l); break; // 
-			case	HARDIMeasures::Ri:	outScalar = HMeasures->RankI(tensor,l); break; // 
-			case	HARDIMeasures::Iso:	outScalar = HMeasures->IsotropicComponent(tensor,l); break; // 
-			case	HARDIMeasures::SE:	outScalar = HMeasures->ShannonEntropy(tensor,l); break; // 
-			case	HARDIMeasures::CRE:	outScalar = HMeasures->CummulativeResidualEntropy(tensor,l); break; // 
-			case	HARDIMeasures::NM:	outScalar = HMeasures->NumberMaxima(tensor,l); break; // 
+			//case HARDIMeasures::GA:		outScalar = HMeasures->GeneralAnisotropy(tempSH,l);	break; //  for all points do GA!!!
+			//case HARDIMeasures::V:		outScalar = HMeasures->Variance(tempSH,l);			break;
+			//case HARDIMeasures::GFA:    outScalar = HMeasures->GeneralFractionalAnisotropy(tempSH,l);	break;
+			//case	HARDIMeasures::FMI:	outScalar = HMeasures->FractionalMultifiberIndex(tempSH,l); break; // "Fractional Multi-Fiber Index";
+			//case	HARDIMeasures::R0:	outScalar = HMeasures->Rank0(tempSH,l); break; // 
+			//case	HARDIMeasures::R2:	outScalar = HMeasures->Rank2(tempSH,l); break; // 
+			//case	HARDIMeasures::Ri:	outScalar = HMeasures->RankI(tempSH,l); break; // 
+			//case	HARDIMeasures::Iso:	outScalar = HMeasures->IsotropicComponent(tempSH,l); break; // 
+			//case	HARDIMeasures::SE:	outScalar = HMeasures->ShannonEntropy(tempSH,l); break; // 
+			//case	HARDIMeasures::CRE:	outScalar = HMeasures->CummulativeResidualEntropy(tempSH,l); break; // 
+			//case	HARDIMeasures::NM:	outScalar = HMeasures->NumberMaxima(tempSH,l); break; // 
 			default:
 				vtkErrorMacro(<<"Unknown scalar measure!");
 				return;

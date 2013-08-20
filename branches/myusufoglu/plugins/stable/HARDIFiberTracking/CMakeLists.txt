@@ -34,6 +34,8 @@ set(SRCS
 	vtkGeometryGlyphBuilder.h
 	vtkGeometryGlyphFromSHBuilder.cxx
 	vtkGeometryGlyphFromSHBuilder.h
+		 vtkSphericalHarmonicsToODFMaxVolumeFilter.cxx
+	vtkSphericalHarmonicsToODFMaxVolumeFilter.h
 
 )
 

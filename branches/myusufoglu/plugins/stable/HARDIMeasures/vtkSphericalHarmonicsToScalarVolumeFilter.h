@@ -180,6 +180,7 @@ class vtkSphericalHarmonicsToScalarVolumeFilter : public vtkSimpleImageToImageFi
 		/** 2D Array containing unit vectors, computed from the angles array. The
 			array contains one row per sample point, and each row contains the 3D
 			vector defining the corresponding point on the unit sphere. */
+		double threshold;
 
 		double ** unitVectors;
 
