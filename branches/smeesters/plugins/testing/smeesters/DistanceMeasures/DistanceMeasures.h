@@ -25,6 +25,18 @@
 #include <vtkSmartPointer.h>
 #include <vtkPointData.h>
 #include <vtkPolyDataMapper.h>
+#include <vtkSphereSource.h>
+#include <vtkProperty.h>
+#include <vtkLineSource.h>
+#include <vtkCellArray.h>
+#include <vtkContextView.h>
+#include <vtkFloatArray.h>
+#include <vtkTable.h>
+#include <vtkChartXY.h>
+#include <vtkContextScene.h>
+#include <vtkPlot.h>
+#include <vtkAxis.h>
+#include <vtkContextMouseEvent.h>
 
 namespace Ui
 {
@@ -59,6 +71,16 @@ typedef struct
     int userSelectedLine;
 
 } SortedFibers;
+
+/** MeasuredPoint struct holding coordinates and 3D actors of a measured point */
+typedef struct
+{
+    bool set;
+    double x, y, z;
+    vtkActor* sphere;
+    vtkActor2D* label;
+
+} MeasuredPoint;
 
 class DistanceMeasures :  public plugin::AdvancedPlugin,
                     public plugin::Visualization,
@@ -119,6 +141,15 @@ protected slots:
 
     void buttonSetPointAClicked();
     void buttonSetPointBClicked();
+    void lineEditNamePointAChanged(QString value);
+	void lineEditNamePointBChanged(QString value);
+	void comboBoxFiberDataChanged();
+	void fiberRefinementUpdate(int value);
+	void fiberSelectUpdate(int value);
+    void fiberRefinementUpdate(double value);
+    void fiberPointSelect();
+    void buttonSetLineColorClicked();
+    void buttonPlotConnectivityClicked();
 
 private:
 
@@ -146,6 +177,9 @@ private:
     //  Plugin base
     //
 
+    /** Setup the pointers */
+    void SetupPointers();
+
 	/** Settings dataset */
 	data::DataSet * settings;
 
@@ -158,12 +192,25 @@ private:
     /** Generate text labels **/
     vtkActor2D* GenerateLabels(vtkSmartPointer<vtkPoints> points, vtkSmartPointer<vtkStringArray> labels);
 
-    /** Update posititon coordinates **/
-    void UpdateCoordinates();
-    int slicePosX, slicePosY, slicePosZ;
-
+    /** Set measured point **/
     void setMeasuredPoint(int id);
+
+    /** Measured point vars **/
+    QList<MeasuredPoint*> measuredPointList;
+    vtkActor* measuredLine;
+	vtkActor2D* measuredLabels;
+	vtkPoints* measuredLabelPoints;
+	vtkStringArray* measuredLabelStrings;
+
+    /** Compute the distance between points **/
     void calculateDistance();
+
+    /** Sort fibers in anterior direction **/
+    void processFiberAnteriorSorting(SortedFibers* sortedFibers);
+
+    /** ID of fiber dataset that is selected **/
+    int selectedFiberData;
+
 };
 
 }

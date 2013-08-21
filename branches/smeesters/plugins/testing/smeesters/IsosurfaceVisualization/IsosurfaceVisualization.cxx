@@ -1097,17 +1097,16 @@ void IsosurfaceVisualization::setClippingPlanesPosition(double* pos)
                         break;
                 }
             }
-
-			// Update settings dataset
-			this->settings->getAttributes()->addAttribute("SlicePosX", local_pos[0]);
-			this->settings->getAttributes()->addAttribute("SlicePosY", local_pos[1]);
-			this->settings->getAttributes()->addAttribute("SlicePosZ", local_pos[2]);
-			this->core()->data()->dataSetChanged(this->settings);
         }
 
         this->core()->data()->dataSetChanged(this->current_modelInfo->ds);
 
 
+        // Update settings dataset
+        this->settings->getAttributes()->addAttribute("SlicePosX", clickedPoint[0]);
+        this->settings->getAttributes()->addAttribute("SlicePosY", clickedPoint[1]);
+        this->settings->getAttributes()->addAttribute("SlicePosZ", clickedPoint[2]);
+        this->core()->data()->dataSetChanged(this->settings);
 
 
         //this->core()->render();
