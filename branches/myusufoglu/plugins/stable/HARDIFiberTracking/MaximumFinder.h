@@ -48,10 +48,21 @@ public:
   @param shOrder		order of the SH
   @param treshold		treshold for the maximum detection
   @param anglesArray	array with the tesselation points in spherical coordinates
+  @param theMax			output id
+  @param input			input array with point id's in angle range
+  */
+  void getUniqueOutput(double* pDarraySH, int shOrder, double treshold, std::vector<double*> anglesArray,   std::vector<int> &input, int &indexOfMax);
+
+   /** calculate the maximum 
+  @param pDarraySH		array with SH coefficients
+  @param shOrder		order of the SH
+  @param treshold		treshold for the maximum detection
+  @param anglesArray	array with the tesselation points in spherical coordinates
   @param output			output array with the Id's of local maxima
   @param input			input array with point id's in angle range
   */
   void getOutput(double* pDarraySH, int shOrder, double treshold, std::vector<double*> anglesArray,  std::vector<int> &output, std::vector<int> &input);
+
 
   /** overloaded function needed for GFA calculation. DS means discrete sphere data version.
   @param pDarraySH		array with SH coefficients

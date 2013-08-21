@@ -90,7 +90,7 @@ namespace bmia {
 
 	vtkSphericalHarmonicsToODFMaxVolumeFilter::~vtkSphericalHarmonicsToODFMaxVolumeFilter()
 	{
-		if (!(this->anglesArray))
+		if (!(this->anglesArray)) 
 			return;
 
 		// Delete the unit vector array
@@ -180,6 +180,10 @@ namespace bmia {
 			bool searchRegion;
 			std::vector<int> regionList;
 			std::vector<double*> anglesArray1;
+			for(int i=0; i< this->anglesArray->GetNumberOfTuples(); i++)
+			{
+				anglesArray1.push_back(this->anglesArray->GetTuple(i)); // carefull about the size of each pointer 
+			}
 
 			std::vector<double> ODFlist;
 
@@ -269,7 +273,7 @@ namespace bmia {
 
 
 		// Define output scalar array
-		vtkDoubleArray * outArray = vtkDoubleArray::New();
+		vtkIntArray * outArray = vtkIntArray::New(); // can keep indexes of maxes !!! What about there are angles in between then it can keep angles???
 		outArray->SetNumberOfComponents(1);
 		outArray->SetNumberOfTuples(numberOfPoints);
 
@@ -302,13 +306,30 @@ namespace bmia {
 			SHCoefficientsArray->GetTuple(ptId, tempSH);
 
 				//get maxima // correct angles array
+
+
+			if(this->nMaximaForEachPoint == 1)
+			{
+				int indexOfMax;
+				MaxFinder.getUniqueOutput(tempSH, l,this->treshold,  anglesArray1,  regionList,indexOfMax);
+						double unitVector[3];
+			 
+			outArray->SetTuple1(ptId, indexOfMax);
+			}
+			else if (this->nMaximaForEachPoint > 1)
+			{
 			MaxFinder.getOutput(tempSH, l,this->treshold,  anglesArray1,  maxima, regionList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
 
 			//Below 3 necessary?
 			outputlistwithunitvectors.clear();
 			//remove repeated maxima
 			MaxFinder.cleanOutput(maxima, outputlistwithunitvectors,tempSH, ODFlist, this->unitVectors, anglesArray1);
-		
+
+			}
+			else 
+				cout << "this->nMaximaForEachPoint is not in the range" << endl; 
+
+			
 			//HARDIMeasures * HMeasures = new HARDIMeasures; // THIS will be used 
 
 			// Check if tensor is NULL. This check is not necessary but can
@@ -322,10 +343,11 @@ namespace bmia {
 			// Compute the output scalar value
 			//else
 			//{
-			double outScalar;
+			double unitVector[3];
+			outArray->SetTuple3(ptId, unitVector[0], unitVector[1], unitVector[2]);
 			// DO FOR ALL MEASURES ACCORDING TO GIVEN MEASURE
-			switch (this->currentMeasure)
-			{
+			//switch (this->currentMeasure)
+		//	{
 			//case HARDIMeasures::GA:		outScalar = HMeasures->GeneralAnisotropy(tempSH,l);	break; //  for all points do GA!!!
 			//case HARDIMeasures::V:		outScalar = HMeasures->Variance(tempSH,l);			break;
 			//case HARDIMeasures::GFA:    outScalar = HMeasures->GeneralFractionalAnisotropy(tempSH,l);	break;
@@ -337,12 +359,12 @@ namespace bmia {
 			//case	HARDIMeasures::SE:	outScalar = HMeasures->ShannonEntropy(tempSH,l); break; // 
 			//case	HARDIMeasures::CRE:	outScalar = HMeasures->CummulativeResidualEntropy(tempSH,l); break; // 
 			//case	HARDIMeasures::NM:	outScalar = HMeasures->NumberMaxima(tempSH,l); break; // 
-			default:
-				vtkErrorMacro(<<"Unknown scalar measure!");
-				return;
-			}
+			//default:
+			//	vtkErrorMacro(<<"Unknown scalar measure!");
+			//	return;
+			//}
 			// Add scalar value to output array
-			outArray->SetTuple1(ptId, outScalar);
+			
 			//}
 			//
 			// Update progress value
@@ -429,6 +451,7 @@ namespace bmia {
 		return true;
 	}
 
+	 
 
 	//--------------------------[ computeSurfaceArea ]-------------------------\\
 

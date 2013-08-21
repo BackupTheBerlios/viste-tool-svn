@@ -509,7 +509,7 @@ namespace bmia {
 		}
 	}
 
-		////--------------------------[ Find maxima for Spherical Harmonics Data]--------------------------\\
+		////--------------------------[ Find maxima for Spherical Harmonics Data. More then 1 maxima are found.]--------------------------\\
 
 	void MaximumFinder::getOutput(double* pDarraySH, int shOrder,double treshold, std::vector<double*> anglesArray,  std::vector<int>& output, std::vector<int> &input)
 	{
@@ -576,6 +576,28 @@ namespace bmia {
 	}
 
 
+	////--------------------------[ Find maxima for Spherical Harmonics Data. More then 1 maxima are found.]--------------------------\\
+
+	void MaximumFinder::getUniqueOutput(double* pDarraySH, int shOrder,double treshold, std::vector<double*> anglesArray,   std::vector<int> &input,int &indexOfMax)
+	{
+		//input is indexes
+		//clear the output
+	 
+		//get radii
+		this->radii = bmia::HARDITransformationManager::CalculateDeformator(pDarraySH, &anglesArray, shOrder);  //harmonics and angles as input
+		  std::vector<double>::iterator result;
+ 
+	 
+
+		//find maximum and minimum radii
+	 
+		 result = std::max_element((this->radii).begin(), (this->radii).end());
+		 indexOfMax = std::distance((this->radii).begin(), result);
+		 	
+		
+	}
+
+
 
 	//-----------------------------[ Constructor ]-----------------------------\\
 
@@ -626,7 +648,7 @@ namespace bmia {
 			//in case of sphere (SH-order = 0)
 			else
 			{	//add 1.0 (sphere)    
-				this->radii_norm.push_back(1.0);
+				this->radii_norm.push_back(1.0); 
 			}
 		}
 	}

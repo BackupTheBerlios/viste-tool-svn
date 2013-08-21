@@ -98,6 +98,16 @@ class vtkSphericalHarmonicsToODFMaxVolumeFilter : public vtkSimpleImageToImageFi
 			trianglesArray = rTriangles;
 		}
 
+			void  setTreshold(double  value)
+			{
+				this->treshold = value;
+			}
+
+			void setNMaximaForEachPoint(int value)
+			{
+				 this->nMaximaForEachPoint = value;
+			}
+
 		/** Enumeration of all scalar measures supported by this filter. New measures
 			should be added IN FRONT OF "DSPHM_NumberOfMeasures". */
 
@@ -171,6 +181,8 @@ class vtkSphericalHarmonicsToODFMaxVolumeFilter : public vtkSimpleImageToImageFi
 		vtkDoubleArray * anglesArray;
 
 		double treshold;
+		int nMaximaForEachPoint;
+
 		/** Array containing, for each voxel in the volume, a vector of radii for
 			the sample points of the discrete sphere function. The angles of these
 			sample points (which are the same for all voxels) are stored in the
