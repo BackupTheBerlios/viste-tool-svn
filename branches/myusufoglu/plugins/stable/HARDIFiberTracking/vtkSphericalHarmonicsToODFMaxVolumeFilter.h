@@ -108,6 +108,8 @@ class vtkSphericalHarmonicsToODFMaxVolumeFilter : public vtkSimpleImageToImageFi
 				 this->nMaximaForEachPoint = value;
 			}
 
+			
+
 		/** Enumeration of all scalar measures supported by this filter. New measures
 			should be added IN FRONT OF "DSPHM_NumberOfMeasures". */
 
@@ -138,6 +140,8 @@ class vtkSphericalHarmonicsToODFMaxVolumeFilter : public vtkSimpleImageToImageFi
 			currentMeasure = (Measure) m;
 		}
 			/** Measure used to classify the seed points. */
+		vtkGetMacro(TesselationOrder,				unsigned int);
+		vtkSetMacro(TesselationOrder,				unsigned int);
 
 		HARDIMeasures::HARDIMeasureType measure;
 
@@ -182,6 +186,7 @@ class vtkSphericalHarmonicsToODFMaxVolumeFilter : public vtkSimpleImageToImageFi
 
 		double treshold;
 		int nMaximaForEachPoint;
+		unsigned int TesselationOrder;
 
 		/** Array containing, for each voxel in the volume, a vector of radii for
 			the sample points of the discrete sphere function. The angles of these
@@ -209,6 +214,7 @@ class vtkSphericalHarmonicsToODFMaxVolumeFilter : public vtkSimpleImageToImageFi
 
 		void computeSHARMMeasureScalarVolume();
 
+		
 		/** Compute the surface area of the 3D glyphs, which can be used as a scalar
 			measure ("DSPHM_SurfaceArea"). Requires a triangle array. 
 			@param outArray		Output scalar array. */

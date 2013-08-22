@@ -15,6 +15,7 @@
 
 #include "HARDIFiberTrackingPlugin.h"
 #include "vtkHARDIFiberTrackingFilter.h"
+#include "vtkSphericalHarmonicsToODFMaxVolumeFilter.h"
 
 
 namespace bmia {
@@ -125,6 +126,14 @@ void HARDIFiberTrackingPlugin::doDeterministicFiberTracking(vtkImageData * HARDI
 			this->core()->out()->logMessage(errorMessage);
 			continue;
 		}
+
+		// This part can be taken to another plugin. Creates a volme consisting indexes of maximums.
+		vtkSphericalHarmonicsToODFMaxVolumeFilter *HARDIToMaximaFilter = vtkSphericalHarmonicsToODFMaxVolumeFilter::New();
+		HARDIToMaximaFilter->SetInput(HARDIimageData);
+		HARDIToMaximaFilter->setTreshold((float) this->ui->tresholdSpinner->value());
+			HARDIToMaximaFilter->SetTesselationOrder((unsigned int) this->ui->tesselationSpinner->value());
+		HARDIToMaximaFilter->setNMaximaForEachPoint(1);
+		HARDIToMaximaFilter->Update();
 
 		// Create the fiber tracking filter
 		HARDIFiberTrackingFilter = vtkHARDIFiberTrackingFilter::New();

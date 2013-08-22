@@ -404,6 +404,8 @@ namespace bmia {
 
 
 			vtkPointData * imagePD = this->HARDIimageData->GetPointData(); //point data
+	
+
 			if ((imagePD->GetArray("Spherical Directions")))
 			{
 				//cout << " Spherical directions ie angles already in the discrete sphere data." << endl;
@@ -458,7 +460,7 @@ namespace bmia {
 					continue;
 				}
 
-				// Calculate the fiber in positive and negative direction
+				// Calculate the fiber in positive and negative direction for each point
 				if(this->sphericalHarmonics) {
 					if(true)
 					{

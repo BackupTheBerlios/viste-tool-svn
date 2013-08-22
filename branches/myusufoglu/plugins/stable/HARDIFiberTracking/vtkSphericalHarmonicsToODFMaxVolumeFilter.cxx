@@ -180,10 +180,8 @@ namespace bmia {
 			bool searchRegion;
 			std::vector<int> regionList;
 			std::vector<double*> anglesArray1;
-			for(int i=0; i< this->anglesArray->GetNumberOfTuples(); i++)
-			{
-				anglesArray1.push_back(this->anglesArray->GetTuple(i)); // carefull about the size of each pointer 
-			}
+
+			 
 
 			std::vector<double> ODFlist;
 
@@ -270,8 +268,6 @@ namespace bmia {
 		this->SetProgressText("Computing scalar measure for spherical harmonics...");
 
 
-
-
 		// Define output scalar array
 		vtkIntArray * outArray = vtkIntArray::New(); // can keep indexes of maxes !!! What about there are angles in between then it can keep angles???
 		outArray->SetNumberOfComponents(1);
@@ -295,12 +291,33 @@ namespace bmia {
 				return;
 			}
 		// Current coefficients
-		double *tempSH = new double[size] ; // size of l
+		double *tempSH = new double[l] ; // size of l
+
+		bmia::vtkGeometryGlyphFromSHBuilder* obj = bmia::vtkGeometryGlyphFromSHBuilder::New();
+		//compute geometry
+		
+			//cout << "Spherical Harmonics Data" << endl;
+		obj->computeGeometry(this->GetTesselationOrder());
+			// get unit vectors, angles and triangles
+			unitVectors = obj->getUnitVectors();
+			anglesArray1 = obj->getAnglesArray();
+			trianglesArray = obj->getTrianglesArray();
+	
+
+
+			// Get the array containing the angles of the sample points
+	//this->anglesArray = vtkDoubleArray::SafeDownCast(inPD->GetArray("Spherical Directions"));
+	//		for(int i=0; i< this->anglesArray->GetNumberOfTuples(); i++)
+	//		{
+	//			anglesArray1.push_back(this->anglesArray->GetTuple(i)); // carefull about the size of each pointer 
+	//		}
+
+
 		if(regionList.size()==0)
 			for(int i=0;i< anglesArray1.size(); i++)
 					regionList.push_back(i);
 		// Loop through all points of the image
-		for(ptId = 0; ptId < numberOfPoints; ++ptId)
+		for(ptId = 0; ptId < numberOfPoints; ++ptId)  // the whole image
 		{
 			// Get tensor value at current point
 			SHCoefficientsArray->GetTuple(ptId, tempSH);
@@ -343,8 +360,8 @@ namespace bmia {
 			// Compute the output scalar value
 			//else
 			//{
-			double unitVector[3];
-			outArray->SetTuple3(ptId, unitVector[0], unitVector[1], unitVector[2]);
+			//double unitVector[3];
+			//outArray->SetTuple3(ptId, unitVector[0], unitVector[1], unitVector[2]);
 			// DO FOR ALL MEASURES ACCORDING TO GIVEN MEASURE
 			//switch (this->currentMeasure)
 		//	{
