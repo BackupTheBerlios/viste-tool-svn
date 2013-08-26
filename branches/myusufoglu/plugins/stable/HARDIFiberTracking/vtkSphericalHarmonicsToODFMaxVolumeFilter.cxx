@@ -335,6 +335,7 @@ namespace bmia {
 			}
 			else if (this->nMaximaForEachPoint > 1)
 			{
+				outArray->SetNumberOfComponents(this->nMaximaForEachPoint);
 			MaxFinder.getOutput(tempSH, l,this->treshold,  anglesArray1,  maxima, regionList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
 
 			//Below 3 necessary?
@@ -342,6 +343,15 @@ namespace bmia {
 			//remove repeated maxima
 			MaxFinder.cleanOutput(maxima, outputlistwithunitvectors,tempSH, ODFlist, this->unitVectors, anglesArray1);
 
+			int *indexesOfMaxima = new int[this->nMaximaForEachPoint];
+
+			for(int i=0; i<this->nMaximaForEachPoint;i++)
+				if(i < maxima.size())
+				indexesOfMaxima[i]=maxima.at(i);
+				else 
+                indexesOfMaxima[i] = -1;
+
+			outArray->InsertNextTupleValue(indexesOfMaxima);
 			}
 			else 
 				cout << "this->nMaximaForEachPoint is not in the range" << endl; 

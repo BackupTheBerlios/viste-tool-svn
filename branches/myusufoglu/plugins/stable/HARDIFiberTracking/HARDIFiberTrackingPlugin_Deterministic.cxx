@@ -135,6 +135,15 @@ void HARDIFiberTrackingPlugin::doDeterministicFiberTracking(vtkImageData * HARDI
 		HARDIToMaximaFilter->setNMaximaForEachPoint(1);
 		HARDIToMaximaFilter->Update();
 
+		
+	    vtkXMLImageDataWriter *writerXML = vtkXMLImageDataWriter::New();                
+                    writerXML->SetInput ( (vtkDataObject*)(HARDIToMaximaFilter->GetOutput()) );
+                    
+					writerXML->SetDataModeToBinary();
+                    writerXML->SetFileName( "maxima-bmiadata.vtk" );
+
+                    if(writerXML->Write())  cout << "Writing the maxima volume \n" << endl;  
+					
 		// Create the fiber tracking filter
 		HARDIFiberTrackingFilter = vtkHARDIFiberTrackingFilter::New();
 
