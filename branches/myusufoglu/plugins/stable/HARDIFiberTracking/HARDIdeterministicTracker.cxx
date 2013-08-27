@@ -170,7 +170,7 @@ namespace bmia {
 			std::vector<double *> outputlistwithunitvectors;
 			//neede for search space reduction
 			bool searchRegion;
-			std::vector<int> regionList;
+			std::vector<int> meshPtIndexList;
 			//list with ODF values
 			std::vector<double> ODFlist;
 
@@ -242,7 +242,7 @@ namespace bmia {
 				MaximumFinder MaxFinder = MaximumFinder(trianglesArray);
 
 				//clear search region list
-				regionList.clear();
+				meshPtIndexList.clear();
 				double tempVector[3];
 
 				//for all directions
@@ -264,18 +264,18 @@ namespace bmia {
 					{
 						//if its the first step, search all directions
 						searchRegion = true;
-						regionList.push_back(i);
+						meshPtIndexList.push_back(i);
 					}
 
 					if (searchRegion)
 					{
 						//add search directions to list
-						regionList.push_back(i);
+						meshPtIndexList.push_back(i);
 					}
 				}	
 
 				//get local maxima
-				MaxFinder.getOutput(SHAux, this->parentFilter->shOrder,TRESHOLD, anglesArray,  maxima, regionList);
+				MaxFinder.getOutput(SHAux, this->parentFilter->shOrder,TRESHOLD, anglesArray,  maxima, meshPtIndexList);
 
 				//if no maxima are found
 				if (!(maxima.size() > 0))	
@@ -499,7 +499,7 @@ namespace bmia {
 			std::vector<double *> outputlistwithunitvectors;
 			//neede for search space reduction
 			bool searchRegion;
-			std::vector<int> regionList;
+			std::vector<int> meshPtIndexList;
 			//list with ODF values
 			std::vector<double> ODFlist;
 			std::vector<double> ODFlistMaxTwo;
@@ -517,9 +517,9 @@ namespace bmia {
 			std::vector<double *> anglesBeforeInterpolation; 
 
 			//initial regionlist includes all points not some points of the ODF
-			if(regionList.size()==0)
+			if(meshPtIndexList.size()==0)
 				for(int i=0;i<anglesArray.size();i++)
-					regionList.push_back(i);
+					meshPtIndexList.push_back(i);
 			for (int j = 0; j < 8; ++j)
 			{
 				//get the SH
@@ -530,7 +530,7 @@ namespace bmia {
 
 
 
-				MaxFinder.getOutput(tempSH, this->parentFilter->shOrder,TRESHOLD, anglesArray,  maxima, regionList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
+				MaxFinder.getOutput(tempSH, this->parentFilter->shOrder,TRESHOLD, anglesArray,  maxima, meshPtIndexList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
 				// maxima has ids use them to get angles
 				MaxFinder.cleanOutput(maxima, outputlistwithunitvectors,tempSH, ODFlist, this->unitVectors, anglesArray);
 				avgMaxAng[0]=0;
@@ -608,9 +608,9 @@ namespace bmia {
 			//create a maximum finder
 			//	M
 			//initial regionlist includes all points not some points
-			if(regionList.size()==0)
+			if(meshPtIndexList.size()==0)
 				for(int i=0;i<anglesArray.size();i++)
-					regionList.push_back(i);
+					meshPtIndexList.push_back(i);
 			// Check AI values of initial step, otherwise we cannot check the dot product etc
 			while (1) 
 			{
@@ -651,7 +651,7 @@ namespace bmia {
 
 
 				double *interpolatedVector;
-				interpolatedVector = findFunctionValue(TRESHOLD, anglesArray, weights,  trianglesArray, regionList, maxima);
+				interpolatedVector = findFunctionValue(TRESHOLD, anglesArray, weights,  trianglesArray, meshPtIndexList, maxima);
 
 				testDot = 0.0;
 				//value to compare local maxima (either random value or dot product)
@@ -744,7 +744,7 @@ namespace bmia {
 
 
 	// 
-	double *HARDIdeterministicTracker::findFunctionValue(int threshold, std::vector<double*> &anglesArray, double *weights,  vtkIntArray *trianglesArray, std::vector<int> &regionList, std::vector<int> &maxima)
+	double *HARDIdeterministicTracker::findFunctionValue(int threshold, std::vector<double*> &anglesArray, double *weights,  vtkIntArray *trianglesArray, std::vector<int> &meshPointsList, std::vector<int> &maxima)
 
 	{
 		std::vector<double> ODFlist; // null can be used 
@@ -769,7 +769,7 @@ namespace bmia {
 
 
 			//get maxima
-			MaxFinder.getOutput(tempSH, this->parentFilter->shOrder,threshold, anglesArray,  maxima, regionList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
+			MaxFinder.getOutput(tempSH, this->parentFilter->shOrder,threshold, anglesArray,  maxima, meshPointsList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
 
 			//Below 3 necessary?
 			outputlistwithunitvectors.clear();
@@ -818,9 +818,85 @@ namespace bmia {
 		return interpolatedVector;
 	}
 
+	// 
+	double *HARDIdeterministicTracker::findFunctionValueUsingMaximaFile(int threshold, std::vector<double*> &anglesArray, double *weights,  vtkIntArray *trianglesArray, std::vector<int> &meshPtIndexList, std::vector<int> &maxima)
+
+	{
+		std::vector<double> ODFlist; // null can be used 
 
 
-	bool HARDIdeterministicTracker::findFunctionValueAtPoint(double pos[3],vtkCell * currentCell, vtkIdType currentCellId, int threshold, std::vector<double*> &anglesArray, double *interpolatedVector,  vtkIntArray *trianglesArray, std::vector<int> &regionList, std::vector<int> &maxima){
+		std::vector<double *> outputlistwithunitvectors;
+		int numberSHcomponents = HARDIArray->GetNumberOfComponents();
+		double * tempSH = new double[numberSHcomponents];
+		double **avgMaxVect = new double*[8];
+		std::vector<double *> anglesBeforeInterpolation; // this consists 8 angles
+		MaximumFinder MaxFinder = MaximumFinder(trianglesArray); // while icinde gerek var mi?!!!
+		for (int j = 0; j < 8; ++j)
+		{
+			//get the SH
+			avgMaxVect[j] = new double[3];
+			this->cellHARDIData->GetTuple(j, tempSH); //fill tempSH
+			avgMaxVect[j][0]=0;
+			avgMaxVect[j][1]=0;
+			avgMaxVect[j][2]=0;
+			//this->cellHARDIData has 8 hardi coeffieint sets
+			//get the ODF // get maxes like below 8 times
+
+
+			//get maxima; 
+			MaxFinder.getOutput(tempSH, this->parentFilter->shOrder,threshold, anglesArray,  maxima, meshPtIndexList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
+
+			//Below 3 necessary?
+			outputlistwithunitvectors.clear();
+			//remove repeated maxima
+			MaxFinder.cleanOutput(maxima, outputlistwithunitvectors,tempSH, ODFlist, this->unitVectors, anglesArray);
+			// maxima has ids use them to  get angles
+
+
+
+			double value =-1 , angularSimilarity = -1;
+			int indexHighestSimilarity=-1;
+			//	cout << "choose the max with highest angular similarities" << endl;
+			for( int i=0;i< outputlistwithunitvectors.size()  ;i++ )
+			{ 
+				angularSimilarity = vtkMath::Dot(this->newSegment, outputlistwithunitvectors.at(i)); // new segment is actually old increment for coming to xextpoint.
+
+				if( value < angularSimilarity   ) 
+				{  
+					value = angularSimilarity; indexHighestSimilarity = i; cout << value << " ";
+
+				}
+			}
+			if (!(maxima.size() > 0) || (indexHighestSimilarity==-1) )	
+			{
+				cout << "No Maxima or no similarity" << endl;
+				break;
+			}
+			avgMaxVect[j][0]=outputlistwithunitvectors[indexHighestSimilarity][0];
+			avgMaxVect[j][1]=outputlistwithunitvectors[indexHighestSimilarity][1];
+			avgMaxVect[j][2]=outputlistwithunitvectors[indexHighestSimilarity][2];
+			//avgMaxAng[j][0] = acos( outputlistwithunitvectors[indexHighestSimilarity][2]);
+			//avgMaxAng[j][1] = atan2( outputlistwithunitvectors[indexHighestSimilarity][1],  outputlistwithunitvectors[indexHighestSimilarity][0]);
+			//cout << "angles w/ highest ang sim."<< avgMaxAng[j][0] << " " << avgMaxAng[j][1] << " n highest :" << indexHighestSimilarity << endl;
+			anglesBeforeInterpolation.push_back(avgMaxVect[j]); // give real pointers here DELETED!!!!
+			//outputlistwithunitvectors.clear();
+			//if no maxima are found
+			// here interpolate and find the vectir?
+
+
+			maxima.clear();
+			ODFlist.clear();
+		}// for cell 8 
+
+
+		double interpolatedVector[3];
+		this->interpolateVectors(anglesBeforeInterpolation,weights, interpolatedVector); // this average will be used as initial value. 
+		anglesBeforeInterpolation.clear(); // INTERPOLATE VECTORS !!!
+		return interpolatedVector;
+	}
+
+
+	bool HARDIdeterministicTracker::findFunctionValueAtPoint(double pos[3],vtkCell * currentCell, vtkIdType currentCellId, int threshold, std::vector<double*> &anglesArray, double *interpolatedVector,  vtkIntArray *trianglesArray, std::vector<int> &meshPtIndexList, std::vector<int> &maxima){
 		double pCoords[3] = { 0.0, 0.0,0.0};
 		int subId=0;
 	 double weights[8];
@@ -846,15 +922,15 @@ namespace bmia {
 				}
 				int numberSHcomponents = HARDIArray->GetNumberOfComponents();
 				 
-				interpolatedVector = findFunctionValue(threshold, anglesArray, weights,  trianglesArray, regionList, maxima);
+				interpolatedVector = findFunctionValue(threshold, anglesArray, weights,  trianglesArray, meshPtIndexList, maxima);
 				return true;
 	}
 
-	void  HARDIdeterministicTracker::findFunctionValueRK4(double pos[3],vtkCell * currentCell, vtkIdType currentCellId, int threshold, std::vector<double*> &anglesArray, double *interpolatedVector,  vtkIntArray *trianglesArray, std::vector<int> &regionList, std::vector<int> &maxima)
+	void  HARDIdeterministicTracker::findFunctionValueRK4(double pos[3],vtkCell * currentCell, vtkIdType currentCellId, int threshold, std::vector<double*> &anglesArray, double *interpolatedVector,  vtkIntArray *trianglesArray, std::vector<int> &meshPtIndexList, std::vector<int> &maxima)
 	{
 		double H= this->step;
 		double vec[3];
-		findFunctionValueAtPoint( pos,currentCell, currentCellId,threshold, anglesArray, vec, trianglesArray, regionList,maxima);
+		findFunctionValueAtPoint( pos,currentCell, currentCellId,threshold, anglesArray, vec, trianglesArray, meshPtIndexList,maxima);
 		// double K1[0]    = (H * vecK1[0]);
     //double K2    = (H * f((x + 1 / 2 * H), (y + 1 / 2 * K1)));  // use new segment
    // double K3    = (H * f((x + 1 / 2 * H), (y + 1 / 2 * K2)));
@@ -915,7 +991,7 @@ namespace bmia {
 			std::vector<double *> outputlistwithunitvectors;
 			//neede for search space reduction
 			bool searchRegion;
-			std::vector<int> regionList; 
+			std::vector<int> meshPtIndexList; 
 			//list with ODF values
 			std::vector<double> ODFlist;
 
@@ -993,7 +1069,7 @@ namespace bmia {
 				MaximumFinder MaxFinder = MaximumFinder(trianglesArray);
 
 				//clear search region list
-				regionList.clear();
+				meshPtIndexList.clear();
 				double tempVector[3];
 
 				//for all directions
@@ -1015,18 +1091,18 @@ namespace bmia {
 					{
 						//if its the first step, search all directions
 						searchRegion = true;
-						regionList.push_back(i);
+						meshPtIndexList.push_back(i);
 					}
 
 					if (searchRegion)
 					{
 						//add search directions to list
-						regionList.push_back(i);
+						meshPtIndexList.push_back(i);
 					}
 				}	
 
 				//get local maxima			 
-				MaxFinder.getOutputDS(SHAux, numberSHcomponents,TRESHOLD, anglesArray,  maxima, regionList);
+				MaxFinder.getOutputDS(SHAux, numberSHcomponents,TRESHOLD, anglesArray,  maxima, meshPtIndexList);
 
 				//if no maxima are found
 				if (!(maxima.size() > 0))	

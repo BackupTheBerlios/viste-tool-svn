@@ -61,7 +61,7 @@ public:
   @param output			output array with the Id's of local maxima
   @param input			input array with point id's in angle range
   */
-  void getOutput(double* pDarraySH, int shOrder, double treshold, std::vector<double*> anglesArray,  std::vector<int> &output, std::vector<int> &input);
+  void getOutput(double* pDarraySH, int shOrder, double treshold, std::vector<double*> anglesArray,  std::vector<int> &output, std::vector<int> &indexOfMax);
 
 
   /** overloaded function needed for GFA calculation. DS means discrete sphere data version.
@@ -79,7 +79,7 @@ public:
   @param output			output array with the Id's of local maxima
   @param input			input array with point id's in angle range
   */
-  void getOutputDS(double* pDarraySH, int shOrder, double treshold, std::vector<double*> anglesArray,  std::vector<int> &output, std::vector<int> &input);
+  void getOutputDS(double* pDarraySH, int shOrder, double treshold, std::vector<double*> anglesArray,  std::vector<int> &output, std::vector<int> &indexOfMax);
 
   /** overloaded function needed for GFA calculation
   @param pDarraySH		array with SH coefficients
@@ -88,16 +88,19 @@ public:
   */
   void getOutput(double* pDarraySH, int shOrder, std::vector<double*> anglesArray);
 
+
+ // void maximaToUnitVectors(,std::vector<double*> anglesArray);
+
   /** clean the maxima
   function to calculate the average direction at double and triple maxima
   @param output							array with the Id's of local maxima (obtained from getOutput)
   @param outputlistwithunitvectors		array with the resulting directions in unit vectors
   @param pDarraySH						array with SH coefficients
-  @param ODFlist						array with the corresponding ODF values
-  @param unitVectors					array with known unit vectors (tesselation points)
+  @param ODFlist						array with the corresponding ODF values. Will be filled by the function.
+  @param unitVectors					array with known unit vectors (tesselation points). Will be filled by the function.
   @param anglesArray					array with the tesselation points in spherical coordinates
   */
-  void cleanOutput(std::vector<int> output, std::vector<double *>& outputlistwithunitvectors,double* pDarraySH, std::vector<double> &ODFlist,double** unitVectors, std::vector<double*> &anglesArray);
+  void cleanOutput(std::vector<int> &indexOfMax, std::vector<double *>& outputlistwithunitvectors,double* pDarraySH, std::vector<double> &ODFlist,double** unitVectors, std::vector<double*> &anglesArray);
 
   /** calculate the GFA
   function to calculate the average direction at double and triple maxima

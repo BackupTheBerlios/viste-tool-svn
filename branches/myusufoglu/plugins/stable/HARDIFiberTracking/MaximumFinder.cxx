@@ -6,12 +6,12 @@
 
 namespace bmia {
 
-	void MaximumFinder::getOutputDS(double* pDarraySH, int shOrder,double treshold, std::vector<double*> anglesArray,  std::vector<int>& output, std::vector<int> &input)
+	void MaximumFinder::getOutputDS(double* pDarraySH, int shOrder,double treshold, std::vector<double*> anglesArray,  std::vector<int>& indexesOfMaxima, std::vector<int> &input)
 	{
-		//cout << "Max Finder Get output with treshold starts. tresh:" << treshold<<  endl;
+		//cout << "Max Finder Get indexesOfMaxima with treshold starts. tresh:" << treshold<<  endl;
 
-		//clear the output
-		output.clear();
+		//clear the indexesOfMaxima
+		indexesOfMaxima.clear();
 
 		//get radii.
 		//this->radii = bmia::HARDITransformationManager::CalculateDeformator(pDarraySH, &anglesArray, shOrder);
@@ -71,8 +71,8 @@ namespace bmia {
 				//if the current point value is higher than the highest valued neighbor
 				if (currentMax <= currentPointValue)
 				{
-					//add point to the output
-					output.push_back(input[i]);
+					//add point to the indexesOfMaxima
+					indexesOfMaxima.push_back(input[i]);
 				}	
 			}
 		}	
@@ -225,7 +225,7 @@ namespace bmia {
 
 	//-----------------------------[ Clean the list of initial local maxima. ]------------------------------\\
 
-	void MaximumFinder::cleanOutput(std::vector<int> output, std::vector<double *>& outputlistwithunitvectors, double* pDarraySH, std::vector<double> &ODFlist, double** unitVectors, std::vector<double*> &anglesArray)
+	void MaximumFinder::cleanOutput(std::vector<int> &indexOfMax, std::vector<double *>& outputlistwithunitvectors, double* pDarraySH, std::vector<double> &ODFlist, double** unitVectors, std::vector<double*> &anglesArray )
 	{
 		//list with single maxima
 		std::vector<int> goodlist;
@@ -252,15 +252,15 @@ namespace bmia {
 
 		//for every maximum, count the number of neighboring maxima with depth 1
 		//and add maximum to correct list
-		for (unsigned int i = 0; i < output.size(); ++i)
+		for (unsigned int i = 0; i < indexOfMax.size(); ++i)
 		{	
 			//get neighbors
-			this->getNeighbors(output[i],2,neighborhood1); //2
+			this->getNeighbors(indexOfMax[i],2,neighborhood1); //2
 			int neighborcounter = 0;
 			for (unsigned int j = 0; j < neighborhood1.size(); ++j)
 			{
 				//count neighbors
-				if (std::find(output.begin(), output.end(), neighborhood1[j]) != output.end()) // not same indexed increase
+				if (std::find(indexOfMax.begin(), indexOfMax.end(), neighborhood1[j]) != indexOfMax.end()) // not same indexed increase
 				{
 					neighborcounter += 1;	
 				}
@@ -268,12 +268,12 @@ namespace bmia {
 			//single- and multi-point maxima. why this are on good list?
 			if ((neighborcounter == 0) || (neighborcounter > 2))
 			{
-				goodlist.push_back(output[i]);
+				goodlist.push_back(indexOfMax[i]);
 			}
 			//double and tiple maxima
 			if ((neighborcounter == 1) || (neighborcounter == 2))
 			{
-				doubtlist.push_back(output[i]);
+				doubtlist.push_back(indexOfMax[i]);
 			}
 		}
 
@@ -434,7 +434,7 @@ namespace bmia {
 						//count the neighbors
 						for (unsigned int j = 0; j < neighborhood2.size(); ++j)
 						{
-							if (std::find(output.begin(), output.end(), neighborhood2[j]) != output.end())
+							if (std::find(indexOfMax.begin(), indexOfMax.end(), neighborhood2[j]) != indexOfMax.end())
 							{
 								neighborcounter += 1;	
 							}
@@ -511,11 +511,11 @@ namespace bmia {
 
 		////--------------------------[ Find maxima for Spherical Harmonics Data. More then 1 maxima are found.]--------------------------\\
 
-	void MaximumFinder::getOutput(double* pDarraySH, int shOrder,double treshold, std::vector<double*> anglesArray,  std::vector<int>& output, std::vector<int> &input)
+	void MaximumFinder::getOutput(double* pDarraySH, int shOrder,double treshold, std::vector<double*> anglesArray,  std::vector<int>& indexesOfMaxima, std::vector<int> &indexes)
 	{
 		//input is indexes
-		//clear the output
-		output.clear();
+		//clear the indexesOfMaxima
+		indexesOfMaxima.clear();
 		//get radii
 		this->radii = bmia::HARDITransformationManager::CalculateDeformator(pDarraySH, &anglesArray, shOrder);  //harmonics and angles as input
 
@@ -545,16 +545,16 @@ namespace bmia {
 		}
 
 		//for all points on the sphere
-		for (unsigned int i = 0; i < (input.size()); ++i)
+		for (unsigned int i = 0; i < (indexes.size()); ++i)
 		{
 			//get current radius
-			double currentPointValue = this->radii_norm[input[i]];
+			double currentPointValue = this->radii_norm[indexes[i]];
 
 			//if the value is high enough
 			if (currentPointValue > (treshold))
 			{
 				//get the neighbors 
-				getNeighbors(input[i], 1, neighborslist);
+				getNeighbors(indexes[i], 1, neighborslist);
 				double currentMax = 0.0;
 
 				//find the highest valued neighbor
@@ -568,8 +568,8 @@ namespace bmia {
 				//if the current point value is higher than the highest valued neighbor
 				if (currentMax <= currentPointValue)
 				{
-					//add point to the output
-					output.push_back(input[i]); // choose it if it has a radius larger then all its neighbours
+					//add point to the indexesOfMaxima
+					indexesOfMaxima.push_back(indexes[i]); // choose it if it has a radius larger then all its neighbours
 				}	
 			}
 		}	
@@ -581,7 +581,7 @@ namespace bmia {
 	void MaximumFinder::getUniqueOutput(double* pDarraySH, int shOrder,double treshold, std::vector<double*> anglesArray,   std::vector<int> &input,int &indexOfMax)
 	{
 		//input is indexes
-		//clear the output
+		//clear the indexesOfMaxima
 	 
 		//get radii
 		this->radii = bmia::HARDITransformationManager::CalculateDeformator(pDarraySH, &anglesArray, shOrder);  //harmonics and angles as input

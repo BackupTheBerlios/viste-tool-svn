@@ -167,6 +167,7 @@ void HARDIFiberTrackingPlugin::doDeterministicFiberTracking(vtkImageData * HARDI
 		HARDIFiberTrackingFilter->SetCleanMaxima((bool) this->ui->cleanBox->isChecked());
 		HARDIFiberTrackingFilter->SetTreshold((float) this->ui->tresholdSpinner->value());
 		HARDIFiberTrackingFilter->SetTesselationOrder((unsigned int) this->ui->tesselationSpinner->value());
+		HARDIFiberTrackingFilter->SetUseMaximaFile((bool) this->ui->useMaxFileCheck->isChecked()); 
 
 		// Set the current seed point set as the input of the filter
 		HARDIFiberTrackingFilter->SetSeedPoints((vtkDataSet *) seedUG);

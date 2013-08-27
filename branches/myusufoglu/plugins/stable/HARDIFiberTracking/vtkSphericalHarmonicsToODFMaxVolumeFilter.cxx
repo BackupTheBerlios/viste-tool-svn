@@ -78,7 +78,7 @@ namespace bmia {
 		this->anglesArray		= NULL;
 		this->radiiArray		= NULL;
 		this->unitVectors		= NULL;
-	//this->regionList = NULL;
+	//this->meshPtIndexList = NULL;
 
 		// Set default parameter values
 		this->currentMeasure	= DSPHM_SurfaceArea;
@@ -178,7 +178,7 @@ namespace bmia {
 			std::vector<double *> outputlistwithunitvectors;
 			//neede for search space reduction
 			bool searchRegion;
-			std::vector<int> regionList;
+			std::vector<int> meshPtIndexList;
 			std::vector<double*> anglesArray1;
 
 			 
@@ -270,9 +270,13 @@ namespace bmia {
 
 		// Define output scalar array
 		vtkIntArray * outArray = vtkIntArray::New(); // can keep indexes of maxes !!! What about there are angles in between then it can keep angles???
-		outArray->SetNumberOfComponents(1);
-		outArray->SetNumberOfTuples(numberOfPoints);
-
+		outArray->SetNumberOfComponents(this->nMaximaForEachPoint);
+		outArray->SetNumberOfTuples(this->nMaximaForEachPoint*numberOfPoints);
+		outArray->SetName("maximas");
+		vtkIntArray * outUnitVector = vtkIntArray::New(); // can keep indexes of maxes !!! What about there are angles in between then it can keep angles???
+		outUnitVector->SetNumberOfComponents(3);
+		outUnitVector->SetNumberOfTuples(numberOfPoints);
+		outUnitVector->SetName("MaxDirectionUnitVectors");
 		// ID of the current point
 		vtkIdType ptId;
 		int size=SHCoefficientsArray->GetNumberOfComponents();
@@ -313,9 +317,9 @@ namespace bmia {
 	//		}
 
 
-		if(regionList.size()==0)
+		if(meshPtIndexList.size()==0)
 			for(int i=0;i< anglesArray1.size(); i++)
-					regionList.push_back(i);
+					meshPtIndexList.push_back(i);
 		// Loop through all points of the image
 		for(ptId = 0; ptId < numberOfPoints; ++ptId)  // the whole image
 		{
@@ -328,15 +332,21 @@ namespace bmia {
 			if(this->nMaximaForEachPoint == 1)
 			{
 				int indexOfMax;
-				MaxFinder.getUniqueOutput(tempSH, l,this->treshold,  anglesArray1,  regionList,indexOfMax);
+				MaxFinder.getUniqueOutput(tempSH, l,this->treshold,  anglesArray1,  meshPtIndexList,indexOfMax);
 						double unitVector[3];
 			 
 			outArray->SetTuple1(ptId, indexOfMax);
+
+			double tempDirection[3];
+			tempDirection[0] = sinf(anglesArray1.at(indexOfMax)[0]) * cosf(anglesArray1.at(indexOfMax)[1]);
+			tempDirection[1] = sinf(anglesArray1.at(indexOfMax)[0]) * sinf(anglesArray1.at(indexOfMax)[1]);
+			tempDirection[2] = cosf(anglesArray1.at(indexOfMax)[0]);
+				outUnitVector->SetTuple3(ptId, tempDirection[0],tempDirection[1],tempDirection[2]);
 			}
 			else if (this->nMaximaForEachPoint > 1)
 			{
 				outArray->SetNumberOfComponents(this->nMaximaForEachPoint);
-			MaxFinder.getOutput(tempSH, l,this->treshold,  anglesArray1,  maxima, regionList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
+			MaxFinder.getOutput(tempSH, l,this->treshold,  anglesArray1,  maxima, meshPtIndexList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
 
 			//Below 3 necessary?
 			outputlistwithunitvectors.clear();
@@ -352,6 +362,7 @@ namespace bmia {
                 indexesOfMaxima[i] = -1;
 
 			outArray->InsertNextTupleValue(indexesOfMaxima);
+		
 			}
 			else 
 				cout << "this->nMaximaForEachPoint is not in the range" << endl; 
@@ -403,7 +414,7 @@ namespace bmia {
 
 		// Add scalars to the output
 		outPD->SetScalars(outArray);
-
+		outPD->SetScalars(outUnitVector);
 		outArray->Delete();
 		outArray = NULL;
 
