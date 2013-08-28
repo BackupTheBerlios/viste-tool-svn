@@ -422,7 +422,7 @@ namespace bmia {
 			//cout << "Number of angle tuples ie directions:" << anglesArrayVTK->GetNumberOfTuples()  << endl;
 			unitVectors = new double*[anglesArrayVTK->GetNumberOfTuples() ];
 
-			// Loop through all angles, convert polar to cartesian
+			// Loop through all angles, convert polar to cartesian to save the array
 			for (int i = 0; i < anglesArrayVTK->GetNumberOfTuples(); ++i)
 			{
 				unitVectors[i] = new double[3];
@@ -465,6 +465,8 @@ namespace bmia {
 					if(true)
 					{
 					tracker->calculateFiberSHDI( 1, &streamlinePointListPos, anglesArray, trianglesArray, NUMBEROFITERATIONS, CLEANMAXIMA, TRESHOLD);
+					//this->GetUseMaximaFile
+					//this->GetWriteMaximaToFile
 					tracker->calculateFiberSHDI(-1, &streamlinePointListNeg, anglesArray, trianglesArray, NUMBEROFITERATIONS, CLEANMAXIMA, TRESHOLD);
 					}
 					else {

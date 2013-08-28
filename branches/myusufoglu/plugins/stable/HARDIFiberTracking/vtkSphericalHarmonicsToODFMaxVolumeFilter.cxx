@@ -273,10 +273,25 @@ namespace bmia {
 		outArray->SetNumberOfComponents(this->nMaximaForEachPoint);
 		outArray->SetNumberOfTuples(this->nMaximaForEachPoint*numberOfPoints);
 		outArray->SetName("maximas");
-		vtkIntArray * outUnitVector = vtkIntArray::New(); // can keep indexes of maxes !!! What about there are angles in between then it can keep angles???
+		vtkDoubleArray * outUnitVector = vtkDoubleArray::New(); // can keep indexes of maxes !!! What about there are angles in between then it can keep angles???
 		outUnitVector->SetNumberOfComponents(3);
 		outUnitVector->SetNumberOfTuples(numberOfPoints);
 		outUnitVector->SetName("MaxDirectionUnitVectors");
+
+ QString saveArrayName("MaxDirectionUnitVectors");
+	 std::vector<vtkDoubleArray *> outUnitVectorList;
+for(int nr = 0; nr < this->nMaximaForEachPoint; nr++)
+  {
+  outUnitVectorList.push_back(vtkDoubleArray::New());
+  
+  }
+for(int nr = 0; nr < this->nMaximaForEachPoint; nr++)
+  {
+outUnitVectorList.at(nr)->SetNumberOfComponents(3);
+   outUnitVectorList.at(nr)->SetNumberOfTuples(numberOfPoints);
+   QString arrName= saveArrayName + QString::number(nr); 
+   outUnitVectorList.at(nr)->SetName( arrName.toStdString().c_str() );  //fist vector array for each point (keeps only the first vector)
+}
 		// ID of the current point
 		vtkIdType ptId;
 		int size=SHCoefficientsArray->GetNumberOfComponents();
@@ -357,12 +372,18 @@ namespace bmia {
 
 			for(int i=0; i<this->nMaximaForEachPoint;i++)
 				if(i < maxima.size())
+				{
 				indexesOfMaxima[i]=maxima.at(i);
+			outUnitVectorList.at(i)->SetTuple3(ptId,outputlistwithunitvectors.at(i)[0],outputlistwithunitvectors.at(i)[1],outputlistwithunitvectors.at(i)[2]);
+				}
 				else 
+				{
                 indexesOfMaxima[i] = -1;
-
+				outUnitVectorList.at(i)->SetTuple3(ptId,0,0,0);
+				}
 			outArray->InsertNextTupleValue(indexesOfMaxima);
 		
+
 			}
 			else 
 				cout << "this->nMaximaForEachPoint is not in the range" << endl; 
@@ -413,8 +434,13 @@ namespace bmia {
 		}
 
 		// Add scalars to the output
-		outPD->SetScalars(outArray);
-		outPD->SetScalars(outUnitVector);
+		outPD->AddArray(outArray);
+		if(this->nMaximaForEachPoint == 1)
+		outPD->AddArray(outUnitVector);
+		else
+		for(int i=0; i<this->nMaximaForEachPoint;i++)
+		outPD->AddArray(outUnitVectorList.at(i));
+
 		outArray->Delete();
 		outArray = NULL;
 

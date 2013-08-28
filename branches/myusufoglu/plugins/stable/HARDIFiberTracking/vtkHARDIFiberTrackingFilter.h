@@ -124,6 +124,7 @@ class vtkHARDIFiberTrackingFilter : public vtkDataSetToPolyDataFilter
 		vtkSetMacro(TesselationOrder,	unsigned int);
 		vtkSetMacro(Treshold,			float);
 		vtkSetMacro(UseMaximaFile,			bool);
+			vtkSetMacro(WriteMaximaToFile,			bool);
 		/** "Get" macros for user processing variables. */
 
 		vtkGetMacro(MaximumPropagationDistance,		float);
@@ -135,6 +136,7 @@ class vtkHARDIFiberTrackingFilter : public vtkDataSetToPolyDataFilter
 		vtkGetMacro(Iterations,						unsigned int);
 		vtkGetMacro(CleanMaxima,					bool);
 		vtkGetMacro(UseMaximaFile,			bool);
+		vtkGetMacro(WriteMaximaToFile,			bool);
 		vtkGetMacro(TesselationOrder,				unsigned int);
 		vtkGetMacro(Treshold,						float);
 
@@ -215,6 +217,7 @@ class vtkHARDIFiberTrackingFilter : public vtkDataSetToPolyDataFilter
 		unsigned int TesselationOrder;			/**< Order of tesselation for the maximum detection of the ODF*/
 		bool CleanMaxima;						/**< Enable or disable maxima cleaning */
 		bool UseMaximaFile;
+		bool WriteMaximaToFile;
 		float Treshold;							/**< Set the ODF treshold for maxima detection */
 
 		/** Derived processing variables, computed from the user variables. */

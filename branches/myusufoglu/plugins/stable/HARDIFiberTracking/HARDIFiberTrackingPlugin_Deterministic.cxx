@@ -127,22 +127,7 @@ void HARDIFiberTrackingPlugin::doDeterministicFiberTracking(vtkImageData * HARDI
 			continue;
 		}
 
-		// This part can be taken to another plugin. Creates a volme consisting indexes of maximums.
-		vtkSphericalHarmonicsToODFMaxVolumeFilter *HARDIToMaximaFilter = vtkSphericalHarmonicsToODFMaxVolumeFilter::New();
-		HARDIToMaximaFilter->SetInput(HARDIimageData);
-		HARDIToMaximaFilter->setTreshold((float) this->ui->tresholdSpinner->value());
-			HARDIToMaximaFilter->SetTesselationOrder((unsigned int) this->ui->tesselationSpinner->value());
-		HARDIToMaximaFilter->setNMaximaForEachPoint(1);
-		HARDIToMaximaFilter->Update();
-
 		
-	    vtkXMLImageDataWriter *writerXML = vtkXMLImageDataWriter::New();                
-                    writerXML->SetInput ( (vtkDataObject*)(HARDIToMaximaFilter->GetOutput()) );
-                    
-					writerXML->SetDataModeToBinary();
-                    writerXML->SetFileName( "maxima-bmiadata.vtk" );
-
-                    if(writerXML->Write())  cout << "Writing the maxima volume \n" << endl;  
 					
 		// Create the fiber tracking filter
 		HARDIFiberTrackingFilter = vtkHARDIFiberTrackingFilter::New();
@@ -168,14 +153,43 @@ void HARDIFiberTrackingPlugin::doDeterministicFiberTracking(vtkImageData * HARDI
 		HARDIFiberTrackingFilter->SetTreshold((float) this->ui->tresholdSpinner->value());
 		HARDIFiberTrackingFilter->SetTesselationOrder((unsigned int) this->ui->tesselationSpinner->value());
 		HARDIFiberTrackingFilter->SetUseMaximaFile((bool) this->ui->useMaxFileCheck->isChecked()); 
-
+		HARDIFiberTrackingFilter->SetWriteMaximaToFile((bool) this->ui->writeMaxToFileCheck->isChecked()); 
 		// Set the current seed point set as the input of the filter
 		HARDIFiberTrackingFilter->SetSeedPoints((vtkDataSet *) seedUG);
 
 		// Set name of Region of Interest
 		HARDIFiberTrackingFilter->setROIName((*seedListIter)->getName());
 
-		// Update the filter
+
+		// Before running the whole fiber tracking algorithm the user may prefer to calculate and write maximas and direction unit vectors to a files.
+		
+		if(HARDIFiberTrackingFilter->GetWriteMaximaToFile())
+		
+		{
+			QString FilePath = QFileDialog::getSaveFileName(nullptr , tr("Save File of Maxima and Unit Vectors"), "D:/vISTe", tr("VTK files (*.vtk)"));
+			
+		// This part can be taken to another plugin. Creates a volme consisting indexes of maximums.
+		vtkSphericalHarmonicsToODFMaxVolumeFilter *HARDIToMaximaFilter = vtkSphericalHarmonicsToODFMaxVolumeFilter::New();
+		HARDIToMaximaFilter->SetInput(HARDIimageData);
+		HARDIToMaximaFilter->setTreshold((float) this->ui->tresholdSpinner->value());
+			HARDIToMaximaFilter->SetTesselationOrder((unsigned int) this->ui->tesselationSpinner->value());
+		HARDIToMaximaFilter->setNMaximaForEachPoint(4);
+		HARDIToMaximaFilter->Update();
+
+		
+	    vtkXMLImageDataWriter *writerXML = vtkXMLImageDataWriter::New();                
+                    writerXML->SetInput ( (vtkDataObject*)(HARDIToMaximaFilter->GetOutput()) );
+                    
+					writerXML->SetDataModeToBinary();
+					writerXML->SetFileName( FilePath.toStdString().c_str() );
+					cout << "Writing the maxima and maxima vectors volume...\n" << endl;  
+                    if(writerXML->Write())  cout << "Writing the maxima volume finished\n" << endl;  
+           return;
+	   }
+
+
+
+		// Update the filter- RUN!
 		HARDIFiberTrackingFilter->Update();
 
 		// Get the resulting fibers

@@ -134,7 +134,7 @@
       <attribute name="label">
        <string notr="true">Tracking Parameters</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_4">
+      <layout class="QVBoxLayout" name="verticalLayout">
        <item>
         <widget class="QLabel" name="parametersMinLengthLabel">
          <property name="text">
@@ -456,6 +456,13 @@
         </layout>
        </item>
        <item>
+        <widget class="QCheckBox" name="writeMaxToFileCheck">
+         <property name="text">
+          <string>Only Write Maxima to File</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QCheckBox" name="cleanBox">
          <property name="text">
           <string>Clean ODF maxima</string>
@@ -482,8 +489,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>98</width>
-        <height>28</height>
+        <width>272</width>
+        <height>456</height>
        </rect>
       </property>
       <attribute name="label">
