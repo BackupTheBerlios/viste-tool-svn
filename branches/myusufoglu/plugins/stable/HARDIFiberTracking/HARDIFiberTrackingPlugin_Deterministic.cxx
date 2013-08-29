@@ -32,7 +32,36 @@ void HARDIFiberTrackingPlugin::setupGUIForHARDIDeterministic()
 	// Enabled controls that may have disabled for other tracking methods
 	this->enableAllControls();
 }
+void HARDIFiberTrackingPlugin::readMaximaVectorsFile()
+{
 
+    //vtkXMLImageDataReader *readerXML = vtkXMLImageDataReader::New();                
+                     
+ 	//				readerXML->SetDataModeToBinary();
+// 					readerXML->SetFileName( FilePath.toStdString().c_str() );
+//
+//// Eigensystem
+//	vtkImageData * eigenImage = (vtkImageData *) eigenImageInfo.data;
+//
+//	// Check image data pointer, point data, and eigenvector arrays
+//	if (!eigenImage)
+//		return false;
+//	if (!(eigenImage->GetPointData()))
+//		return false;
+//	if (!(eigenImage->GetPointData()->GetArray("Eigenvector 1")))
+
+	/*
+	for(int nr = 0; nr < this->nMaximaForEachPoint; nr++)
+		{
+			outUnitVectorList.at(nr)->SetNumberOfComponents(3);
+			outUnitVectorList.at(nr)->SetNumberOfTuples(numberOfPoints);
+			QString arrName= saveArrayName + QString::number(nr); 
+			outUnitVectorList.at(nr)->SetName( arrName.toStdString().c_str() );  //fist vector array for each point (keeps only the first vector)
+		}
+	arraynames maximas
+*/
+
+}
 
 //----------------------[ doStreamlineFiberTracking ]----------------------\\
 

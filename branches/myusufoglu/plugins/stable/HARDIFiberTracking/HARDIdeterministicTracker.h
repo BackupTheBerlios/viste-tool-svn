@@ -131,6 +131,7 @@ class HARDIdeterministicTracker
 
 		virtual void calculateFiberSHDI(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,  int numberOfIterations, bool cLEANMAXIMA, double TRESHOLD);
 		
+		void readMaximaVectorsFile();
 
 			/** A version for Discrete Sphere data. Computes a single fiber in either the positive or negative direction. A new version of GetOutput function is used inside.
 			Points along the fibers are computed iteratively

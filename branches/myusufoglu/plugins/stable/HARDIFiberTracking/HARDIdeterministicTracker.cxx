@@ -445,6 +445,7 @@ namespace bmia {
 	}
 
 
+
 	//----------------------------[ calculateFiber using Spherical Harmonics Directions Interpolation for ONLY one seed point]---------------------------\\
 
 	void HARDIdeterministicTracker::calculateFiberSHDI(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,int numberOfIterations, bool CLEANMAXIMA, double TRESHOLD)

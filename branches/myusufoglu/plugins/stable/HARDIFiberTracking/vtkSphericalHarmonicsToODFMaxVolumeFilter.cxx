@@ -78,7 +78,7 @@ namespace bmia {
 		this->anglesArray		= NULL;
 		this->radiiArray		= NULL;
 		this->unitVectors		= NULL;
-	//this->meshPtIndexList = NULL;
+		//this->meshPtIndexList = NULL;
 
 		// Set default parameter values
 		this->currentMeasure	= DSPHM_SurfaceArea;
@@ -120,17 +120,17 @@ namespace bmia {
 			//case DSPHM_SurfaceArea:		return "Area";
 			//case DSPHM_Volume:			return "Volume";
 			//case DSPHM_Average:			return "Average";
-		//case HARDIMeasures::GA  : return "GA"; 		// General Anisotropy
-		//case	HARDIMeasures::V : return "Variance";				// Variance
-		//case	HARDIMeasures::GFA : return "GFA";			// General Fractional Anisotropy
-		//case	HARDIMeasures::FMI : return "FMI";			// Fractional Multi-Fiber Index
-		//case	HARDIMeasures::R0 : return "R0";			// Rank 0
-		//case	HARDIMeasures::R2 : return "R2";
-		//case	HARDIMeasures::Ri : return "Ri";
-		//case	HARDIMeasures::Iso : return "Iso";			// Isotropic component
-		//case	HARDIMeasures::SE : return "SE";				// ShannonEntropy
-		//case	HARDIMeasures::CRE : return "CRE";				// Cumulative Residual Entropy
-		//case	HARDIMeasures::NM : return "NM";				// Number of Maxima
+			//case HARDIMeasures::GA  : return "GA"; 		// General Anisotropy
+			//case	HARDIMeasures::V : return "Variance";				// Variance
+			//case	HARDIMeasures::GFA : return "GFA";			// General Fractional Anisotropy
+			//case	HARDIMeasures::FMI : return "FMI";			// Fractional Multi-Fiber Index
+			//case	HARDIMeasures::R0 : return "R0";			// Rank 0
+			//case	HARDIMeasures::R2 : return "R2";
+			//case	HARDIMeasures::Ri : return "Ri";
+			//case	HARDIMeasures::Iso : return "Iso";			// Isotropic component
+			//case	HARDIMeasures::SE : return "SE";				// ShannonEntropy
+			//case	HARDIMeasures::CRE : return "CRE";				// Cumulative Residual Entropy
+			//case	HARDIMeasures::NM : return "NM";				// Number of Maxima
 
 
 		default:					return "ERROR";
@@ -151,17 +151,17 @@ namespace bmia {
 		//// Return the long name of the selected measure
 		switch(index)
 		{
-		//case HARDIMeasures::GA: return "General Anisotropy"; 		// General Anisotropy
-		//case	HARDIMeasures::V: return "Variance";				// Variance
-		//case	HARDIMeasures::GFA: return "General Fractional Anisotropy";			// General Fractional Anisotropy
-		//case	HARDIMeasures::FMI:	return "Fractional Multi-Fiber Index";
-		//case	HARDIMeasures::R0:	return "Rank 0";
-		//case	HARDIMeasures::R2:	return "Rank 2";
-		//case	HARDIMeasures::Ri:	return "Rank i";
-		//case	HARDIMeasures::Iso:	return "Isotropic component";
-		//case	HARDIMeasures::SE:	return "ShannonEntropy";
-		//case	HARDIMeasures::CRE:	return "Cumulative Residual Entropy";
-		//case	HARDIMeasures::NM:	return "Number of Maxima";
+			//case HARDIMeasures::GA: return "General Anisotropy"; 		// General Anisotropy
+			//case	HARDIMeasures::V: return "Variance";				// Variance
+			//case	HARDIMeasures::GFA: return "General Fractional Anisotropy";			// General Fractional Anisotropy
+			//case	HARDIMeasures::FMI:	return "Fractional Multi-Fiber Index";
+			//case	HARDIMeasures::R0:	return "Rank 0";
+			//case	HARDIMeasures::R2:	return "Rank 2";
+			//case	HARDIMeasures::Ri:	return "Rank i";
+			//case	HARDIMeasures::Iso:	return "Isotropic component";
+			//case	HARDIMeasures::SE:	return "ShannonEntropy";
+			//case	HARDIMeasures::CRE:	return "Cumulative Residual Entropy";
+			//case	HARDIMeasures::NM:	return "Number of Maxima";
 
 		default:					return "ERROR";
 		}
@@ -173,20 +173,20 @@ namespace bmia {
 	void vtkSphericalHarmonicsToODFMaxVolumeFilter::SimpleExecute(vtkImageData * input, vtkImageData * output)
 	{
 		//vector to store the Id's if the found maxima on the ODF
-			std::vector<int> maxima;
-			//vector to store the unit vectors of the found maxima
-			std::vector<double *> outputlistwithunitvectors;
-			//neede for search space reduction
-			bool searchRegion;
-			std::vector<int> meshPtIndexList;
-			std::vector<double*> anglesArray1;
+		std::vector<int> maxima;
+		//vector to store the unit vectors of the found maxima
+		std::vector<double *> outputlistwithunitvectors;
+		//neede for search space reduction
+		bool searchRegion;
+		std::vector<int> meshPtIndexList;
+		std::vector<double*> anglesArray1;
 
-			 
 
-			std::vector<double> ODFlist;
 
-			
-		 
+		std::vector<double> ODFlist;
+
+
+
 		// Start reporting the progress of this filter
 		this->UpdateProgress(0.0);
 
@@ -258,138 +258,141 @@ namespace bmia {
 		output->SetDimensions(dims);
 
 
+		this->UpdateProgress(0.0);
 
 		// Compute the step size for the progress bar
-		this->progressStepSize = numberOfPoints / 25;
+		this->progressStepSize = numberOfPoints / 250;
 		this->progressStepSize += (this->progressStepSize == 0) ? 1 : 0;
 
 		// Set the progress bar text
-		this->SetProgressText("Computing scalar measure for spherical harmonics...");
-
-
+		this->SetProgressText("Computing maxima and vectors...");
+        this->SetProgress(0.0);
 		// Define output scalar array
 		vtkIntArray * outArray = vtkIntArray::New(); // can keep indexes of maxes !!! What about there are angles in between then it can keep angles???
 		outArray->SetNumberOfComponents(this->nMaximaForEachPoint);
-		outArray->SetNumberOfTuples(this->nMaximaForEachPoint*numberOfPoints);
+		//outArray->SetNumberOfTuples(this->nMaximaForEachPoint*numberOfPoints);
 		outArray->SetName("maximas");
 		vtkDoubleArray * outUnitVector = vtkDoubleArray::New(); // can keep indexes of maxes !!! What about there are angles in between then it can keep angles???
 		outUnitVector->SetNumberOfComponents(3);
 		outUnitVector->SetNumberOfTuples(numberOfPoints);
 		outUnitVector->SetName("MaxDirectionUnitVectors");
 
- QString saveArrayName("MaxDirectionUnitVectors");
-	 std::vector<vtkDoubleArray *> outUnitVectorList;
-for(int nr = 0; nr < this->nMaximaForEachPoint; nr++)
-  {
-  outUnitVectorList.push_back(vtkDoubleArray::New());
-  
-  }
-for(int nr = 0; nr < this->nMaximaForEachPoint; nr++)
-  {
-outUnitVectorList.at(nr)->SetNumberOfComponents(3);
-   outUnitVectorList.at(nr)->SetNumberOfTuples(numberOfPoints);
-   QString arrName= saveArrayName + QString::number(nr); 
-   outUnitVectorList.at(nr)->SetName( arrName.toStdString().c_str() );  //fist vector array for each point (keeps only the first vector)
-}
+		QString saveArrayName("MaxDirectionUnitVectors");
+		std::vector<vtkDoubleArray *> outUnitVectorList;
+		for(int nr = 0; nr < this->nMaximaForEachPoint; nr++)
+		{
+			outUnitVectorList.push_back(vtkDoubleArray::New());
+
+		}
+		for(int nr = 0; nr < this->nMaximaForEachPoint; nr++)
+		{
+			outUnitVectorList.at(nr)->SetNumberOfComponents(3);
+			outUnitVectorList.at(nr)->SetNumberOfTuples(numberOfPoints);
+			QString arrName= saveArrayName + QString::number(nr); 
+			outUnitVectorList.at(nr)->SetName( arrName.toStdString().c_str() );  //fist vector array for each point (keeps only the first vector)
+		}
 		// ID of the current point
 		vtkIdType ptId;
 		int size=SHCoefficientsArray->GetNumberOfComponents();
 		// shOrder
 		int l = 4 ;
-			switch( SHCoefficientsArray->GetNumberOfComponents())
-			{
-			case 1:		l = 0;	break; // shOrder
-			case 6:		l = 2;	break;
-			case 15:	l = 4;	break;
-			case 28:	l = 6;	break;
-			case 45:	l = 8;	break;
+		switch( SHCoefficientsArray->GetNumberOfComponents())
+		{
+		case 1:		l = 0;	break; // shOrder
+		case 6:		l = 2;	break;
+		case 15:	l = 4;	break;
+		case 28:	l = 6;	break;
+		case 45:	l = 8;	break;
 
-			default:
-				vtkErrorMacro(<< "Number of SH coefficients is not supported!");
-				return;
-			}
+		default:
+			vtkErrorMacro(<< "Number of SH coefficients is not supported!");
+			return;
+		}
 		// Current coefficients
 		double *tempSH = new double[l] ; // size of l
 
 		bmia::vtkGeometryGlyphFromSHBuilder* obj = bmia::vtkGeometryGlyphFromSHBuilder::New();
 		//compute geometry
-		
-			//cout << "Spherical Harmonics Data" << endl;
+
+		//cout << "Spherical Harmonics Data" << endl;
 		obj->computeGeometry(this->GetTesselationOrder());
-			// get unit vectors, angles and triangles
-			unitVectors = obj->getUnitVectors();
-			anglesArray1 = obj->getAnglesArray();
-			trianglesArray = obj->getTrianglesArray();
-	//create a maximumfinder
-			MaximumFinder MaxFinder = MaximumFinder(trianglesArray); // what does this arr do
+		// get unit vectors, angles and triangles
+		unitVectors = obj->getUnitVectors();
+		anglesArray1 = obj->getAnglesArray();
+		trianglesArray = obj->getTrianglesArray();
+		//create a maximumfinder
+		MaximumFinder MaxFinder = MaximumFinder(trianglesArray); // what does this arr do
 
 
-			// Get the array containing the angles of the sample points
-	//this->anglesArray = vtkDoubleArray::SafeDownCast(inPD->GetArray("Spherical Directions"));
-	//		for(int i=0; i< this->anglesArray->GetNumberOfTuples(); i++)
-	//		{
-	//			anglesArray1.push_back(this->anglesArray->GetTuple(i)); // carefull about the size of each pointer 
-	//		}
+		// Get the array containing the angles of the sample points
+		//this->anglesArray = vtkDoubleArray::SafeDownCast(inPD->GetArray("Spherical Directions"));
+		//		for(int i=0; i< this->anglesArray->GetNumberOfTuples(); i++)
+		//		{
+		//			anglesArray1.push_back(this->anglesArray->GetTuple(i)); // carefull about the size of each pointer 
+		//		}
 
 
 		if(meshPtIndexList.size()==0)
 			for(int i=0;i< anglesArray1.size(); i++)
-					meshPtIndexList.push_back(i);
+				meshPtIndexList.push_back(i);
 		// Loop through all points of the image
 		for(ptId = 0; ptId < numberOfPoints; ++ptId)  // the whole image
 		{
 			// Get tensor value at current point
 			SHCoefficientsArray->GetTuple(ptId, tempSH);
 
-				//get maxima // correct angles array
+			//get maxima // correct angles array
 
 
 			if(this->nMaximaForEachPoint == 1)
 			{
 				int indexOfMax;
 				MaxFinder.getUniqueOutput(tempSH, l,this->treshold,  anglesArray1,  meshPtIndexList,indexOfMax);
-						double unitVector[3];
-			 
-			outArray->SetTuple1(ptId, indexOfMax);
+				double unitVector[3];
 
-			double tempDirection[3];
-			tempDirection[0] = sinf(anglesArray1.at(indexOfMax)[0]) * cosf(anglesArray1.at(indexOfMax)[1]);
-			tempDirection[1] = sinf(anglesArray1.at(indexOfMax)[0]) * sinf(anglesArray1.at(indexOfMax)[1]);
-			tempDirection[2] = cosf(anglesArray1.at(indexOfMax)[0]);
+				outArray->SetTuple1(ptId, indexOfMax);
+
+				double tempDirection[3];
+				tempDirection[0] = sinf(anglesArray1.at(indexOfMax)[0]) * cosf(anglesArray1.at(indexOfMax)[1]);
+				tempDirection[1] = sinf(anglesArray1.at(indexOfMax)[0]) * sinf(anglesArray1.at(indexOfMax)[1]);
+				tempDirection[2] = cosf(anglesArray1.at(indexOfMax)[0]);
 				outUnitVector->SetTuple3(ptId, tempDirection[0],tempDirection[1],tempDirection[2]);
 			}
 			else if (this->nMaximaForEachPoint > 1)
 			{
 				outArray->SetNumberOfComponents(this->nMaximaForEachPoint);
-			MaxFinder.getOutput(tempSH, l,this->treshold,  anglesArray1,  maxima, meshPtIndexList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
+				MaxFinder.getOutput(tempSH, l,this->treshold,  anglesArray1,  maxima, meshPtIndexList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
 
-			//Below 3 necessary?
-			outputlistwithunitvectors.clear();
-			//remove repeated maxima
-			MaxFinder.cleanOutput(maxima, outputlistwithunitvectors,tempSH, ODFlist, this->unitVectors, anglesArray1);
+				//Below 3 necessary?
+				outputlistwithunitvectors.clear();
+				//remove repeated maxima
+				MaxFinder.cleanOutput(maxima, outputlistwithunitvectors,tempSH, ODFlist, this->unitVectors, anglesArray1);
 
-			int *indexesOfMaxima = new int[this->nMaximaForEachPoint];
+				int *indexesOfMaxima = new int[this->nMaximaForEachPoint];
 
-			for(int i=0; i<this->nMaximaForEachPoint;i++)
-				if(i < maxima.size())
+				for(int i=0; i<this->nMaximaForEachPoint;i++)
 				{
-				indexesOfMaxima[i]=maxima.at(i);
-			outUnitVectorList.at(i)->SetTuple3(ptId,outputlistwithunitvectors.at(i)[0],outputlistwithunitvectors.at(i)[1],outputlistwithunitvectors.at(i)[2]);
-				}
-				else 
-				{
-                indexesOfMaxima[i] = -1;
-				outUnitVectorList.at(i)->SetTuple3(ptId,0,0,0);
-				}
-			outArray->InsertNextTupleValue(indexesOfMaxima);
-		
-			maxima.clear();
-			ODFlist.clear();
+					if(i < maxima.size())
+					{
+						indexesOfMaxima[i]=maxima.at(i);
+						outUnitVectorList.at(i)->SetTuple3(ptId,outputlistwithunitvectors.at(i)[0],outputlistwithunitvectors.at(i)[1],outputlistwithunitvectors.at(i)[2]);
+					}
+					else 
+					{
+						indexesOfMaxima[i] = -1;
+						outUnitVectorList.at(i)->SetTuple3(ptId,0,0,0);
+					}
+
+			   }
+					outArray->InsertNextTupleValue(indexesOfMaxima); 
+
+					maxima.clear();
+					ODFlist.clear();
 			}
 			else 
 				cout << "this->nMaximaForEachPoint is not in the range" << endl; 
 
-			
+
 			//HARDIMeasures * HMeasures = new HARDIMeasures; // THIS will be used 
 
 			// Check if tensor is NULL. This check is not necessary but can
@@ -407,7 +410,7 @@ outUnitVectorList.at(nr)->SetNumberOfComponents(3);
 			//outArray->SetTuple3(ptId, unitVector[0], unitVector[1], unitVector[2]);
 			// DO FOR ALL MEASURES ACCORDING TO GIVEN MEASURE
 			//switch (this->currentMeasure)
-		//	{
+			//	{
 			//case HARDIMeasures::GA:		outScalar = HMeasures->GeneralAnisotropy(tempSH,l);	break; //  for all points do GA!!!
 			//case HARDIMeasures::V:		outScalar = HMeasures->Variance(tempSH,l);			break;
 			//case HARDIMeasures::GFA:    outScalar = HMeasures->GeneralFractionalAnisotropy(tempSH,l);	break;
@@ -424,23 +427,27 @@ outUnitVectorList.at(nr)->SetNumberOfComponents(3);
 			//	return;
 			//}
 			// Add scalar value to output array
-			
+
 			//}
 			//
 			// Update progress value
-			if(ptId % 50000 == 0)
+			//cout << ptId << endl;
+			// Update progress bar
+			if ((ptId % progressStepSize) == 0)
 			{
-				this->UpdateProgress(((float) ptId) / ((float) numberOfPoints));
+				this->UpdateProgress((double) ptId / (double) numberOfPoints);
+				cout << ptId << " " << outArray->GetNumberOfTuples() << endl;
 			}
+				//if (ptId==1000) break;
 		}
 
 		// Add scalars to the output
 		outPD->AddArray(outArray);
 		if(this->nMaximaForEachPoint == 1)
-		outPD->AddArray(outUnitVector);
+			outPD->AddArray(outUnitVector);
 		else
-		for(int i=0; i<this->nMaximaForEachPoint;i++)
-		outPD->AddArray(outUnitVectorList.at(i));
+			for(int i=0; i<this->nMaximaForEachPoint;i++)
+				outPD->AddArray(outUnitVectorList.at(i));
 
 		outArray->Delete();
 		outArray = NULL;
@@ -516,7 +523,7 @@ outUnitVectorList.at(nr)->SetNumberOfComponents(3);
 		return true;
 	}
 
-	 
+
 
 	//--------------------------[ computeSurfaceArea ]-------------------------\\
 

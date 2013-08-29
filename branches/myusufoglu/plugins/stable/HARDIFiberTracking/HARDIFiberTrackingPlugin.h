@@ -119,6 +119,8 @@ class HARDIFiberTrackingPlugin :public plugin::Plugin,
 		void dataSetChanged(data::DataSet * ds);
 		void dataSetRemoved(data::DataSet * ds);
 
+		void readMaximaVectorsFile();
+
 	protected slots:
 
 		/** Called when the user presses the "Update" button. */
