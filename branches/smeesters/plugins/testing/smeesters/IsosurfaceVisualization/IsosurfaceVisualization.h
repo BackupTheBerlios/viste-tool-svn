@@ -1,8 +1,19 @@
 #ifndef bmia_IsosurfaceVisualization_h
 #define bmia_IsosurfaceVisualization_h
 
+/** Includes - Main Header */
+
 #include "DTITool.h"
+
+/** Includes - Qt */
+
 #include "ui_IsosurfaceVisualization.h"
+
+/** Includes - STL */
+
+#include <algorithm>
+
+/** Includes - VTK */
 
 #include <vtkPropAssembly.h>
 #include <vtkActor.h>
@@ -27,87 +38,63 @@
 #include <vtkCubeSource.h>
 #include <vtkSuperquadricSource.h>
 #include <vtkProp3D.h>
-#include "gui/MetaCanvas/vtkSubCanvas.h"
 #include <vtkOrientationMarkerWidget.h>
-
-#include "vtkLookupTable.h"
-#include "vtkImageActor.h"
-#include "vtkImageMapToColors.h"
-#include "vtkImageResliceMapper.h"
-#include "vtkImageSlice.h"
-#include "vtkImageProperty.h"
-#include "vtkTransform.h"
-#include "vtkImageMapToColors.h"
-#include "vtkExtractPolyDataGeometry.h"
-#include "vtkPolyDataConnectivityFilter.h"
-#include "vtkColorTransferFunction.h"
-#include "vtkPiecewiseFunction.h"
-#include "vtkDiscretizableColorTransferFunction.h"
-#include "vtkVersion.h"
-#include "vtkDepthSortPolyData.h"
-#include "vtkLineSource.h"
+#include <vtkLookupTable.h>
+#include <vtkImageActor.h>
+#include <vtkImageMapToColors.h>
+#include <vtkImageResliceMapper.h>
+#include <vtkImageSlice.h>
+#include <vtkImageProperty.h>
+#include <vtkTransform.h>
+#include <vtkImageMapToColors.h>
+#include <vtkExtractPolyDataGeometry.h>
+#include <vtkPolyDataConnectivityFilter.h>
+#include <vtkColorTransferFunction.h>
+#include <vtkPiecewiseFunction.h>
+#include <vtkDiscretizableColorTransferFunction.h>
+#include <vtkVersion.h>
+#include <vtkDepthSortPolyData.h>
+#include <vtkLineSource.h>
 #include <vtkObject.h>
-
-// picker
-#include "vtkInteractorStyleTrackballPositionPicker.h"
-
-// temporary
-#include "vtkDebugLeaks.h"
-
-#include "vtkPolyDataWriter.h"
-#include "vtkPolyData.h"
-
-#include "vtkPoints.h"
-#include "vtkSelectEnclosedPoints.h"
-
-#include "gui/MetaCanvas/vtkMedicalCanvas.h"
-#include "vtkDiskSource.h"
-#include "vtkPolyDataMapper2D.h"
-#include "vtkActor2D.h"
-#include "vtkProperty2D.h"
-
-#include "Helpers/vtkImageSliceActor.h"
-
-// labels
-#include "vtkStringArray.h"
-#include "vtkVertexGlyphFilter.h"
-#include "vtkPointSetToLabelHierarchy.h"
-#include "vtkLabelPlacementMapper.h"
-
-// curvature
-#include "vtkCurvaturesShapeIndex.h"
+#include <vtkPolyDataWriter.h>
+#include <vtkPolyData.h>
+#include <vtkPoints.h>
+#include <vtkSelectEnclosedPoints.h>
+#include <vtkDiskSource.h>
+#include <vtkPolyDataMapper2D.h>
+#include <vtkActor2D.h>
+#include <vtkProperty2D.h>
 #include <vtkColorSeries.h>
 #include <vtkThreshold.h>
-#include <algorithm>
 #include <vtkPolyDataNormals.h>
-
 #include <vtkPointData.h>
-
-
-// qt window test
-#include "vtkContextView.h"
-#include "vtkContextScene.h"
-#include "vtkChart.h"
-#include "vtkChartXY.h"
-#include "vtkPlot.h"
-#include "vtkTable.h"
-#include "vtkQtTableView.h"
-#include "vtkTimerLog.h"
-#include "vtkFloatArray.h"
-#include "vtkAxis.h"
-
-#include "vtkScalarBarActor.h"
+#include <vtkContextView.h>
+#include <vtkContextScene.h>
+#include <vtkChart.h>
+#include <vtkChartXY.h>
+#include <vtkPlot.h>
+#include <vtkTable.h>
+#include <vtkQtTableView.h>
+#include <vtkTimerLog.h>
+#include <vtkFloatArray.h>
+#include <vtkAxis.h>
+#include <vtkScalarBarActor.h>
 #include <vtkColorSeries.h>
-
 #include <vtkSmoothPolyDataFilter.h>
-
 #include <vtkContextScene.h>
 #include <vtkContextItem.h>
 #include <vtkContextMouseEvent.h>
-
 #include <vtkXMLMaterial.h>
 #include <vtkOpenGLExtensionManager.h>
 #include <vtkgl.h>
+
+/** Includes - Custom */
+
+#include "gui/MetaCanvas/vtkSubCanvas.h"
+#include "gui/MetaCanvas/vtkMedicalCanvas.h"
+#include "vtkInteractorStyleTrackballPositionPicker.h"
+#include "Helpers/vtkImageSliceActor.h"
+#include "vtkCurvaturesShapeIndex.h"
 
 class vtkInteractorStyleTrackballPositionPicker;
 
@@ -181,39 +168,6 @@ typedef struct
 
 } ModelInfo;
 
-/** MeasuredPoint struct holding coordinates and 3D actors of a measured point */
-typedef struct
-{
-    bool set;
-    double x, y, z;
-    vtkActor* sphere;
-    vtkActor2D* label;
-
-} MeasuredPoint;
-
-/** Generic vector3 struct */
-typedef struct
-{
-    double x, y, z;
-} Vec3;
-
-/** Holding pointdata and location of the most anterior point of a fiber */
-typedef struct
-{
-    QList< Vec3* > data;
-    QList< double > scalarData;
-    int anteriorPointIndex;
-    double userPointRefinement;
-} FiberData;
-
-/** Holding fiberdata */
-typedef struct
-{
-    data::DataSet* ds;
-    QList<FiberData*> selectedLines;
-    int userSelectedLine;
-} SortedFibers;
-
 class IsosurfaceVisualization :  public plugin::AdvancedPlugin,
                     public plugin::Visualization,
                     public plugin::GUI,
@@ -269,17 +223,19 @@ public:
      */
     void dataSetRemoved(data::DataSet * d);
 
+    /**
+     * Set the clipping plane position
+     *
+     * @param pos Array holding the position coordinates.
+     */
     void setClippingPlanesPosition(double* pos);
 
 protected slots:
 
     void comboBoxDataChanged();
-
     void comboBoxOverlayChanged();
     void comboBoxOverlayLUTChanged();
-
     void comboBoxBaseLayerLUTChanged();
-
     void checkBoxVisibleChanged(bool checked);
     void comboBoxStyleChanged();
     void buttonUpdateClicked();
@@ -292,43 +248,22 @@ protected slots:
     void inputSpecularChanged(double value);
 	void comboBoxCurvatureLUTChanged();
 	void comboBoxCurvatureTypeChanged();
-
     void horizontalSliderXChanged(int value);
     void horizontalSliderYChanged(int value);
     void horizontalSliderZChanged(int value);
-
     void checkBoxXChanged(bool checked);
     void checkBoxYChanged(bool checked);
     void checkBoxZChanged(bool checked);
-
     void checkBoxFlipXChanged(bool checked);
     void checkBoxFlipYChanged(bool checked);
     void checkBoxFlipZChanged(bool checked);
-
     void buttonSaveMeshClicked();
-
     void spinXChanged(int value);
     void spinYChanged(int value);
     void spinZChanged(int value);
-
     void checkBoxInvertClippingChanged(bool checked);
     void checkBoxLargestComponentChanged(bool checked);
     void checkBoxAlignPlanesToPickChanged(bool checked);
-
-    void buttonSetPointAClicked();
-    void buttonSetPointBClicked();
-
-    void buttonSetLineColorClicked();
-    void buttonSaveMeasurementClicked();
-
-	void lineEditNamePointAChanged(QString value);
-	void lineEditNamePointBChanged(QString value);
-
-	void comboBoxFiberDataChanged();
-
-	void fiberSelectUpdate(int value);
-	void fiberRefinementUpdate(int value);
-	void fiberRefinementUpdate(double value);
 
 private:
 
@@ -350,9 +285,6 @@ private:
     /** Color loopup tables */
     QList<vtkLookupTable*> lookUpTables;
 
-    /** Fiber information structs */
-    QList<SortedFibers*> sortedFibersList;
-
     /** The collection of all the actors that this plugin can render.
     		This is the object that will be returned by getVtkProp().  */
     vtkPropAssembly * assembly;
@@ -373,17 +305,6 @@ private:
     bool bModelDirty;
 
     double clickedPoint[3];
-    QList<MeasuredPoint*> measuredPointList;
-    vtkActor* measuredLine;
-	vtkActor2D* measuredLabels;
-	vtkPoints* measuredLabelPoints;
-	vtkStringArray* measuredLabelStrings;
-
-    QList<vtkActor*> depthElectrodeBlobs; // temporary
-    QColor currentElectrodesColor; // temporary
-
-    void setMeasuredPoint(int id);
-    void calculateDistance();
 
     int findInputDataSet(data::DataSet * ds);
 
@@ -396,7 +317,7 @@ private:
     /** Disconnect all GUI controls */
     void updateRenderingModels();
 
-     /**
+    /**
      * Create a model info struct for the new mesh.
      *
      * @param ds The new data set that was added.
@@ -426,20 +347,27 @@ private:
      */
     void updateClippingPlaneEnabled(int direction, bool checked);
 
-	vtkActor2D* GenerateLabels(vtkSmartPointer<vtkPoints> points, vtkSmartPointer<vtkStringArray> labels);
+    /**
+     *  Disable GUI elements to prevent propagation
+     */
+    void BlockSignals();
+
+    /**
+     *  Enable GUI elements
+     */
+    void AllowSignals();
 
     /** Position picker */
     void setupClippingPlanesPicker();
     vtkInteractorStyleTrackballPositionPicker * styleTrackballPP;
 
+    // 2d points in medical planes
     QList<vtkActor*> pointer2DList;
 
-    void processFiberAnteriorSorting(SortedFibers* sortedFibers);
+    // temporary scalar bar graphic
+    vtkSmartPointer<vtkScalarBarActor> scalarBar;
 
-    void fiberPointSelect();
-
-    vtkSmartPointer<vtkScalarBarActor> scalarBar; //temp
-
+    // dataset holding selected point settings
 	data::DataSet* settings;
 };
 

@@ -84,37 +84,6 @@ void IsosurfaceVisualization::init()
         this->pointer2DList.append(diskActor);
 	}
 
-	// Add measured points
-	for(int i = 0; i < 2; i++)
-	{
-        MeasuredPoint* point = new MeasuredPoint;
-
-        point->set = false;
-
-        vtkSmartPointer<vtkSphereSource> diskSource =
-            vtkSmartPointer<vtkSphereSource>::New();
-        diskSource->SetRadius(1);
-
-        vtkSmartPointer<vtkPolyDataMapper> diskMapper =
-            vtkSmartPointer<vtkPolyDataMapper>::New();
-        diskMapper->SetInputConnection(diskSource->GetOutputPort());
-
-        vtkActor* diskActor =
-            vtkActor::New();
-        diskActor->SetMapper(diskMapper);
-
-        if(i == 0)
-            diskActor->GetProperty()->SetColor(1,0,0);
-        else
-            diskActor->GetProperty()->SetColor(0,1,0);
-
-
-        point->sphere = diskActor;
-
-        this->measuredPointList.append(point);
-	}
-
-	this->measuredLine = NULL;
     this->scalarBar = NULL; //temp
 
 	// Prepare a dataset to save settings
@@ -197,27 +166,6 @@ void IsosurfaceVisualization::dataSetAdded(data::DataSet * d)
         // Create the lookup table from the transfer function
         createLookupTable(d);
 	}
-
-	// Add fibers
-	else if (kind == "fibers")
-	{
-	    // Check if fiber has polydata
-	    if (d->getVtkPolyData() == NULL)
-			return;
-
-        // Create new fiber struct
-        SortedFibers* sortedFibers = new SortedFibers;
-
-        // Initialize struct
-        sortedFibers->ds = d;
-		sortedFibers->userSelectedLine = 0;
-
-        // Add the new data set to the list of currently available fiber sets
-        this->sortedFibersList.append(sortedFibers);
-
-        // Add to UI combobox for distance measurements to fibers
-        this->form->comboBoxFiberData->addItem(d->getName());
-	}
 }
 
 //------------------------[ Dataset changed ]-----------------------\\
@@ -299,38 +247,6 @@ void IsosurfaceVisualization::dataSetRemoved(data::DataSet * d)
 	{
 
 	}
-
-	// Fibers
-	else if (kind == "fibers")
-	{
-	    // Check if the data set exists
-		int dsIndex = this->findInputDataSet(d);
-
-        // Does not exist, return
-		if (dsIndex == -1)
-			return;
-
-        // Remove from UI combobox for selection of overlay
-        this->form->comboBoxFiberData->removeItem(dsIndex);
-
-        // Remove from collection
-        this->sortedFibersList.removeAt(dsIndex);
-	}
-}
-
-int IsosurfaceVisualization::findInputDataSet(data::DataSet * ds)
-{
-	int index = 0;
-
-	// Loop through all input fiber data sets
-	for (QList<SortedFibers*>::iterator i = this->sortedFibersList.begin(); i != this->sortedFibersList.end(); ++i, ++index)
-	{
-		// Return the index if we've found the target data set
-		if ((*i)->ds == ds)
-			return index;
-	}
-
-	return -1;
 }
 
 ///
@@ -640,11 +556,6 @@ void IsosurfaceVisualization::updateRenderingModels()
             connectivity->SetExtractionModeToLargestRegion();
         }
 
-        /*vtkSmoothPolyDataFilter* smoother2 = vtkSmoothPolyDataFilter::New();
-        smoother2->SetInputConnection(connectivity->GetOutputPort());
-        smoother2->SetNumberOfIterations(50);
-        smoother2->Update();*/
-
         // decimate
         VTK_CREATE(vtkDecimatePro, deci);
         if(current_modelInfo->reduction > 0.1)
@@ -733,26 +644,6 @@ void IsosurfaceVisualization::updateRenderingModels()
 			// create default curvature lookup table
             if(this->current_modelInfo->curvatureLUTIndex == 0)
             {
-                /*vtkLookupTable* convLUT;
-				convLUT = vtkLookupTable::New();
-				convLUT->SetNumberOfTableValues(100);
-				convLUT->SetRange(0,100);
-				convLUT->Build();
-
-				for(int j = 0; j<100; j++)
-				{
-					double* bbb = convLUT->GetTableValue(j);
-
-					if( j > 0 && j < 80)
-						convLUT->SetTableValue(j,1.0,1.0,1.0,1.0);
-					else if(j >= 80 && j < 100)
-						convLUT->SetTableValue(j,1-(j-80)/20.0*0.25,1-(j-80)/20.0*0.25,1-(j-80)/20.0*0.25,1.0);
-					else
-						convLUT->SetTableValue(j,0.75,0.75,0.75,1.0);
-				}
-				convLUT->SetRampToSCurve();
-				polyMapper->SetLookupTable(convLUT);*/
-
 				double mid = 0.5 * (scalarRange[1] + scalarRange[0]);
 
                 vtkColorTransferFunction* convLUT = vtkColorTransferFunction::New();
@@ -877,30 +768,6 @@ void IsosurfaceVisualization::updateRenderingModels()
         {
             this->updateClippingPlaneSlider(i,current_modelInfo->clippingValues[i]);
         }
-        // Reset the camera of the 3D volume
-        //this->fullCore()->canvas()->GetRenderer3D()->ResetCamera();
-
-        // Reset clipping rnage
-       // this->fullCore()->canvas()->GetRenderer3D()->ResetCameraClippingRange();
-
-//        // Update the polydata of the DataSet or the manager
-//        current_modelInfo->ds_poly->updateData(clipper->GetOutput());
-//
-//        // Add the model to the Data manager if not already done
-//        if(!(current_modelInfo->bDsPolyAdded))
-//        {
-//            this->core()->data()->addDataSet(current_modelInfo->ds_poly);
-//            std::cout << "ADD DATA!";
-//            current_modelInfo->bDsPolyAdded = true;
-//        }
-//
-//        // else Signal the core that the data set has changed
-//        else
-//        {
-//            this->core()->data()->dataSetChanged(current_modelInfo->ds_poly);
-//        }
-
-
 
     }
 
@@ -914,49 +781,6 @@ void IsosurfaceVisualization::updateRenderingModels()
 
     bModelDirty = false;
     this->core()->render();
-
-    //vtkDebugLeaks::PrintCurrentLeaks();
-}
-
-//------------------------[ Create text labels ]-----------------------\\
-
-vtkActor2D* IsosurfaceVisualization::GenerateLabels(vtkSmartPointer<vtkPoints> points, vtkSmartPointer<vtkStringArray> labels)
-{
-	VTK_CREATE(vtkPolyData, polydata);
-	polydata->SetPoints(points);
-
-	VTK_CREATE(vtkVertexGlyphFilter, glyphFilter);
-	glyphFilter->SetInputConnection(polydata->GetProducerPort());
-	glyphFilter->Update();
-
-	// Add label array.
-	glyphFilter->GetOutput()->GetPointData()->AddArray(labels);
-
-	// Create a mapper and actor for the points.
-	VTK_CREATE(vtkPolyDataMapper,pointMapper);
-	pointMapper->SetInputConnection(glyphFilter->GetOutputPort());
-
-	VTK_CREATE(vtkActor, pointActor);
-	pointActor->SetMapper(pointMapper);
-
-	// Generate the label hierarchy.
-	VTK_CREATE(vtkPointSetToLabelHierarchy, pointSetToLabelHierarchyFilter);
-	pointSetToLabelHierarchyFilter->SetInputConnection(
-	glyphFilter->GetOutputPort());
-	pointSetToLabelHierarchyFilter->SetLabelArrayName("labels");
-	pointSetToLabelHierarchyFilter->Update();
-
-	// Create a mapper and actor for the labels.
-	VTK_CREATE(vtkLabelPlacementMapper, labelMapper);
-	labelMapper->SetInputConnection(pointSetToLabelHierarchyFilter->GetOutputPort());
-	labelMapper->UseDepthBufferOff();
-	labelMapper->PlaceAllLabelsOn();
-
-	vtkActor2D* labelActor = vtkActor2D::New();
-	labelActor->SetMapper(labelMapper);
-	labelActor->SetLayerNumber(5);
-
-	return labelActor;
 }
 
 ///
@@ -1266,21 +1090,6 @@ void IsosurfaceVisualization::connectAll()
 
     // Export
     connect(this->form->buttonSaveMesh,SIGNAL(clicked()),this,SLOT(buttonSaveMeshClicked()));
-
-    // Measurement
-    connect(this->form->buttonSetPointA,SIGNAL(clicked()),this,SLOT(buttonSetPointAClicked()));
-    connect(this->form->lineEditNamePointA,SIGNAL(textChanged(QString)),this,SLOT(lineEditNamePointAChanged(QString)));
-
-    connect(this->form->buttonSetPointB,SIGNAL(clicked()),this,SLOT(buttonSetPointBClicked()));
-    connect(this->form->lineEditNamePointB,SIGNAL(textChanged(QString)),this,SLOT(lineEditNamePointBChanged(QString)));
-    connect(this->form->comboBoxFiberData,SIGNAL(currentIndexChanged(int)),this,SLOT(comboBoxFiberDataChanged()));
-    connect(this->form->spinFiberChoice,SIGNAL(valueChanged(int)),this,SLOT(fiberSelectUpdate(int)));
-	connect(this->form->sliderFiberChoice,SIGNAL(valueChanged(int)),this,SLOT(fiberSelectUpdate(int)));
-	connect(this->form->spinFiberRefinement,SIGNAL(valueChanged(double)),this,SLOT(fiberRefinementUpdate(double)));
-	connect(this->form->sliderFiberRefinement,SIGNAL(valueChanged(int)),this,SLOT(fiberRefinementUpdate(int)));
-
-    connect(this->form->buttonSetLineColor,SIGNAL(clicked()),this,SLOT(buttonSetLineColorClicked()));
-    //connect(this->form->buttonSaveMeasurement,SIGNAL(clicked()),this,SLOT(buttonSaveMeasurementClicked()));
 }
 
 //------------------------[ Disconnect Qt elements ]-----------------------\\
@@ -1624,12 +1433,6 @@ void IsosurfaceVisualization::inputSmoothingChanged(double value)
 
 void IsosurfaceVisualization::inputColorChanged()
 {
-    /*int color_hex = value.toInt(0,16);
-    current_modelInfo->color[0] = ((color_hex >> 16) & 0xff) / 255.0; // red
-    current_modelInfo->color[1] = ((color_hex >> 8) & 0xff) / 255.0; // green
-    current_modelInfo->color[2] = (color_hex & 0xff) / 255.0; // blue
-    current_modelInfo->colorString = value;*/
-
     QColor oldColor;
     oldColor.setRgbF(current_modelInfo->color[0], current_modelInfo->color[1], current_modelInfo->color[2]);
     QColor newColor = QColorDialog::getColor(oldColor, 0);
@@ -1665,8 +1468,10 @@ void IsosurfaceVisualization::inputReductionChanged(double value)
 
 void IsosurfaceVisualization::horizontalSliderXChanged(int value)
 {
+    this->BlockSignals();
     this->form->spinX->setValue(value);
     this->updateClippingPlaneSlider(0,value);
+    this->AllowSignals();
 
 	//this->current_modelInfo->prop->GetProperty()->AddShaderVariable("ClipX",(double)(value) );
 	//this->core()->render();
@@ -1676,10 +1481,12 @@ void IsosurfaceVisualization::horizontalSliderXChanged(int value)
 
 void IsosurfaceVisualization::horizontalSliderYChanged(int value)
 {
+    this->BlockSignals();
     this->form->spinY->setValue(value);
     this->updateClippingPlaneSlider(1,value);
+    this->AllowSignals();
 
-		//this->current_modelInfo->prop->GetProperty()->AddShaderVariable("ClipY",(double)(value) );
+    //this->current_modelInfo->prop->GetProperty()->AddShaderVariable("ClipY",(double)(value) );
 	//this->core()->render();
 }
 
@@ -1687,10 +1494,12 @@ void IsosurfaceVisualization::horizontalSliderYChanged(int value)
 
 void IsosurfaceVisualization::horizontalSliderZChanged(int value)
 {
+    this->BlockSignals();
     this->form->spinZ->setValue(value);
     this->updateClippingPlaneSlider(2,value);
+    this->AllowSignals();
 
-		//this->current_modelInfo->prop->GetProperty()->AddShaderVariable("ClipZ",(double)(value) );
+    //this->current_modelInfo->prop->GetProperty()->AddShaderVariable("ClipZ",(double)(value) );
 	//this->core()->render();
 }
 
@@ -1743,24 +1552,30 @@ void IsosurfaceVisualization::checkBoxFlipZChanged(bool checked)
 
 void IsosurfaceVisualization::spinXChanged(int value)
 {
-   // this->form->horizontalSliderX->setValue(value);
-    //this->updateClippingPlaneSlider(0,value);
+    this->BlockSignals();
+    this->form->horizontalSliderX->setValue(value);
+    this->updateClippingPlaneSlider(0,value);
+    this->AllowSignals();
 }
 
 //---------------[ Change clipping plane spin value in Y direction ]-------------------\
 
 void IsosurfaceVisualization::spinYChanged(int value)
 {
-    //this->form->horizontalSliderY->setValue(value);
-   // this->updateClippingPlaneSlider(1,value);
+    this->BlockSignals();
+    this->form->horizontalSliderY->setValue(value);
+    this->updateClippingPlaneSlider(1,value);
+    this->AllowSignals();
 }
 
 //---------------[ Change clipping plane spin value in Z direction ]-------------------\
 
 void IsosurfaceVisualization::spinZChanged(int value)
 {
-   // this->form->horizontalSliderZ->setValue(value);
-    //this->updateClippingPlaneSlider(2,value);
+    this->BlockSignals();
+    this->form->horizontalSliderZ->setValue(value);
+    this->updateClippingPlaneSlider(2,value);
+    this->AllowSignals();
 }
 
 //---------------[ Save 3D mesh ]-------------------\
@@ -1785,6 +1600,8 @@ void IsosurfaceVisualization::buttonSaveMeshClicked()
     }
 }
 
+//---------------[ Invert clipping on mesh ]-------------------\
+
 void IsosurfaceVisualization::checkBoxInvertClippingChanged(bool checked)
 {
     if(current_modelInfo->extractPolyFunc != NULL)
@@ -1800,589 +1617,45 @@ void IsosurfaceVisualization::checkBoxInvertClippingChanged(bool checked)
     }
 }
 
+//---------------[ Select largest component ]-------------------\
+
 void IsosurfaceVisualization::checkBoxLargestComponentChanged(bool checked)
 {
     current_modelInfo->selectLargestComponent = checked;
     bModelDirty = true;
 }
 
+//---------------[ Align clipping planes to user pick ]-------------------\
+
 void IsosurfaceVisualization::checkBoxAlignPlanesToPickChanged(bool checked)
 {
     current_modelInfo->alignPlanesToPick = checked;
 }
 
-void IsosurfaceVisualization::buttonSetPointAClicked()
+//---------------[ Block GUI elements to stop propagation ]-------------------\
+
+void IsosurfaceVisualization::BlockSignals()
 {
-    setMeasuredPoint(0);
+    this->form->horizontalSliderX->blockSignals(true);
+    this->form->horizontalSliderY->blockSignals(true);
+    this->form->horizontalSliderX->blockSignals(true);
+    this->form->spinX->blockSignals(true);
+    this->form->spinY->blockSignals(true);
+    this->form->spinZ->blockSignals(true);
 }
 
-void IsosurfaceVisualization::buttonSetPointBClicked()
+//---------------[ Unblock GUI elements ]-------------------\
+
+void IsosurfaceVisualization::AllowSignals()
 {
-    setMeasuredPoint(1);
+    this->form->horizontalSliderX->blockSignals(false);
+    this->form->horizontalSliderY->blockSignals(false);
+    this->form->horizontalSliderX->blockSignals(false);
+    this->form->spinX->blockSignals(false);
+    this->form->spinY->blockSignals(false);
+    this->form->spinZ->blockSignals(false);
 }
 
-void IsosurfaceVisualization::setMeasuredPoint(int id)
-{
-    MeasuredPoint* point = this->measuredPointList.at(id);
-
-    if(!point->set)
-    {
-        this->assembly->AddPart(point->sphere);
-    }
-
-    point->set = true;
-
-    point->x = this->clickedPoint[0];
-    point->y = this->clickedPoint[1];
-    point->z = this->clickedPoint[2];
-
-    point->sphere->SetPosition(point->x,point->y,point->z);
-
-    if(id == 0)
-    {
-        this->form->inputXPointA->setValue(point->x);
-        this->form->inputYPointA->setValue(point->y);
-        this->form->inputZPointA->setValue(point->z);
-    }
-    else
-    {
-        this->form->inputXPointB->setValue(point->x);
-        this->form->inputYPointB->setValue(point->y);
-        this->form->inputZPointB->setValue(point->z);
-    }
-
-    calculateDistance();
-
-    this->core()->render();
-}
-
-void IsosurfaceVisualization::calculateDistance()
-{
-    MeasuredPoint* pointA = this->measuredPointList.at(0);
-    MeasuredPoint* pointB = this->measuredPointList.at(1);
-
-    if(!pointA->set || !pointB->set)
-        return;
-
-    double distance =   sqrt( (pointA->x - pointB->x)*(pointA->x - pointB->x) +
-                        (pointA->y - pointB->y)*(pointA->y - pointB->y) +
-                        (pointA->z - pointB->z)*(pointA->z - pointB->z) );
-    QString labeltext = QString("Measured distance: %1 mm").arg(distance,0,'f',2);
-	QString labeltext_short = QString("%1 mm").arg(distance,0,'f',2);
-    this->form->measuredDistanceLabel->setText(labeltext);
-
-    // renew line
-    vtkSmartPointer<vtkLineSource> lineSource =
-        vtkSmartPointer<vtkLineSource>::New();
-    lineSource->SetPoint1(pointA->x,pointA->y,pointA->z);
-    lineSource->SetPoint2(pointB->x,pointB->y,pointB->z);
-    vtkSmartPointer<vtkPolyDataMapper> lineMapper =
-        vtkSmartPointer<vtkPolyDataMapper>::New();
-    lineMapper->SetInputConnection(lineSource->GetOutputPort());
-
-    vtkActor* lineActor =
-        vtkActor::New();
-    lineActor->SetMapper(lineMapper);
-    lineActor->GetProperty()->SetLineStipplePattern(0xFF00);
-
-    this->assembly->AddPart(lineActor);
-    if(measuredLine != NULL)
-        this->assembly->RemovePart(measuredLine);
-    measuredLine = lineActor;
-
-
-
-	measuredLabelPoints = vtkPoints::New();
-	measuredLabelStrings = vtkStringArray::New();
-
-	measuredLabelStrings->SetName("labels");
-	measuredLabelPoints->InsertNextPoint(pointA->x,pointA->y,pointA->z+5);
-	measuredLabelStrings->InsertNextValue(this->form->lineEditNamePointA->text().toLocal8Bit().constData());
-
-	measuredLabelPoints->InsertNextPoint(pointB->x,pointB->y,pointB->z+5);
-	measuredLabelStrings->InsertNextValue(this->form->lineEditNamePointB->text().toLocal8Bit().constData());
-
-	measuredLabelPoints->InsertNextPoint(pointA->x + (pointB->x-pointA->x)/2.0,
-							pointA->y + (pointB->y-pointA->y)/2.0,
-							pointA->z + (pointB->z-pointA->z)/2.0+5);
-	measuredLabelStrings->InsertNextValue(labeltext_short.toLocal8Bit().constData());
-
-    if(measuredLabels != NULL)
-        this->assembly->RemovePart(measuredLabels);
-
-	measuredLabels = this->GenerateLabels(measuredLabelPoints,measuredLabelStrings);
-	this->assembly->AddPart(measuredLabels);
-
-
-    if (this->currentElectrodesColor.isValid())
-    {
-        measuredLine->GetProperty()->SetColor(this->currentElectrodesColor.redF(), this->currentElectrodesColor.greenF(), this->currentElectrodesColor.blueF());
-        pointA->sphere->GetProperty()->SetColor(this->currentElectrodesColor.redF(), this->currentElectrodesColor.greenF(), this->currentElectrodesColor.blueF());
-        pointB->sphere->GetProperty()->SetColor(this->currentElectrodesColor.redF(), this->currentElectrodesColor.greenF(), this->currentElectrodesColor.blueF());
-    }
-
-
-    // remove old blobs
-    /*QList<vtkActor*>::iterator i;
-    for(i = this->depthElectrodeBlobs.begin(); i!=this->depthElectrodeBlobs.end(); i++)
-    {
-        this->assembly->RemovePart((*i));
-    }
-    this->depthElectrodeBlobs.clear();
-
-    // create new blobs
-    float stepSize = 4; // 1.5 mm depth electrode seperation
-    int steps = ceil(distance/stepSize);
-
-    vec3* line = new vec3;
-    line->x = (pointA->x - pointB->x)/distance;
-    line->y = (pointA->y - pointB->y)/distance;
-    line->z = (pointA->z - pointB->z)/distance;
-
-    for(int j = 0; j<steps; j++)
-    {
-        vtkSmartPointer<vtkSphereSource> diskSource =
-            vtkSmartPointer<vtkSphereSource>::New();
-        diskSource->SetRadius(2);
-
-        vtkSmartPointer<vtkPolyDataMapper> diskMapper =
-            vtkSmartPointer<vtkPolyDataMapper>::New();
-        diskMapper->SetInputConnection(diskSource->GetOutputPort());
-
-        vtkActor* diskActor =
-            vtkActor::New();
-        diskActor->SetMapper(diskMapper);
-
-        diskActor->SetPosition(-line->x * j * stepSize + pointA->x, -line->y * j * stepSize + pointA->y, -line->z * j * stepSize + pointA->z );
-
-        if (this->currentElectrodesColor.isValid())
-        {
-            diskActor->GetProperty()->SetColor(this->currentElectrodesColor.redF(), this->currentElectrodesColor.greenF(), this->currentElectrodesColor.blueF());
-        }
-
-        this->assembly->AddPart(diskActor);
-        this->depthElectrodeBlobs.append(diskActor);
-    }*/
-}
-
-void IsosurfaceVisualization::buttonSetLineColorClicked()
-{
-    double oldColorRGB[3];
-    QColor oldColor;
-    //vtkActor* electrodeActor = depthElectrodeBlobs.at(0);
-    measuredLine->GetProperty()->GetColor(oldColorRGB);
-    oldColor.setRgbF(oldColorRGB[0], oldColorRGB[1], oldColorRGB[2]);
-
-    // Use a color dialog to get the new color
-    this->currentElectrodesColor = QColorDialog::getColor(oldColor, 0);
-
-    measuredLine->GetProperty()->SetColor(this->currentElectrodesColor.redF(), this->currentElectrodesColor.greenF(), this->currentElectrodesColor.blueF());
-
-    MeasuredPoint* pointA = this->measuredPointList.at(0);
-    MeasuredPoint* pointB = this->measuredPointList.at(1);
-    pointA->sphere->GetProperty()->SetColor(this->currentElectrodesColor.redF(), this->currentElectrodesColor.greenF(), this->currentElectrodesColor.blueF());
-    pointB->sphere->GetProperty()->SetColor(this->currentElectrodesColor.redF(), this->currentElectrodesColor.greenF(), this->currentElectrodesColor.blueF());
-
-    // set current electrodes to that color
-    /*QList<vtkActor*>::iterator i;
-    for(i = this->depthElectrodeBlobs.begin(); i!=this->depthElectrodeBlobs.end(); i++)
-    {
-        if (this->currentElectrodesColor.isValid())
-        {
-            (*i)->GetProperty()->SetColor(this->currentElectrodesColor.redF(), this->currentElectrodesColor.greenF(), this->currentElectrodesColor.blueF());
-        }
-    }*/
-}
-
-void IsosurfaceVisualization::buttonSaveMeasurementClicked()
-{
-    this->depthElectrodeBlobs.clear();
-}
-
-void IsosurfaceVisualization::lineEditNamePointAChanged(QString value)
-{
-	this->measuredLabelStrings->SetValue(0,value.toLocal8Bit().constData());
-	this->core()->render();
-}
-
-void IsosurfaceVisualization::lineEditNamePointBChanged(QString value)
-{
-	this->measuredLabelStrings->SetValue(1,value.toLocal8Bit().constData());
-	this->core()->render();
-}
-
-void IsosurfaceVisualization::comboBoxFiberDataChanged()
-{
-    // select model info matching the dataset
-    int index = this->form->comboBoxFiberData->currentIndex() - 1;
-
-    // Update selected fiber data in settings
-    current_modelInfo->selectedFiberData = index;
-
-    // "None" value
-    if(index < 0)
-    {
-        // disable gui
-        this->form->sliderFiberChoice->setEnabled(false);
-        this->form->spinFiberChoice->setEnabled(false);
-        this->form->sliderFiberRefinement->setEnabled(false);
-        this->form->spinFiberRefinement->setEnabled(false);
-    }
-    else
-    {
-        // enable gui
-        this->form->sliderFiberChoice->setEnabled(true);
-        this->form->spinFiberChoice->setEnabled(true);
-        this->form->sliderFiberRefinement->setEnabled(true);
-        this->form->spinFiberRefinement->setEnabled(true);
-
-        // Get data struct
-        SortedFibers* sortedFibers = this->sortedFibersList.at(index);
-
-        // process data set
-        processFiberAnteriorSorting(sortedFibers);
-
-        // Set GUI value limits
-        int amountOfFibers = sortedFibers->selectedLines.length() - 1; // 100 or less
-        this->form->sliderFiberChoice->setMaximum(amountOfFibers);
-        this->form->spinFiberChoice->setMaximum(amountOfFibers);
-
-        // update selected point b
-        fiberSelectUpdate(sortedFibers->userSelectedLine);
-
-
-
-
-
-
-        QWidget *secondWindow = new QWidget();
-        secondWindow->setGeometry(0, 0, 1150, 600);
-
-
-        // QVTK set up and initialization
-        QVTKWidget *qvtkWidget = new QVTKWidget(secondWindow);
-        QVTKWidget *qvtkWidget2 = new QVTKWidget(secondWindow);
-
-        // Set up my 2D world...
-        VTK_CREATE(vtkContextView, view); // This contains a chart object
-        view->SetInteractor(qvtkWidget->GetInteractor());
-        qvtkWidget->SetRenderWindow(view->GetRenderWindow());
-
-        VTK_CREATE(vtkContextView, view2); // This contains a chart object
-        view2->SetInteractor(qvtkWidget2->GetInteractor());
-        qvtkWidget2->SetRenderWindow(view2->GetRenderWindow());
-
-        // Create a table with some points in it...
-        VTK_CREATE(vtkTable, table);
-        VTK_CREATE(vtkFloatArray, arrX);
-        arrX->SetName("X Axis");
-        table->AddColumn(arrX);
-        VTK_CREATE(vtkFloatArray, arrC);
-        arrC->SetName("Average score");
-        table->AddColumn(arrC);
-        VTK_CREATE(vtkFloatArray, arrS);
-        arrS->SetName("Local average score");
-        table->AddColumn(arrS);
-
-
-        MeasuredPoint* pointA = this->measuredPointList.at(0);
-
-        int length = sortedFibers->selectedLines.length();
-        table->SetNumberOfRows(length);
-        for(int j = 0; j<length; j++)
-        {
-            int fiberLength = sortedFibers->selectedLines.at(j)->scalarData.length();
-
-            int anteriorIndex = sortedFibers->selectedLines.at(j)->anteriorPointIndex;
-            Vec3* pointB = sortedFibers->selectedLines.at(j)->data.at(anteriorIndex);
-
-            double distance =   sqrt( (pointA->x - pointB->x)*(pointA->x - pointB->x) +
-                                (pointA->y - pointB->y)*(pointA->y - pointB->y) +
-                                (pointA->z - pointB->z)*(pointA->z - pointB->z) );
-
-            // distance axis
-            table->SetValue(j, 0, distance);
-
-            // average score
-            double avgScore = 0.0;
-            for(int i = 0; i<fiberLength; i++)
-            {
-                avgScore += sortedFibers->selectedLines.at(j)->scalarData.at(i);
-            }
-            avgScore /= fiberLength;
-            table->SetValue(j, 1, avgScore);
-
-            // local average score
-            double localAvgScore = 0.0;
-            int pointRange = 25;
-            int minBound = std::max(0,anteriorIndex - pointRange);
-            int maxBound = std::min(fiberLength,anteriorIndex + pointRange);
-            for(int i = minBound; i<maxBound; i++)
-            {
-                localAvgScore += sortedFibers->selectedLines.at(j)->scalarData.at(i);
-            }
-            localAvgScore /= maxBound - minBound;
-            table->SetValue(j, 2, localAvgScore);
-
-
-            //std::cout << " j: " << j << " distance: " << distance
-            //<< " avg score: " << avgScore
-            //<< " local avg score: " << localAvgScore << std::endl;
-
-        }
-        table->Update();
-
-        // Add multiple line plots, setting the colors etc
-        vtkSmartPointer<vtkChartXY> chart = vtkSmartPointer<vtkChartXY>::New();
-        view->GetScene()->AddItem(chart);
-        vtkPlot *line = chart->AddPlot(vtkChart::POINTS);
-        line->SetInput(table, 0, 1);
-        line->SetColor(255, 0, 0, 255);
-        line->SetWidth(2.0);
-        chart->GetAxis(vtkAxis::LEFT)->SetTitle("Connectivity measure (-)");
-        chart->GetAxis(vtkAxis::BOTTOM)->SetTitle("Distance (mm)");
-        chart->SetTitle("Average score");
-        //chart->SetActionToButton(vtkChart::SELECT,vtkContextMouseEvent::LEFT_BUTTON);
-        //chart->SetActionToButton(vtkChart::ZOOM,vtkContextMouseEvent::MIDDLE_BUTTON);
-        //chart->SetActionToButton(vtkChart::PAN,vtkContextMouseEvent::RIGHT_BUTTON);
-        chart->SetClickActionToButton(vtkChart::SELECT, vtkContextMouseEvent::LEFT_BUTTON);
-        chart->SetClickActionToButton(vtkChart::NOTIFY, vtkContextMouseEvent::RIGHT_BUTTON);
-
-        vtkSmartPointer<vtkChartXY> chart2 = vtkSmartPointer<vtkChartXY>::New();
-        view2->GetScene()->AddItem(chart2);
-        line = chart2->AddPlot(vtkChart::POINTS);
-        line->SetInput(table, 0, 2);
-        line->SetColor(0, 255, 0, 255);
-        line->SetWidth(2.0);
-        chart2->GetAxis(vtkAxis::LEFT)->SetTitle("Connectivity measure (-)");
-        chart2->GetAxis(vtkAxis::BOTTOM)->SetTitle("Distance (mm)");
-        chart2->SetTitle("Average local score");
-        //chart2->SetClickActionToButton(vtkChart::SELECT, vtkContextMouseEvent::LEFT_BUTTON);
-        //chart2->SetClickActionToButton(vtkChart::NOTIFY, vtkContextMouseEvent::RIGHT_BUTTON);
-        chart2->SetSelectionMode(vtkContextScene::SELECTION_TOGGLE);
-
-        // Now lets try to add a table view
-        QVBoxLayout *layout = new QVBoxLayout(secondWindow);
-        layout->addWidget(qvtkWidget);
-        layout->addWidget(qvtkWidget2);
-
-        secondWindow->raise();
-        secondWindow->show();
-
-
-
-
-
-    }
-}
-
-void IsosurfaceVisualization::processFiberAnteriorSorting(SortedFibers* sortedFibers)
-{
-    // Look if dataset is already processed ...
-    if(sortedFibers->selectedLines.length() != 0)
-        return;
-
-    // Get the polydata from the data set
-    vtkPolyData * polydata = sortedFibers->ds->getVtkPolyData();
-
-	// Get the transformation matrix
-    vtkObject* tfm;
-    vtkMatrix4x4* transformationMatrix;
-    if (sortedFibers->ds->getAttributes()->getAttribute("transformation matrix", tfm ))
-    {
-        transformationMatrix = vtkMatrix4x4::SafeDownCast(tfm);
-        if (transformationMatrix == 0)
-        {
-            this->core()->out()->logMessage("not a valid transformation matrix");
-            return;
-        }
-    }
-
-    // Get fiber tracts
-    vtkCellArray * fibers = polydata->GetLines();
-    vtkIdType numberOfFibers = fibers->GetNumberOfCells();
-
-    vtkPointData* pointdata = polydata->GetPointData();
-    pointdata->Print(std::cout);
-
-    // Get scalar values (if present)
-    // Check if the fibers contain point data
-    vtkDataArray * scalars;
-    bool hasScalars = false;
-    if (polydata->GetPointData())
-    {
-        if (scalars = polydata->GetPointData()->GetScalars())
-        {
-            // Scalar array should have as many points as the input fiber set, and at least one component
-            if (scalars->GetNumberOfTuples() == polydata->GetNumberOfPoints() && scalars->GetNumberOfComponents() > 0)
-            {
-                hasScalars = true;
-            }
-        }
-    }
-
-    // Map used to store fiber indices (value) and their anterior point (key)
-	QMap<double, FiberData*> fiberMap;
-
-    vtkIdType numberOfPoints;
-	vtkIdType * pointList;
-	double currentPoint[3];
-    fibers->InitTraversal();
-
-    // Loop through all fibers
-	for (vtkIdType fiberId = 0; fiberId < numberOfFibers; ++fiberId)
-	{
-		// Get the number of points and the list of point IDs of the current fiber
-		fibers->GetNextCell(numberOfPoints, pointList);
-
-		// Do nothing if the fiber is empty
-		if (numberOfPoints == 0)
-			continue;
-
-        double mostAnteriorPoint = -1e32; // low value
-        int anteriorPointIndex = -1;
-
-        // Create fiber data struct
-        FiberData* fiberData = new FiberData;
-
-		// Loop through all points of the current fiber
-		for (vtkIdType pointId = 0; pointId < numberOfPoints; ++pointId)
-		{
-            // Get the coordinates of the current point
-            polydata->GetPoint(pointList[pointId], currentPoint);
-
-			// Update most anterior point
-            if(currentPoint[1] > mostAnteriorPoint)
-            {
-                mostAnteriorPoint = currentPoint[1];
-                anteriorPointIndex = pointId;
-            }
-
-            // Do the point transformation
-            double vec[4] = {currentPoint[0],currentPoint[1],currentPoint[2],1};
-			transformationMatrix->MultiplyPoint(vec,vec);
-
-            // Save fiber point as Vec3 for easier management
-            Vec3* vec3 = new Vec3;
-            vec3->x = vec[0];
-            vec3->y = vec[1];
-            vec3->z = vec[2];
-
-            // Save to fiber data struct
-            fiberData->data.append(vec3);
-		}
-
-		// If it contains scalar data, copy it
-		if(hasScalars)
-		{
-		    for (vtkIdType pointId = 0; pointId < numberOfPoints; ++pointId)
-            {
-                fiberData->scalarData.append(scalars->GetTuple1(pointList[pointId]));
-            }
-		}
-
-        // Set anterior point index in struct
-        fiberData->anteriorPointIndex = anteriorPointIndex;
-
-        // Set refinement point at zero
-        fiberData->userPointRefinement = 0;
-
-        // Add fiber data in QMap for sorting
-		fiberMap.insert(mostAnteriorPoint, fiberData);
-	}
-
-    // Select most anterior fibers
-    int rFiberIndex = 0;
-    int numberOfOutputFibers = 100;
-    QMap<double, FiberData*>::iterator rIter = fiberMap.end();
-    while (rIter != fiberMap.begin())
-	{
-		// Decrement the iterator
-		rIter--;
-
-        // Add the fiber data struct to the sorted fibers list
-        sortedFibers->selectedLines.append(rIter.value());
-
-		// Break if we've reached the desired number of fibers
-		if (++rFiberIndex == numberOfOutputFibers)
-			break;
-	}
-}
-
-void IsosurfaceVisualization::fiberSelectUpdate(int value)
-{
-    // Get data struct
-    SortedFibers* sortedFibers = this->sortedFibersList.at(current_modelInfo->selectedFiberData);
-
-    // get selected fiber index
-    sortedFibers->userSelectedLine = std::max(value,0);
-
-    // fiber data
-    FiberData* fiberData = sortedFibers->selectedLines.at(sortedFibers->userSelectedLine);
-
-    // set gui values
-    this->form->sliderFiberChoice->setValue(value);
-    this->form->spinFiberChoice->setValue(value);
-    this->form->sliderFiberRefinement->setValue(fiberData->userPointRefinement);
-    this->form->spinFiberRefinement->setValue(fiberData->userPointRefinement);
-
-    // Set GUI limits on fiber refinement
-    int refinementValue_min = -fiberData->anteriorPointIndex;
-    int refinementValue_max = fiberData->data.length() - fiberData->anteriorPointIndex - 1;
-    this->form->sliderFiberRefinement->setMinimum(refinementValue_min);
-    this->form->spinFiberRefinement->setMinimum(refinementValue_min);
-    this->form->sliderFiberRefinement->setMaximum(refinementValue_max);
-    this->form->spinFiberRefinement->setMaximum(refinementValue_max);
-
-    // update fiber point
-    fiberPointSelect();
-}
-
-void IsosurfaceVisualization::fiberRefinementUpdate(double value)
-{
-    // Get data struct
-    SortedFibers* sortedFibers = this->sortedFibersList.at(current_modelInfo->selectedFiberData);
-
-    // fiber data
-    FiberData* fiberData = sortedFibers->selectedLines.at(sortedFibers->userSelectedLine);
-
-    // Update refinement value
-    fiberData->userPointRefinement = value;
-
-    // set GUI values
-    this->form->sliderFiberRefinement->setValue(fiberData->userPointRefinement);
-    this->form->spinFiberRefinement->setValue(fiberData->userPointRefinement);
-
-    // update fiber point
-    fiberPointSelect();
-}
-
-void IsosurfaceVisualization::fiberRefinementUpdate(int value)
-{
-    fiberRefinementUpdate((double)value);
-}
-
-void IsosurfaceVisualization::fiberPointSelect()
-{
-    // Get data struct
-    SortedFibers* sortedFibers = this->sortedFibersList.at(current_modelInfo->selectedFiberData);
-
-    // fiber data
-    FiberData* fiberData = sortedFibers->selectedLines.at(sortedFibers->userSelectedLine);
-
-    Vec3* pointA = fiberData->data.at(floor(fiberData->anteriorPointIndex + fiberData->userPointRefinement));
-    Vec3* pointB = fiberData->data.at(ceil(fiberData->anteriorPointIndex + fiberData->userPointRefinement));
-
-    // set point B
-    // do a linear interpolation for the refinement setting
-    double loc_pos = fmod(fiberData->anteriorPointIndex + fiberData->userPointRefinement,1);
-    this->clickedPoint[0] = pointB->x * loc_pos + pointA->x * (1 - loc_pos);
-    this->clickedPoint[1] = pointB->y * loc_pos + pointA->y * (1 - loc_pos);
-    this->clickedPoint[2] = pointB->z * loc_pos + pointA->z * (1 - loc_pos);
-
-    // update point b
-    setMeasuredPoint(1);
-}
 
 ///
 ///     vISTe communication

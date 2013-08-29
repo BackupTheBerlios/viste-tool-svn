@@ -4,7 +4,6 @@
 /** Includes - Main Header */
 
 #include "DTITool.h"
-//#include "../src/smeesters/plugins/stable/PlanesVisualization/PlanesVisPlugin.h"
 
 /** Includes - Qt */
 
