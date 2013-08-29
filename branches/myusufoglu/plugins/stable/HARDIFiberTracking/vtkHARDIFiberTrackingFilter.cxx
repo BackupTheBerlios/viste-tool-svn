@@ -434,7 +434,6 @@ namespace bmia {
 				unitVectors[i][0] = sinf(angles[0]) * cosf(angles[1]);
 				unitVectors[i][1] = sinf(angles[0]) * sinf(angles[1]);
 				unitVectors[i][2] = cosf(angles[0]);
-
 			}
 
 		}//if ends

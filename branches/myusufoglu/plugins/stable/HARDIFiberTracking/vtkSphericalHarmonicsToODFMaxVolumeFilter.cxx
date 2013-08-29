@@ -185,8 +185,7 @@ namespace bmia {
 
 			std::vector<double> ODFlist;
 
-			//create a maximumfinder
-			MaximumFinder MaxFinder(trianglesArray); // what does this arr do
+			
 		 
 		// Start reporting the progress of this filter
 		this->UpdateProgress(0.0);
@@ -321,7 +320,8 @@ outUnitVectorList.at(nr)->SetNumberOfComponents(3);
 			unitVectors = obj->getUnitVectors();
 			anglesArray1 = obj->getAnglesArray();
 			trianglesArray = obj->getTrianglesArray();
-	
+	//create a maximumfinder
+			MaximumFinder MaxFinder = MaximumFinder(trianglesArray); // what does this arr do
 
 
 			// Get the array containing the angles of the sample points
@@ -383,7 +383,8 @@ outUnitVectorList.at(nr)->SetNumberOfComponents(3);
 				}
 			outArray->InsertNextTupleValue(indexesOfMaxima);
 		
-
+			maxima.clear();
+			ODFlist.clear();
 			}
 			else 
 				cout << "this->nMaximaForEachPoint is not in the range" << endl; 
