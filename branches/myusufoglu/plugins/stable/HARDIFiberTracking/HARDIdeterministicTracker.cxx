@@ -1398,6 +1398,29 @@ namespace bmia {
 	}
 
 
+	void HARDIdeterministicTracker::FormMaxDirectionArrays(vtkImageData *maximaVolume)
+	{
+		// if the image of unit vectors and maxima indexes have been already prepared. 
+		QString saveArrayName("MaxDirectionUnitVectors");
+		std::vector<vtkDoubleArray *> outUnitVectorList;
+		unsigned int nMaximaForEachPoint =  maximaVolume->GetPointData()->GetArray("maximas")->GetNumberOfComponents();
+		vtkIntArray * outArray = (vtkIntArray *)maximaVolume->GetPointData()->GetArray("maximas");
+
+	 
+		for(unsigned int nr = 0; nr <  nMaximaForEachPoint; nr++)
+		{
+			//	outUnitVectorList.push_back(vtkDoubleArray::New());
+			//outUnitVectorList.at(nr)->SetNumberOfComponents(3);
+			//outUnitVectorList.at(nr)->SetNumberOfTuples(maximaVolume->GetNumberOfPoints());
+			QString arrName= saveArrayName + QString::number(nr); 
+			outUnitVectorList.at(nr)->SetName( arrName.toStdString().c_str() );  //fist vector array for each point (keeps only the first vector)
+			outUnitVectorList.at(nr)= (vtkDoubleArray *) maximaVolume->GetPointData()->GetArray( arrName.toStdString().c_str() );
+		}
+
+
+		 
+
+	}
 
 
 } // namespace bmia

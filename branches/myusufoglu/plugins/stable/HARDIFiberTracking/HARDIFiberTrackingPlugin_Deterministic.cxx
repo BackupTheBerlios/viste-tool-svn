@@ -16,7 +16,7 @@
 #include "HARDIFiberTrackingPlugin.h"
 #include "vtkHARDIFiberTrackingFilter.h"
 #include "vtkSphericalHarmonicsToODFMaxVolumeFilter.h"
-#include "vtkXMLImageDataReader.h"
+
 
 namespace bmia {
 
@@ -32,34 +32,7 @@ void HARDIFiberTrackingPlugin::setupGUIForHARDIDeterministic()
 	// Enabled controls that may have disabled for other tracking methods
 	this->enableAllControls();
 }
-void HARDIFiberTrackingPlugin::readMaximaVectorsFile()
-{
-
-
-	    QString fileName = QFileDialog::getOpenFileName(nullptr, tr("Open File"),"/", tr("Maxima and Unit Vectors (*.vtk)"));
-    vtkXMLImageDataReader *readerXML = vtkXMLImageDataReader::New();                
-                     
- 				 
-					readerXML->SetFileName( fileName.toStdString().c_str() );
-
  
-					vtkImageData * maximaImage = (vtkImageData *) readerXML->GetOutput();
- 
-
-	/*
-	for(int nr = 0; nr < this->nMaximaForEachPoint; nr++)
-		{
-			outUnitVectorList.at(nr)->SetNumberOfComponents(3);
-			outUnitVectorList.at(nr)->SetNumberOfTuples(numberOfPoints);
-			QString arrName= saveArrayName + QString::number(nr); 
-			outUnitVectorList.at(nr)->SetName( arrName.toStdString().c_str() );  //fist vector array for each point (keeps only the first vector)
-			maximaImage->GetPointData()->GetArray("Eigenvector 1")
-		}
-	 
-*/
-
-}
-
 //----------------------[ doStreamlineFiberTracking ]----------------------\\
 
 void HARDIFiberTrackingPlugin::doDeterministicFiberTracking(vtkImageData * HARDIimageData, vtkImageData * aiImageData, int dataType)
@@ -167,6 +140,8 @@ void HARDIFiberTrackingPlugin::doDeterministicFiberTracking(vtkImageData * HARDI
 
 		//HARDIFiberTrackingFilter dataType SH:1, DS:0
 		HARDIFiberTrackingFilter->sphericalHarmonics=dataType; 
+		 
+
 		// Set the user variables from the GUI
 		HARDIFiberTrackingFilter->SetIntegrationStepLength((float) this->ui->parametersStepSizeSpinner->value());
 		HARDIFiberTrackingFilter->SetMaximumPropagationDistance((float) this->ui->parametersMaxLengthSpinner->value());
@@ -212,9 +187,14 @@ void HARDIFiberTrackingPlugin::doDeterministicFiberTracking(vtkImageData * HARDI
                     if(writerXML->Write())  cout << "Writing the maxima volume finished\n" << endl;  
            return;
 	   }
+		if(HARDIFiberTrackingFilter->GetUseMaximaFile())
+		{
+			vtkImageData *maximaVolume = vtkImageData::New();
+			HARDIFiberTrackingFilter->readMaximaVectorsFile(maximaVolume);
+			HARDIFiberTrackingFilter->SetMaximaDirectionsVolume(maximaVolume);
+		}
 
-
-
+		
 		// Update the filter- RUN!
 		HARDIFiberTrackingFilter->Update();
 

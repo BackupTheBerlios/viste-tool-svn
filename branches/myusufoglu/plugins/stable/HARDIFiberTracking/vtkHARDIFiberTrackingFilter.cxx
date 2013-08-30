@@ -223,9 +223,9 @@ namespace bmia {
 		output->SetLines(newFiberLines);
 		newFiberLines->Delete();
 	}
-
-	  
-
+	
+	
+	 
 	void vtkHARDIFiberTrackingFilter::Execute()
 	{
 		 
@@ -463,6 +463,8 @@ namespace bmia {
 				if(this->sphericalHarmonics) {
 					if(true)
 					{
+					//	this->GetMaximaDirectionsVolume();
+					// IMP	tracker->FormMaxDirectionArrays(this->GetMaximaDirectionsVolume());
 					tracker->calculateFiberSHDI( 1, &streamlinePointListPos, anglesArray, trianglesArray, NUMBEROFITERATIONS, CLEANMAXIMA, TRESHOLD);
 					//this->GetUseMaximaFile
 					//this->GetWriteMaximaToFile
@@ -582,6 +584,20 @@ namespace bmia {
 
 		fin.close();
 	}
+
+
+	void vtkHARDIFiberTrackingFilter::readMaximaVectorsFile(vtkImageData * maximaVolume)
+{
+
+	// maxima indexes and unit vectors along maxima
+	    QString fileName = QFileDialog::getOpenFileName(nullptr,  "Open File","/", "Maxima and Unit Vectors (*.vtk)");
+    vtkXMLImageDataReader *readerXML = vtkXMLImageDataReader::New();                
+                  			 
+					readerXML->SetFileName( fileName.toStdString().c_str() );
+					 maximaVolume = (vtkImageData *) readerXML->GetOutput();
+ 
+}
+
 
 	//----------------------------[ SetStopDegrees ]---------------------------\\
 

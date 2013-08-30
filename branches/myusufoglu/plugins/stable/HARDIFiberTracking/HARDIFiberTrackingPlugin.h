@@ -91,6 +91,17 @@ class HARDIFiberTrackingPlugin :public plugin::Plugin,
 			return "1.0.0";
 		}
 
+			vtkImageData* getMaximaVolume()
+		{
+			return  this->maximaImage;
+		}
+
+			void setMaximaVolume(vtkImageData* img)
+		{
+			this->maximaImage = img;
+		}
+
+
 		/** Constructor */
 
 		 HARDIFiberTrackingPlugin();
@@ -119,7 +130,7 @@ class HARDIFiberTrackingPlugin :public plugin::Plugin,
 		void dataSetChanged(data::DataSet * ds);
 		void dataSetRemoved(data::DataSet * ds);
 
-		void readMaximaVectorsFile();
+	 
 
 	protected slots:
 
@@ -187,7 +198,7 @@ class HARDIFiberTrackingPlugin :public plugin::Plugin,
 
 		vtkHARDIFiberTrackingFilter * HARDIFiberTrackingFilter;
 
-
+		vtkImageData *maximaImage;
 
 		/** List of added output data sets and their related information. */
 

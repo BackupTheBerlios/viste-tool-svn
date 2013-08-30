@@ -155,6 +155,9 @@ class HARDIdeterministicTracker
 		// debug variables
 			bool printStepInfo; // before cout
 		bool breakLoop; // breaks the main looop
+		// if directions and vectors of maxes are read from the file
+		void FormMaxDirectionArrays(vtkImageData *maximaVolume);
+	
 
 	protected:
 

@@ -70,6 +70,7 @@ class vtkHARDIFiberTrackingFilter;
 #include <QMessageBox>
 #include <QProgressDialog>
 
+#include "vtkXMLImageDataReader.h"
 /** Includes - Custom Files */
 
 #include "HARDIdeterministicTracker.h"
@@ -148,6 +149,9 @@ class vtkHARDIFiberTrackingFilter : public vtkDataSetToPolyDataFilter
 
 		void SetStopDegrees(float StopDegrees);
 
+		void  readMaximaVectorsFile(vtkImageData * maximaVolume);
+ 
+		 
 		/** Set the current set of seed points. 
 			@param seedPoint	Seed point set */
 
@@ -165,6 +169,19 @@ class vtkHARDIFiberTrackingFilter : public vtkDataSetToPolyDataFilter
 		/** Returns a pointer to the AI image */
 
 		vtkImageData * GetAnisotropyIndexImage();
+
+
+		void SetMaximaDirectionsVolume(vtkImageData * img)
+		{
+			maximaVolume = img;
+		}
+
+		/** Returns a pointer to the AI image */
+
+		vtkImageData * GetMaximaDirectionsVolume()
+		{
+			return maximaVolume;
+		}
 
 		/** Return "false" when one of the stopping conditions is met. Children
 			of this class can re-implement this function with additional
@@ -240,6 +257,9 @@ class vtkHARDIFiberTrackingFilter : public vtkDataSetToPolyDataFilter
 
 		vtkImageData * HARDIimageData;
 		vtkImageData * aiImageData;
+
+		//maximas and directions of each point 
+		vtkImageData *maximaVolume;
 
 		/** Point data of the input images. */
 
