@@ -16,7 +16,7 @@
 #include "HARDIFiberTrackingPlugin.h"
 #include "vtkHARDIFiberTrackingFilter.h"
 #include "vtkSphericalHarmonicsToODFMaxVolumeFilter.h"
-
+#include "vtkXMLImageDataReader.h"
 
 namespace bmia {
 
@@ -35,20 +35,16 @@ void HARDIFiberTrackingPlugin::setupGUIForHARDIDeterministic()
 void HARDIFiberTrackingPlugin::readMaximaVectorsFile()
 {
 
-    //vtkXMLImageDataReader *readerXML = vtkXMLImageDataReader::New();                
+
+	    QString fileName = QFileDialog::getOpenFileName(nullptr, tr("Open File"),"/", tr("Maxima and Unit Vectors (*.vtk)"));
+    vtkXMLImageDataReader *readerXML = vtkXMLImageDataReader::New();                
                      
- 	//				readerXML->SetDataModeToBinary();
-// 					readerXML->SetFileName( FilePath.toStdString().c_str() );
-//
-//// Eigensystem
-//	vtkImageData * eigenImage = (vtkImageData *) eigenImageInfo.data;
-//
-//	// Check image data pointer, point data, and eigenvector arrays
-//	if (!eigenImage)
-//		return false;
-//	if (!(eigenImage->GetPointData()))
-//		return false;
-//	if (!(eigenImage->GetPointData()->GetArray("Eigenvector 1")))
+ 				 
+					readerXML->SetFileName( fileName.toStdString().c_str() );
+
+ 
+					vtkImageData * maximaImage = (vtkImageData *) readerXML->GetOutput();
+ 
 
 	/*
 	for(int nr = 0; nr < this->nMaximaForEachPoint; nr++)
@@ -57,8 +53,9 @@ void HARDIFiberTrackingPlugin::readMaximaVectorsFile()
 			outUnitVectorList.at(nr)->SetNumberOfTuples(numberOfPoints);
 			QString arrName= saveArrayName + QString::number(nr); 
 			outUnitVectorList.at(nr)->SetName( arrName.toStdString().c_str() );  //fist vector array for each point (keeps only the first vector)
+			maximaImage->GetPointData()->GetArray("Eigenvector 1")
 		}
-	arraynames maximas
+	 
 */
 
 }
