@@ -1400,6 +1400,15 @@ namespace bmia {
 
 	void HARDIdeterministicTracker::FormMaxDirectionArrays(vtkImageData *maximaVolume)
 	{
+
+		  QString fileName = QFileDialog::getOpenFileName(nullptr,  "Read Maxima File","/", "Maxima and Unit Vectors (*.vtk)");
+    vtkXMLImageDataReader *readerXML = vtkXMLImageDataReader::New();                
+                  			 
+					readerXML->SetFileName( fileName.toStdString().c_str() );
+					readerXML->Update(); // Update other place
+				maximaVolume = (vtkImageData *) readerXML->GetOutput();
+				int i = readerXML->GetOutput()->GetPointData()->GetArray("maximas")->GetNumberOfComponents();
+
 		// if the image of unit vectors and maxima indexes have been already prepared. 
 		QString saveArrayName("MaxDirectionUnitVectors");
 		unsigned int nMaximaForEachPoint=0;
@@ -1416,8 +1425,8 @@ namespace bmia {
 			//outUnitVectorList.at(nr)->SetNumberOfComponents(3);
 			//outUnitVectorList.at(nr)->SetNumberOfTuples(maximaVolume->GetNumberOfPoints());
 			QString arrName= saveArrayName + QString::number(nr); 
-			outUnitVectorList.at(nr)->SetName( arrName.toStdString().c_str() );  //fist vector array for each point (keeps only the first vector)
-			outUnitVectorList.at(nr)= (vtkDoubleArray *) maximaVolume->GetPointData()->GetArray( arrName.toStdString().c_str() );
+			//outUnitVectorList.at(nr)->SetName( arrName.toStdString().c_str() );  //fist vector array for each point (keeps only the first vector)
+			outUnitVectorList.push_back( (vtkDoubleArray *) maximaVolume->GetPointData()->GetArray( arrName.toStdString().c_str() ));
 		}
 
 

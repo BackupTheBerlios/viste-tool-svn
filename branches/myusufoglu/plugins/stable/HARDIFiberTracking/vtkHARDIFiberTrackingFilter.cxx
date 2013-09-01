@@ -445,7 +445,7 @@ namespace bmia {
 			this->SetMaximaDirectionsVolume(vtkImageData::New());
 			
 	 	 
-		this->readMaximaVectorsFile(this->GetMaximaDirectionsVolume());
+		//this->readMaximaVectorsFile(this->GetMaximaDirectionsVolume());
 		tracker->FormMaxDirectionArrays(this->GetMaximaDirectionsVolume());
 		
 
