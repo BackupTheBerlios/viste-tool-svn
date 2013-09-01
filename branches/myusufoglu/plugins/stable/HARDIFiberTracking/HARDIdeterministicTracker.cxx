@@ -1402,12 +1402,15 @@ namespace bmia {
 	{
 		// if the image of unit vectors and maxima indexes have been already prepared. 
 		QString saveArrayName("MaxDirectionUnitVectors");
+		unsigned int nMaximaForEachPoint=0;
 		std::vector<vtkDoubleArray *> outUnitVectorList;
-		unsigned int nMaximaForEachPoint =  maximaVolume->GetPointData()->GetArray("maximas")->GetNumberOfComponents();
+		if( maximaVolume->GetPointData()->GetArray("maximas"))
+		{
+		  nMaximaForEachPoint =  maximaVolume->GetPointData()->GetArray("maximas")->GetNumberOfComponents();
 		vtkIntArray * outArray = (vtkIntArray *)maximaVolume->GetPointData()->GetArray("maximas");
-
+		}
 	 
-		for(unsigned int nr = 0; nr <  nMaximaForEachPoint; nr++)
+		for(unsigned int nr = 0; nr <nMaximaForEachPoint  ; nr++)
 		{
 			//	outUnitVectorList.push_back(vtkDoubleArray::New());
 			//outUnitVectorList.at(nr)->SetNumberOfComponents(3);

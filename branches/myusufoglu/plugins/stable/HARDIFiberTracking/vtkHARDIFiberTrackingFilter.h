@@ -173,7 +173,7 @@ class vtkHARDIFiberTrackingFilter : public vtkDataSetToPolyDataFilter
 
 		void SetMaximaDirectionsVolume(vtkImageData * img)
 		{
-			maximaVolume = img;
+			maximaVolume = (vtkImageData *) img;
 		}
 
 		/** Returns a pointer to the AI image */

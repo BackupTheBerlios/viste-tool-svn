@@ -440,8 +440,19 @@ namespace bmia {
 
 		//set the unit vectors
 		tracker->setUnitVectors(unitVectors);
+		if(this->UseMaximaFile)
+		{
+			this->SetMaximaDirectionsVolume(vtkImageData::New());
+			
+	 	 
+		this->readMaximaVectorsFile(this->GetMaximaDirectionsVolume());
+		tracker->FormMaxDirectionArrays(this->GetMaximaDirectionsVolume());
+		
 
-		//for every iteration
+
+		}
+			
+			//for every iteration
 		for (unsigned int iterations = 0; iterations < NUMBEROFITERATIONS; ++iterations)
 		{
 			// Loop through all seed points
@@ -518,7 +529,7 @@ namespace bmia {
 	 
 		 
 		vtkPoints *directionPoints =  vtkPoints::New();
-		QString fileName = QFileDialog::getOpenFileName(0 , "Open File", "", "Data Files (*.dat *.txt )");
+		QString fileName = QFileDialog::getOpenFileName(0 , "Open Directions File", "", "Data Files (*.dat *.txt )");
 		if(!fileName.isEmpty())
 			this->readDirectionsFile(directionPoints, fileName.toStdString() );
 		else
@@ -590,12 +601,13 @@ namespace bmia {
 {
 
 	// maxima indexes and unit vectors along maxima
-	    QString fileName = QFileDialog::getOpenFileName(nullptr,  "Open File","/", "Maxima and Unit Vectors (*.vtk)");
+	    QString fileName = QFileDialog::getOpenFileName(nullptr,  "Read Maxima File","/", "Maxima and Unit Vectors (*.vtk)");
     vtkXMLImageDataReader *readerXML = vtkXMLImageDataReader::New();                
                   			 
 					readerXML->SetFileName( fileName.toStdString().c_str() );
-					 maximaVolume = (vtkImageData *) readerXML->GetOutput();
- 
+					readerXML->Update(); // Update other place
+				maximaVolume = (vtkImageData *) readerXML->GetOutput();
+				int i = readerXML->GetOutput()->GetPointData()->GetArray("maximas")->GetNumberOfComponents();
 }
 
 
