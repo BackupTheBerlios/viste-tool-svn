@@ -608,6 +608,8 @@ namespace bmia {
 					readerXML->Update(); // Update other place
 				maximaVolume = (vtkImageData *) readerXML->GetOutput();
 				int i = readerXML->GetOutput()->GetPointData()->GetArray("maximas")->GetNumberOfComponents();
+				int j = maximaVolume->GetPointData()->GetArray("maximas")->GetNumberOfComponents();
+				 
 }
 
 
