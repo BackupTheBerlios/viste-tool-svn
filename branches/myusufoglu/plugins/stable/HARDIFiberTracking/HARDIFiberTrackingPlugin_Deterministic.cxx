@@ -168,7 +168,8 @@ namespace bmia {
 
 			{
 				QString FilePath = QFileDialog::getSaveFileName(nullptr , tr("Save File of Maxima and Unit Vectors"), "D:/vISTe", tr("VTK files (*.vtk)"));
-
+				 if(FilePath.isEmpty() || FilePath.isNull())
+            return;
 				// This part can be taken to another plugin. Creates a volme consisting indexes of maximums.
 				vtkSphericalHarmonicsToODFMaxVolumeFilter *HARDIToMaximaFilter = vtkSphericalHarmonicsToODFMaxVolumeFilter::New();
 				HARDIToMaximaFilter->SetInput(HARDIimageData);
@@ -194,7 +195,7 @@ namespace bmia {
 				//HARDIFiberTrackingFilter->SetMaximaDirectionsVolume(maximaVolume);
 			//}
 
-
+			this->core()->out()->createProgressBarForAlgorithm(HARDIFiberTrackingFilter, "HARDI Fiber tracking");
 			// Update the filter- RUN!
 			HARDIFiberTrackingFilter->Update();
 

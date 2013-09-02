@@ -85,7 +85,7 @@ namespace bmia {
 		this->cellAIScalars  = NULL;
 	}
 
-	
+
 
 	//--------------------------[ initializeTracker ]--------------------------\\
 
@@ -494,14 +494,14 @@ namespace bmia {
 
 
 			// IF From file 
-		/*	
+			/*	
 			this->maximaArrayFromFile->GetTuples(currentCell->PointIds, this->maximasCellFromFile);
-			
+
 			for(unsigned int nr = 0; nr <this->outUnitVectorListFromFile.size()  ; nr++)
-		{		 
+			{		 
 			this->outUnitVectorListFromFile.at(nr)->GetTuples(currentCell->PointIds, this->unitVectorCellListFromFile.at(nr));
-		}
-			 */
+			}
+			*/
 			//this->outUnitVectorListFromFile.at(0)->GetTuples(currentCell->PointIds, unitVectors1FromFile);
 
 
@@ -542,7 +542,7 @@ namespace bmia {
 				this->cellHARDIData->GetTuple(j, tempSH);
 				//this->cellHARDIData has 8 hardi coeffieint sets
 				//get the ODF // get maxes like below 8 times
- 
+
 
 				MaxFinder.getOutput(tempSH, this->parentFilter->shOrder,TRESHOLD, anglesArray,  maxima, meshPtIndexList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
 				// maxima has ids use them to get angles
@@ -678,7 +678,7 @@ namespace bmia {
 				if(this->breakLoop) break;
 				if(this->printStepInfo)
 				{
-				//	cout <<"prev segment1:" << this->prevSegment[0] << " " << this->prevSegment[1] << " "<< this->prevSegment[2] << endl;
+					//	cout <<"prev segment1:" << this->prevSegment[0] << " " << this->prevSegment[1] << " "<< this->prevSegment[2] << endl;
 					cout <<"new segment1:" << this->newSegment[0] << " " << this->newSegment[1] << " "<< this->newSegment[2] << endl;
 					cout <<"currentpoint before:" << this->currentPoint.X[0] << " " << this->currentPoint.X[1]  << " "<< this->currentPoint.X[2]  << endl;				
 					cout <<"this->step:" << this->step << endl;
@@ -745,10 +745,10 @@ namespace bmia {
 				this->prevSegment[2] = this->newSegment[2]; // prevseg becomes automaticly normalized!!!
 
 				if(this->breakLoop) break;
-			//	if(this->printStepInfo) {
+				//	if(this->printStepInfo) {
 				//	cout <<"prev segment2:" << this->prevSegment[0] << " " << this->prevSegment[1] << " "<< this->prevSegment[2] << endl;
-			//		cout <<"new segment2:" << this->newSegment[0] << " " << this->newSegment[1] << " "<< this->newSegment[2] << endl;
-			//	}
+				//		cout <<"new segment2:" << this->newSegment[0] << " " << this->newSegment[1] << " "<< this->newSegment[2] << endl;
+				//	}
 
 			} //while 
 		}//if
@@ -759,7 +759,7 @@ namespace bmia {
 	void HARDIdeterministicTracker::calculateFiberSHDIUseOfflineMaximaDirections(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,int numberOfIterations, bool CLEANMAXIMA, double TRESHOLD)
 	{
 
-		cout << "----------------  New Seed for a New Fiber - calculateFiberSHDI ---------------("<< direction <<")"<<  endl;
+		cout << "----------------  New Seed for a New Fiber - calculateFiberSHDIMaxDirection ---------------("<< direction <<")"<<  endl;
 		vtkCell *	currentCell			= NULL;						// Cell of current point
 		vtkIdType	currentCellId		= 0;						// Id of current cell
 		double		closestPoint[3]		= {0.0, 0.0, 0.0};			// Used in "EvaluatePosition"
@@ -798,13 +798,13 @@ namespace bmia {
 			// "cellAIScalars" arrays, respectively
 			this->HARDIArray->GetTuples(currentCell->PointIds, this->cellHARDIData);
 			this->aiScalars->GetTuples( currentCell->PointIds, this->cellAIScalars );
-			
+
 			//From File /////////////////
-		
+
 			this->maximaArrayFromFile->GetTuples(currentCell->PointIds, maximasCellFromFile);
 			for(unsigned int nr = 0; nr <outUnitVectorListFromFile.size()  ; nr++)
-		 {
-			this->outUnitVectorListFromFile.at(nr)->GetTuples(currentCell->PointIds, unitVectorCellListFromFile.at(nr));
+			{
+				this->outUnitVectorListFromFile.at(nr)->GetTuples(currentCell->PointIds, unitVectorCellListFromFile.at(nr));
 			}
 			//create a maximumfinder
 			MaximumFinder MaxFinder = MaximumFinder(trianglesArray); // what does this arr do
@@ -834,8 +834,8 @@ namespace bmia {
 			//IF FILE
 			double *maximaOfAPointFromFile = new double[this->maximaArrayFromFile->GetNumberOfComponents()];
 			double **unitVectorsOfAPointFromFile = new double*[this->maximaArrayFromFile->GetNumberOfComponents()];
-			 for (int j = 0; j < this->maximaArrayFromFile->GetNumberOfComponents(); ++j)
-			unitVectorsOfAPointFromFile[j] = new double[3];
+			for (int j = 0; j < this->maximaArrayFromFile->GetNumberOfComponents(); ++j)
+				unitVectorsOfAPointFromFile[j] = new double[3];
 
 
 			std::vector<double *> anglesBeforeInterpolation; 
@@ -859,10 +859,10 @@ namespace bmia {
 
 				for (int k = 0; k <this->maximaArrayFromFile->GetNumberOfComponents(); ++k)
 				{
-				maxima.push_back(maximaOfAPointFromFile[k]);
-                outputlistwithunitvectors.push_back(unitVectorsOfAPointFromFile[k]);
+					maxima.push_back(maximaOfAPointFromFile[k]);
+					outputlistwithunitvectors.push_back(unitVectorsOfAPointFromFile[k]);
 				}
-				
+
 
 				///MaxFinder.getOutput(tempSH, this->parentFilter->shOrder,TRESHOLD, anglesArray,  maxima, meshPtIndexList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
 				// maxima has ids use them to get angles
@@ -976,10 +976,10 @@ namespace bmia {
 					this->HARDIArray->GetTuples(currentCell->PointIds, this->cellHARDIData);
 					this->aiScalars->GetTuples( currentCell->PointIds, this->cellAIScalars );
 					this->maximaArrayFromFile->GetTuples(currentCell->PointIds, maximasCellFromFile);
-			for(unsigned int nr = 0; nr <outUnitVectorListFromFile.size()  ; nr++)
-		 {
-			this->outUnitVectorListFromFile.at(nr)->GetTuples(currentCell->PointIds, unitVectorCellListFromFile.at(nr));
-			}
+					for(unsigned int nr = 0; nr <outUnitVectorListFromFile.size()  ; nr++)
+					{
+						this->outUnitVectorListFromFile.at(nr)->GetTuples(currentCell->PointIds, unitVectorCellListFromFile.at(nr));
+					}
 				}
 				// If we've left the volume, break here
 				else if (newCellId == -1)
@@ -1003,7 +1003,7 @@ namespace bmia {
 				if(this->breakLoop) break;
 				if(this->printStepInfo)
 				{
-				//	cout <<"prev segment1:" << this->prevSegment[0] << " " << this->prevSegment[1] << " "<< this->prevSegment[2] << endl;
+					//	cout <<"prev segment1:" << this->prevSegment[0] << " " << this->prevSegment[1] << " "<< this->prevSegment[2] << endl;
 					cout <<"new segment1:" << this->newSegment[0] << " " << this->newSegment[1] << " "<< this->newSegment[2] << endl;
 					cout <<"currentpoint before:" << this->currentPoint.X[0] << " " << this->currentPoint.X[1]  << " "<< this->currentPoint.X[2]  << endl;				
 					cout <<"this->step:" << this->step << endl;
@@ -1070,10 +1070,10 @@ namespace bmia {
 				this->prevSegment[2] = this->newSegment[2]; // prevseg becomes automaticly normalized!!!
 
 				if(this->breakLoop) break;
-			//	if(this->printStepInfo) {
+				//	if(this->printStepInfo) {
 				//	cout <<"prev segment2:" << this->prevSegment[0] << " " << this->prevSegment[1] << " "<< this->prevSegment[2] << endl;
-			//		cout <<"new segment2:" << this->newSegment[0] << " " << this->newSegment[1] << " "<< this->newSegment[2] << endl;
-			//	}
+				//		cout <<"new segment2:" << this->newSegment[0] << " " << this->newSegment[1] << " "<< this->newSegment[2] << endl;
+				//	}
 
 			} //while 
 		}//if
@@ -1082,8 +1082,8 @@ namespace bmia {
 	}
 
 
-	
-				
+
+
 	double *HARDIdeterministicTracker::findFunctionValue(int threshold, std::vector<double*> &anglesArray, double *weights,  vtkIntArray *trianglesArray, std::vector<int> &meshPointsList, std::vector<int> &maxima)
 
 	{
@@ -1172,13 +1172,13 @@ namespace bmia {
 		double **avgMaxVect = new double*[8];
 		std::vector<double *> anglesBeforeInterpolation; // this consists 8 angles
 		MaximumFinder MaxFinder = MaximumFinder(trianglesArray); // while icinde gerek var mi?!!!
-		
+
 
 
 		//IF FILE
-			double *maximaOfAPointFromFile = new double[this->maximaArrayFromFile->GetNumberOfComponents()];
-			double **unitVectorsOfAPointFromFile = new double*[this->maximaArrayFromFile->GetNumberOfComponents()];
-			 for (int j = 0; j < this->maximaArrayFromFile->GetNumberOfComponents(); ++j)
+		double *maximaOfAPointFromFile = new double[this->maximaArrayFromFile->GetNumberOfComponents()];
+		double **unitVectorsOfAPointFromFile = new double*[this->maximaArrayFromFile->GetNumberOfComponents()];
+		for (int j = 0; j < this->maximaArrayFromFile->GetNumberOfComponents(); ++j)
 			unitVectorsOfAPointFromFile[j] = new double[3];
 
 
@@ -1194,21 +1194,21 @@ namespace bmia {
 			//get the ODF // get maxes like below 8 times
 
 			//IF FROM FILE
-				this->maximasCellFromFile->GetTuple(j,maximaOfAPointFromFile); // GetTupleValue instead of GetTuple since int array
-				for (int n = 0; n < this->maximaArrayFromFile->GetNumberOfComponents(); ++n)
-					this->unitVectorCellListFromFile.at(n)->GetTuple(j,unitVectorsOfAPointFromFile[n] );
+			this->maximasCellFromFile->GetTuple(j,maximaOfAPointFromFile); // GetTupleValue instead of GetTuple since int array
+			for (int n = 0; n < this->maximaArrayFromFile->GetNumberOfComponents(); ++n)
+				this->unitVectorCellListFromFile.at(n)->GetTuple(j,unitVectorsOfAPointFromFile[n] );
 
-				for (int k = 0; k <this->maximaArrayFromFile->GetNumberOfComponents(); ++k)
-				{
+			for (int k = 0; k <this->maximaArrayFromFile->GetNumberOfComponents(); ++k)
+			{
 				maxima.push_back(maximaOfAPointFromFile[k]);
-                outputlistwithunitvectors.push_back(unitVectorsOfAPointFromFile[k]);
-				}
-				
+				outputlistwithunitvectors.push_back(unitVectorsOfAPointFromFile[k]);
+			}
+
 			//get maxima; 
 			//MaxFinder.getOutput(tempSH, this->parentFilter->shOrder,threshold, anglesArray,  maxima, meshPtIndexList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
 
 			//Below 3 necessary?
-			
+
 			//remove repeated maxima
 			//MaxFinder.cleanOutput(maxima, outputlistwithunitvectors,tempSH, ODFlist, this->unitVectors, anglesArray);
 			// maxima has ids use them to  get angles
@@ -1260,31 +1260,31 @@ namespace bmia {
 	bool HARDIdeterministicTracker::findFunctionValueAtPoint(double pos[3],vtkCell * currentCell, vtkIdType currentCellId, int threshold, std::vector<double*> &anglesArray, double *interpolatedVector,  vtkIntArray *trianglesArray, std::vector<int> &meshPtIndexList, std::vector<int> &maxima){
 		double pCoords[3] = { 0.0, 0.0,0.0};
 		int subId=0;
-	 double weights[8];
+		double weights[8];
 		vtkIdType newCellId = this->HARDIimageData->FindCell(pos,currentCell, currentCellId,this->tolerance, subId, pCoords, weights);
-				
-				// If we're in a new cell, and we're still inside the volume...
-				if (newCellId >= 0 && newCellId != currentCellId)
-				{
-					// ...store the ID of the new cell...
-					currentCellId = newCellId;
 
-					// ...set the new cell pointer...
-					currentCell = this->HARDIimageData->GetCell(currentCellId);
+		// If we're in a new cell, and we're still inside the volume...
+		if (newCellId >= 0 && newCellId != currentCellId)
+		{
+			// ...store the ID of the new cell...
+			currentCellId = newCellId;
 
-					// ...and fill the cell arrays with the data of the new cell
-					this->HARDIArray->GetTuples(currentCell->PointIds, this->cellHARDIData);
-					this->aiScalars->GetTuples( currentCell->PointIds, this->cellAIScalars );
-				}
-				// If we've left the volume, break here
-				else if (newCellId == -1)
-				{
-					return false;
-				}
-				int numberSHcomponents = HARDIArray->GetNumberOfComponents();
-				 
-				interpolatedVector = findFunctionValue(threshold, anglesArray, weights,  trianglesArray, meshPtIndexList, maxima);
-				return true;
+			// ...set the new cell pointer...
+			currentCell = this->HARDIimageData->GetCell(currentCellId);
+
+			// ...and fill the cell arrays with the data of the new cell
+			this->HARDIArray->GetTuples(currentCell->PointIds, this->cellHARDIData);
+			this->aiScalars->GetTuples( currentCell->PointIds, this->cellAIScalars );
+		}
+		// If we've left the volume, break here
+		else if (newCellId == -1)
+		{
+			return false;
+		}
+		int numberSHcomponents = HARDIArray->GetNumberOfComponents();
+
+		interpolatedVector = findFunctionValue(threshold, anglesArray, weights,  trianglesArray, meshPtIndexList, maxima);
+		return true;
 	}
 
 	void  HARDIdeterministicTracker::findFunctionValueRK4(double pos[3],vtkCell * currentCell, vtkIdType currentCellId, int threshold, std::vector<double*> &anglesArray, double *interpolatedVector,  vtkIntArray *trianglesArray, std::vector<int> &meshPtIndexList, std::vector<int> &maxima)
@@ -1293,12 +1293,12 @@ namespace bmia {
 		double vec[3];
 		findFunctionValueAtPoint( pos,currentCell, currentCellId,threshold, anglesArray, vec, trianglesArray, meshPtIndexList,maxima);
 		// double K1[0]    = (H * vecK1[0]);
-    //double K2    = (H * f((x + 1 / 2 * H), (y + 1 / 2 * K1)));  // use new segment
-   // double K3    = (H * f((x + 1 / 2 * H), (y + 1 / 2 * K2)));
-   // double K4    = (H * f((x + H), (y + K3)));
-	//double runge = (y + (1 / 6) * (K1 + 2 * K2 + 2 * K3 + K4));
-	 
-		 
+		//double K2    = (H * f((x + 1 / 2 * H), (y + 1 / 2 * K1)));  // use new segment
+		// double K3    = (H * f((x + 1 / 2 * H), (y + 1 / 2 * K2)));
+		// double K4    = (H * f((x + H), (y + K3)));
+		//double runge = (y + (1 / 6) * (K1 + 2 * K2 + 2 * K3 + K4));
+
+
 	}
 
 
@@ -1748,7 +1748,7 @@ namespace bmia {
 			interpolatedVector[2] += weights[i] * angles.at(i)[2];
 		}
 	}
-	
+
 	//-----------------------------[ Set unit vectors ]------------------------------\\
 
 	void HARDIdeterministicTracker::setUnitVectors(double ** unitVectors)
@@ -1761,53 +1761,60 @@ namespace bmia {
 	void HARDIdeterministicTracker::FormMaxDirectionArrays(vtkImageData *maximaVolume)
 	{
 
-		  QString fileName = QFileDialog::getOpenFileName(nullptr,  "Read Maxima File","/", "Maxima and Unit Vectors (*.vtk)");
-    vtkXMLImageDataReader *readerXML = vtkXMLImageDataReader::New();                
-                  			 
-					readerXML->SetFileName( fileName.toStdString().c_str() );
-					readerXML->Update(); // Update other place
-				maximaVolume = vtkImageData::SafeDownCast(readerXML->GetOutput());
-				int i = readerXML->GetOutput()->GetPointData()->GetArray("maximas")->GetNumberOfComponents();
+		QString fileName = QFileDialog::getOpenFileName(nullptr,  "Read Maxima File","/", "Maxima and Unit Vectors (*.vtk)");
+		if(fileName.isEmpty() || fileName.isNull())
+		{  
+			cout << "No file name"<< endl;
+			return;
+		}
+		vtkXMLImageDataReader *readerXML = vtkXMLImageDataReader::New();                
+
+		readerXML->SetFileName( fileName.toStdString().c_str() );
+		readerXML->Update(); // Update other place
+		maximaVolume = vtkImageData::SafeDownCast(readerXML->GetOutput());
+		int i = readerXML->GetOutput()->GetPointData()->GetArray("maximas")->GetNumberOfComponents();
 
 		// if the image of unit vectors and maxima indexes have been already prepared. 
 		QString saveArrayName("MaxDirectionUnitVectors");
 		unsigned int nMaximaForEachPoint=0;
-	
+
 		if( readerXML->GetOutput()->GetPointData()->GetArray("maximas"))
 		{
-		  nMaximaForEachPoint =  readerXML->GetOutput()->GetPointData()->GetArray("maximas")->GetNumberOfComponents();
-		  maximaArrayFromFile =  vtkIntArray::SafeDownCast(readerXML->GetOutput()->GetPointData()->GetArray("maximas"));
+			nMaximaForEachPoint =  readerXML->GetOutput()->GetPointData()->GetArray("maximas")->GetNumberOfComponents();
+			maximaArrayFromFile =  vtkIntArray::SafeDownCast(readerXML->GetOutput()->GetPointData()->GetArray("maximas"));
 		}
-	 QString arrName;
+		QString arrName;
 		for(unsigned int nr = 0; nr <nMaximaForEachPoint  ; nr++)
 		{
 			//	outUnitVectorList.push_back(vtkDoubleArray::New());
 			//outUnitVectorList.at(nr)->SetNumberOfComponents(3);
 			//outUnitVectorList.at(nr)->SetNumberOfTuples(maximaVolume->GetNumberOfPoints());
-			 arrName= saveArrayName + QString::number(nr); 
+			arrName= saveArrayName + QString::number(nr); 
 			//outUnitVectorList.at(nr)->SetName( arrName.toStdString().c_str() );  //fist vector array for each point (keeps only the first vector)
 			outUnitVectorListFromFile.push_back( vtkDoubleArray::SafeDownCast(maximaVolume->GetPointData()->GetArray( arrName.toStdString().c_str() )));
-		
-		}
-		 vtkDataArray* ptr;
-		for(unsigned int nr = 0; nr <nMaximaForEachPoint  ; nr++){
-		     ptr = vtkDataArray::CreateDataArray(  VTK_DOUBLE);
-		this->unitVectorCellListFromFile.push_back(ptr);
 
 		}
-	     for(unsigned int nr = 0; nr <nMaximaForEachPoint  ; nr++)
-		 {
-          this->unitVectorCellListFromFile.at(nr)->SetNumberOfComponents(3);//unit vector has 3 components
-		  this->unitVectorCellListFromFile.at(nr)->SetNumberOfTuples(8);
-		 }
+
+		//CELL 
+		vtkDataArray* ptr;
+		for(unsigned int nr = 0; nr <nMaximaForEachPoint  ; nr++){
+			ptr = vtkDataArray::CreateDataArray(  VTK_DOUBLE);
+			this->unitVectorCellListFromFile.push_back(ptr);
+
+		}
+		for(unsigned int nr = 0; nr <nMaximaForEachPoint  ; nr++)
+		{
+			this->unitVectorCellListFromFile.at(nr)->SetNumberOfComponents(3);//unit vector has 3 components
+			this->unitVectorCellListFromFile.at(nr)->SetNumberOfTuples(8);
+		}
 		// Create the cell arrays
 		this->maximasCellFromFile  = vtkIntArray::SafeDownCast(vtkDataArray::CreateDataArray(this->maximaArrayFromFile->GetDataType()));
-			// Set number of components and tuples of the cell arrays
+		// Set number of components and tuples of the cell arrays
 		this->maximasCellFromFile->SetNumberOfComponents(this->maximaArrayFromFile->GetNumberOfComponents());
 		this->maximasCellFromFile->SetNumberOfTuples(8);
 
-	 
-		 
+
+
 
 	}
 

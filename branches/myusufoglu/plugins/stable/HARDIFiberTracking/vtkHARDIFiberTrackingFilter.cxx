@@ -484,6 +484,7 @@ namespace bmia {
 						{
 					//	this->GetMaximaDirectionsVolume();
 					// IMP	tracker->FormMaxDirectionArrays(this->GetMaximaDirectionsVolume());
+							
 					tracker->calculateFiberSHDI( 1, &streamlinePointListPos, anglesArray, trianglesArray, NUMBEROFITERATIONS, CLEANMAXIMA, TRESHOLD);
 					//this->GetUseMaximaFile
 					//this->GetWriteMaximaToFile

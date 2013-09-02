@@ -437,6 +437,8 @@ namespace bmia {
 			{
 				this->UpdateProgress((double) ptId / (double) numberOfPoints);
 				cout << ptId << " " << outArray->GetNumberOfTuples() << endl;
+				double *d = new double[4]; d = outArray->GetTuple4(ptId);
+				cout << d[0] << " " << d[1] << " " << d[1] << " " << d[3] << " " << endl;
 			}
 				//if (ptId==1000) break;
 		}
