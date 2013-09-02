@@ -234,7 +234,7 @@ namespace bmia {
 		bool CLEANMAXIMA = this->CleanMaxima;
 		double TRESHOLD = this->Treshold;
 		unsigned int TESSORDER = this->TesselationOrder;
-
+	 
 		// Get the output data set
 		vtkPolyData * output = this->GetOutput();
 
@@ -446,6 +446,7 @@ namespace bmia {
 			
 	 	 
 		//this->readMaximaVectorsFile(this->GetMaximaDirectionsVolume());
+
 		tracker->FormMaxDirectionArrays(this->GetMaximaDirectionsVolume());
 		
 
@@ -472,14 +473,22 @@ namespace bmia {
 
 				// Calculate the fiber in positive and negative direction for each point
 				if(this->sphericalHarmonics) {
-					if(true)
+					if(true) // test new variant using ...
 					{
+						if(this->GetUseMaximaFile()) //variant with previously prepared maxima file
+						{
+							tracker->calculateFiberSHDIUseOfflineMaximaDirections( 1, &streamlinePointListPos, anglesArray, trianglesArray, NUMBEROFITERATIONS, CLEANMAXIMA, TRESHOLD);
+				 					tracker->calculateFiberSHDIUseOfflineMaximaDirections(-1, &streamlinePointListNeg, anglesArray, trianglesArray, NUMBEROFITERATIONS, CLEANMAXIMA, TRESHOLD);
+						}
+						else
+						{
 					//	this->GetMaximaDirectionsVolume();
 					// IMP	tracker->FormMaxDirectionArrays(this->GetMaximaDirectionsVolume());
 					tracker->calculateFiberSHDI( 1, &streamlinePointListPos, anglesArray, trianglesArray, NUMBEROFITERATIONS, CLEANMAXIMA, TRESHOLD);
 					//this->GetUseMaximaFile
 					//this->GetWriteMaximaToFile
 					tracker->calculateFiberSHDI(-1, &streamlinePointListNeg, anglesArray, trianglesArray, NUMBEROFITERATIONS, CLEANMAXIMA, TRESHOLD);
+						}
 					}
 					else {
 					tracker->calculateFiber( 1, &streamlinePointListPos, anglesArray, trianglesArray, NUMBEROFITERATIONS, CLEANMAXIMA, TRESHOLD);

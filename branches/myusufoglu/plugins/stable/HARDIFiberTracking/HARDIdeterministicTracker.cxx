@@ -491,6 +491,20 @@ namespace bmia {
 			this->HARDIArray->GetTuples(currentCell->PointIds, this->cellHARDIData);
 			this->aiScalars->GetTuples( currentCell->PointIds, this->cellAIScalars );
 
+
+
+			// IF From file 
+		/*	
+			this->maximaArrayFromFile->GetTuples(currentCell->PointIds, this->maximasCellFromFile);
+			
+			for(unsigned int nr = 0; nr <this->outUnitVectorListFromFile.size()  ; nr++)
+		{		 
+			this->outUnitVectorListFromFile.at(nr)->GetTuples(currentCell->PointIds, this->unitVectorCellListFromFile.at(nr));
+		}
+			 */
+			//this->outUnitVectorListFromFile.at(0)->GetTuples(currentCell->PointIds, unitVectors1FromFile);
+
+
 			//create a maximumfinder
 			MaximumFinder MaxFinder = MaximumFinder(trianglesArray); // what does this arr do
 
@@ -528,8 +542,7 @@ namespace bmia {
 				this->cellHARDIData->GetTuple(j, tempSH);
 				//this->cellHARDIData has 8 hardi coeffieint sets
 				//get the ODF // get maxes like below 8 times
-
-
+ 
 
 				MaxFinder.getOutput(tempSH, this->parentFilter->shOrder,TRESHOLD, anglesArray,  maxima, meshPtIndexList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
 				// maxima has ids use them to get angles
@@ -743,8 +756,329 @@ namespace bmia {
 		delete [] weights;
 	}
 
+	void HARDIdeterministicTracker::calculateFiberSHDIUseOfflineMaximaDirections(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,int numberOfIterations, bool CLEANMAXIMA, double TRESHOLD)
+	{
 
-	// 
+		cout << "----------------  New Seed for a New Fiber - calculateFiberSHDI ---------------("<< direction <<")"<<  endl;
+		vtkCell *	currentCell			= NULL;						// Cell of current point
+		vtkIdType	currentCellId		= 0;						// Id of current cell
+		double		closestPoint[3]		= {0.0, 0.0, 0.0};			// Used in "EvaluatePosition"
+		double		pointDistance		= 0.0;						// Used in "EvaluatePosition"
+		double		incrementalDistance		= 0.0;						// Length of current step
+		int			subId				= 0;						// Used in "FindCell"
+		double		pCoords[3]			= {0.0, 0.0, 0.0};			// Used in "FindCell"
+		double		testDot				= 1.0;						// Dot product for current step
+		bool		firstStep			= true;						// True during first integration step
+		double  threshold = 0;
+		// Interpolation weights
+		double *	weights = new double[8];
+
+		// Initialize interpolation weights
+		for (int i = 0; i < 8; ++i)
+		{
+			weights[i] = 0.0;
+		}
+
+
+		// Check if there's a point in the point list
+		if (!pointList->empty())
+		{
+			// Get the first point, and clear the list
+			currentPoint = pointList->front(); // first point
+			pointList->clear();
+			this->nextPoint.D = 0.0;
+			// Find the cell containing the seed point
+			currentCellId = this->HARDIimageData->FindCell(currentPoint.X, NULL, 0, this->tolerance, subId, pCoords, weights); // fills the weights
+			currentCell = this->HARDIimageData->GetCell(currentCellId);
+
+			// Set the actual step size, depending on the voxel size
+			this->step = direction * this->stepSize * sqrt((double) currentCell->GetLength2());
+
+			// Load the HARDI cell info and AI values of the cell into the "cellHARDIData" and
+			// "cellAIScalars" arrays, respectively
+			this->HARDIArray->GetTuples(currentCell->PointIds, this->cellHARDIData);
+			this->aiScalars->GetTuples( currentCell->PointIds, this->cellAIScalars );
+			
+			//From File /////////////////
+		
+			this->maximaArrayFromFile->GetTuples(currentCell->PointIds, maximasCellFromFile);
+			for(unsigned int nr = 0; nr <outUnitVectorListFromFile.size()  ; nr++)
+		 {
+			this->outUnitVectorListFromFile.at(nr)->GetTuples(currentCell->PointIds, unitVectorCellListFromFile.at(nr));
+			}
+			//create a maximumfinder
+			MaximumFinder MaxFinder = MaximumFinder(trianglesArray); // what does this arr do
+
+			//vector to store the Id's if the found maxima on the ODF
+			std::vector<int> maxima;
+			//vector to store the unit vectors of the found maxima
+			std::vector<double *> outputlistwithunitvectors;
+			//neede for search space reduction
+			bool searchRegion;
+			std::vector<int> meshPtIndexList;
+			//list with ODF values
+			std::vector<double> ODFlist;
+			std::vector<double> ODFlistMaxTwo;
+
+			//get number of SH components
+			int numberSHcomponents = HARDIArray->GetNumberOfComponents();
+
+			// Interpolate the SH at the seed point position
+			//double * SHAux = new double[numberSHcomponents];
+			//this->interpolateSH(SHAux, weights, numberSHcomponents); //not interpolate now
+			double * tempSH = new double[numberSHcomponents];
+
+
+			double *avgMaxAng = new double[2];
+
+			//IF FILE
+			int *maximaOfAPointFromFile = new int[this->maximaArrayFromFile->GetNumberOfComponents()];
+			double **unitVectorsOfAPointFromFile = new double*[this->maximaArrayFromFile->GetNumberOfComponents()];
+			 for (int j = 0; j < this->maximaArrayFromFile->GetNumberOfComponents(); ++j)
+			unitVectorsOfAPointFromFile[j] = new double[3];
+
+
+			std::vector<double *> anglesBeforeInterpolation; 
+
+			//initial regionlist includes all points not some points of the ODF
+			if(meshPtIndexList.size()==0)
+				for(int i=0;i<anglesArray.size();i++)
+					meshPtIndexList.push_back(i);
+			for (int j = 0; j < 8; ++j)
+			{
+				//get the SH
+
+				this->cellHARDIData->GetTuple(j, tempSH);
+				//this->cellHARDIData has 8 hardi coeffieint sets
+				//get the ODF // get maxes like below 8 times
+
+				//IF FROM FILE
+				this->maximasCellFromFile->GetTuple(j,maximaOfAPointFromFile);
+				for (int n = 0; n < this->maximaArrayFromFile->GetNumberOfComponents(); ++n)
+					this->unitVectorCellListFromFile.at(n)->GetTuple(j,unitVectorsOfAPointFromFile[n] );
+
+				for (int k = 0; k <this->maximaArrayFromFile->GetNumberOfComponents(); ++k)
+				{
+				maxima.push_back(maximaOfAPointFromFile[k]);
+                outputlistwithunitvectors.push_back(unitVectorsOfAPointFromFile[k]);
+				}
+				
+
+				///MaxFinder.getOutput(tempSH, this->parentFilter->shOrder,TRESHOLD, anglesArray,  maxima, meshPtIndexList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
+				// maxima has ids use them to get angles
+				//MaxFinder.cleanOutput(maxima, outputlistwithunitvectors,tempSH, ODFlist, this->unitVectors, anglesArray);
+				avgMaxAng[0]=0;
+				avgMaxAng[1]=0;
+				for(int i=0; i< maxima.size(); i++)
+				{
+					avgMaxAng[0]+=anglesArray.at(maxima.at(i))[0];   // choose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
+					avgMaxAng[1]+=anglesArray.at(maxima.at(i))[1];   // ose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
+					cout << "anglesOfmaxOfCorner"  << anglesArray.at(maxima.at(i))[0] << " " << anglesArray.at(maxima.at(i))[1] << endl;
+				}
+				avgMaxAng[0]/=maxima.size();
+				avgMaxAng[1]/=maxima.size();
+				cout << avgMaxAng[0] << " " << avgMaxAng[1] << endl;
+				anglesBeforeInterpolation.push_back(avgMaxAng); // if angles are in the range of [-pi,pi] interpolation is ok
+				outputlistwithunitvectors.clear();
+				// TAKEN BEFORE THE AVERAGING MaxFinder.cleanOutput(maxima, outputlistwithunitvectors,SHAux, ODFlist, this->unitVectors, anglesArray);
+				ODFlist.clear();
+				maxima.clear();
+
+
+			}// for cell 8 
+			double interpolatedDirection[2];
+			this->interpolateAngles(anglesBeforeInterpolation,weights, interpolatedDirection); // this average will be used as initial value. 
+			anglesBeforeInterpolation.clear();
+			double tempDirection[3];
+			tempDirection[0] = sinf(interpolatedDirection[0]) * cosf(interpolatedDirection[1]);
+			tempDirection[1] = sinf(interpolatedDirection[0]) * sinf(interpolatedDirection[1]);
+			tempDirection[2] = cosf(interpolatedDirection[0]);
+			//	tempDirection already normalized!!!
+			// use weights as interpolatin of angles...
+			// add 
+			//deallocate memory
+
+
+			// Get the AI scalar at the seed point position
+			//MaxFinder.getGFA(&(currentPoint.AI));
+			this->interpolateScalar(&(currentPoint.AI), weights);
+			// Set the total distance to zero
+			currentPoint.D = 0.0;
+
+			// Re-add the seed point  
+			pointList->push_back(currentPoint);
+
+			// Set the previous point equal to the current point
+			prevPoint = currentPoint;
+
+			// Initialize the previous segment to zero
+			this->newSegment[0] = tempDirection[0]; // 0.0;
+			this->newSegment[1] = tempDirection[1];// 0.0;
+			this->newSegment[2] = tempDirection[2];//0.0;
+			double previousAngle[2];
+			this->prevSegment[0]=this->prevSegment[1]=this->prevSegment[2]= 0.0; // CHECK!!!
+
+			// Loop until a stopping condition is met
+
+
+			cout <<"prev segment before:" << this->prevSegment[0] << " " << this->prevSegment[1] << " "<< this->prevSegment[2] << endl;
+			cout <<"new segment before:" << this->newSegment[0] << " " << this->newSegment[1] << " "<< this->newSegment[2] << endl;
+			cout <<"currentpoint before:" << this->currentPoint.X[0] << " " << this->currentPoint.X[1]  << " "<< this->currentPoint.X[2]  << endl;
+
+			// Compute the next point (nextPoint) of the fiber using a Euler step.
+			if (!this->solveIntegrationStepSHDI(currentCell, currentCellId, weights)) //Add NEwSegment to Current Point to Determine NEXT Point!!!
+			{ cout << "Problem at the first integratioon step"<< endl; return; } 
+			cout <<"nextpoimt after:" << this->nextPoint.X[0] << " " << this->nextPoint.X[1]  << " "<< this->nextPoint.X[2]  << endl;
+
+			// Update the current and previous points
+			this->prevPoint = this->currentPoint;
+			this->currentPoint = this->nextPoint;
+
+			// Update the previous line segment
+			this->prevSegment[0] = this->newSegment[0];
+			this->prevSegment[1] = this->newSegment[1];
+			this->prevSegment[2] = this->newSegment[2];
+
+			//create a maximum finder
+			//	M
+			//initial regionlist includes all points not some points
+			if(meshPtIndexList.size()==0)
+				for(int i=0;i<anglesArray.size();i++)
+					meshPtIndexList.push_back(i);
+			// Check AI values of initial step, otherwise we cannot check the dot product etc
+			while (1) 
+			{
+
+				cout << endl << "===== while ==================== " << direction << " ==" << endl;
+
+				// Check if we've moved to a new cell. NEXT POINT is USE DTO FIND CURRENT CELL!!
+				vtkIdType newCellId = this->HARDIimageData->FindCell(currentPoint.X, currentCell, currentCellId,this->tolerance, subId, pCoords, weights);
+				if(this->breakLoop) break;
+				//if(this->printStepInfo)
+				//{
+				//	cout << "newCellId"<< newCellId <<   endl;
+				//	for (unsigned int i = 0; i <8; ++i)// angles array is constant for all voxels
+				//	{
+				//		cout <<  "weight[" << i << "]:" << weights[i] << endl;
+				//	}
+
+				//}
+				// If we're in a new cell, and we're still inside the volume...
+				if (newCellId >= 0 && newCellId != currentCellId)
+				{
+					// ...store the ID of the new cell...
+					currentCellId = newCellId;
+
+					// ...set the new cell pointer...
+					currentCell = this->HARDIimageData->GetCell(currentCellId);
+
+					// ...and fill the cell arrays with the data of the new cell
+					this->HARDIArray->GetTuples(currentCell->PointIds, this->cellHARDIData);
+					this->aiScalars->GetTuples( currentCell->PointIds, this->cellAIScalars );
+				}
+				// If we've left the volume, break here
+				else if (newCellId == -1)
+				{
+					cout << "NOT  A CELL; BREAK " << endl; 
+					break;
+				}
+
+
+				double *interpolatedVector;
+				interpolatedVector = findFunctionValueUsingMaximaFile(TRESHOLD, anglesArray, weights,  trianglesArray, meshPtIndexList, maxima);
+
+				testDot = 0.0;
+				//value to compare local maxima (either random value or dot product)
+				//double value;
+
+				this->newSegment[0] = interpolatedVector[0]; // we will haveone unitvector !!! interpolation of angels will 
+				this->newSegment[1] = interpolatedVector[1]; // produce an angle and we will calculate tempDirection!!!!
+				this->newSegment[2] = interpolatedVector[2];
+
+				if(this->breakLoop) break;
+				if(this->printStepInfo)
+				{
+				//	cout <<"prev segment1:" << this->prevSegment[0] << " " << this->prevSegment[1] << " "<< this->prevSegment[2] << endl;
+					cout <<"new segment1:" << this->newSegment[0] << " " << this->newSegment[1] << " "<< this->newSegment[2] << endl;
+					cout <<"currentpoint before:" << this->currentPoint.X[0] << " " << this->currentPoint.X[1]  << " "<< this->currentPoint.X[2]  << endl;				
+					cout <<"this->step:" << this->step << endl;
+					// Compute the next point (nextPoint) of the fiber using a Euler step.
+				}
+
+				if (!this->solveIntegrationStepSHDI(currentCell, currentCellId, weights)) //Add NEwSegment to Current Point to Determine NEXT Point!!!
+					break;	
+
+				if(this->printStepInfo)
+				{
+					cout <<"nextpoimt after:" << this->nextPoint.X[0] << " " << this->nextPoint.X[1]  << " "<< this->nextPoint.X[2]  << endl;
+					cout <<"prev segment1.1:" << this->prevSegment[0] << " " << this->prevSegment[1] << " "<< this->prevSegment[2] << endl;
+					cout <<"new segment1.1:" << this->newSegment[0] << " " << this->newSegment[1] << " "<< this->newSegment[2] << endl;
+				}	
+				// Update the total fiber length
+				incrementalDistance = sqrt((double) vtkMath::Distance2BetweenPoints(currentPoint.X, nextPoint.X)); // next point nerede dolar ??
+
+				if(this->printStepInfo)
+				{
+					cout << "current point: "<< currentPoint.X[0] << " " << currentPoint.X[1] << " " << currentPoint.X[2] << " " << endl;
+					cout << "next point: "<< nextPoint.X[0] << " " << nextPoint.X[1] << " " << nextPoint.X[2] << " " << endl;
+					//cout << "incremental Distance" << incrementalDistance << endl;
+				}
+				this->nextPoint.D = this->currentPoint.D + incrementalDistance;
+				// Interpolate the AI value at the current position
+				if (currentCellId >= 0)
+				{
+					//MaxFinder.getGFA(&(currentPoint.AI));
+					this->interpolateScalar(&(currentPoint.AI), weights); // WEIGHTS are OLD for next point?				 
+				}
+
+				testDot = vtkMath::Dot(this->prevSegment, this->newSegment); // stop condition new segment is normalized after the increment for dotproduct
+
+				if(this->printStepInfo)
+					cout << "testDot: " << testDot  <<  "current point AI: " << currentPoint.AI << endl;
+				// Call "continueTracking" function of parent filter to determine if
+				// one of the stopping criteria has been met.
+				if (!(this->parentFilter->continueTracking(&(this->currentPoint), testDot, currentCellId)))// Current of NExt Point???
+				{
+					// If so, stop tracking.
+					cout << "STOP TRACKING. testDot: " << testDot  <<   endl;
+					break;
+				}
+
+				// Add the new point to the point list
+				pointList->push_back(this->nextPoint);
+
+				//if(this->printStepInfo)
+				//	cout << "pointList.size"<< pointList->size() << endl;
+				// If necessary, increase size of the point list
+				if (pointList->size() == pointList->capacity())
+				{
+					pointList->reserve(pointList->size() + 1000);
+				}
+
+				// Update the current and previous points
+				this->prevPoint = this->currentPoint;
+				this->currentPoint = this->nextPoint;
+
+				// Update the previous line segment
+				this->prevSegment[0] = this->newSegment[0];
+				this->prevSegment[1] = this->newSegment[1];
+				this->prevSegment[2] = this->newSegment[2]; // prevseg becomes automaticly normalized!!!
+
+				if(this->breakLoop) break;
+			//	if(this->printStepInfo) {
+				//	cout <<"prev segment2:" << this->prevSegment[0] << " " << this->prevSegment[1] << " "<< this->prevSegment[2] << endl;
+			//		cout <<"new segment2:" << this->newSegment[0] << " " << this->newSegment[1] << " "<< this->newSegment[2] << endl;
+			//	}
+
+			} //while 
+		}//if
+
+		delete [] weights;
+	}
+
+
+	
+				
 	double *HARDIdeterministicTracker::findFunctionValue(int threshold, std::vector<double*> &anglesArray, double *weights,  vtkIntArray *trianglesArray, std::vector<int> &meshPointsList, std::vector<int> &maxima)
 
 	{
@@ -757,6 +1091,7 @@ namespace bmia {
 		double **avgMaxVect = new double*[8];
 		std::vector<double *> anglesBeforeInterpolation; // this consists 8 angles
 		MaximumFinder MaxFinder = MaximumFinder(trianglesArray); // while icinde gerek var mi?!!!
+
 		for (int j = 0; j < 8; ++j)
 		{
 			//get the SH
@@ -832,6 +1167,16 @@ namespace bmia {
 		double **avgMaxVect = new double*[8];
 		std::vector<double *> anglesBeforeInterpolation; // this consists 8 angles
 		MaximumFinder MaxFinder = MaximumFinder(trianglesArray); // while icinde gerek var mi?!!!
+		
+
+
+		//IF FILE
+			int *maximaOfAPointFromFile = new int[this->maximaArrayFromFile->GetNumberOfComponents()];
+			double **unitVectorsOfAPointFromFile = new double*[this->maximaArrayFromFile->GetNumberOfComponents()];
+			 for (int j = 0; j < this->maximaArrayFromFile->GetNumberOfComponents(); ++j)
+			unitVectorsOfAPointFromFile[j] = new double[3];
+
+
 		for (int j = 0; j < 8; ++j)
 		{
 			//get the SH
@@ -843,14 +1188,24 @@ namespace bmia {
 			//this->cellHARDIData has 8 hardi coeffieint sets
 			//get the ODF // get maxes like below 8 times
 
+			//IF FROM FILE
+				this->maximasCellFromFile->GetTuples(j,maximaOfAPointFromFile); // GetTupleValue instead of GetTuple since int array
+				for (int n = 0; n < this->maximaArrayFromFile->GetNumberOfComponents(); ++n)
+					this->unitVectorCellListFromFile.at(n)->GetTuple(j,unitVectorsOfAPointFromFile[n] );
 
+				for (int k = 0; k <this->maximaArrayFromFile->GetNumberOfComponents(); ++k)
+				{
+				maxima.push_back(maximaOfAPointFromFile[k]);
+                outputlistwithunitvectors.push_back(unitVectorsOfAPointFromFile[k]);
+				}
+				
 			//get maxima; 
-			MaxFinder.getOutput(tempSH, this->parentFilter->shOrder,threshold, anglesArray,  maxima, meshPtIndexList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
+			//MaxFinder.getOutput(tempSH, this->parentFilter->shOrder,threshold, anglesArray,  maxima, meshPtIndexList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
 
 			//Below 3 necessary?
-			outputlistwithunitvectors.clear();
+			
 			//remove repeated maxima
-			MaxFinder.cleanOutput(maxima, outputlistwithunitvectors,tempSH, ODFlist, this->unitVectors, anglesArray);
+			//MaxFinder.cleanOutput(maxima, outputlistwithunitvectors,tempSH, ODFlist, this->unitVectors, anglesArray);
 			// maxima has ids use them to  get angles
 
 
@@ -884,7 +1239,7 @@ namespace bmia {
 			//if no maxima are found
 			// here interpolate and find the vectir?
 
-
+			outputlistwithunitvectors.clear();
 			maxima.clear();
 			ODFlist.clear();
 		}// for cell 8 
@@ -1412,24 +1767,41 @@ namespace bmia {
 		// if the image of unit vectors and maxima indexes have been already prepared. 
 		QString saveArrayName("MaxDirectionUnitVectors");
 		unsigned int nMaximaForEachPoint=0;
-		std::vector<vtkDoubleArray *> outUnitVectorList;
+	
 		if( maximaVolume->GetPointData()->GetArray("maximas"))
 		{
 		  nMaximaForEachPoint =  maximaVolume->GetPointData()->GetArray("maximas")->GetNumberOfComponents();
-		vtkIntArray * outArray = (vtkIntArray *)maximaVolume->GetPointData()->GetArray("maximas");
+		  maximaArrayFromFile =  vtkIntArray::SafeDownCast(maximaVolume->GetPointData()->GetArray("maximas"));
 		}
-	 
+	 QString arrName;
 		for(unsigned int nr = 0; nr <nMaximaForEachPoint  ; nr++)
 		{
 			//	outUnitVectorList.push_back(vtkDoubleArray::New());
 			//outUnitVectorList.at(nr)->SetNumberOfComponents(3);
 			//outUnitVectorList.at(nr)->SetNumberOfTuples(maximaVolume->GetNumberOfPoints());
-			QString arrName= saveArrayName + QString::number(nr); 
+			 arrName= saveArrayName + QString::number(nr); 
 			//outUnitVectorList.at(nr)->SetName( arrName.toStdString().c_str() );  //fist vector array for each point (keeps only the first vector)
-			outUnitVectorList.push_back( (vtkDoubleArray *) maximaVolume->GetPointData()->GetArray( arrName.toStdString().c_str() ));
+			outUnitVectorListFromFile.push_back( vtkDoubleArray::SafeDownCast(maximaVolume->GetPointData()->GetArray( arrName.toStdString().c_str() )));
+		
 		}
+		 vtkDataArray* ptr;
+		for(unsigned int nr = 0; nr <nMaximaForEachPoint  ; nr++){
+		     ptr = vtkDataArray::CreateDataArray(  VTK_DOUBLE);
+		this->unitVectorCellListFromFile.push_back(ptr);
 
+		}
+	     for(unsigned int nr = 0; nr <nMaximaForEachPoint  ; nr++)
+		 {
+          this->unitVectorCellListFromFile.at(nr)->SetNumberOfComponents(3);//unit vector has 3 components
+		  this->unitVectorCellListFromFile.at(nr)->SetNumberOfTuples(8);
+		 }
+		// Create the cell arrays
+		this->maximasCellFromFile  = vtkIntArray::SafeDownCast(vtkDataArray::CreateDataArray(this->maximaArrayFromFile->GetDataType()));
+			// Set number of components and tuples of the cell arrays
+		this->maximasCellFromFile->SetNumberOfComponents(this->maximaArrayFromFile->GetNumberOfComponents());
+		this->maximasCellFromFile->SetNumberOfTuples(8);
 
+	 
 		 
 
 	}

@@ -130,7 +130,9 @@ class HARDIdeterministicTracker
 			@param pointList	List of fiber points */
 
 		virtual void calculateFiberSHDI(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,  int numberOfIterations, bool cLEANMAXIMA, double TRESHOLD);
+		virtual void calculateFiberSHDIUseOfflineMaximaDirections(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,  int numberOfIterations, bool cLEANMAXIMA, double TRESHOLD);
 		
+
 		void readMaximaVectorsFile();
 
 			/** A version for Discrete Sphere data. Computes a single fiber in either the positive or negative direction. A new version of GetOutput function is used inside.
@@ -158,6 +160,8 @@ class HARDIdeterministicTracker
 		// if directions and vectors of maxes are read from the file
 		void FormMaxDirectionArrays(vtkImageData *maximaVolume);
 	
+			std::vector<vtkDoubleArray *> outUnitVectorListFromFile;
+		vtkIntArray * maximaArrayFromFile ;
 
 	protected:
 
@@ -237,6 +241,10 @@ class HARDIdeterministicTracker
 		vtkDataArray  * cellHARDIData;
 		vtkDataArray  * cellAIScalars;
 
+		 
+			vtkIntArray* maximasCellFromFile;
+			std::vector<vtkDataArray *> unitVectorCellListFromFile;
+		
 		/** Array containing the unit vectors obtained from the tesselation. */
 		double ** unitVectors;
 		
