@@ -506,7 +506,7 @@ namespace bmia {
 				outputlistwithunitvectors.push_back(outputlistwithunitvectors1[i]);
 				ODFlist.push_back(tempODFlist[i]);
 			}
-		}
+		} // ODFlist sort then take the correspoding i values!!
 	}
 
 		////--------------------------[ Find maxima for Spherical Harmonics Data. More then 1 maxima are found.]--------------------------\\
