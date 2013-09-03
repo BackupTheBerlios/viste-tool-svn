@@ -1,10 +1,16 @@
 /** Class for detecting the maxima in a glyph */
 
 #include "MaximumFinder.h"
- 
+
 //--------------------------[ Find maxima for discrete sphere data]--------------------------\\
 
+
 namespace bmia {
+
+	typedef std::pair<double,double *> mypair;
+	bool comparator ( const mypair& l, const mypair& r)
+	{ return l.first < r.first; }
+
 
 	void MaximumFinder::getOutputDS(double* pDarraySH, int shOrder,double treshold, std::vector<double*> anglesArray,  std::vector<int>& indexesOfMaxima, std::vector<int> &input)
 	{
@@ -360,7 +366,7 @@ namespace bmia {
 							}
 							if (doubtlist[i] == index2)
 							{
-								tempODFlist.push_back(fabs(radius[3]));
+  								tempODFlist.push_back(fabs(radius[3]));
 							}
 						}
 						donelist.push_back(i); // donelist is re-registered triple maxima from doubtlist, average or coners list
@@ -485,7 +491,7 @@ namespace bmia {
 		//delete any duplicates
 		if(outputlistwithunitvectors1.size() != 0)
 			outputlistwithunitvectors.push_back(outputlistwithunitvectors1.at(0));
-		if(ODFlist.size()!=0)
+		if(tempODFlist.size()!=0) // CHANGE BY MY : Former ODFlist.size()!=0  
 			ODFlist.push_back(tempODFlist.at(0));
 		bool duplicate;
 		//for every unit vector, ceck whether it is already in the final output list
@@ -506,10 +512,33 @@ namespace bmia {
 				outputlistwithunitvectors.push_back(outputlistwithunitvectors1[i]);
 				ODFlist.push_back(tempODFlist[i]);
 			}
-		} // ODFlist sort then take the correspoding i values!!
+		} 
 	}
 
-		////--------------------------[ Find maxima for Spherical Harmonics Data. More then 1 maxima are found.]--------------------------\\
+
+	// sort odf values keep indexes to be able to sort unitvectors accordingly
+	void MaximumFinder::SortUnitVectorsUsingODFValues( std::vector<double> &ODFlist, std::vector<double *>& outputlistwithunitvectors)
+	{
+		// check if sizes are equal , why not???
+		std::vector<mypair> odfValueWithUnitVecPointer;
+		
+		for(int i=0; i< ODFlist.size(); i++)
+		{	
+			mypair tmp(ODFlist.at(i),outputlistwithunitvectors[i]);
+			odfValueWithUnitVecPointer.push_back(tmp);
+		}
+		
+		std::sort(odfValueWithUnitVecPointer.begin(),odfValueWithUnitVecPointer.end(),comparator);
+		
+		for(int i=0; i < odfValueWithUnitVecPointer.size(); i++)
+		{
+			ODFlist[i]= odfValueWithUnitVecPointer[i].first;
+			outputlistwithunitvectors[i]= odfValueWithUnitVecPointer[i].second;
+		}
+
+	}
+
+	////--------------------------[ Find maxima for Spherical Harmonics Data. More then 1 maxima are found.]--------------------------\\
 
 	void MaximumFinder::getOutput(double* pDarraySH, int shOrder,double treshold, std::vector<double*> anglesArray,  std::vector<int>& indexesOfMaxima, std::vector<int> &indexes)
 	{
@@ -582,19 +611,19 @@ namespace bmia {
 	{
 		//input is indexes
 		//clear the indexesOfMaxima
-	 
+
 		//get radii
 		this->radii = bmia::HARDITransformationManager::CalculateDeformator(pDarraySH, &anglesArray, shOrder);  //harmonics and angles as input
-		  std::vector<double>::iterator result;
- 
-	 
+		std::vector<double>::iterator result;
+
+
 
 		//find maximum and minimum radii
-	 
-		 result = std::max_element((this->radii).begin(), (this->radii).end());
-		 indexOfMax = std::distance((this->radii).begin(), result);
-		 	
-		
+
+		result = std::max_element((this->radii).begin(), (this->radii).end());
+		indexOfMax = std::distance((this->radii).begin(), result);
+
+
 	}
 
 
@@ -653,4 +682,4 @@ namespace bmia {
 		}
 	}
 
-	}//namespace
+}//namespace

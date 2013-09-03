@@ -268,14 +268,14 @@ namespace bmia {
 		this->SetProgressText("Computing maxima and vectors...");
         this->SetProgress(0.0);
 		// Define output scalar array
-		vtkIntArray * outArray = vtkIntArray::New(); // can keep indexes of maxes !!! What about there are angles in between then it can keep angles???
-		outArray->SetNumberOfComponents(this->nMaximaForEachPoint);
+		//vtkIntArray * outArray = vtkIntArray::New(); // can keep indexes of maxes !!! What about there are angles in between then it can keep angles???
+		//outArray->SetNumberOfComponents(this->nMaximaForEachPoint);
 		//outArray->SetNumberOfTuples(this->nMaximaForEachPoint*numberOfPoints);
-		outArray->SetName("maximas");
-		vtkDoubleArray * outUnitVector = vtkDoubleArray::New(); // can keep indexes of maxes !!! What about there are angles in between then it can keep angles???
-		outUnitVector->SetNumberOfComponents(3);
-		outUnitVector->SetNumberOfTuples(numberOfPoints);
-		outUnitVector->SetName("MaxDirectionUnitVectors");
+		//outArray->SetName("maximas");
+		//vtkDoubleArray * outUnitVector = vtkDoubleArray::New(); // can keep indexes of maxes !!! What about there are angles in between then it can keep angles???
+		//outUnitVector->SetNumberOfComponents(3);
+		//outUnitVector->SetNumberOfTuples(numberOfPoints);
+		//outUnitVector->SetName("MaxDirectionUnitVectors");
 
 		QString saveArrayName("MaxDirectionUnitVectors");
 		std::vector<vtkDoubleArray *> outUnitVectorList;
@@ -344,7 +344,7 @@ namespace bmia {
 			//get maxima // correct angles array
 
 
-			if(this->nMaximaForEachPoint == 1)
+		/*	if(this->nMaximaForEachPoint == 1)
 			{
 				int indexOfMax;
 				MaxFinder.getUniqueOutput(tempSH, l,this->treshold,  anglesArray1,  meshPtIndexList,indexOfMax);
@@ -357,42 +357,46 @@ namespace bmia {
 				tempDirection[1] = sinf(anglesArray1.at(indexOfMax)[0]) * sinf(anglesArray1.at(indexOfMax)[1]);
 				tempDirection[2] = cosf(anglesArray1.at(indexOfMax)[0]);
 				outUnitVector->SetTuple3(ptId, tempDirection[0],tempDirection[1],tempDirection[2]);
-			}
-			else if (this->nMaximaForEachPoint > 1)
+			}*/
+		 if (this->nMaximaForEachPoint > 0)
 			{
-				outArray->SetNumberOfComponents(this->nMaximaForEachPoint);
+				//outArray->SetNumberOfComponents(this->nMaximaForEachPoint);
 				MaxFinder.getOutput(tempSH, l,this->treshold,  anglesArray1,  maxima, meshPtIndexList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
-
+				
 				//Below 3 necessary?
 				outputlistwithunitvectors.clear();
 				//remove repeated maxima
 				MaxFinder.cleanOutput(maxima, outputlistwithunitvectors,tempSH, ODFlist, this->unitVectors, anglesArray1);
-
-				int *indexesOfMaxima = new int[this->nMaximaForEachPoint];
-
+	 
+				MaxFinder.SortUnitVectorsUsingODFValues(ODFlist, outputlistwithunitvectors);
+				//int *indexesOfMaxima = new int[this->nMaximaForEachPoint];
+			 
 				for(int i=0; i<this->nMaximaForEachPoint;i++)
 				{
-					if(i < maxima.size())
-					{
-						indexesOfMaxima[i]=maxima.at(i);
+					if(i < outputlistwithunitvectors.size())
+					{  
+						//indexesOfMaxima[i]=maxima.at(i);
 						outUnitVectorList.at(i)->SetTuple3(ptId,outputlistwithunitvectors.at(i)[0],outputlistwithunitvectors.at(i)[1],outputlistwithunitvectors.at(i)[2]);
 					}
 					else 
 					{
-						indexesOfMaxima[i] = -1;
+				 
+						//indexesOfMaxima[i] = -1;
 						outUnitVectorList.at(i)->SetTuple3(ptId,0,0,0);
 					}
 
 			   }
-					outArray->InsertNextTupleValue(indexesOfMaxima); 
-
+			 
+					//outArray->InsertNextTupleValue(indexesOfMaxima); 
+				outputlistwithunitvectors.clear();
 					maxima.clear();
 					ODFlist.clear();
 			}
 			else 
+			{
 				cout << "this->nMaximaForEachPoint is not in the range" << endl; 
-
-
+				return;
+		  }
 			//HARDIMeasures * HMeasures = new HARDIMeasures; // THIS will be used 
 
 			// Check if tensor is NULL. This check is not necessary but can
@@ -412,16 +416,7 @@ namespace bmia {
 			//switch (this->currentMeasure)
 			//	{
 			//case HARDIMeasures::GA:		outScalar = HMeasures->GeneralAnisotropy(tempSH,l);	break; //  for all points do GA!!!
-			//case HARDIMeasures::V:		outScalar = HMeasures->Variance(tempSH,l);			break;
-			//case HARDIMeasures::GFA:    outScalar = HMeasures->GeneralFractionalAnisotropy(tempSH,l);	break;
-			//case	HARDIMeasures::FMI:	outScalar = HMeasures->FractionalMultifiberIndex(tempSH,l); break; // "Fractional Multi-Fiber Index";
-			//case	HARDIMeasures::R0:	outScalar = HMeasures->Rank0(tempSH,l); break; // 
-			//case	HARDIMeasures::R2:	outScalar = HMeasures->Rank2(tempSH,l); break; // 
-			//case	HARDIMeasures::Ri:	outScalar = HMeasures->RankI(tempSH,l); break; // 
-			//case	HARDIMeasures::Iso:	outScalar = HMeasures->IsotropicComponent(tempSH,l); break; // 
-			//case	HARDIMeasures::SE:	outScalar = HMeasures->ShannonEntropy(tempSH,l); break; // 
-			//case	HARDIMeasures::CRE:	outScalar = HMeasures->CummulativeResidualEntropy(tempSH,l); break; // 
-			//case	HARDIMeasures::NM:	outScalar = HMeasures->NumberMaxima(tempSH,l); break; // 
+			 
 			//default:
 			//	vtkErrorMacro(<<"Unknown scalar measure!");
 			//	return;
@@ -433,26 +428,25 @@ namespace bmia {
 			// Update progress value
 			//cout << ptId << endl;
 			// Update progress bar
+	 
 			if ((ptId % progressStepSize) == 0)
 			{
 				this->UpdateProgress((double) ptId / (double) numberOfPoints);
-				cout << ptId << " " << outArray->GetNumberOfTuples() << endl;
-				double *d = new double[4]; d = outArray->GetTuple4(ptId);
-				cout << d[0] << " " << d[1] << " " << d[1] << " " << d[3] << " " << endl;
+				cout << ptId << " " << endl; //outPD->GetNumberOfTuples() << endl;
+				//double *d = new double[4]; d = outPD->GetTuple4(ptId);
+				//cout << d[0] << " " << d[1] << " " << d[1] << " " << d[3] << " " << endl;
 			}
 				//if (ptId==1000) break;
 		}
 
 		// Add scalars to the output
-		outPD->AddArray(outArray);
-		if(this->nMaximaForEachPoint == 1)
-			outPD->AddArray(outUnitVector);
-		else
+		//outPD->AddArray(outArray); NO MAXIMA
+		 
 			for(int i=0; i<this->nMaximaForEachPoint;i++)
 				outPD->AddArray(outUnitVectorList.at(i));
 
-		outArray->Delete();
-		outArray = NULL;
+		//outArray->Delete();
+		//outArray = NULL;
 
 		// We're done!
 		this->UpdateProgress(1.0);

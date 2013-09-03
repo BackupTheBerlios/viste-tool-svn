@@ -115,6 +115,8 @@ public:
   //vector with radii of the ODF
   std::vector<double> radii;
 
+  void SortUnitVectorsUsingODFValues( std::vector<double> &ODFlist, std::vector<double *>& outputlistwithunitvectors);
+
 private:
 	
 	//array with triangles, needed for neighbor-search

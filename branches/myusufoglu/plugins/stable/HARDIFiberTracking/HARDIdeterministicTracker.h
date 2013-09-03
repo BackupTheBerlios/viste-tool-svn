@@ -162,7 +162,8 @@ class HARDIdeterministicTracker
 	
 			std::vector<vtkDoubleArray *> outUnitVectorListFromFile;
 		vtkIntArray * maximaArrayFromFile ;
-
+		// if maxima directions read from file
+		int nMaximaForEachPoint;
 	protected:
 
 		vtkImageData *  HARDIimageData;	// HARDI image data

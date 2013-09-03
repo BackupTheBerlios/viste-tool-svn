@@ -801,7 +801,7 @@ namespace bmia {
 
 			//From File /////////////////
 
-			this->maximaArrayFromFile->GetTuples(currentCell->PointIds, maximasCellFromFile);
+			//this->maximaArrayFromFile->GetTuples(currentCell->PointIds, maximasCellFromFile);
 			for(unsigned int nr = 0; nr <outUnitVectorListFromFile.size()  ; nr++)
 			{
 				this->outUnitVectorListFromFile.at(nr)->GetTuples(currentCell->PointIds, unitVectorCellListFromFile.at(nr));
@@ -832,9 +832,9 @@ namespace bmia {
 			double *avgMaxAng = new double[2];
 
 			//IF FILE
-			double *maximaOfAPointFromFile = new double[this->maximaArrayFromFile->GetNumberOfComponents()];
-			double **unitVectorsOfAPointFromFile = new double*[this->maximaArrayFromFile->GetNumberOfComponents()];
-			for (int j = 0; j < this->maximaArrayFromFile->GetNumberOfComponents(); ++j)
+			double *maximaOfAPointFromFile = new double[this->nMaximaForEachPoint];
+			double **unitVectorsOfAPointFromFile = new double*[this->nMaximaForEachPoint];
+			for (int j = 0; j < this->nMaximaForEachPoint; ++j)
 				unitVectorsOfAPointFromFile[j] = new double[3];
 
 
@@ -853,17 +853,17 @@ namespace bmia {
 				//get the ODF // get maxes like below 8 times
 
 				//IF FROM FILE
-				this->maximasCellFromFile->GetTuple(j,maximaOfAPointFromFile);
-				for (int n = 0; n < this->maximaArrayFromFile->GetNumberOfComponents(); ++n)
+				//this->maximasCellFromFile->GetTuple(j,maximaOfAPointFromFile);
+				for (int n = 0; n < this->nMaximaForEachPoint; ++n)
 					this->unitVectorCellListFromFile.at(n)->GetTuple(j,unitVectorsOfAPointFromFile[n] );
 
-				for (int k = 0; k <this->maximaArrayFromFile->GetNumberOfComponents(); ++k)
+				for (int k = 0; k <this->nMaximaForEachPoint; ++k)
 				{
 					maxima.push_back(maximaOfAPointFromFile[k]);
 					outputlistwithunitvectors.push_back(unitVectorsOfAPointFromFile[k]);
 				}
 
-
+				// Angles from unit vectors is a better idea.
 				///MaxFinder.getOutput(tempSH, this->parentFilter->shOrder,TRESHOLD, anglesArray,  maxima, meshPtIndexList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
 				// maxima has ids use them to get angles
 				//MaxFinder.cleanOutput(maxima, outputlistwithunitvectors,tempSH, ODFlist, this->unitVectors, anglesArray);
@@ -975,7 +975,7 @@ namespace bmia {
 					// ...and fill the cell arrays with the data of the new cell
 					this->HARDIArray->GetTuples(currentCell->PointIds, this->cellHARDIData);
 					this->aiScalars->GetTuples( currentCell->PointIds, this->cellAIScalars );
-					this->maximaArrayFromFile->GetTuples(currentCell->PointIds, maximasCellFromFile);
+					//this->maximaArrayFromFile->GetTuples(currentCell->PointIds, maximasCellFromFile);
 					for(unsigned int nr = 0; nr <outUnitVectorListFromFile.size()  ; nr++)
 					{
 						this->outUnitVectorListFromFile.at(nr)->GetTuples(currentCell->PointIds, unitVectorCellListFromFile.at(nr));
@@ -1194,8 +1194,8 @@ namespace bmia {
 			//get the ODF // get maxes like below 8 times
 
 			//IF FROM FILE
-			this->maximasCellFromFile->GetTuple(j,maximaOfAPointFromFile); // GetTupleValue instead of GetTuple since int array
-			for (int n = 0; n < this->maximaArrayFromFile->GetNumberOfComponents(); ++n)
+			//this->maximasCellFromFile->GetTuple(j,maximaOfAPointFromFile); // GetTupleValue instead of GetTuple since int array
+			for (int n = 0; n < this->nMaximaForEachPoint; ++n)
 				this->unitVectorCellListFromFile.at(n)->GetTuple(j,unitVectorsOfAPointFromFile[n] );
 
 			for (int k = 0; k <this->maximaArrayFromFile->GetNumberOfComponents(); ++k)
@@ -1776,13 +1776,13 @@ namespace bmia {
 
 		// if the image of unit vectors and maxima indexes have been already prepared. 
 		QString saveArrayName("MaxDirectionUnitVectors");
-		unsigned int nMaximaForEachPoint=0;
+		 this->nMaximaForEachPoint=0;  
 
-		if( readerXML->GetOutput()->GetPointData()->GetArray("maximas"))
-		{
-			nMaximaForEachPoint =  readerXML->GetOutput()->GetPointData()->GetArray("maximas")->GetNumberOfComponents();
-			maximaArrayFromFile =  vtkIntArray::SafeDownCast(readerXML->GetOutput()->GetPointData()->GetArray("maximas"));
-		}
+		//if( readerXML->GetOutput()->GetPointData()->GetArray("maximas"))
+		//{  
+			nMaximaForEachPoint =  readerXML->GetOutput()->GetPointData()->GetNumberOfArrays();  //->GetArray("maximas")->GetNumberOfComponents();
+			//maximaArrayFromFile =  vtkIntArray::SafeDownCast(readerXML->GetOutput()->GetPointData()->GetArray("maximas"));
+		//}
 		QString arrName;
 		for(unsigned int nr = 0; nr <nMaximaForEachPoint  ; nr++)
 		{
@@ -1808,10 +1808,10 @@ namespace bmia {
 			this->unitVectorCellListFromFile.at(nr)->SetNumberOfTuples(8);
 		}
 		// Create the cell arrays
-		this->maximasCellFromFile  = vtkIntArray::SafeDownCast(vtkDataArray::CreateDataArray(this->maximaArrayFromFile->GetDataType()));
+		//this->maximasCellFromFile  = vtkIntArray::SafeDownCast(vtkDataArray::CreateDataArray(this->maximaArrayFromFile->GetDataType()));
 		// Set number of components and tuples of the cell arrays
-		this->maximasCellFromFile->SetNumberOfComponents(this->maximaArrayFromFile->GetNumberOfComponents());
-		this->maximasCellFromFile->SetNumberOfTuples(8);
+		//this->maximasCellFromFile->SetNumberOfComponents(this->maximaArrayFromFile->GetNumberOfComponents());
+		//this->maximasCellFromFile->SetNumberOfTuples(8);
 
 
 
