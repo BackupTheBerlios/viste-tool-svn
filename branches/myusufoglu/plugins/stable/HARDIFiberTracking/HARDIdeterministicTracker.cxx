@@ -859,7 +859,7 @@ namespace bmia {
 
 				for (int k = 0; k <this->nMaximaForEachPoint; ++k)
 				{
-					maxima.push_back(maximaOfAPointFromFile[k]);
+					//maxima.push_back(maximaOfAPointFromFile[k]);
 					outputlistwithunitvectors.push_back(unitVectorsOfAPointFromFile[k]);
 				}
 
@@ -869,7 +869,7 @@ namespace bmia {
 				//MaxFinder.cleanOutput(maxima, outputlistwithunitvectors,tempSH, ODFlist, this->unitVectors, anglesArray);
 				avgMaxAng[0]=0;
 				avgMaxAng[1]=0;
-				for(int i=0; i< maxima.size(); i++)
+				for(int i=0; i< maxima.size(); i++)// START FROM HERE!!! this->n
 				{
 					avgMaxAng[0]+=anglesArray.at(maxima.at(i))[0];   // choose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
 					avgMaxAng[1]+=anglesArray.at(maxima.at(i))[1];   // ose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
@@ -1772,7 +1772,7 @@ namespace bmia {
 		readerXML->SetFileName( fileName.toStdString().c_str() );
 		readerXML->Update(); // Update other place
 		maximaVolume = vtkImageData::SafeDownCast(readerXML->GetOutput());
-		int i = readerXML->GetOutput()->GetPointData()->GetArray("maximas")->GetNumberOfComponents();
+		//int i = readerXML->GetOutput()->GetPointData()->GetArray("maximas")->GetNumberOfComponents();
 
 		// if the image of unit vectors and maxima indexes have been already prepared. 
 		QString saveArrayName("MaxDirectionUnitVectors");
@@ -1780,7 +1780,9 @@ namespace bmia {
 
 		//if( readerXML->GetOutput()->GetPointData()->GetArray("maximas"))
 		//{  
-			nMaximaForEachPoint =  readerXML->GetOutput()->GetPointData()->GetNumberOfArrays();  //->GetArray("maximas")->GetNumberOfComponents();
+			nMaximaForEachPoint =  readerXML->GetOutput()->GetPointData()->GetNumberOfArrays() -1;  // 1 for the original image N for the arrays added for unit vectors
+			
+			//->GetArray("maximas")->GetNumberOfComponents();
 			//maximaArrayFromFile =  vtkIntArray::SafeDownCast(readerXML->GetOutput()->GetPointData()->GetArray("maximas"));
 		//}
 		QString arrName;
