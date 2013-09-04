@@ -361,7 +361,7 @@ void vtkGeometryGlyphBuilder::Execute()
 
 			// Add the new point ID to the list
 			glyphPoints->InsertNextId(newPointId);
-		}
+		} //vectors
 
 		// If we don't have triangles, we use lines from the glyph center instead,
 		// so we need to add the glyph center as an extra point.

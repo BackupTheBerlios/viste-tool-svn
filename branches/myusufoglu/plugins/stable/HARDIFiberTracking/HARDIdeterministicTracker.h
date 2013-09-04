@@ -53,6 +53,14 @@
 
 //adapted version with functions to get the triangles-, unitVectors- and anglesArray
 #include "vtkGeometryGlyphFromSHBuilder.h"
+
+// For Maxima Unit Vector Visualisation
+#include <vtkGlyph3D.h>
+#include <vtkCellArray.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkActor.h>
+#include <vtkArrowSource.h>
+
 //needed for vector search
 #include <algorithm>
 //needed for random numbers
@@ -159,7 +167,9 @@ class HARDIdeterministicTracker
 		bool breakLoop; // breaks the main looop
 		// if directions and vectors of maxes are read from the file
 		void FormMaxDirectionArrays(vtkImageData *maximaVolume);
-	
+	   void FormMaxDirectionVisualisation(vtkImageData *maximaVolume);
+
+
 			std::vector<vtkDoubleArray *> outUnitVectorListFromFile;
 		vtkIntArray * maximaArrayFromFile ;
 		// if maxima directions read from file

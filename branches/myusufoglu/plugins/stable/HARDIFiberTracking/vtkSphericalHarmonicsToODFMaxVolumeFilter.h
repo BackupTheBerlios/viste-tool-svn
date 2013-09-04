@@ -139,10 +139,13 @@ class vtkSphericalHarmonicsToODFMaxVolumeFilter : public vtkSimpleImageToImageFi
 		{
 			currentMeasure = (Measure) m;
 		}
-			/** Measure used to classify the seed points. */
+		
+		/** TesselationOrder is used for triangle and unit vector calculation. But maxima does not have to be one of those unit vectors can be in between */	
 		vtkGetMacro(TesselationOrder,				unsigned int);
+		/** TesselationOrder is used for triangle and unit vector calculation. But maxima does not have to be one of those unit vectors can be in between */
 		vtkSetMacro(TesselationOrder,				unsigned int);
 
+			/** Measure used to classify the seed points. */
 		HARDIMeasures::HARDIMeasureType measure;
 
 	protected:

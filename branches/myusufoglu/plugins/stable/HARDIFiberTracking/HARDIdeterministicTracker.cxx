@@ -855,7 +855,7 @@ namespace bmia {
 				//IF FROM FILE
 				//this->maximasCellFromFile->GetTuple(j,maximaOfAPointFromFile);
 				for (int n = 0; n < this->nMaximaForEachPoint; ++n)
-					this->unitVectorCellListFromFile.at(n)->GetTuple(j,unitVectorsOfAPointFromFile[n] );
+					this->unitVectorCellListFromFile.at(n)->GetTuple(j,unitVectorsOfAPointFromFile[n] );// n different for a vertice
 
 				for (int k = 0; k <this->nMaximaForEachPoint; ++k)
 				{
@@ -869,14 +869,14 @@ namespace bmia {
 				//MaxFinder.cleanOutput(maxima, outputlistwithunitvectors,tempSH, ODFlist, this->unitVectors, anglesArray);
 				avgMaxAng[0]=0;
 				avgMaxAng[1]=0;
-				for(int i=0; i< maxima.size(); i++)// START FROM HERE!!! this->n
-				{
-					avgMaxAng[0]+=anglesArray.at(maxima.at(i))[0];   // choose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
-					avgMaxAng[1]+=anglesArray.at(maxima.at(i))[1];   // ose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
-					cout << "anglesOfmaxOfCorner"  << anglesArray.at(maxima.at(i))[0] << " " << anglesArray.at(maxima.at(i))[1] << endl;
+				for(int i=0; i< this->nMaximaForEachPoint; i++)// START FROM HERE!!! this->n
+				{	
+					avgMaxAng[0]+= acos( outputlistwithunitvectors[i][2]);  // choose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
+					avgMaxAng[1]+= atan2( outputlistwithunitvectors[i][1],  outputlistwithunitvectors[i][0]);  // ose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
+					//cout << "anglesOfmaxOfCorner"  << anglesArray.at(maxima.at(i))[0] << " " << anglesArray.at(maxima.at(i))[1] << endl;
 				}
-				avgMaxAng[0]/=maxima.size();
-				avgMaxAng[1]/=maxima.size();
+				avgMaxAng[0]/=this->nMaximaForEachPoint;
+				avgMaxAng[1]/=this->nMaximaForEachPoint;
 				cout << avgMaxAng[0] << " " << avgMaxAng[1] << endl;
 				anglesBeforeInterpolation.push_back(avgMaxAng); // if angles are in the range of [-pi,pi] interpolation is ok
 				outputlistwithunitvectors.clear();
@@ -1176,9 +1176,9 @@ namespace bmia {
 
 
 		//IF FILE
-		double *maximaOfAPointFromFile = new double[this->maximaArrayFromFile->GetNumberOfComponents()];
-		double **unitVectorsOfAPointFromFile = new double*[this->maximaArrayFromFile->GetNumberOfComponents()];
-		for (int j = 0; j < this->maximaArrayFromFile->GetNumberOfComponents(); ++j)
+		double *maximaOfAPointFromFile = new double[this->nMaximaForEachPoint];
+		double **unitVectorsOfAPointFromFile = new double*[this->nMaximaForEachPoint];
+		for (int j = 0; j < this->nMaximaForEachPoint; ++j)
 			unitVectorsOfAPointFromFile[j] = new double[3];
 
 
@@ -1198,7 +1198,7 @@ namespace bmia {
 			for (int n = 0; n < this->nMaximaForEachPoint; ++n)
 				this->unitVectorCellListFromFile.at(n)->GetTuple(j,unitVectorsOfAPointFromFile[n] );
 
-			for (int k = 0; k <this->maximaArrayFromFile->GetNumberOfComponents(); ++k)
+			for (int k = 0; k < this->nMaximaForEachPoint; ++k)
 			{
 				maxima.push_back(maximaOfAPointFromFile[k]);
 				outputlistwithunitvectors.push_back(unitVectorsOfAPointFromFile[k]);
@@ -1758,6 +1758,29 @@ namespace bmia {
 	}
 
 
+	// visualisation of maxima directions if read from the file
+	void HARDIdeterministicTracker::FormMaxDirectionVisualisation(vtkImageData *maximaVolume)
+	{
+		// Setup the arrows
+    vtkArrowSource  *arrowSource =  vtkArrowSource::New();
+  arrowSource->Update();
+ vtkGlyph3D *glyphFilter =  vtkGlyph3D::New();
+  glyphFilter->SetSourceConnection(arrowSource->GetOutputPort());
+  glyphFilter->OrientOn();
+  glyphFilter->SetVectorModeToUseVector(); // Or to use Normal
+
+  glyphFilter->SetInput(maximaVolume);
+
+  glyphFilter->Update();
+    vtkPolyDataMapper *vectorMapper =  vtkPolyDataMapper::New();
+  vectorMapper->SetInputConnection(glyphFilter->GetOutputPort());
+   vtkActor *vectorActor =  vtkActor::New();
+  vectorActor->SetMapper(vectorMapper);
+
+	}
+
+	// if image has n arrays . each array tuple has a unit vector. First array is for the 
+	// largest sized unit vector. Second array is for the 
 	void HARDIdeterministicTracker::FormMaxDirectionArrays(vtkImageData *maximaVolume)
 	{
 
@@ -1785,6 +1808,7 @@ namespace bmia {
 			//->GetArray("maximas")->GetNumberOfComponents();
 			//maximaArrayFromFile =  vtkIntArray::SafeDownCast(readerXML->GetOutput()->GetPointData()->GetArray("maximas"));
 		//}
+		
 		QString arrName;
 		for(unsigned int nr = 0; nr <nMaximaForEachPoint  ; nr++)
 		{

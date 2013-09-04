@@ -172,12 +172,13 @@ namespace bmia {
             return;
 				// This part can be taken to another plugin. Creates a volme consisting indexes of maximums.
 				vtkSphericalHarmonicsToODFMaxVolumeFilter *HARDIToMaximaFilter = vtkSphericalHarmonicsToODFMaxVolumeFilter::New();
+				this->core()->out()->createProgressBarForAlgorithm(HARDIToMaximaFilter);
 				HARDIToMaximaFilter->SetInput(HARDIimageData);
 				HARDIToMaximaFilter->setTreshold((float) this->ui->tresholdSpinner->value());
 				HARDIToMaximaFilter->SetTesselationOrder((unsigned int) this->ui->tesselationSpinner->value());
 				HARDIToMaximaFilter->setNMaximaForEachPoint(4);
 				HARDIToMaximaFilter->Update();
-
+				
 
 				vtkXMLImageDataWriter *writerXML = vtkXMLImageDataWriter::New();                
 				writerXML->SetInput ( (vtkDataObject*)(HARDIToMaximaFilter->GetOutput()) );
