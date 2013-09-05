@@ -31,37 +31,30 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-add_subdirectory( examples )
+OPTION(PLUGINS_BUILD_VECTORVISUALIZATION "Build Vector Visualization Plugin" ON)
 
-add_subdirectory( AxesVisualization )
-add_subdirectory( Clustering )
-add_subdirectory( ConnectivityMeasures )
-add_subdirectory( DTIMeasures )
-add_subdirectory( DTIReader )
-add_subdirectory( FiberCutting )
-add_subdirectory( FiberFilter )
-add_subdirectory( FiberOutput )
-add_subdirectory( FiberTracking )
-add_subdirectory( FiberVisualization )
-add_subdirectory( GeometryGlyphs )
-add_subdirectory( GpuGlyphs )
-add_subdirectory( HARDIConverter )
-add_subdirectory( HARDIConvolutions )
-add_subdirectory( HARDIFiberTracking)
-add_subdirectory( HARDIMeasures )
-add_subdirectory( HARDIReader )
-add_subdirectory( IllustrativeClusters )
-add_subdirectory( NiftiReader )
-add_subdirectory( NiftiWriter )
-add_subdirectory( Crop3D )
-add_subdirectory( PlanesVisualization )
-add_subdirectory( RayCast )
-add_subdirectory( RoiDraw )
-add_subdirectory( Seeding )
-add_subdirectory( StructuredPointsReader )
-add_subdirectory( TransferFunction )
-add_subdirectory( TransferFunctionReader )
-add_subdirectory( Transformation )
-add_subdirectory( VectorVisualization )
-add_subdirectory( VolumeReader )
-add_subdirectory( VtiReader )
+if(PLUGINS_BUILD_VECTORVISUALIZATION)
+
+set( BMIA_VECTORVISUALIZATION_PLUGIN )
+
+find_package(VTK REQUIRED)
+include(${VTK_USE_FILE})
+
+find_package(Qt4 REQUIRED)
+include(${QT_USE_FILE})
+
+set(SRCS
+    VectorVisualizationPlugin.cxx
+)
+
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
+qt4_wrap_ui(UiHeaders vectorvisualization.ui)
+qt4_wrap_cpp( MOC_SRCS VectorVisualizationPlugin.h )
+set_source_files_properties(VectorVisualizationPlugin.cxx PROPERTIES OBJECT_DEPENDS "${UiHeaders}")
+
+
+add_library( VectorVisualizationPlugin SHARED ${SRCS} ${MOC_SRCS} )
+target_link_libraries( VectorVisualizationPlugin bmia_libs vtkVolumeRendering vtkIO vtkWidgets vtkGraphics vtkRendering )
+
+endif(PLUGINS_BUILD_VECTORVISUALIZATION)

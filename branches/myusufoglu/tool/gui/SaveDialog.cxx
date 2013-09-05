@@ -207,6 +207,7 @@ namespace bmia {
 			{
 				pointSet = vtkPointSet::SafeDownCast(obj);
 			}
+			
 
 			// Estimated data size
 			unsigned long dataSize = 0;

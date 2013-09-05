@@ -201,8 +201,37 @@ void VtiReaderPlugin::loadDataFromFile(QString filename)
 	data->Delete(); data = NULL;
 	}
 
+	// Load Vectos if Any
+	loadArraysAsDataSet(reader->GetOutput());
 	// Delete the reader that was used to read the data.
     reader->Delete(); reader = NULL;
+}
+
+void VtiReaderPlugin::loadArraysAsDataSet(vtkImageData *img)
+{
+	unsigned int nArrays=0;  
+
+		 Q_ASSERT(img->GetPointData());
+			nArrays =  img->GetPointData()->GetNumberOfArrays() ;  // 1 for the original image N for the arrays added for unit vectors
+			std::vector<vtkDoubleArray *> outUnitVectorListFromFile;
+			 
+		QString kind("vectors");
+		
+		for(unsigned int nr = 0; nr <nArrays  ; nr++)
+		{
+			//	outUnitVectorList.push_back(vtkDoubleArray::New());
+			//outUnitVectorList.at(nr)->SetNumberOfComponents(3);
+			//outUnitVectorList.at(nr)->SetNumberOfTuples(maximaVolume->GetNumberOfPoints());
+			 
+			//outUnitVectorList.at(nr)->SetName( arrName.toStdString().c_str() );  //fist vector array for each point (keeps only the first vector)
+			QString name(img->GetPointData()->GetArrayName(nr));
+			if ((img->GetPointData()->GetArray(name.toStdString().c_str()  )->GetDataType() == VTK_DOUBLE) && ( img->GetPointData()->GetArray( name.toStdString().c_str() )->GetNumberOfComponents() ==3))
+			{
+				//outUnitVectorListFromFile.push_back( vtkDoubleArray::SafeDownCast( img->GetPointData()->GetArray(name.toStdString().c_str()  )));
+			  data::DataSet* ds = new data::DataSet(name, kind, vtkDoubleArray::SafeDownCast( img->GetPointData()->GetArray(name.toStdString().c_str())));
+	 this->core()->data()->addDataSet(ds);
+			}
+		}
 }
 
 } // namespace bmia

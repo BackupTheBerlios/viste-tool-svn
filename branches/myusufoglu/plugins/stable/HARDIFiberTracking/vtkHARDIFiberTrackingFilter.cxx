@@ -514,6 +514,9 @@ namespace bmia {
 				// Update the progress bar (adapted for multiple iterations)
 				if ((ptId % progressStepSize) == 0)
 					this->UpdateProgress(ptId/ (float) seedPoints->GetNumberOfPoints());
+			   int percentage = (ptId *100.0/seedPoints->GetNumberOfPoints());
+				if(percentage%5 ==0)
+				cout << percentage << endl;
 			}
 		}
 

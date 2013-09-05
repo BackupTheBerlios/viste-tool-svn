@@ -48,7 +48,7 @@
 #define bmia_VtiReader_VtiReaderPlugin_h
 
 #include "DTITool.h"
-
+#include <vtkDoubleArray.h>
 namespace bmia {
 
 /**
@@ -82,6 +82,8 @@ public:
      * This function is required by the data::Reader plugin interface.
      */
     void loadDataFromFile(QString filename);
+
+	void loadArraysAsDataSet(vtkImageData *img);
 
 protected:
 private:

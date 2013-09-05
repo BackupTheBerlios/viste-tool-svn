@@ -136,6 +136,7 @@ vtkPolyData* DataSet::getVtkPolyData()
     // NULL if the object is not a vtkPolyData
     return vtkPolyData::SafeDownCast(ds);
 }
+ 
 
 } // namespace data
 } // namespace bmia

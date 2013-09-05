@@ -759,7 +759,7 @@ namespace bmia {
 	void HARDIdeterministicTracker::calculateFiberSHDIUseOfflineMaximaDirections(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,int numberOfIterations, bool CLEANMAXIMA, double TRESHOLD)
 	{
 
-		cout << "----------------  New Seed for a New Fiber - calculateFiberSHDIMaxDirection ---------------("<< direction <<")"<<  endl;
+		cout << "-----  New Seed for a New Fiber - calculateFiberSHDIMaxDirection ------("<< direction <<")"<<  endl;
 		vtkCell *	currentCell			= NULL;						// Cell of current point
 		vtkIdType	currentCellId		= 0;						// Id of current cell
 		double		closestPoint[3]		= {0.0, 0.0, 0.0};			// Used in "EvaluatePosition"
@@ -877,7 +877,7 @@ namespace bmia {
 				}
 				avgMaxAng[0]/=this->nMaximaForEachPoint;
 				avgMaxAng[1]/=this->nMaximaForEachPoint;
-				cout << avgMaxAng[0] << " " << avgMaxAng[1] << endl;
+				//cout << avgMaxAng[0] << " " << avgMaxAng[1] << endl;
 				anglesBeforeInterpolation.push_back(avgMaxAng); // if angles are in the range of [-pi,pi] interpolation is ok
 				outputlistwithunitvectors.clear();
 				// TAKEN BEFORE THE AVERAGING MaxFinder.cleanOutput(maxima, outputlistwithunitvectors,SHAux, ODFlist, this->unitVectors, anglesArray);
@@ -949,7 +949,7 @@ namespace bmia {
 			while (1) 
 			{
 
-				cout << endl << "===== while ==================== " << direction << " ==" << endl;
+				cout << endl << "===== while ======== " << direction << " ==" << endl;
 
 				// Check if we've moved to a new cell. NEXT POINT is USE DTO FIND CURRENT CELL!!
 				vtkIdType newCellId = this->HARDIimageData->FindCell(currentPoint.X, currentCell, currentCellId,this->tolerance, subId, pCoords, weights);
@@ -1224,7 +1224,8 @@ namespace bmia {
 
 				if( value < angularSimilarity   ) 
 				{  
-					value = angularSimilarity; indexHighestSimilarity = i; cout << value << " ";
+					value = angularSimilarity; indexHighestSimilarity = i; 
+					//cout << value << " ";
 
 				}
 			}
