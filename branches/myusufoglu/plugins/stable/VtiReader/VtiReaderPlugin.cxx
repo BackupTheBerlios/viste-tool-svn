@@ -201,13 +201,13 @@ void VtiReaderPlugin::loadDataFromFile(QString filename)
 	data->Delete(); data = NULL;
 	}
 
-	// Load Vectos if Any
-	loadArraysAsDataSet(reader->GetOutput());
+	// Load Vectos if Any: Left For Future
+	// loadArraysAsDataSet(reader->GetOutput());
 	// Delete the reader that was used to read the data.
     reader->Delete(); reader = NULL;
 }
 
-void VtiReaderPlugin::loadArraysAsDataSet(vtkImageData *img)
+void VtiReaderPlugin::loadArraysAsDataSet(vtkImageData *img) 
 {
 	unsigned int nArrays=0;  
 

@@ -111,10 +111,22 @@ namespace bmia {
 	void VectorVisualizationPlugin::dataSetAdded(data::DataSet* ds)
 	{
 		Q_ASSERT(ds);
-
+		 img ;
+		 cout << ds->getKind().toStdString() << endl;
 		if (ds->getKind() == "scalar volume")
 		{
-			vtkImageData *img   = ds->getVtkImageData();
+			img   = ds->getVtkImageData();
+				if (!img)
+			return;
+
+		// Check if the image contains point data with scalars
+		vtkPointData * imagePD = img->GetPointData();
+
+		if (!imagePD)
+			return;
+
+		if (!(imagePD->GetScalars()))
+			return;
 			int nArrays;
 			nArrays = img->GetPointData()->GetNumberOfArrays() ;  // 1 for the original image N for the arrays added for unit vectors
 			std::vector<vtkDoubleArray *> outUnitVectorListFromFile;
@@ -132,76 +144,73 @@ namespace bmia {
 				if ((img->GetPointData()->GetArray(name.toStdString().c_str()  )->GetDataType() == VTK_DOUBLE) && ( img->GetPointData()->GetArray( name.toStdString().c_str() )->GetNumberOfComponents() ==3))
 				{
 					outUnitVectorListFromFile.push_back( vtkDoubleArray::SafeDownCast( img->GetPointData()->GetArray(name.toStdString().c_str()  )));
-					//data::DataSet* ds = new data::DataSet(name, kind, vtkDoubleArray::SafeDownCast( img->GetPointData()->GetArray(name.toStdString().c_str())));
-					this->core()->data()->addDataSet(ds);
+					data::DataSet* ds_local = new data::DataSet(name, "vector", vtkDoubleArray::SafeDownCast( img->GetPointData()->GetArray(name.toStdString().c_str())));
+					//this->core()->data()->addDataSet(ds);
+					this->dataSets.append(ds_local);
+					// Add the new data set to the list of currently available polydata sets:
+					//this->dataSets.append(ds); // local list
+
+					this->ui->dataList->addItem(ds_local->getName());
+
+
+
 				}
+				
 			}
+				QString name(img->GetPointData()->GetArrayName(1));
+				cout << name.toStdString() << endl;
+				img->GetPointData()->SetActiveVectors(name.toStdString().c_str());
+					vtkArrowSource  *arrowSource =  vtkArrowSource::New();
+					arrowSource->Update();
+					vtkGlyph3D *glyphFilter =  vtkGlyph3D::New();
+					glyphFilter->SetSourceConnection(arrowSource->GetOutputPort());
+					glyphFilter->OrientOn();
+					glyphFilter->SetVectorModeToUseVector(); // Or to use Normal
+					glyphFilter->SetScaling(true);
+					glyphFilter->SetScaleFactor(1);
+					glyphFilter->SetInput(img);
+					glyphFilter->SetScaleModeToDataScalingOff();
+					glyphFilter->Update();
 
+					// Build a pipeline for rendering this data set:
+					vtkPolyDataMapper* mapper = vtkPolyDataMapper::New();
+					mapper->ScalarVisibilityOff();
+					mapper->SetInput(glyphFilter->GetOutput());
+					actor = vtkActor::New();
+					this->actor->SetVisibility(true);
+					this->assembly->SetVisibility(true);
+					actor->SetMapper(mapper);
+					//mapper->Delete(); mapper = NULL;
+					// Note that the mapper was not actually deleted because it was
+					// registered by the actor. And it can still be accessed through
+					// actor->GetMapper().
 
-		}
+				 
+					 
+					// Add the actor to the assembly to be rendered:
+					this->assembly->AddPart(actor);
 
+					// Add the actor to the list of actors, for easy access to its parameters
+					// later on:
+					this->actors.append(actor);
 
-		vtkPolyData* polydata = ds->getVtkPolyData();
-
-
-
-		if (polydata == NULL || ds->getKind() == "fibers")
-		{
-			// The added data set does not have VTK polydata, so it is not
-			// interesting for this plug-in.
-			// Evert: I've disabled this plugin for fibers, since it was interfering
-			// with the fiber visualization plugin
-			return;
-		} // if
-
-		// Add the new data set to the list of currently available polydata sets:
-		this->dataSets.append(ds);
-
-		// Build a pipeline for rendering this data set:
-		vtkPolyDataMapper* mapper = vtkPolyDataMapper::New();
-		mapper->ScalarVisibilityOff();
-		mapper->SetInput(polydata);
-		vtkActor* actor = vtkActor::New();
-
-		actor->SetMapper(mapper);
-		//mapper->Delete(); mapper = NULL;
-		// Note that the mapper was not actually deleted because it was
-		// registered by the actor. And it can still be accessed through
-		// actor->GetMapper().
-
-		vtkObject * obj;
-		if (!(ds->getAttributes()->getAttribute("transformation matrix", obj)))
-		{
-			qDebug() << "No transformation matrix for the polydata" << endl;
-			//return;
-		}
-		else {
-
-			vtkMatrix4x4 * m = vtkMatrix4x4::SafeDownCast(obj);
-
-			actor->SetUserMatrix(m);
-		}
-		// Add the actor to the assembly to be rendered:
-		this->assembly->AddPart(actor);
-
-		// Add the actor to the list of actors, for easy access to its parameters
-		// later on:
-		this->actors.append(actor);
-
-		// Add the new data set to the list of data sets in the GUI:
-		this->ui->dataList->addItem(ds->getName());
-		this->ui->optionsFrame->setEnabled(true);
+					// Add the new data set to the list of data sets in the GUI:
+					
+                 this->ui->optionsFrame->setEnabled(true);
 
 		// TODO: select the newly added dataset
 		//		this->fullCore()->canvas()->GetRenderer3D()->ResetCamera();
 		//// Depth Peeling
 		//this->fullCore()->canvas()->GetRenderer3D()->GetRenderWindow()->SetOffScreenRendering(1);
-		cout << this->fullCore()->canvas()->GetRenderer3D()->GetRenderWindow()->GetAlphaBitPlanes() << endl ; //defa 0
-		cout << this->fullCore()->canvas()->GetRenderer3D()->GetRenderWindow()->GetMultiSamples() << endl; // def 8
-
-		cout << this->fullCore()->canvas()->GetRenderer3D()->GetMaximumNumberOfPeels() << endl; //def 4
-		cout << this->fullCore()->canvas()->GetRenderer3D()->GetOcclusionRatio() << endl; //def 0 ?
+		 
 		this->core()->render();
+
+		}
+
+
+		 
+
+		
 	}
 
 	void VectorVisualizationPlugin::dataSetChanged(data::DataSet* ds)
@@ -222,9 +231,13 @@ namespace bmia {
 		Q_ASSERT(row >= 0); // TODO: if there is no data, do sth else
 		// TODO: assert row is in range.
 		this->ui->dataSetName->setText(this->dataSets.at(this->selectedData)->getName());
-		this->ui->visibleCheckBox->setChecked(this->actors.at(this->selectedData)->GetVisibility());
-		this->ui->lightingCheckBox->setChecked(this->actors.at(this->selectedData)->GetProperty()->GetLighting());
-		this->ui->depthPeelingCheckBox->setChecked(this->fullCore()->canvas()->GetRenderer3D()->GetUseDepthPeeling());
+		cout << this->dataSets.at(this->selectedData)->getName().toStdString() << endl;
+		img->GetPointData()->SetActiveVectors(this->dataSets.at(this->selectedData)->getName().toStdString().c_str());
+		this->actor->SetVisibility(true);
+
+		//this->ui->visibleCheckBox->setChecked(this->actors.at(this->selectedData)->GetVisibility());
+		//this->ui->lightingCheckBox->setChecked(this->actors.at(this->selectedData)->GetProperty()->GetLighting());
+		//this->ui->depthPeelingCheckBox->setChecked(this->fullCore()->canvas()->GetRenderer3D()->GetUseDepthPeeling());
 		//opacity
 		this->ui->opacitySlider->setValue(this->actors.at(this->selectedData)->GetProperty()->GetOpacity()*100);
 		this->ui->opacityLabel->setText( QString::number( this->actors.at(this->selectedData)->GetProperty()->GetOpacity() ));
@@ -235,7 +248,7 @@ namespace bmia {
 	{
 		if (this->changingSelection) return;
 		if (this->selectedData == -1) return;
-		this->actors.at(this->selectedData)->SetVisibility(visible);
+		//this->actors.at(this->selectedData)->SetVisibility(visible);
 		this->core()->render();
 		//if(this->fullCore()->canvas()->GetRenderer3D()->GetLastRenderingUsedDepthPeeling())
 		//cout << " depth peeling used" << endl; 
@@ -357,6 +370,7 @@ namespace bmia {
 	{
 		if (this->changingSelection) return;
 		if (this->selectedData == -1) return;
+		return;
 		//vtkRenderer *renderer= this->fullCore()->canvas()->GetRenderer3D();
 		//vtkRenderWindow *renderWindow = this->fullCore()->canvas()->GetRenderer3D()->GetRenderWindow();
 		vtkRenderer *renderer=  this->fullCore()->canvas()->GetRenderer3D();  
@@ -441,7 +455,7 @@ namespace bmia {
 		if (this->changingSelection) return;
 		if (this->selectedData == -1) return;
 		Q_ASSERT(this->actors.at(this->selectedData));
-		this->actors.at(this->selectedData)->GetProperty()->SetOpacity(value/100.0);
+		this->actors.at(this->selectedData)->GetProperty()->SetOpacity(1);
 		this->ui->opacityLabel->setText( QString::number(value/100.0));
 		this->core()->render();
 

@@ -62,6 +62,14 @@ namespace Ui {
 
 #include "DTITool.h"
 #include <vtkDoubleArray.h>
+
+// For Maxima Unit Vector Visualisation
+#include <vtkGlyph3D.h>
+#include <vtkCellArray.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkActor.h>
+#include <vtkArrowSource.h>
+
 namespace bmia {
 
 /**
@@ -107,6 +115,9 @@ public:
     void dataSetAdded(data::DataSet* ds);
     void dataSetChanged(data::DataSet* ds);
     void dataSetRemoved(data::DataSet* ds);
+
+	vtkActor* actor;
+		vtkImageData *img ;
 
 protected slots:
     void selectData(int row);
