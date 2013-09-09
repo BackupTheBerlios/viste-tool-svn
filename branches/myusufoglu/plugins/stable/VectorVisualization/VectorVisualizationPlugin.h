@@ -116,6 +116,7 @@ public:
     void dataSetChanged(data::DataSet* ds);
     void dataSetRemoved(data::DataSet* ds);
 
+
 	vtkActor* actor;
 		vtkImageData *img ;
 
@@ -181,6 +182,12 @@ private:
 bool  IsDepthPeelingSupported( vtkRenderWindow *renderWindow,
                              vtkRenderer *renderer,
                              bool doItOffScreen);
+
+	/** List of all available seed point data sets. */
+
+		QList<data::DataSet *> seedDataSets;
+vtkGlyph3D *glyphFilter;
+
 }; // class VectorVisualizationPlugin
 } // namespace bmia
 #endif // bmia_VectorVisualizationPlugin_h

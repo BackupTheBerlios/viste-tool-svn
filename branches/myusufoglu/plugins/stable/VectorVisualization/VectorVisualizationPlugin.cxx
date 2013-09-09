@@ -113,7 +113,43 @@ namespace bmia {
 		Q_ASSERT(ds);
 		 img ;
 		 cout << ds->getKind().toStdString() << endl;
-		if (ds->getKind() == "scalar volume")
+
+	
+		 if (ds->getKind() == "seed points" && this->seedDataSets.contains(ds) == false)
+	{
+		// Check if the data set contains a VTK data object
+		if (!(ds->getVtkObject()))
+			return;
+		if((vtkImageData::SafeDownCast(ds->getVtkObject() ) ))
+		if(  (vtkImageData::SafeDownCast(ds->getVtkObject() ) )->GetPointData()->GetArray("MaxDirectionUnitVectors0" )   ) 
+			cout << "MaxDirectionUnitVectors0" << endl;
+		// If so, add it to the list and the GUI
+		this->seedDataSets.append(ds);
+		this->ui->seedPointsCombo->addItem(ds->getName());
+	}
+
+
+	  if (ds->getKind() == "seed points" && this->seedDataSets.contains(ds))
+	{
+		// Get the index of the data set
+		int dsIndex = this->seedDataSets.indexOf(ds);
+
+
+
+		// Change the data set name
+		this->ui->seedPointsCombo->setItemText(dsIndex, ds->getName());
+
+		// If we're changing the currently selected data set...
+		if (this->ui->seedPointsCombo->currentIndex() == dsIndex && this->glyphFilter)
+		{
+			// ...update the builder, and render the scene
+			//this->glyphFilter->SetInput(0, vtkDataObject::SafeDownCast(this->seedDataSets[dsIndex]->getVtkObject()));
+			//this->glyphFilter->Modified();
+			this->core()->render();
+		}
+	}
+
+		 if (ds->getKind() == "scalar volume")
 		{
 			img   = ds->getVtkImageData();
 				if (!img)
@@ -162,16 +198,21 @@ namespace bmia {
 				img->GetPointData()->SetActiveVectors(name.toStdString().c_str());
 					vtkArrowSource  *arrowSource =  vtkArrowSource::New();
 					arrowSource->Update();
-					vtkGlyph3D *glyphFilter =  vtkGlyph3D::New();
+					glyphFilter =  vtkGlyph3D::New();
 					glyphFilter->SetSourceConnection(arrowSource->GetOutputPort());
 					glyphFilter->OrientOn();
 					glyphFilter->SetVectorModeToUseVector(); // Or to use Normal
 					glyphFilter->SetScaling(true);
 					glyphFilter->SetScaleFactor(1);
+						//	int dsIndex = this->seedDataSets.indexOf(ds);
+		
+		// Change the data set name
+				///	glyphFilter->SetInput(0, vtkDataObject::SafeDownCast(this->seedDataSets[dsIndex]->getVtkObject()));
 					glyphFilter->SetInput(img);
 					glyphFilter->SetScaleModeToDataScalingOff();
+					
 					glyphFilter->Update();
-
+					
 					// Build a pipeline for rendering this data set:
 					vtkPolyDataMapper* mapper = vtkPolyDataMapper::New();
 					mapper->ScalarVisibilityOff();
@@ -206,7 +247,7 @@ namespace bmia {
 		this->core()->render();
 
 		}
-
+	
 
 		 
 
@@ -233,15 +274,25 @@ namespace bmia {
 		this->ui->dataSetName->setText(this->dataSets.at(this->selectedData)->getName());
 		cout << this->dataSets.at(this->selectedData)->getName().toStdString() << endl;
 		img->GetPointData()->SetActiveVectors(this->dataSets.at(this->selectedData)->getName().toStdString().c_str());
+		//img->Update();
+		//img->Modified();
+		//img->GetPointData()->Update();
+		//img->GetPointData()->Modified();
+		//img->GetPointData()->SetActiveAttribute(this->dataSets.at(this->selectedData)->getName().toStdString().c_str(),vtkDataSetAttributes::VECTORS);
+		//this->glyphFilter->SetInputArrayToProcess(row+1,0,0,vtkDataObject::FIELD_ASSOCIATION_POINTS ,this->dataSets.at(this->selectedData)->getName().toStdString().c_str());
 		this->actor->SetVisibility(true);
-
+		this->glyphFilter->Modified();
+		
+		this->glyphFilter->Update();
+		
 		//this->ui->visibleCheckBox->setChecked(this->actors.at(this->selectedData)->GetVisibility());
 		//this->ui->lightingCheckBox->setChecked(this->actors.at(this->selectedData)->GetProperty()->GetLighting());
 		//this->ui->depthPeelingCheckBox->setChecked(this->fullCore()->canvas()->GetRenderer3D()->GetUseDepthPeeling());
 		//opacity
-		this->ui->opacitySlider->setValue(this->actors.at(this->selectedData)->GetProperty()->GetOpacity()*100);
-		this->ui->opacityLabel->setText( QString::number( this->actors.at(this->selectedData)->GetProperty()->GetOpacity() ));
+		//this->ui->opacitySlider->setValue(this->actors.at(this->selectedData)->GetProperty()->GetOpacity()*100);
+		//this->ui->opacityLabel->setText( QString::number( this->actors.at(this->selectedData)->GetProperty()->GetOpacity() ));
 		this->changingSelection = false;
+		this->core()->render();
 	}
 
 	void VectorVisualizationPlugin::setVisible(bool visible)

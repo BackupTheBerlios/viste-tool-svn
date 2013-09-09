@@ -268,7 +268,7 @@ void vtkGeometryGlyphBuilder::Execute()
 		// Create a new list for the glyph points
 		vtkIdList * glyphPoints = vtkIdList::New();
 
-		// Loop through all unit vectors
+		// Loop through all unit vectors around the point
 		for (int vectorId = 0; vectorId < this->numberOfAngles; ++vectorId)
 		{
 			// Get the current unit vector
