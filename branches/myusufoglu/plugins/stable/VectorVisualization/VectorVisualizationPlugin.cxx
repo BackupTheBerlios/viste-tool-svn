@@ -108,6 +108,88 @@ namespace bmia {
 		return this->widget;
 	}
 
+	
+	
+	void VectorVisualizationPlugin::addVectorToSeeds(data::DataSet* ds) 
+
+			 { // Add vector to each seed point
+
+			 // Get the seed points
+	vtkPointSet * seeds = vtkPointSet::SafeDownCast(ds->getVtkObject());
+
+	if (!seeds)
+	{
+		//vtkErrorMacro(<< "Seed points have not been set!");
+		return;
+	}
+
+	// Check if we've got any seed points
+	if (seeds->GetNumberOfPoints() <= 0)
+		return;
+
+	// Check if the input volume has been set
+	if (!(this->img))
+	{
+		//vtkErrorMacro(<< "Input volume has not been set!");
+		return;
+	}
+
+	// Get the "Vectors" array from the input volume
+	vtkPointData * imgPD = this->img->GetPointData();
+
+	if (!imgPD)
+	{
+		//vtkErrorMacro(<< "Input volume does not contain point data!");
+		return;
+	}
+
+	if (!imgPD->GetArray("MaxDirectionUnitVectors0"))
+	{
+		//vtkErrorMacro(<< "Input volume does not contain point data!");
+		return;
+	}
+
+	
+	vtkDoubleArray * maxUnitVectorImg = vtkDoubleArray::SafeDownCast(imgPD->GetArray("MaxDirectionUnitVectors0"));
+
+	if (!maxUnitVectorImg)
+	{
+		//vtkErrorMacro(<< "Input volume does not contain a 'Vectors' array!");
+		return;
+	}
+
+	vtkDoubleArray * maxUnitVectorSeeds = vtkDoubleArray::New();
+
+	// Loop through all seed points
+	for (int pointId = 0; pointId < seeds->GetNumberOfPoints(); ++pointId)
+	{
+		// Update progress bar
+		//if ((pointId % progressStepSize) == 0)
+		//{
+		//	this->UpdateProgress((double) pointId / (double) seeds->GetNumberOfPoints());
+		//}
+
+		// Get the seed point coordinates (glyph center)
+		double * p = seeds->GetPoint(pointId);
+
+		// Find the corresponding voxel
+		vtkIdType imagePointId = this->img->FindPoint(p[0], p[1], p[2]);
+
+		maxUnitVectorSeeds->InsertNextTuple3( maxUnitVectorImg->GetTuple3(imagePointId)[0],maxUnitVectorImg->GetTuple3(imagePointId)[1],maxUnitVectorImg->GetTuple3(imagePointId)[2]);
+		
+		// Check if the seed point lies inside the image
+		
+		if (imagePointId == -1)
+			continue;
+
+	}
+
+	}
+
+
+	
+	
+	
 	void VectorVisualizationPlugin::dataSetAdded(data::DataSet* ds)
 	{
 		Q_ASSERT(ds);
@@ -120,14 +202,16 @@ namespace bmia {
 		// Check if the data set contains a VTK data object
 		if (!(ds->getVtkObject()))
 			return;
-		if((vtkImageData::SafeDownCast(ds->getVtkObject() ) ))
-		if(  (vtkImageData::SafeDownCast(ds->getVtkObject() ) )->GetPointData()->GetArray("MaxDirectionUnitVectors0" )   ) 
-			cout << "MaxDirectionUnitVectors0" << endl;
+		//if((vtkImageData::SafeDownCast(ds->getVtkObject() ) ))
+		//if(  (vtkImageData::SafeDownCast(ds->getVtkObject() ) )->GetPointData()->GetArray("MaxDirectionUnitVectors0" )   ) 
+			//cout << "MaxDirectionUnitVectors0" << endl;
 		// If so, add it to the list and the GUI
 		this->seedDataSets.append(ds);
 		this->ui->seedPointsCombo->addItem(ds->getName());
+		addVectorToSeeds(ds);
 	}
 
+	
 
 	  if (ds->getKind() == "seed points" && this->seedDataSets.contains(ds))
 	{

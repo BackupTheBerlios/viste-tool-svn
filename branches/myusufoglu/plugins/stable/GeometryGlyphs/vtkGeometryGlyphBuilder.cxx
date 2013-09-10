@@ -256,7 +256,7 @@ void vtkGeometryGlyphBuilder::Execute()
 
 		// Find the corresponding voxel
 		vtkIdType imagePointId = this->inputVolume->FindPoint(p[0], p[1], p[2]);
-
+		
 		// Check if the seed point lies inside the image
 		if (imagePointId == -1)
 			continue;

@@ -119,7 +119,7 @@ public:
 
 	vtkActor* actor;
 		vtkImageData *img ;
-
+		void addVectorToSeeds(data::DataSet* ds) ;
 protected slots:
     void selectData(int row);
     void setVisible(bool visible);
