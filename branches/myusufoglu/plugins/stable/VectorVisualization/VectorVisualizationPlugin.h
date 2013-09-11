@@ -116,12 +116,17 @@ public:
     void dataSetChanged(data::DataSet* ds);
     void dataSetRemoved(data::DataSet* ds);
 
+	void insertArrayNamesToTheListBox(vtkImageData *img);
+	void formPipeLine(vtkImageData *img, int arrayNumber);
 
+ 
 	vtkActor* actor;
 		vtkImageData *img ;
-		void addVectorToSeeds(data::DataSet* ds) ;
+		void addVectorToSeeds(data::DataSet* ds,
+		QString vectorName) ;
 protected slots:
-    void selectData(int row);
+		void seedDataChanged(int index);
+    void selectVectorData(int row);
     void setVisible(bool visible);
 	 void setDepthPeeling(bool visible);
     void setLighting(bool lighting);
@@ -146,7 +151,7 @@ private:
     Ui::VectorVisualizationForm* ui;
 
     /**
-     * The added data sets that contain VTK polydata
+     * The added data sets that contain array of the vtkimagedata
      */
     QList<data::DataSet*> dataSets;
 
@@ -182,6 +187,8 @@ private:
 bool  IsDepthPeelingSupported( vtkRenderWindow *renderWindow,
                              vtkRenderer *renderer,
                              bool doItOffScreen);
+/** Volumes including vector arrays */
+QList<data::DataSet *> glyphDataSets;
 
 	/** List of all available seed point data sets. */
 
