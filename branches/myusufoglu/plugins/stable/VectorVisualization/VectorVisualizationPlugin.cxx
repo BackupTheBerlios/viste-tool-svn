@@ -86,6 +86,7 @@ namespace bmia {
 			// Connect the GUI controls
 	connect(this->ui->glyphDataCombo,		SIGNAL(currentIndexChanged(int)),	this, SLOT(inputDataChanged(int))			);
 	connect(this->ui->seedPointsCombo,		SIGNAL(currentIndexChanged(int)),	this, SLOT(seedDataChanged(int))			);
+	connect(this->ui->scaleSpin,			SIGNAL(valueChanged(double)),		this, SLOT(setScale(double))				);
 		connect(this->ui->dataList, SIGNAL(currentRowChanged(int)), this, SLOT(selectVectorData(int)));
 		connect(this->ui->visibleCheckBox, SIGNAL(toggled(bool)), this, SLOT(setVisible(bool)));
 		connect(this->ui->depthPeelingCheckBox, SIGNAL(toggled(bool)), this, SLOT(setDepthPeeling(bool)));
@@ -182,9 +183,11 @@ namespace bmia {
 				//	outUnitVectorList.push_back(vtkDoubleArray::New());
 				//outUnitVectorList.at(nr)->SetNumberOfComponents(3);
 				//outUnitVectorList.at(nr)->SetNumberOfTuples(maximaVolume->GetNumberOfPoints());
-
+				
 				//outUnitVectorList.at(nr)->SetName( arrName.toStdString().c_str() );  //fist vector array for each point (keeps only the first vector)
 				QString name(img->GetPointData()->GetArrayName(nr));
+				cout << name.toStdString() << endl;
+				if(name=="") return;
 				if ((img->GetPointData()->GetArray(name.toStdString().c_str()  )->GetDataType() == VTK_DOUBLE) && ( img->GetPointData()->GetArray( name.toStdString().c_str() )->GetNumberOfComponents() ==3))
 				{
 					hasVector=true;
@@ -205,6 +208,24 @@ namespace bmia {
 			//main pipeline
 			this->formPipeLine(this->img, this->ui->seedPointsCombo->currentIndex() ); // 2 array number
 			
+
+			// Try to get a transformation matrix from the data set
+	vtkObject * obj;
+	if ((ds->getAttributes()->getAttribute("transformation matrix", obj)))
+	{
+		// Try to cast the object to a matrix
+		if (vtkMatrix4x4::SafeDownCast(obj))
+		{
+			//useIdentityMatrix = false;
+
+			// Copy the matrix to a new one, and apply it to the actor
+			vtkMatrix4x4 * m = vtkMatrix4x4::SafeDownCast(obj);
+			vtkMatrix4x4 * mCopy = vtkMatrix4x4::New();
+			mCopy->DeepCopy(m);
+			this->actor->SetUserMatrix(mCopy);
+			mCopy->Delete();
+		}
+	}
 
 			// Add the actor to the assembly to be rendered:
 			this->assembly->AddPart(actor);
@@ -280,6 +301,8 @@ namespace bmia {
 			mapper->ScalarVisibilityOff();
 			mapper->SetInput(glyphFilter->GetOutput());
 			actor = vtkActor::New();
+
+
 			this->actor->SetVisibility(true);
 			this->assembly->SetVisibility(true);
 			actor->SetMapper(mapper);
@@ -359,9 +382,33 @@ namespace bmia {
 			// If we're changing the currently selected data set...
 			if (this->ui->seedPointsCombo->currentIndex() == dsIndex && this->glyphFilter)
 			{
-				// ...update the builder, and render the scene
-				//this->builder->SetInput(0, vtkDataObject::SafeDownCast(this->seedDataSets[dsIndex]->getVtkObject()));
-				//this->builder->Modified();
+				
+				this->changingSelection = true;
+
+	
+
+		if (!this->glyphFilter)
+			return;
+	
+		if(this->img && this->dataSets.size() >0 && (this->seedDataSets.size() > 0))
+		this->addVectorToSeeds(this->seedDataSets.at(dsIndex), this->ui->dataList->currentItem()->text() );
+		else return;
+		vtkPointSet *temo = vtkPointSet::SafeDownCast( this->seedDataSets.at(dsIndex)->getVtkObject());
+					//QString name= this->img->GetPointData()->GetArrayName(arrayNumber);
+					//cout << name.toStdString() << endl;
+		//cout << this->ui->seedPointsCombo->currentIndex() << " " << this->seedDataSets.size() <<  " " << this->ui->seedPointsCombo->currentIndex() << " " << this->dataSets.at(index)->getName().toStdString()  << endl;
+		
+		temo->Update();
+		//	cout << temo->GetPointData()->GetArray(this->img->GetPointData()->GetArrayName(1))->GetName() << endl;
+		//	cout << temo->GetPointData()->GetArray(this->img->GetPointData()->GetArrayName(1))->GetNumberOfComponents() << endl;
+		glyphFilter->SetInput( temo);
+		this->glyphFilter->Modified();
+		this->glyphFilter->Update();
+		this->changingSelection = false;
+		this->core()->render();
+
+
+
 				this->core()->render();
 			}
 		}
@@ -380,7 +427,7 @@ namespace bmia {
 	void VectorVisualizationPlugin::addVectorToSeeds(data::DataSet* dsSeeds, QString vectorName) 
 
 	{ // Add vector to each seed point
-		cout << "addVectorToSeeds" << endl;
+		cout << "addVectorToSeeds " << endl; 
 		// Get the seed points
 		vtkPointSet * seeds = vtkPointSet::SafeDownCast(dsSeeds->getVtkObject());
 
@@ -389,7 +436,7 @@ namespace bmia {
 			//vtkErrorMacro(<< "Seed points have not been set!");
 			return;
 		}
-
+		cout << "seed pointset has " << seeds->GetNumberOfPoints() << "points"<< endl;
 		// Check if we've got any seed points
 		if (seeds->GetNumberOfPoints() <= 0)
 			return;
@@ -424,8 +471,8 @@ namespace bmia {
 
 
 		maxUnitVectorImg = vtkDoubleArray::SafeDownCast(imgPD->GetArray( name.toStdString().c_str()));
-		cout <<  maxUnitVectorImg->GetNumberOfComponents() << endl;
-		cout << "MaxDirectionUnitVectors0 comp:"<<  maxUnitVectorImg->GetNumberOfComponents() << endl;
+		//cout <<  maxUnitVectorImg->GetNumberOfComponents() << endl;
+		//cout << "MaxDirectionUnitVectors0 comp:"<<  maxUnitVectorImg->GetNumberOfComponents() << endl;
 		if (!maxUnitVectorImg)
 		{
 			//vtkErrorMacro(<< "Input volume does not contain a 'Vectors' array!");
@@ -510,14 +557,6 @@ namespace bmia {
 					if(this->img && (this->dataSets.size() > 0) && (row < this->dataSets.size()))
 		this->ui->dataSetName->setText(this->dataSets.at(this->selectedData)->getName());
 						else return;
-		//cout << this->dataSets.at(this->selectedData)->getName().toStdString() << endl;
-		//img->GetPointData()->SetActiveVectors(this->dataSets.at(this->selectedData)->getName().toStdString().c_str());
-		//img->Update();
-		//img->Modified(); 
-		//img->GetPointData()->Modified();
-		//img->GetPointData()->SetActiveAttribute(this->dataSets.at(this->selectedData)->getName().toStdString().c_str(),vtkDataSetAttributes::VECTORS);
-		//this->glyphFilter->SetInputArrayToProcess(row+1,0,0,vtkDataObject::FIELD_ASSOCIATION_POINTS ,this->dataSets.at(this->selectedData)->getName().toStdString().c_str());
- 
 		
 		 
 		if(this->img && (this->dataSets.size() > 0) && (row < this->dataSets.size())&& (this->seedDataSets.size() > 0) && this->ui->seedPointsCombo->currentIndex() < this->seedDataSets.size() )
@@ -761,6 +800,18 @@ namespace bmia {
 		this->core()->render();
 
 	}
+	//-------------------------------[ setScale ]------------------------------\\
+
+void VectorVisualizationPlugin::setScale(double scale)
+{
+	if (this->glyphFilter == NULL)
+		return;
+
+	this->glyphFilter->SetScaleFactor(scale);
+	this->glyphFilter->Modified();
+	this->core()->render();
+}
+
 
 } // namespace bmia
 Q_EXPORT_PLUGIN2(libVectorVisualizationPlugin, bmia::VectorVisualizationPlugin)

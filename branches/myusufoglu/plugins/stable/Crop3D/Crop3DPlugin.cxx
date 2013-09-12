@@ -39,6 +39,11 @@
 * 2013-02-10	Mehmet Yusufoglu
 * - Version 1.0.0.
 * - First version
+*
+* 2013-06-30	Mehmet Yusufoglu
+* Remove this->fullCore()->canvas()->GetRenderer3D()->ResetCamera(); line to prevent resetting of 
+* the camera at each PlanesVisualisation plane position slider movement. Slider triggers datachanged,
+* and the line above resets the camera, which is not wanted.
 */
 
 /** Includes */
@@ -564,7 +569,7 @@ namespace bmia {
 
 			this->connectControls(true);
 		}
-		this->fullCore()->canvas()->GetRenderer3D()->ResetCamera();
+		
 	}
 
 
@@ -1329,7 +1334,7 @@ namespace bmia {
 		//if(ds->getAttributes()->hasAttribute("SlicePosX"))
 		//{
 		//	ds->getAttributes()->addAttribute("SlicePosX",x);
-		// //  cout << "Added attribute \n";
+		//   cout << "Added attribute \n";
 		//	this->core()->data()->dataSetChanged(ds);
 		//}
 		// Get the input image of the slice
@@ -1729,7 +1734,7 @@ namespace bmia {
 		}
 		else 
 		{
-			qDebug() << "Neither of the datasets can be cropped." << endl;
+			qDebug() << "Neither of the datasets can be cropped." << endl; 
 			return;
 		}
 

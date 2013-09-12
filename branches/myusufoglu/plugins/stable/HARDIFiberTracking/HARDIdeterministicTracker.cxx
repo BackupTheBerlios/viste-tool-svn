@@ -1785,7 +1785,7 @@ namespace bmia {
 	void HARDIdeterministicTracker::FormMaxDirectionArrays(vtkImageData *maximaVolume)
 	{
 
-		QString fileName = QFileDialog::getOpenFileName(nullptr,  "Read Maxima File","/", "Maxima and Unit Vectors (*.vtk)");
+		QString fileName = QFileDialog::getOpenFileName(nullptr,  "Read Maxima File","/", "Max. Unit Vector Image(*.vti)");
 		if(fileName.isEmpty() || fileName.isNull())
 		{  
 			cout << "No file name"<< endl;

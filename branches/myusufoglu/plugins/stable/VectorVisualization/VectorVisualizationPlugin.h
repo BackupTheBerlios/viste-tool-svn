@@ -132,6 +132,7 @@ protected slots:
     void setLighting(bool lighting);
     void changeColor();
 	void changeOpacity(int value);
+	void setScale(double scale);
 
 private:
     /**
