@@ -79,7 +79,7 @@ namespace bmia {
 		this->ui->setupUi(this->widget);
 		// disable the options frame if there is no data
 		this->ui->optionsFrame->setEnabled(false);
-
+		this->ui->visibleCheckBox->setChecked(true);
 
 
 
@@ -260,7 +260,7 @@ namespace bmia {
 		arrowSource->Update();
 		glyphFilter =  vtkGlyph3D::New();
 		glyphFilter->SetSourceConnection(arrowSource->GetOutputPort());
-		glyphFilter->OrientOn();
+		//glyphFilter->OrientOn();
 		glyphFilter->SetVectorModeToUseVector(); // Or to use Normal
 		glyphFilter->SetScaling(true);
 		glyphFilter->SetScaleFactor(1);
@@ -270,6 +270,7 @@ namespace bmia {
 		///	glyphFilter->SetInput(0, vtkDataObject::SafeDownCast(this->seedDataSets[dsIndex]->getVtkObject()));
 		//glyphFilter->SetInput(img);
 		glyphFilter->SetScaleModeToDataScalingOff();
+		glyphFilter->SetScaleModeToScaleByVector();
 		if(seedDataSets.size()>0)
 		{
 			/*function */
@@ -338,6 +339,7 @@ namespace bmia {
 
 			}
 		}
+		if(nArrays > 0) this->selectedData = 0;
 	}
 
 
@@ -507,7 +509,6 @@ void VectorVisualizationPlugin::inputDataChanged(int index)
 		vtkDoubleArray * maxUnitVectorImg ;
 		maxUnitVectorImg = vtkDoubleArray::SafeDownCast(imgPD->GetArray( name.toStdString().c_str()));
 		//cout <<  maxUnitVectorImg->GetNumberOfComponents() << endl;
-		//cout << "MaxDirectionUnitVectors0 comp:"<<  maxUnitVectorImg->GetNumberOfComponents() << endl;
 		if (!maxUnitVectorImg)
 		{
 			//vtkErrorMacro(<< "Input volume does not contain a 'Vectors' array!");
@@ -518,6 +519,7 @@ void VectorVisualizationPlugin::inputDataChanged(int index)
 		maxUnitVectorSeeds->SetNumberOfComponents(3);
 		maxUnitVectorSeeds->SetName(name.toStdString().c_str());
 		// Loop through all seed points
+		double *unitv;
 		for (int pointId = 0; pointId < seeds->GetNumberOfPoints(); ++pointId)
 		{
 			// Update progress bar
@@ -531,8 +533,11 @@ void VectorVisualizationPlugin::inputDataChanged(int index)
 			//cout << pointId << endl;
 			// Find the corresponding voxel
 			vtkIdType imagePointId = this->img->FindPoint(p[0], p[1], p[2]);
-			 
-			maxUnitVectorSeeds->InsertNextTuple3( maxUnitVectorImg->GetTuple3(imagePointId)[0],maxUnitVectorImg->GetTuple3(imagePointId)[1],maxUnitVectorImg->GetTuple3(imagePointId)[2]);
+			unitv= (double *) maxUnitVectorImg->GetTuple3(imagePointId);
+			maxUnitVectorSeeds->InsertNextTuple3( unitv[0],unitv[1],unitv[2]);
+			//if(unitv[0]==0 &&  unitv[1] ==0 && unitv[0]==0)
+				// cout << "ZERO UNIUT VECTOR"<< endl; 
+			
 			// maxUnitVectorSeeds->InsertNextTuple3( maxUnitVectorImg->GetTuple3(imagePointId)[0],0.1,0);
 
 			// Check if the seed point lies inside the image
@@ -562,7 +567,7 @@ void VectorVisualizationPlugin::inputDataChanged(int index)
 		else return;
 		vtkPointSet *temo = vtkPointSet::SafeDownCast( this->seedDataSets.at(index)->getVtkObject());
 		//cout << "TO TRUE"<< endl; this->changingSelection = true;
-		cout << this->ui->seedPointsCombo->currentIndex() << " " << this->seedDataSets.size() <<  " " << this->ui->seedPointsCombo->currentIndex() << " " << this->dataSets.at(index)->getName().toStdString()  << endl;
+		cout << this->ui->seedPointsCombo->currentIndex() << " " << this->seedDataSets.size() <<  " " << this->ui->seedPointsCombo->currentIndex() << " "   << endl;
 
 		temo->Update();
 		//	cout << temo->GetPointData()->GetArray(this->img->GetPointData()->GetArrayName(1))->GetName() << endl;
@@ -635,18 +640,25 @@ void VectorVisualizationPlugin::inputDataChanged(int index)
 	void VectorVisualizationPlugin::setLighting(bool lighting)
 	{
 		if (this->changingSelection) return;
-		if (this->selectedData == -1) return;
-		this->actors.at(this->selectedData)->GetProperty()->SetLighting(lighting);
+			 
+	//	if (this->selectedData == -1) return;
+
+		Q_ASSERT(this->actor);
+		vtkProperty* property = this->actor->GetProperty();
+		Q_ASSERT(property);
+
+		 
+		property->SetLighting(lighting);
 		this->core()->render();
 	}
 
 	void VectorVisualizationPlugin::changeColor()
 	{
 		if (this->changingSelection) return;
-		if (this->selectedData == -1) return;
+	//	if (this->selectedData == -1) return;
 
-		Q_ASSERT(this->actors.at(this->selectedData));
-		vtkProperty* property = this->actors.at(this->selectedData)->GetProperty();
+		Q_ASSERT(this->actor);
+		vtkProperty* property = this->actor->GetProperty();
 		Q_ASSERT(property);
 
 		double oldColorRGB[3];
@@ -665,12 +677,12 @@ void VectorVisualizationPlugin::inputDataChanged(int index)
 
 	void VectorVisualizationPlugin::changeOpacity(int value)
 	{
-		if (this->changingSelection) return;
+		/*if (this->changingSelection) return;
 		if (this->selectedData == -1) return;
 		Q_ASSERT(this->actors.at(this->selectedData));
 		this->actors.at(this->selectedData)->GetProperty()->SetOpacity(1);
 		this->ui->opacityLabel->setText( QString::number(value/100.0));
-		this->core()->render();
+		this->core()->render();*/
 
 	}
 	//-------------------------------[ setScale ]------------------------------\\
