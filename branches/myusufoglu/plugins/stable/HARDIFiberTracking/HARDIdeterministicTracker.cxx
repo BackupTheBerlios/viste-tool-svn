@@ -844,7 +844,7 @@ namespace bmia {
 			if(meshPtIndexList.size()==0)
 				for(int i=0;i<anglesArray.size();i++)
 					meshPtIndexList.push_back(i);
-			for (int j = 0; j < 8; ++j)
+			for (int j = 0; j < 8; ++j)// vertices if cell or voxel
 			{
 				//get the SH
 
@@ -855,12 +855,15 @@ namespace bmia {
 				//IF FROM FILE
 				//this->maximasCellFromFile->GetTuple(j,maximaOfAPointFromFile);
 				for (int n = 0; n < this->nMaximaForEachPoint; ++n)
-					this->unitVectorCellListFromFile.at(n)->GetTuple(j,unitVectorsOfAPointFromFile[n] );// n different for a vertice
+					// unitVectorCellListFromFile s each item is an array of 8 tuples each tuple has a unit vector
+                    //  unitVectorCellListFromFile.at(0) has 8 vectors each is the longest maxima vector of the correponding vertex
+                    //   unitVectorCellListFromFile.at(1) has 8 vectors each is the secong longest vector of the coorresponding vertex
+					this->unitVectorCellListFromFile.at(n)->GetTuple(j,unitVectorsOfAPointFromFile[n] );//   unitVectorsOfAPointFromFile consists maxima vectors for a point
 
 				for (int k = 0; k <this->nMaximaForEachPoint; ++k)
 				{
 					//maxima.push_back(maximaOfAPointFromFile[k]);
-					outputlistwithunitvectors.push_back(unitVectorsOfAPointFromFile[k]);
+					outputlistwithunitvectors.push_back(unitVectorsOfAPointFromFile[k]);  // not necessary can be changed. maxima vectors for a point
 				}
 
 				// Angles from unit vectors is a better idea.
@@ -990,6 +993,7 @@ namespace bmia {
 
 
 				double *interpolatedVector;
+				//unitVectorCellListFromFile used in findFunctionValueUsingMaxFil
 				interpolatedVector = findFunctionValueUsingMaximaFile(TRESHOLD, anglesArray, weights,  trianglesArray, meshPtIndexList, maxima);
 
 				testDot = 0.0;
@@ -1186,7 +1190,7 @@ namespace bmia {
 		{
 			//get the SH
 			avgMaxVect[j] = new double[3];
-			this->cellHARDIData->GetTuple(j, tempSH); //fill tempSH
+			 
 			avgMaxVect[j][0]=0;
 			avgMaxVect[j][1]=0;
 			avgMaxVect[j][2]=0;
@@ -1826,7 +1830,7 @@ namespace bmia {
 		vtkDataArray* ptr;
 		for(unsigned int nr = 0; nr <nMaximaForEachPoint  ; nr++){
 			ptr = vtkDataArray::CreateDataArray(  VTK_DOUBLE);
-			this->unitVectorCellListFromFile.push_back(ptr);
+			this->unitVectorCellListFromFile.push_back(ptr); // each has 8 for nr th maxima values
 
 		}
 		for(unsigned int nr = 0; nr <nMaximaForEachPoint  ; nr++)

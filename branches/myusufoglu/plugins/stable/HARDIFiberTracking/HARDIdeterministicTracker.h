@@ -165,7 +165,9 @@ class HARDIdeterministicTracker
 		// debug variables
 			bool printStepInfo; // before cout
 		bool breakLoop; // breaks the main looop
-		// if directions and vectors of maxes are read from the file
+		/** if directions and vectors of maxes are read from the file
+		read file
+		*/
 		void FormMaxDirectionArrays(vtkImageData *maximaVolume);
 	   void FormMaxDirectionVisualisation(vtkImageData *maximaVolume);
 
@@ -254,6 +256,8 @@ class HARDIdeterministicTracker
 
 		 
 			vtkIntArray* maximasCellFromFile;
+
+			/** list0 has the first maxima vector for a 8 corners of a voxel or cell  */
 			std::vector<vtkDataArray *> unitVectorCellListFromFile;
 		
 		/** Array containing the unit vectors obtained from the tesselation. */
