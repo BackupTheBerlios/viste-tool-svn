@@ -453,6 +453,13 @@
            </property>
           </widget>
          </item>
+         <item>
+          <widget class="QCheckBox" name="useRungeKuttaCBox">
+           <property name="text">
+            <string>RK4 Integration</string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </item>
        <item>
@@ -489,8 +496,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>272</width>
-        <height>456</height>
+        <width>98</width>
+        <height>28</height>
        </rect>
       </property>
       <attribute name="label">

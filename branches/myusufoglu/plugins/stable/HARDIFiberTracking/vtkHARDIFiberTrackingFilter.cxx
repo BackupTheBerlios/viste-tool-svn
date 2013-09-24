@@ -477,8 +477,16 @@ namespace bmia {
 					{
 						if(this->GetUseMaximaFile()) //variant with previously prepared maxima file
 						{
+							if(this->GetUseRKIntegration())
+							{
+								tracker->calculateFiberSHDIUseOfflineMaximaDirectionsRK4( 1, &streamlinePointListPos, anglesArray, trianglesArray, NUMBEROFITERATIONS, CLEANMAXIMA, TRESHOLD);
+				 					tracker->calculateFiberSHDIUseOfflineMaximaDirectionsRK4(-1, &streamlinePointListNeg, anglesArray, trianglesArray, NUMBEROFITERATIONS, CLEANMAXIMA, TRESHOLD);
+
+							}
+							else {
 							tracker->calculateFiberSHDIUseOfflineMaximaDirections( 1, &streamlinePointListPos, anglesArray, trianglesArray, NUMBEROFITERATIONS, CLEANMAXIMA, TRESHOLD);
 				 					tracker->calculateFiberSHDIUseOfflineMaximaDirections(-1, &streamlinePointListNeg, anglesArray, trianglesArray, NUMBEROFITERATIONS, CLEANMAXIMA, TRESHOLD);
+							}
 						}
 						else
 						{

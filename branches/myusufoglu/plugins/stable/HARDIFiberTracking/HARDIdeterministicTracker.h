@@ -139,6 +139,7 @@ class HARDIdeterministicTracker
 
 		virtual void calculateFiberSHDI(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,  int numberOfIterations, bool cLEANMAXIMA, double TRESHOLD);
 		virtual void calculateFiberSHDIUseOfflineMaximaDirections(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,  int numberOfIterations, bool cLEANMAXIMA, double TRESHOLD);
+		virtual void calculateFiberSHDIUseOfflineMaximaDirectionsRK4(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,  int numberOfIterations, bool cLEANMAXIMA, double TRESHOLD);
 		
 
 		void readMaximaVectorsFile();

@@ -155,6 +155,7 @@ namespace bmia {
 			HARDIFiberTrackingFilter->SetTesselationOrder((unsigned int) this->ui->tesselationSpinner->value());
 			HARDIFiberTrackingFilter->SetUseMaximaFile((bool) this->ui->useMaxFileCheck->isChecked()); 
 			HARDIFiberTrackingFilter->SetWriteMaximaToFile((bool) this->ui->writeMaxToFileCheck->isChecked()); 
+			HARDIFiberTrackingFilter->SetUseRKIntegration((bool) this->ui->useRungeKuttaCBox->isChecked()); 
 			// Set the current seed point set as the input of the filter
 			HARDIFiberTrackingFilter->SetSeedPoints((vtkDataSet *) seedUG);
 
