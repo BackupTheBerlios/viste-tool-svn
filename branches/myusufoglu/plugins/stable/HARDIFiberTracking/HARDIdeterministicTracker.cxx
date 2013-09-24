@@ -930,7 +930,10 @@ namespace bmia {
 
 			// Compute the next point (nextPoint) of the fiber using a Euler step.
 			if (!this->solveIntegrationStepSHDI(currentCell, currentCellId, weights)) //Add NEwSegment to Current Point to Determine NEXT Point!!!
-			{ cout << "Problem at the first integratioon step"<< endl; return; } 
+			{ 
+				cout << "Problem at the first integratioon step"<< endl; 
+				return; 
+			} 
 			cout <<"nextpoimt after:" << this->nextPoint.X[0] << " " << this->nextPoint.X[1]  << " "<< this->nextPoint.X[2]  << endl;
 
 			// Update the current and previous points
@@ -979,9 +982,11 @@ namespace bmia {
 					this->HARDIArray->GetTuples(currentCell->PointIds, this->cellHARDIData);
 					this->aiScalars->GetTuples( currentCell->PointIds, this->cellAIScalars );
 					//this->maximaArrayFromFile->GetTuples(currentCell->PointIds, maximasCellFromFile);
+					//outUnitVectorListFromFile is a vector of double array. array 0 is the array of largest unitvector of each vox
+					// HARDIdeterministicTracker::FormMaxDirectionArrays(vtkImageData *maximaVolume) fills outUnitVectorListFromFile vector of arraypointers
 					for(unsigned int nr = 0; nr <outUnitVectorListFromFile.size()  ; nr++)
 					{
-						this->outUnitVectorListFromFile.at(nr)->GetTuples(currentCell->PointIds, unitVectorCellListFromFile.at(nr));
+						this->outUnitVectorListFromFile.at(nr)->GetTuples(currentCell->PointIds, unitVectorCellListFromFile.at(nr));// get 8 nr th maxima 
 					}
 				}
 				// If we've left the volume, break here
@@ -995,7 +1000,9 @@ namespace bmia {
 				double *interpolatedVector;
 				//unitVectorCellListFromFile used in findFunctionValueUsingMaxFil
 				interpolatedVector = findFunctionValueUsingMaximaFile(TRESHOLD, anglesArray, weights,  trianglesArray, meshPtIndexList, maxima);
-
+				                     //NOT USE: findFunctionValueAtPointUsingMaximaFile(pos )  // newCEllId BREAK sorununu coz!!!
+				
+				                    // USE findRK4DeltaX() 1 tanesi disari cikarsa bulamadim de kes o zaman bastan celli hepsinden once etc...
 				testDot = 0.0;
 				//value to compare local maxima (either random value or dot product)
 				//double value;
@@ -1204,7 +1211,7 @@ namespace bmia {
 
 			for (int k = 0; k < this->nMaximaForEachPoint; ++k)
 			{
-				maxima.push_back(maximaOfAPointFromFile[k]);
+				maxima.push_back(maximaOfAPointFromFile[k]);  // is not used anymore ?
 				outputlistwithunitvectors.push_back(unitVectorsOfAPointFromFile[k]);
 			}
 
@@ -1260,12 +1267,15 @@ namespace bmia {
 		anglesBeforeInterpolation.clear(); // INTERPOLATE VECTORS !!!
 		return interpolatedVector;
 	}
+ 
 
 
-	bool HARDIdeterministicTracker::findFunctionValueAtPoint(double pos[3],vtkCell * currentCell, vtkIdType currentCellId, int threshold, std::vector<double*> &anglesArray, double *interpolatedVector,  vtkIntArray *trianglesArray, std::vector<int> &meshPtIndexList, std::vector<int> &maxima){
+     // Use this function if  RK4 and maxima unitvecr=tors from file
+	double * HARDIdeterministicTracker::findFunctionValueAtPointUsingMaximaFile(double pos[3],vtkCell * currentCell, vtkIdType currentCellId, int threshold, std::vector<double*> &anglesArray,  vtkIntArray *trianglesArray, std::vector<int> &meshPtIndexList, std::vector<int> &maxima){
 		double pCoords[3] = { 0.0, 0.0,0.0};
 		int subId=0;
 		double weights[8];
+		double *interpolatedVector = new double[3];
 		vtkIdType newCellId = this->HARDIimageData->FindCell(pos,currentCell, currentCellId,this->tolerance, subId, pCoords, weights);
 
 		// If we're in a new cell, and we're still inside the volume...
@@ -1284,25 +1294,53 @@ namespace bmia {
 		// If we've left the volume, break here
 		else if (newCellId == -1)
 		{
-			return false;
+			interpolatedVector[0]=interpolatedVector[0]=interpolatedVector[0]=0.0;
+			return interpolatedVector;
 		}
+		 // outUnitVectorListFromFile (values for  the whole volume) if filled in formarraysfromfile
+		for(unsigned int nr = 0; nr <outUnitVectorListFromFile.size()  ; nr++)
+					{
+						this->outUnitVectorListFromFile.at(nr)->GetTuples(currentCell->PointIds, unitVectorCellListFromFile.at(nr));// get 8 nr th maxima  for a cell
+					}
 		int numberSHcomponents = HARDIArray->GetNumberOfComponents();
-
-		interpolatedVector = findFunctionValue(threshold, anglesArray, weights,  trianglesArray, meshPtIndexList, maxima);
-		return true;
+		
+		interpolatedVector =  findFunctionValueUsingMaximaFile(threshold, anglesArray, weights,  trianglesArray, meshPtIndexList, maxima);
+		return interpolatedVector;
 	}
 
-	void  HARDIdeterministicTracker::findFunctionValueRK4(double pos[3],vtkCell * currentCell, vtkIdType currentCellId, int threshold, std::vector<double*> &anglesArray, double *interpolatedVector,  vtkIntArray *trianglesArray, std::vector<int> &meshPtIndexList, std::vector<int> &maxima)
+	double *HARDIdeterministicTracker::findRK4DeltaX(double pos[3],vtkCell * currentCell, vtkIdType currentCellId, int threshold, std::vector<double*> &anglesArray, double *interpolatedVector,  vtkIntArray *trianglesArray, std::vector<int> &meshPtIndexList, std::vector<int> &maxima)
 	{
 		double H= this->step;
-		double vec[3];
-		findFunctionValueAtPoint( pos,currentCell, currentCellId,threshold, anglesArray, vec, trianglesArray, meshPtIndexList,maxima);
-		// double K1[0]    = (H * vecK1[0]);
+		double *K1= new double[3]; double *K2= new double[3]; double *K3= new double[3]; double *K4= new double[3];
+		double *posK1= new double[3]; double *posK2= new double[3]; double *posK3= new double[3]; double *posK4= new double[3];
+		double *local_new_segment= new double[3];
+
+		K1 = findFunctionValueAtPointUsingMaximaFile( pos,currentCell, currentCellId,threshold, anglesArray, trianglesArray, meshPtIndexList,maxima);
+	    
+		posK2[0]=pos[0]+(H/2.0)*K1[0]; 
+		posK2[1]=pos[1]+(H/2.0)*K1[1];
+		posK2[2]=pos[2]+(H/2.0)*K1[2];
+		K2 = findFunctionValueAtPointUsingMaximaFile( posK2,currentCell, currentCellId,threshold, anglesArray, trianglesArray, meshPtIndexList,maxima);
+
+		posK3[0]=pos[0]+(H/2.0)*K2[0]; 
+		posK3[1]=pos[1]+(H/2.0)*K2[1]; 
+		posK3[2]=pos[2]+(H/2.0)*K2[2];
+		K3 = findFunctionValueAtPointUsingMaximaFile( posK3,currentCell, currentCellId,threshold, anglesArray, trianglesArray, meshPtIndexList,maxima);
+
+		posK4[0]=pos[0]+(H)*K3[0]; 
+		posK4[1]=pos[1]+(H)*K3[1]; 
+		posK4[2]=pos[2]+(H)*K3[2];
+		K4 = findFunctionValueAtPointUsingMaximaFile( posK4,currentCell, currentCellId,threshold, anglesArray, trianglesArray, meshPtIndexList,maxima);
+
+		for(int i=0;i<3;i++)
+		local_new_segment[i]=  (1/6.0) *  (K1[i] + 2*K2[i] + 2*K3[i] + K4[i]);
+		/* this return value should be multiplied by step and added to the original position */ 
+
 		//double K2    = (H * f((x + 1 / 2 * H), (y + 1 / 2 * K1)));  // use new segment
 		// double K3    = (H * f((x + 1 / 2 * H), (y + 1 / 2 * K2)));
 		// double K4    = (H * f((x + H), (y + K3)));
-		//double runge = (y + (1 / 6) * (K1 + 2 * K2 + 2 * K3 + K4));
-
+		//double runge = (y + (1 / 6) *  (K1 + 2 * K2 + 2 * K3 + K4));
+		return local_new_segment; //interpolated? NORMALIZE???
 
 	}
 
