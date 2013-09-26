@@ -1615,20 +1615,21 @@ namespace bmia {
 		vtkIdType newCellId = this->HARDIimageData->FindCell(pos,currentCell, currentCellId,this->tolerance, subId, pCoords, weights);
 
 		// If we're in a new cell, and we're still inside the volume...
-		if (newCellId >= 0 && newCellId != currentCellId)
-		{
-			// ...store the ID of the new cell...
-			currentCellId = newCellId;
+		//if (newCellId >= 0 && newCellId != currentCellId)
+		//{
+		//	// ...store the ID of the new cell...
+		//	currentCellId = newCellId;
 
-			// ...set the new cell pointer...
-			currentCell = this->HARDIimageData->GetCell(currentCellId);
+		//	// ...set the new cell pointer...
+		//	currentCell = this->HARDIimageData->GetCell(currentCellId);
 
-			// ...and fill the cell arrays with the data of the new cell
-			this->HARDIArray->GetTuples(currentCell->PointIds, this->cellHARDIData);
-			this->aiScalars->GetTuples( currentCell->PointIds, this->cellAIScalars );
-		}
-		// If we've left the volume, break here
-		else if (newCellId == -1)
+		//	// ...and fill the cell arrays with the data of the new cell
+		//	this->HARDIArray->GetTuples(currentCell->PointIds, this->cellHARDIData);
+		//	this->aiScalars->GetTuples( currentCell->PointIds, this->cellAIScalars );
+		//}
+		//// If we've left the volume, break here
+		//else 
+			if (newCellId == -1)
 		{
 			interpolatedVector[0]=interpolatedVector[0]=interpolatedVector[0]=0.0;
 			return interpolatedVector;
@@ -1676,6 +1677,10 @@ namespace bmia {
 		// double K3    = (H * f((x + 1 / 2 * H), (y + 1 / 2 * K2)));
 		// double K4    = (H * f((x + H), (y + K3)));
 		//double runge = (y + (1 / 6) *  (K1 + 2 * K2 + 2 * K3 + K4));
+		
+		//Set the current cell to previous value:
+		K1 = findFunctionValueAtPointUsingMaximaFile( pos,currentCell, currentCellId,threshold, anglesArray, trianglesArray, meshPtIndexList,maxima);
+	   
 		return local_new_segment; //interpolated? NORMALIZE???
 
 	}
