@@ -141,6 +141,16 @@ void HARDIFiberTrackingPlugin::dataSetAdded(data::DataSet * ds)
 		//this->addHARDIDataSet(ds);
 		return;
 	}
+
+		
+	// AI Scalar image
+	if (ds->getKind() == "unit vector volume")
+	{
+		this->addMaximaUnitVectorsDataSet(ds);
+		//scalar volume not to be added to hardi combo
+		//this->addHARDIDataSet(ds);
+		return;
+	}
 	
 	// Seed point set
 	if (ds->getKind() == "seed points")
@@ -218,6 +228,34 @@ bool HARDIFiberTrackingPlugin::addAIDataSet(data::DataSet * ds)
 	return true;
 }
 
+bool HARDIFiberTrackingPlugin::addMaximaUnitVectorsDataSet(data::DataSet * ds)
+{
+	// Check if the data set contains image data
+	if (!ds->getVtkImageData())
+	{
+		QMessageBox::warning(this->getGUI(), "H. Fiber Tracking Plugin", "New Max Unit Vector volume data is NULL.", 
+								QMessageBox::Ok, QMessageBox::Ok);
+		this->core()->out()->logMessage("Fiber Tracking Plugin: New Max Unit Vector  volume data is NULL.");
+		return false;
+	}
+
+	// Check if the image data contains point data
+	if (!ds->getVtkImageData()->GetPointData())
+	{
+		QMessageBox::warning(this->getGUI(), "H. Fiber Tracking Plugin", "No PointData set for new MaxUnitVector volume.", 
+								QMessageBox::Ok, QMessageBox::Ok);
+		this->core()->out()->logMessage("Fiber Tracking Plugin: No PointData set for new MaxUnitVector volume.");
+		return false;
+	}
+
+	// Add the data set to the list of data sets
+	this->maxUnitVecDataList.append(ds);
+
+	// Add the name of the data set to the combo box
+	this->ui->MaxUnitVecDataCombo->addItem(ds->getName());
+
+	return true;
+}
 
 //----------------------------[ addSeedPoints ]----------------------------\\
 
@@ -259,6 +297,10 @@ void HARDIFiberTrackingPlugin::dataSetChanged(data::DataSet * ds)
 	{
 		this->changeSeedPoints(ds);
 	}
+	else if (ds->getKind() == "unit vector volume")
+	{
+		this->changeMaxUnitVecDataSet(ds);
+	}
 }
 
 
@@ -293,6 +335,19 @@ void HARDIFiberTrackingPlugin::changeAIDataSet(data::DataSet * ds)
 	this->ui->AIDataCombo->setItemText(index, ds->getName());
 }
 
+
+void HARDIFiberTrackingPlugin::changeMaxUnitVecDataSet(data::DataSet * ds)
+{
+	// Check if the data set has been added to this plugin
+	if (!(this->maxUnitVecDataList.contains(ds)))
+	{
+		return;
+	}
+
+	// Change the name of the data set in the GUI
+	int index = this->maxUnitVecDataList.indexOf(ds);
+	this->ui->MaxUnitVecDataCombo->setItemText(index, ds->getName());
+}
 
 //---------------------------[ changeSeedPoints ]--------------------------\\
 
@@ -345,6 +400,10 @@ void HARDIFiberTrackingPlugin::dataSetRemoved(data::DataSet * ds)
 	{
 		this->removeSeedPoints(ds);
 	}
+	else if (ds->getKind() == " volume")
+	{
+		this->removeAIDataSet(ds);
+	}
 }
 
 
@@ -382,6 +441,21 @@ void HARDIFiberTrackingPlugin::removeAIDataSet(data::DataSet * ds)
 }
 
 
+//---------------------------[ removeMaxUnitVecDataSet ]---------------------------\\
+
+void HARDIFiberTrackingPlugin::removeMaxUnitVecDataSet(data::DataSet * ds)
+{
+	// Check if the data set has been added to this plugin
+	if (!(this->aiDataList.contains(ds)))
+	{
+		return;
+	}
+
+	// Delete item from the GUI and the data set list
+	int index = this->maxUnitVecDataList.indexOf(ds);
+	this->ui->MaxUnitVecDataCombo->removeItem(index);
+	this->maxUnitVecDataList.removeAt(index);
+}
 //---------------------------[ removeSeedPoints ]--------------------------\\
 
 void HARDIFiberTrackingPlugin::removeSeedPoints(data::DataSet * ds)
@@ -427,9 +501,22 @@ void HARDIFiberTrackingPlugin::updateFibers()
 		return;
 	}
 
+	int selectedMaximaData = this->ui->MaxUnitVecDataCombo->currentIndex();
+	// Check if the index is correct
+	if (selectedMaximaData < 0 || selectedMaximaData >=  maxUnitVecDataList.size())
+	{
+		QMessageBox::warning(this->getGUI(), "HARDI Fiber Tracking Plugin", "Maxima Unit Vectors data index out of range!", 
+								QMessageBox::Ok, QMessageBox::Ok);
+		this->core()->out()->logMessage("HARDI Fiber Tracking Plugin: Maxima Unit Vectors data index out of range!");
+		return;
+	}
+
+
 	// Get pointers to the "vtkImageData" objects of the DTI tensors and AI scalars
 	vtkImageData *	HARDIimageData = HARDIDataList.at(selectedHARDIData)->getVtkImageData();
 	vtkImageData *  aiImageData =  aiDataList.at( selectedAIData)->getVtkImageData();
+                     vtkImageData *  maxUnitVecImageData              =   maxUnitVecDataList.at(selectedMaximaData)->getVtkImageData();
+	
 
 	// Update the AI data
 	if (aiImageData->GetActualMemorySize() == 0)
@@ -476,7 +563,10 @@ void HARDIFiberTrackingPlugin::updateFibers()
 			if(HARDIDataList.at(selectedHARDIData)->getKind()=="discrete sphere")
 			this->doDeterministicFiberTracking(HARDIimageData, aiImageData, 0);
 			else if(HARDIDataList.at(selectedHARDIData)->getKind()=="spherical harmonics")
+			{
+				HARDIFiberTrackingFilter->SetMaximaDirectionsVolume(maxUnitVecImageData);
 			this->doDeterministicFiberTracking(HARDIimageData, aiImageData, 1);
+			}
 			break;
 
 		default:

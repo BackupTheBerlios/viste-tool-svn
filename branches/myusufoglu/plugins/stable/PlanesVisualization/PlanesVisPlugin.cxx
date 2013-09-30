@@ -316,6 +316,43 @@ void PlanesVisPlugin::dataSetAdded(data::DataSet * ds)
 		this->connectControls(true);
 
 	} // if [scalar volume]
+	// Scalar volume
+	if (ds->getKind() == "unit vector volume")
+	{
+		this->connectControls(false);
+		
+		// Add the scalar volume to the list
+		this->scalarVolumeDataSets.append(ds);
+			
+		// Add the scalar volume to both relevant combo boxes
+		this->ui->scalarVolumeCombo->addItem(ds->getName());
+		this->ui->dtiWeightCombo->addItem(ds->getName());
+
+		// If this is the first scalar volume we added, select it now
+		if (this->ui->scalarVolumeCombo->count() == 1)
+		{
+			this->changeScalarVolume(0);
+
+			// Reset the camera of the 3D volume
+			if (this->ui->scalarVolumeRadio->isChecked())
+				this->fullCore()->canvas()->GetRenderer3D()->ResetCamera();
+		}
+
+		// Likewise for weighting volumes, with the addendum that we need to select
+		// it manually (since the combo box already contained the "None" item.
+
+		if (this->ui->dtiWeightCombo->count() == 2)
+		{
+			this->ui->dtiWeightCombo->setCurrentIndex(1);
+			this->changeWeightVolume(1);
+		}
+	   //slicePosXYZ are used if another plugin wants to change the slice position
+		ds->getAttributes()->addAttribute("SlicePosX",0);
+		ds->getAttributes()->addAttribute("SlicePosY",0);
+		ds->getAttributes()->addAttribute("SlicePosZ",0);
+		this->connectControls(true);
+
+	} // if [scalar volume]
 
 	// Transfer Functions (LUTs)
 	else if (ds->getKind() == "transfer function")

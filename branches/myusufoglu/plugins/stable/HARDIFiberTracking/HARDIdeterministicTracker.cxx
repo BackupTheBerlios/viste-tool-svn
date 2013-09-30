@@ -2167,18 +2167,21 @@ namespace bmia {
 	// largest sized unit vector. Second array is for the 
 	void HARDIdeterministicTracker::FormMaxDirectionArrays(vtkImageData *maximaVolume)
 	{
+			//this->maxUnitVecDataList.at(this->ui->MaxUnitVecDataCombo->currentIndex())->getVtkImageData()
+		if(!maximaVolume)
+		{
+			QString fileName = QFileDialog::getOpenFileName(nullptr,  "Read Maxima File","/", "Max. Unit Vector Image(*.vti)");
+			if(fileName.isEmpty() || fileName.isNull())
+			{  
+				cout << "No file name"<< endl;
+				return;
+			}
+			vtkXMLImageDataReader *readerXML = vtkXMLImageDataReader::New();                
 
-		QString fileName = QFileDialog::getOpenFileName(nullptr,  "Read Maxima File","/", "Max. Unit Vector Image(*.vti)");
-		if(fileName.isEmpty() || fileName.isNull())
-		{  
-			cout << "No file name"<< endl;
-			return;
+			readerXML->SetFileName( fileName.toStdString().c_str() );
+			readerXML->Update(); // Update other place
+			maximaVolume = vtkImageData::SafeDownCast(readerXML->GetOutput());
 		}
-		vtkXMLImageDataReader *readerXML = vtkXMLImageDataReader::New();                
-
-		readerXML->SetFileName( fileName.toStdString().c_str() );
-		readerXML->Update(); // Update other place
-		maximaVolume = vtkImageData::SafeDownCast(readerXML->GetOutput());
 		//int i = readerXML->GetOutput()->GetPointData()->GetArray("maximas")->GetNumberOfComponents();
 
 		// if the image of unit vectors and maxima indexes have been already prepared. 
@@ -2187,7 +2190,7 @@ namespace bmia {
 
 		//if( readerXML->GetOutput()->GetPointData()->GetArray("maximas"))
 		//{  
-			nMaximaForEachPoint =  readerXML->GetOutput()->GetPointData()->GetNumberOfArrays() -1;  // 1 for the original image N for the arrays added for unit vectors
+			nMaximaForEachPoint =  maximaVolume->GetPointData()->GetNumberOfArrays() -1;  // 1 for the original image N for the arrays added for unit vectors
 			
 			//->GetArray("maximas")->GetNumberOfComponents();
 			//maximaArrayFromFile =  vtkIntArray::SafeDownCast(readerXML->GetOutput()->GetPointData()->GetArray("maximas"));

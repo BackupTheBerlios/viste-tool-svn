@@ -170,8 +170,32 @@ void VtiReaderPlugin::loadDataFromFile(QString filename)
             newdata->SetScalarTypeToFloat();
             data = newdata;
             kind = "DTI";
-        }
+        }//if
 
+  else if(data->GetPointData()->GetNumberOfArrays() > 1) {
+
+	  	int nArrays;
+			nArrays = data->GetPointData()->GetNumberOfArrays() ;  // 1 for the original image N for the arrays added for unit vectors
+			  
+			bool hasVector=false;
+			for(unsigned int nr = 0; nr <nArrays  ; nr++)
+			{
+				//	outUnitVectorList.push_back(vtkDoubleArray::New());
+				//outUnitVectorList.at(nr)->SetNumberOfComponents(3);
+				//outUnitVectorList.at(nr)->SetNumberOfTuples(maximaVolume->GetNumberOfPoints());
+
+				//outUnitVectorList.at(nr)->SetName( arrName.toStdString().c_str() );  //fist vector array for each point (keeps only the first vector)
+				QString name(data->GetPointData()->GetArrayName(nr));
+				cout << name.toStdString() << endl;
+				if(name=="") return;
+				if ((data->GetPointData()->GetArray(name.toStdString().c_str()  )->GetDataType() == VTK_DOUBLE) && ( data->GetPointData()->GetArray( name.toStdString().c_str() )->GetNumberOfComponents() ==3))
+				{
+					hasVector=true;
+				}
+
+			}
+			if (hasVector) kind="unit vector volume" ;
+  }
 
     Q_ASSERT(!kind.isEmpty());
 

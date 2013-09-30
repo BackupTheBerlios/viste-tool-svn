@@ -171,7 +171,7 @@ class HARDIFiberTrackingPlugin :public plugin::Plugin,
 		QList<data::DataSet *> seedList;
 		QList<data::DataSet *> HARDIDataList;
 		QList<data::DataSet *> aiDataList;
-
+		QList<data::DataSet *> maxUnitVecDataList;
 		/** List available tracking methods. */
 
 		enum TrackingMethod
@@ -221,11 +221,13 @@ class HARDIFiberTrackingPlugin :public plugin::Plugin,
 		bool addHARDIDataSet(data::DataSet * ds);
 		bool addAIDataSet(data::DataSet * ds);
 		bool addSeedPoints(data::DataSet * ds);
+		bool addMaximaUnitVectorsDataSet(data::DataSet * ds);
 
 		/** Change existing data sets. */
 
 		void changeHARDIDataSet(data::DataSet * ds);
 		void changeAIDataSet(data::DataSet * ds);
+		void changeMaxUnitVecDataSet(data::DataSet * ds);
 		void changeSeedPoints(data::DataSet * ds);
 
 		/** Remove existing data sets. */
@@ -233,6 +235,7 @@ class HARDIFiberTrackingPlugin :public plugin::Plugin,
 		void removeHARDIDataSet(data::DataSet * ds);
 		void removeAIDataSet(data::DataSet * ds);
 		void removeSeedPoints(data::DataSet * ds);
+		void removeMaxUnitVecDataSet(data::DataSet * ds);
 
 		/** Adds output fibers to the data manager. If a set of fibers with the same
 			DTI image, seeding region, and tracking method already exists, we overwrite

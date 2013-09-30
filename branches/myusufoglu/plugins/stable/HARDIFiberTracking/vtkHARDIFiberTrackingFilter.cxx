@@ -440,7 +440,7 @@ namespace bmia {
 
 		//set the unit vectors
 		tracker->setUnitVectors(unitVectors);
-		if(this->UseMaximaFile)
+		if(this->UseMaximaFile )
 		{
 			this->SetMaximaDirectionsVolume(vtkImageData::New());
 			

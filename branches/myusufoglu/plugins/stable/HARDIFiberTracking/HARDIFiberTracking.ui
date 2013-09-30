@@ -15,7 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
-    <layout class="QHBoxLayout" name="DataSelectionHLayout">
+    <layout class="QHBoxLayout" name="horizontalLayout_9">
      <item>
       <layout class="QVBoxLayout" name="DataSelectionLabelVLayout">
        <item>
@@ -29,6 +29,13 @@
         <widget class="QLabel" name="AIDataLabel">
          <property name="text">
           <string>Scalar Data</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="MaxUnitVecLabel">
+         <property name="text">
+          <string>Maxima Vec.</string>
          </property>
         </widget>
        </item>
@@ -48,6 +55,9 @@
        </item>
        <item>
         <widget class="QComboBox" name="AIDataCombo"/>
+       </item>
+       <item>
+        <widget class="QComboBox" name="MaxUnitVecDataCombo"/>
        </item>
       </layout>
      </item>
@@ -127,8 +137,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>272</width>
-        <height>456</height>
+        <width>284</width>
+        <height>413</height>
        </rect>
       </property>
       <attribute name="label">
@@ -463,18 +473,22 @@
         </layout>
        </item>
        <item>
-        <widget class="QCheckBox" name="writeMaxToFileCheck">
-         <property name="text">
-          <string>Only Write Maxima to File</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="cleanBox">
-         <property name="text">
-          <string>Clean ODF maxima</string>
-         </property>
-        </widget>
+        <layout class="QHBoxLayout" name="horizontalLayout_8">
+         <item>
+          <widget class="QCheckBox" name="cleanBox">
+           <property name="text">
+            <string>Clean ODF maxima</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="writeMaxToFileCheck">
+           <property name="text">
+            <string>Only Write Maxima to File</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
         <spacer name="verticalSpacer">
@@ -496,8 +510,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>98</width>
-        <height>28</height>
+        <width>241</width>
+        <height>312</height>
        </rect>
       </property>
       <attribute name="label">

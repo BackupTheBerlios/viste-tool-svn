@@ -268,6 +268,8 @@ void SeedingPlugin::dataSetAdded(data::DataSet * ds)
 
 		return;
 	}
+	
+
 }
 
 

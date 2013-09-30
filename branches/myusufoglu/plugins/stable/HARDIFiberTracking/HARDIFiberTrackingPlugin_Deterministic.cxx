@@ -156,6 +156,8 @@ namespace bmia {
 			HARDIFiberTrackingFilter->SetUseMaximaFile((bool) this->ui->useMaxFileCheck->isChecked()); 
 			HARDIFiberTrackingFilter->SetWriteMaximaToFile((bool) this->ui->writeMaxToFileCheck->isChecked()); 
 			HARDIFiberTrackingFilter->SetUseRKIntegration((bool) this->ui->useRungeKuttaCBox->isChecked()); 
+			
+			//HARDIFiberTrackingFilter->Set
 			// Set the current seed point set as the input of the filter
 			HARDIFiberTrackingFilter->SetSeedPoints((vtkDataSet *) seedUG);
 

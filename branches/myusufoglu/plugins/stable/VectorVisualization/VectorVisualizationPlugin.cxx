@@ -157,7 +157,7 @@ namespace bmia {
 			}
 		}
 
-		if (ds->getKind() == "scalar volume")
+		if (ds->getKind() == "unit vector volume")
 		{
 			vtkImageData *img_temp   = ds->getVtkImageData();
 			if (!img_temp)
@@ -379,7 +379,7 @@ void VectorVisualizationPlugin::inputDataChanged(int index)
 	*/
 	// Re-enable rendering
 	this->core()->enableRendering();
-
+	
 	// Update the builder and render the scene
 	this->core()->render();
 }
@@ -391,7 +391,7 @@ void VectorVisualizationPlugin::inputDataChanged(int index)
 	{
 		Q_ASSERT(ds);
 		cout << "DATASET CHANGED " << endl;
-		if ((ds->getKind() == "scalar volume") && this->glyphDataSets.contains(ds)){
+		if ((ds->getKind() == "unit vector volume") && this->glyphDataSets.contains(ds)){
 			cout << ds->getKind().toStdString() << "changed"<< endl;
 
 			// Get the index of the data set
@@ -613,7 +613,7 @@ void VectorVisualizationPlugin::inputDataChanged(int index)
 		else return;
 		if(!this->seedDataSets.at(this->ui->seedPointsCombo->currentIndex())->getVtkObject())  return;
 		temo->Update();
-		glyphFilter->SetInputConnection( temo->GetProducerPort() );
+		glyphFilter->SetInput( temo );
 		this->glyphFilter->Modified();
 		this->glyphFilter->Update();
 
