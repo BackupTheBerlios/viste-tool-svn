@@ -123,8 +123,8 @@ namespace bmia {
 
 		vtkActor* actor;
 		vtkImageData *img ;
-		void addVectorToSeeds(data::DataSet* ds,
-			QString vectorName) ;
+		void copyseeds(data::DataSet* dsSeeds, QString vectorName) ;
+		void addVectorToSeeds(data::DataSet* ds,QString vectorName) ;
 		protected slots:
 			void seedDataChanged(int index);
 			void selectVectorData(int row);

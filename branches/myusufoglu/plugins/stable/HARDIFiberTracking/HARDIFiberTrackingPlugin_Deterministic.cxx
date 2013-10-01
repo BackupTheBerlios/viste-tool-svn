@@ -188,7 +188,16 @@ namespace bmia {
 
 				writerXML->SetDataModeToBinary();
 				writerXML->SetFileName( FilePath.toStdString().c_str() );
-				cout << "Writing the maxima and maxima vectors volume...\n" << endl;  
+				
+			 
+
+				    data::DataSet* ds = new data::DataSet(name, "unit vector volume", (vtkDataObject*)(HARDIToMaximaFilter->GetOutput()));
+             cout << "Adding unit vector volume to the loaded datasets...\n" << endl;  
+	 
+               this->core()->data()->addDataSet(ds);
+
+
+			   cout << "Writing the maxima and maxima vectors volume...\n" << endl;  
 				if(writerXML->Write())  cout << "Writing the maxima volume finished\n" << endl;  
 				return;
 			}

@@ -471,7 +471,7 @@ namespace bmia {
 			QString fileName (name+"-"+kind);
 			QString saveFileName;
 			
-			if(kind!="fibers" && kind!= "seed points" && kind != "regionOfInterest" && kind != "eigen")
+			if(kind!="fibers" && kind!= "seed points" && kind != "regionOfInterest" && kind != "eigen" && kind!="unit vector volume" )
 			{
 
 				// Why derivatives of DTI like FA is listed as being 0 byte. lets update the volumes so that they will be produced.  
@@ -486,7 +486,7 @@ namespace bmia {
 					fileName,	
 					"Nifti (*.nii);; VTK Image (*.vti);;VTK Polydata (*.vtp)");
 			}
-			else if(kind=="eigen")
+			else if(kind=="eigen" || kind=="unit vector volume")
 			{
 				 
 				saveFileName = QFileDialog::getSaveFileName(this,
@@ -535,7 +535,7 @@ namespace bmia {
 				pointSet = vtkPointSet::SafeDownCast(obj);
 			}
 
-			if(image && (kind.contains("scalar volume") || kind.contains("DTI") || kind.contains("discrete sphere") || kind.contains("spherical harmonics")  ))// && (ds->getVtkImageData()->GetNumberOfScalarComponents() ==1 ))
+			if(image && (kind.contains("scalar volume") || kind.contains("unit vector volume") ||  kind.contains("DTI") || kind.contains("discrete sphere") || kind.contains("spherical harmonics")  ))// && (ds->getVtkImageData()->GetNumberOfScalarComponents() ==1 ))
             {
                 //qDebug() << "Writing the image data. No of scalar components is:" << image->GetNumberOfScalarComponents() << endl;
 

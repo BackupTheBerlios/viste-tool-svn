@@ -552,6 +552,30 @@ void VectorVisualizationPlugin::inputDataChanged(int index)
 
 	}
 
+	void VectorVisualizationPlugin::copyseeds(data::DataSet* dsSeeds, QString vectorName) 
+	{
+				// Loop through all seed points
+			// Get the seed points
+		vtkPointSet * seeds = vtkPointSet::SafeDownCast(dsSeeds->getVtkObject());
+		vtkPoints * newPoints = vtkPoints::New();
+
+			for (int pointId = 0; pointId < seeds->GetNumberOfPoints(); ++pointId)
+			{
+		 
+
+				// Get the seed point coordinates (glyph center)
+				double * p = seeds->GetPoint(pointId);
+	 
+				// Find the corresponding voxel
+				vtkIdType imagePointId = this->img->FindPoint(p[0], p[1], p[2]);
+			 newPoints->InsertNextPoint(p[0], p[1], p[2]);
+			}
+			    data::DataSet* ds = new data::DataSet(dsSeeds->getName(), dsSeeds->getKind(), (vtkDataObject*)(newPoints));
+				addVectorToSeeds(ds,  vectorName) ;
+				dsSeeds=ds; 
+             cout << "Adding unit vector volume to the loaded datasets...\n" << endl;  
+	}
+
 	void VectorVisualizationPlugin::seedDataChanged(int index)
 	{
 		cout << "seedDataChanged"  << "Start ==========" << endl;
