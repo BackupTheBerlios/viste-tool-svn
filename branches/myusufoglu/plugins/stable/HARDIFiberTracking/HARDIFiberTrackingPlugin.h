@@ -263,7 +263,7 @@ class HARDIFiberTrackingPlugin :public plugin::Plugin,
 		/** Performs fiber tracking for all Regions of Interest in the "seedList"
 			@param HARDIimageData		HARDI data set in discrete sphere form.
 			@param aiImageData			AI Scalars */
-	    void doDeterministicFiberTracking(vtkImageData * HARDIimageData, vtkImageData * aiImageData, int i);
+	    void doDeterministicFiberTracking(vtkImageData * HARDIimageData, vtkImageData * aiImageData, vtkImageData *maxUnitVecData, int i);
 
 		
 		/** Setup the GUI for Deterministic. Calls "enableAllControls" and "clearToolbox". */

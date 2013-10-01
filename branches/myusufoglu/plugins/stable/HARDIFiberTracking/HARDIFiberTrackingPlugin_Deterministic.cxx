@@ -35,7 +35,7 @@ namespace bmia {
 
 	//----------------------[ doStreamlineFiberTracking ]----------------------\\
 
-	void HARDIFiberTrackingPlugin::doDeterministicFiberTracking(vtkImageData * HARDIimageData, vtkImageData * aiImageData, int dataType)
+	void HARDIFiberTrackingPlugin::doDeterministicFiberTracking(vtkImageData * HARDIimageData, vtkImageData * aiImageData, vtkImageData * maxUnitVecData, int dataType)
 	{
 		// Get a list of the selected seed point sets
 		QList<QListWidgetItem *> selectedSeeds = this->ui->seedList->selectedItems();
@@ -163,7 +163,7 @@ namespace bmia {
 
 			// Set name of Region of Interest
 			HARDIFiberTrackingFilter->setROIName((*seedListIter)->getName());
-
+			HARDIFiberTrackingFilter->SetMaximaDirectionsVolume(maxUnitVecData);
 
 			// Before running the whole fiber tracking algorithm the user may prefer to calculate and write maximas and direction unit vectors to a files.
 

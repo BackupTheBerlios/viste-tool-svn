@@ -442,10 +442,10 @@ namespace bmia {
 		tracker->setUnitVectors(unitVectors);
 		if(this->UseMaximaFile )
 		{
-			this->SetMaximaDirectionsVolume(vtkImageData::New());
+		//	this->SetMaximaDirectionsVolume(vtkImageData::New());
 			
 	 	 
-		//this->readMaximaVectorsFile(this->GetMaximaDirectionsVolume());
+		////this->readMaximaVectorsFile(this->GetMaximaDirectionsVolume());
 
 		tracker->FormMaxDirectionArrays(this->GetMaximaDirectionsVolume());
 		
@@ -731,6 +731,12 @@ namespace bmia {
 		// Delete the IDs list
 		idFiberPoints->Delete();
 	}
+
+	void vtkHARDIFiberTrackingFilter::SetMaximaDirectionsVolume(vtkImageData * img)
+		{
+			maximaVolume= vtkImageData::New();
+			maximaVolume->ShallowCopy(img);
+		}
 
 
 } // namespace bmia
