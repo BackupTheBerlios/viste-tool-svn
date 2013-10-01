@@ -69,6 +69,7 @@ namespace Ui {
 #include <vtkPolyDataMapper.h>
 #include <vtkActor.h>
 #include <vtkArrowSource.h>
+#include <vtkUnstructuredGrid.h>
 
 namespace bmia {
 

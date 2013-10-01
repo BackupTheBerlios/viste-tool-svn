@@ -554,10 +554,13 @@ void VectorVisualizationPlugin::inputDataChanged(int index)
 
 	void VectorVisualizationPlugin::copyseeds(data::DataSet* dsSeeds, QString vectorName) 
 	{
+		// copyyi add vector to seedsin ilk cagarilisinda yap, yani her seed icin array kadar kopya hazirla sonra o kadar 
+		// hersecenkete o seede arsilik gelen vectorun kacinci arrayi ise onu ver!!
 				// Loop through all seed points
 			// Get the seed points
 		vtkPointSet * seeds = vtkPointSet::SafeDownCast(dsSeeds->getVtkObject());
 		vtkPoints * newPoints = vtkPoints::New();
+			vtkUnstructuredGrid * newPointGridForSeeds = vtkUnstructuredGrid::New();
 
 			for (int pointId = 0; pointId < seeds->GetNumberOfPoints(); ++pointId)
 			{
@@ -570,7 +573,8 @@ void VectorVisualizationPlugin::inputDataChanged(int index)
 				vtkIdType imagePointId = this->img->FindPoint(p[0], p[1], p[2]);
 			 newPoints->InsertNextPoint(p[0], p[1], p[2]);
 			}
-			    data::DataSet* ds = new data::DataSet(dsSeeds->getName(), dsSeeds->getKind(), (vtkDataObject*)(newPoints));
+			newPointGridForSeeds->SetPoints(newPoints);
+			    data::DataSet* ds = new data::DataSet(dsSeeds->getName(), dsSeeds->getKind(), newPointGridForSeeds);
 				addVectorToSeeds(ds,  vectorName) ;
 				dsSeeds=ds; 
              cout << "Adding unit vector volume to the loaded datasets...\n" << endl;  
@@ -628,7 +632,7 @@ void VectorVisualizationPlugin::inputDataChanged(int index)
 
 
 		if(this->img && (this->dataSets.size() > 0) && (row < this->dataSets.size())&& (this->seedDataSets.size() > 0) && this->ui->seedPointsCombo->currentIndex() < this->seedDataSets.size() )
-			this->addVectorToSeeds(  this->seedDataSets.at( this->ui->seedPointsCombo->currentIndex() ), this->dataSets.at(row)->getName()  );
+			this->copyseeds(  this->seedDataSets.at( this->ui->seedPointsCombo->currentIndex() ), this->dataSets.at(row)->getName()  );
 		else return;
 		cout << " " << this->seedDataSets.size() <<  " " << this->ui->seedPointsCombo->currentIndex() << " " << this->dataSets.at(row)->getName().toStdString()  << " " << this->dataSets.size() << endl;
 		vtkPointSet *temo;
