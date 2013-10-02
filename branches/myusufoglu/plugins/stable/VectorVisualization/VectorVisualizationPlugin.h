@@ -70,7 +70,6 @@ namespace Ui {
 #include <vtkActor.h>
 #include <vtkArrowSource.h>
 #include <vtkUnstructuredGrid.h>
-
 namespace bmia {
 
 	/**
@@ -120,12 +119,13 @@ namespace bmia {
 		void inputDataChanged(int index);
 		void insertArrayNamesToTheListBox(vtkImageData *img);
 		void formPipeLine(vtkImageData *img, int arrayNumber);
-
+		void formPipeLinesForAllArrays(vtkImageData *img, int arrayNumber);
 
 		vtkActor* actor;
 		vtkImageData *img ;
-		void copyseeds(data::DataSet* dsSeeds, QString vectorName) ;
-		void addVectorToSeeds(data::DataSet* ds,QString vectorName) ;
+		void addVectorToSeeds(data::DataSet* ds,
+			QString vectorName) ;
+		void addVectorToUnstructuredGrid(vtkUnstructuredGrid *gridForArrayForSeed, QString vectorName) ;
 		protected slots:
 			void seedDataChanged(int index);
 			void selectVectorData(int row);
@@ -161,6 +161,18 @@ namespace bmia {
 		* The actors associated with the data sets in dataSets.
 		*/
 		QList<vtkActor*> actors;
+
+		QList<vtkPolyDataMapper*> mappers;
+
+		/**
+		* The actors associated with the data sets in dataSets.
+		*/
+		QList<vtkGlyph3D*> glyphFilters;
+
+		/**
+		* The actors associated with the data sets in dataSets.
+		*/
+		QList<vtkUnstructuredGrid *> seedGridsOfASeed;
 
 		/**
 		* The actors associated with the data sets in dataSets.

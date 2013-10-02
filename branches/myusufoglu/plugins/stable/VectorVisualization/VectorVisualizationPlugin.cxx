@@ -57,7 +57,7 @@
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
-#include <vtkImageData.h>
+#include <vtkImageData.h> 
 #include <vtkPointData.h>
 #include <QColorDialog>
 
@@ -206,7 +206,8 @@ namespace bmia {
 			//if(this->ui->dataList->count()  > 0)
 			this->ui->dataList->setCurrentRow(0);
 			//main pipeline
-			this->formPipeLine(this->img, this->ui->seedPointsCombo->currentIndex() ); // 2 array number
+			//this->formPipeLine(this->img, this->ui->seedPointsCombo->currentIndex() ); // 2 array number
+			this->formPipeLinesForAllArrays(this->img, this->ui->seedPointsCombo->currentIndex() ); // 
 
 
 			// Try to get a transformation matrix from the data set
@@ -222,17 +223,22 @@ namespace bmia {
 					vtkMatrix4x4 * m = vtkMatrix4x4::SafeDownCast(obj);
 					vtkMatrix4x4 * mCopy = vtkMatrix4x4::New();
 					mCopy->DeepCopy(m);
-					this->actor->SetUserMatrix(mCopy);
+					for( int nr = 0; nr <glyphFilters.size()  ; nr++)
+ 
+			 
+				
+
+					this->actors[nr]->SetUserMatrix(mCopy);
 					mCopy->Delete();
 				}
 			}
 
 			// Add the actor to the assembly to be rendered:
-			this->assembly->AddPart(actor);
+			//this->assembly->AddPart(actor);
 
 			// Add the actor to the list of actors, for easy access to its parameters
 			// later on:
-			this->actors.append(actor);
+			//this->actors.append(actor);
 
 			// Add the new data set to the list of data sets in the GUI:
 
@@ -284,8 +290,9 @@ namespace bmia {
 			//	cout << temo->GetPointData()->GetArray(this->img->GetPointData()->GetArrayName(1))->GetName() << endl;
 			//	cout << temo->GetPointData()->GetArray(this->img->GetPointData()->GetArrayName(1))->GetNumberOfTuples() << endl;
 			//	cout << temo->GetPointData()->GetArray(this->img->GetPointData()->GetArrayName(1))->GetNumberOfComponents() << endl;
+			//temo->SetActiveAttributeInfo(nullptr,0,1,
 			glyphFilter->SetInput( temo);
-
+			 
 			//glyphFilter->SetScaleModeToDataScalingOff();
 			//glyphFilter->SetScaleModeToScaleByVector();
 			glyphFilter->Modified();
@@ -304,6 +311,116 @@ namespace bmia {
 		this->actor->SetVisibility(true);
 		this->assembly->SetVisibility(true);
 		actor->SetMapper(mapper);
+		//mapper->Delete(); mapper = NULL;
+		// Note that the mapper was not actually deleted because it was
+		// registered by the actor. And it can still be accessed through
+		// actor->GetMapper().
+		pipeFormed=1;
+		cout << "formPipeLine END "  << endl;
+	}
+
+	void  VectorVisualizationPlugin::formPipeLinesForAllArrays(vtkImageData *img, int seedNumber)
+	{
+		//QString name(img->GetPointData()->GetArrayName(arrayNumber));
+		//	cout << name.toStdString() << endl;
+		//img->GetPointData()->SetActiveVectors(name.toStdString().c_str());
+		cout << "formPipeLine START "  << endl;
+		vtkArrowSource  *arrowSource =  vtkArrowSource::New();
+		arrowSource->Update();
+
+		int nArrays;
+		nArrays = img->GetPointData()->GetNumberOfArrays() ;  // 1 for the original image N for the arrays added for unit vectors
+		if (nArrays==0) 
+			return;  
+
+		for( int nr = 0; nr <nArrays  ; nr++)
+		{
+			QString name(img->GetPointData()->GetArrayName(nr));
+			if ((img->GetPointData()->GetArray(name.toStdString().c_str()  )->GetDataType() == VTK_DOUBLE) && ( img->GetPointData()->GetArray( name.toStdString().c_str() )->GetNumberOfComponents() ==3))
+			{ 
+
+		glyphFilters.append( vtkGlyph3D::New() );
+				actors.append( vtkActor::New() );
+				mappers.append( vtkPolyDataMapper::New() );
+				seedGridsOfASeed.append(vtkUnstructuredGrid::New());
+	}
+			 
+	}
+		if(seedDataSets.size()<=0)
+				return;
+
+		for( int nr = 0; nr <glyphFilters.size() ; nr++)
+		{
+			 
+				
+
+				glyphFilters[nr] ->SetSourceConnection(arrowSource->GetOutputPort());
+				//glyphFilter->OrientOn();
+				glyphFilters[nr]->SetVectorModeToUseVector(); // Or to use Normal
+				glyphFilters[nr]->SetScaling(true);
+				glyphFilters[nr]->SetScaleFactor(1);
+				//	int dsIndex = this->seedDataSets.indexOf(ds);
+
+				// Change the data set name
+				///	glyphFilter->SetInput(0, vtkDataObject::SafeDownCast(this->seedDataSets[dsIndex]->getVtkObject()));
+				//glyphFilter->SetInput(img);
+				glyphFilters[nr]->SetScaleModeToDataScalingOff();
+				glyphFilters[nr]->SetScaleModeToScaleByVector();
+				
+					/*function */
+				
+
+
+	           	vtkPointSet * seeds = vtkPointSet::SafeDownCast(this->seedDataSets.at(seedNumber)->getVtkObject());  
+					vtkPoints * newPoints = vtkPoints::New();
+					for (int pointId = 0; pointId < seeds->GetNumberOfPoints(); ++pointId)
+			{
+		 
+
+				// Get the seed point coordinates (glyph center)
+				double * p = seeds->GetPoint(pointId);
+	 
+				// Find the corresponding voxel
+				vtkIdType imagePointId = this->img->FindPoint(p[0], p[1], p[2]);
+			 newPoints->InsertNextPoint(p[0], p[1], p[2]);
+			}
+				seedGridsOfASeed.at(nr)->SetPoints(newPoints);
+					this->addVectorToUnstructuredGrid( seedGridsOfASeed.at(nr), this->ui->dataList->item(nr)->text() );
+					vtkPointSet *temo = vtkPointSet::SafeDownCast( this->seedDataSets.at(seedNumber)->getVtkObject());
+					cout << "Number of Arrays in Seeds: " <<  temo->GetPointData()->GetNumberOfArrays() << endl;
+					//cout << "Number of Arrays in Seeds: " <<  temo->GetPointData()->GetAc << endl;
+					//QString name= this->img->GetPointData()->GetArrayName(arrayNumber);
+					//cout << name.toStdString() << endl;
+
+					temo->Update();
+					//	cout << temo->GetPointData()->GetArray(this->img->GetPointData()->GetArrayName(1))->GetName() << endl;
+					//	cout << temo->GetPointData()->GetArray(this->img->GetPointData()->GetArrayName(1))->GetNumberOfTuples() << endl;
+					//	cout << temo->GetPointData()->GetArray(this->img->GetPointData()->GetArrayName(1))->GetNumberOfComponents() << endl;
+					//temo->SetActiveAttribute(temo->GetInformation(),nr,this->img->GetPointData()->GetArrayName(nr),VTK_USE_VECTOR);
+					glyphFilters[nr]->SetInput( seedGridsOfASeed.at(nr));
+
+					//glyphFilter->SetScaleModeToDataScalingOff();
+					//glyphFilter->SetScaleModeToScaleByVector();
+					glyphFilters[nr]->Modified();
+					glyphFilters[nr]->Update();
+					
+			 
+				//glyphFilter->Update();
+
+				// Build a pipeline for rendering this data set:
+				
+				mappers[nr]->ScalarVisibilityOff();
+				mappers[nr]->SetInput(glyphFilters[nr]->GetOutput());
+				
+
+
+				this->actors[nr]->SetVisibility(true);
+
+				actors[nr]->SetMapper(mappers[nr]);
+				this->assembly->AddPart(actors[nr]);
+			 this->core()->render();
+		}//for
+		this->assembly->SetVisibility(true);
 		//mapper->Delete(); mapper = NULL;
 		// Note that the mapper was not actually deleted because it was
 		// registered by the actor. And it can still be accessed through
@@ -346,43 +463,43 @@ namespace bmia {
 
 	//--------------------------[ inputDataChanged ]--------------------------\\
 
-void VectorVisualizationPlugin::inputDataChanged(int index)
-{
-	if (index < 0 || index >= this->glyphDataSets.size() ); //|| this->m == NULL)
+	void VectorVisualizationPlugin::inputDataChanged(int index)
+	{
+		if (index < 0 || index >= this->glyphDataSets.size() ); //|| this->m == NULL)
 		return;
 
-	// Delete existing builder
-	if (this->glyphFilter)
-	{
-	//	this->core()->out()->deleteProgressBarForAlgorithm(this->builder);
-		this->glyphFilter->Delete();
+		// Delete existing builder
+		if (this->glyphFilter)
+		{
+			//	this->core()->out()->deleteProgressBarForAlgorithm(this->builder);
+			this->glyphFilter->Delete();
+		}
+
+
+		// Disable rendering while we set the builder options
+		this->core()->disableRendering();
+
+
+		/* Setup the builder
+		this->setNormalizationMethod(this->ui->normMethodCombo->currentIndex());
+		this->setNormalizationScope(this->ui->normScopeCombo->currentIndex());
+		this->setScale(this->ui->scaleSpin->value());
+		this->setSharpeningExponent(this->ui->sharpenPowerSpin->value());
+		this->enableNormalization(this->ui->normalizeGroup->isChecked());
+		this->enableSharpening(this->ui->sharpenGroup->isChecked());
+		this->enableSmoothing(this->ui->smoothGroup->isChecked());
+		this->updateSmoothOptions();
+		this->changeColorMethod(this->ui->colorMethodCombo->currentIndex());
+		this->setLUT(this->ui->colorLUTCombo->currentIndex());
+		this->setScalarVolume(this->ui->colorScalarsCombo->currentIndex(), false);
+		this->setTessellationOrder(this->ui->tessSpin->value());
+		*/
+		// Re-enable rendering
+		this->core()->enableRendering();
+
+		// Update the builder and render the scene
+		this->core()->render();
 	}
-
-   
-	// Disable rendering while we set the builder options
-	this->core()->disableRendering();
-
-	 
-	/* Setup the builder
-	this->setNormalizationMethod(this->ui->normMethodCombo->currentIndex());
-	this->setNormalizationScope(this->ui->normScopeCombo->currentIndex());
-	this->setScale(this->ui->scaleSpin->value());
-	this->setSharpeningExponent(this->ui->sharpenPowerSpin->value());
-	this->enableNormalization(this->ui->normalizeGroup->isChecked());
-	this->enableSharpening(this->ui->sharpenGroup->isChecked());
-	this->enableSmoothing(this->ui->smoothGroup->isChecked());
-	this->updateSmoothOptions();
-	this->changeColorMethod(this->ui->colorMethodCombo->currentIndex());
-	this->setLUT(this->ui->colorLUTCombo->currentIndex());
-	this->setScalarVolume(this->ui->colorScalarsCombo->currentIndex(), false);
-	this->setTessellationOrder(this->ui->tessSpin->value());
-	*/
-	// Re-enable rendering
-	this->core()->enableRendering();
-	
-	// Update the builder and render the scene
-	this->core()->render();
-}
 
 
 
@@ -391,7 +508,7 @@ void VectorVisualizationPlugin::inputDataChanged(int index)
 	{
 		Q_ASSERT(ds);
 		cout << "DATASET CHANGED " << endl;
-		if ((ds->getKind() == "unit vector volume") && this->glyphDataSets.contains(ds)){
+		if ((ds->getKind() == "scalar volume") && this->glyphDataSets.contains(ds)){
 			cout << ds->getKind().toStdString() << "changed"<< endl;
 
 			// Get the index of the data set
@@ -424,8 +541,8 @@ void VectorVisualizationPlugin::inputDataChanged(int index)
 			if (this->ui->seedPointsCombo->currentIndex() == dsIndex && this->glyphFilter)
 			{
 				if(!this->pipeFormed) return;
-			//	cout << "TO TRUE"<< endl; 
-			//	this->changingSelection = true;
+				//	cout << "TO TRUE"<< endl; 
+				//	this->changingSelection = true;
 
 
 
@@ -436,8 +553,8 @@ void VectorVisualizationPlugin::inputDataChanged(int index)
 					this->addVectorToSeeds(this->seedDataSets.at(dsIndex), this->ui->dataList->currentItem()->text() );
 				else
 				{
-			 
-					
+
+
 					return; }
 				vtkPointSet *temo = vtkPointSet::SafeDownCast( this->seedDataSets.at(dsIndex)->getVtkObject());
 				//QString name= this->img->GetPointData()->GetArrayName(arrayNumber);
@@ -452,7 +569,7 @@ void VectorVisualizationPlugin::inputDataChanged(int index)
 				this->glyphFilter->Update();
 				//cout << "TO FALSE"<< endl;  this->changingSelection = false;
 				this->core()->render();
- 
+
 			}
 		}
 
@@ -468,10 +585,10 @@ void VectorVisualizationPlugin::inputDataChanged(int index)
 	void VectorVisualizationPlugin::addVectorToSeeds(data::DataSet* dsSeeds, QString vectorName) 
 
 	{ // Add vector to each seed point
-			cout << "addVectorToSeeds Start ===" << endl;
+		cout << "addVector " <<  vectorName.toStdString() << "  ToSeeds Start ===" << endl;
 		// Get the seed points
 		vtkPointSet * seeds = vtkPointSet::SafeDownCast(dsSeeds->getVtkObject());
-
+		
 		if (!seeds)
 		{
 			//vtkErrorMacro(<< "Seed points have not been set!");
@@ -505,7 +622,7 @@ void VectorVisualizationPlugin::inputDataChanged(int index)
 
 			return;
 		}
-	 
+
 		vtkDoubleArray * maxUnitVectorImg ;
 		maxUnitVectorImg = vtkDoubleArray::SafeDownCast(imgPD->GetArray( name.toStdString().c_str()));
 		//cout <<  maxUnitVectorImg->GetNumberOfComponents() << endl;
@@ -536,8 +653,8 @@ void VectorVisualizationPlugin::inputDataChanged(int index)
 			unitv= (double *) maxUnitVectorImg->GetTuple3(imagePointId);
 			maxUnitVectorSeeds->InsertNextTuple3( unitv[0],unitv[1],unitv[2]);
 			//if(unitv[0]==0 &&  unitv[1] ==0 && unitv[0]==0)
-				// cout << "ZERO UNIUT VECTOR"<< endl; 
-			
+			// cout << "ZERO UNIUT VECTOR"<< endl; 
+
 			// maxUnitVectorSeeds->InsertNextTuple3( maxUnitVectorImg->GetTuple3(imagePointId)[0],0.1,0);
 
 			// Check if the seed point lies inside the image
@@ -546,38 +663,105 @@ void VectorVisualizationPlugin::inputDataChanged(int index)
 				continue;
 
 		}
-		seeds->GetPointData()->SetScalars(maxUnitVectorSeeds);
+		seeds->GetPointData()->AddArray(maxUnitVectorSeeds);
+		//seeds->GetPointData()->SetActiveAttribute(name.toStdString().c_str(),1);
 		seeds->GetPointData()->SetActiveVectors(name.toStdString().c_str());
-		cout << "addVectorToSeeds End=====" << endl;
+		seeds->Modified();
+		seeds->Update();
+		cout << "addVectorToSeeds " <<  name.toStdString() << " End=====" << endl;
 
 	}
 
-	void VectorVisualizationPlugin::copyseeds(data::DataSet* dsSeeds, QString vectorName) 
-	{
-		// copyyi add vector to seedsin ilk cagarilisinda yap, yani her seed icin array kadar kopya hazirla sonra o kadar 
-		// hersecenkete o seede arsilik gelen vectorun kacinci arrayi ise onu ver!!
-				// Loop through all seed points
-			// Get the seed points
-		vtkPointSet * seeds = vtkPointSet::SafeDownCast(dsSeeds->getVtkObject());
-		vtkPoints * newPoints = vtkPoints::New();
-			vtkUnstructuredGrid * newPointGridForSeeds = vtkUnstructuredGrid::New();
 
-			for (int pointId = 0; pointId < seeds->GetNumberOfPoints(); ++pointId)
-			{
-		 
+	// input is seeds set
+	void VectorVisualizationPlugin::addVectorToUnstructuredGrid(vtkUnstructuredGrid *gridForArrayForSeed, QString vectorName) 
 
-				// Get the seed point coordinates (glyph center)
-				double * p = seeds->GetPoint(pointId);
-	 
-				// Find the corresponding voxel
-				vtkIdType imagePointId = this->img->FindPoint(p[0], p[1], p[2]);
-			 newPoints->InsertNextPoint(p[0], p[1], p[2]);
-			}
-			newPointGridForSeeds->SetPoints(newPoints);
-			    data::DataSet* ds = new data::DataSet(dsSeeds->getName(), dsSeeds->getKind(), newPointGridForSeeds);
-				addVectorToSeeds(ds,  vectorName) ;
-				dsSeeds=ds; 
-             cout << "Adding unit vector volume to the loaded datasets...\n" << endl;  
+	{ // Add vector to each seed point
+		cout << "addVector " <<  vectorName.toStdString() << "  ToSeeds Start ===" << endl;
+		// Get the seed points
+		vtkPointSet * seeds = vtkPointSet::SafeDownCast(gridForArrayForSeed);
+		
+		if (!seeds)
+		{
+			//vtkErrorMacro(<< "Seed points have not been set!");
+			return;
+		}
+		cout << "seed pointset has " << seeds->GetNumberOfPoints() << "points"<< endl;
+		// Check if we've got any seed points
+		if (seeds->GetNumberOfPoints() <= 0)
+			return;
+
+		// Check if the input volume has been set
+		if (!(this->img))
+		{
+			//vtkErrorMacro(<< "Input volume has not been set!");
+			return;
+		}
+
+		// Get the "Vectors" array from the input volume
+		vtkPointData * imgPD = this->img->GetPointData();
+
+		if (!imgPD)
+		{
+			//vtkErrorMacro(<< "Input volume does not contain point data!");
+			return;
+		}
+		QString name(vectorName);
+		cout << name.toStdString() << endl;
+		if (!imgPD->GetArray(name.toStdString().c_str()))
+		{
+			//vtkErrorMacro(<< "Input volume does not contain point data!");
+
+			return;
+		}
+
+		vtkDoubleArray * maxUnitVectorImg ;
+		maxUnitVectorImg = vtkDoubleArray::SafeDownCast(imgPD->GetArray( name.toStdString().c_str()));
+		//cout <<  maxUnitVectorImg->GetNumberOfComponents() << endl;
+		if (!maxUnitVectorImg)
+		{
+			//vtkErrorMacro(<< "Input volume does not contain a 'Vectors' array!");
+			return;
+		}
+
+		vtkDoubleArray * maxUnitVectorSeeds = vtkDoubleArray::New();
+		maxUnitVectorSeeds->SetNumberOfComponents(3);
+		maxUnitVectorSeeds->SetName(name.toStdString().c_str());
+		// Loop through all seed points
+		double *unitv;
+		for (int pointId = 0; pointId < seeds->GetNumberOfPoints(); ++pointId)
+		{
+			// Update progress bar
+			//if ((pointId % progressStepSize) == 0)
+			//{
+			//	this->UpdateProgress((double) pointId / (double) seeds->GetNumberOfPoints());
+			//}
+
+			// Get the seed point coordinates (glyph center)
+			double * p = seeds->GetPoint(pointId);
+			//cout << pointId << endl;
+			// Find the corresponding voxel
+			vtkIdType imagePointId = this->img->FindPoint(p[0], p[1], p[2]);
+			unitv= (double *) maxUnitVectorImg->GetTuple3(imagePointId);
+			maxUnitVectorSeeds->InsertNextTuple3( unitv[0],unitv[1],unitv[2]);
+			//if(unitv[0]==0 &&  unitv[1] ==0 && unitv[0]==0)
+			// cout << "ZERO UNIUT VECTOR"<< endl; 
+
+			// maxUnitVectorSeeds->InsertNextTuple3( maxUnitVectorImg->GetTuple3(imagePointId)[0],0.1,0);
+
+			// Check if the seed point lies inside the image
+
+			if (imagePointId == -1)
+				continue;
+
+		}
+		seeds->GetPointData()->AddArray(maxUnitVectorSeeds);
+		//seeds->GetPointData()->SetActiveAttribute(name.toStdString().c_str(),1);
+		seeds->GetPointData()->SetActiveVectors(name.toStdString().c_str());
+		seeds->Modified();
+		seeds->Update();
+		cout << "addVectorToSeeds " <<  name.toStdString() << " End=====" << endl;
+
 	}
 
 	void VectorVisualizationPlugin::seedDataChanged(int index)
@@ -589,7 +773,7 @@ void VectorVisualizationPlugin::inputDataChanged(int index)
 
 		if (!this->glyphFilter)
 			return;
-
+		 
 		if(this->img && this->dataSets.size() >0 && (this->seedDataSets.size() > 0))
 			this->addVectorToSeeds(this->seedDataSets.at(index), this->ui->dataList->currentItem()->text() );
 		else return;
@@ -604,18 +788,18 @@ void VectorVisualizationPlugin::inputDataChanged(int index)
 		this->glyphFilter->Update();
 		// << "TO FALSE"<< endl; this->changingSelection = false;
 		this->core()->render();
-			cout << "seedDataChanged END"  << "===========" << endl;
+		cout << "seedDataChanged END"  << "===========" << endl;
 	}
 
 	void VectorVisualizationPlugin::selectVectorData(int row)
 	{
 		cout << this->dataSets.size() << " selectVectorData  Start========================" <<  row << endl;
-
+		
 		if (row < 0 || this->dataSets.size() <= row)
 			return;
 		if(! this->seedDataSets.at(this->ui->seedPointsCombo->currentIndex()))
 			return;
-			if(!this->pipeFormed)
+		if(!this->pipeFormed)
 			return;
 		//if (this->changingSelection) return;
 		//cout << "TO TRUE"<< endl; this->changingSelection = true;
@@ -623,16 +807,18 @@ void VectorVisualizationPlugin::inputDataChanged(int index)
 		Q_ASSERT(row >= 0); // TODO: if there is no data, do sth else
 		if (!this->glyphFilter)
 			return;
-		  // pipe is formed in add scalar but this is callled  just before the pipeline when arraynasmes are added!!!!
-		 
-	
+		// pipe is formed in add scalar but this is callled  just before the pipeline when arraynasmes are added!!!!
+
+
 		if(this->img && (this->dataSets.size() > 0) && (row < this->dataSets.size()))
 			this->ui->dataSetName->setText(this->dataSets.at(this->selectedData)->getName());
 		else return;
-
-
+		//this->seedDataSets.at( this->ui->seedPointsCombo->currentIndex() )->getVtkObject()->SetAc
+			vtkPointSet * seeds = vtkPointSet::SafeDownCast(  this->seedDataSets.at( this->ui->seedPointsCombo->currentIndex() )->getVtkObject());
+			seeds->GetPointData()->SetActiveVectors(this->dataSets.at( this->selectedData )->getName().toStdString().c_str());
+		/*
 		if(this->img && (this->dataSets.size() > 0) && (row < this->dataSets.size())&& (this->seedDataSets.size() > 0) && this->ui->seedPointsCombo->currentIndex() < this->seedDataSets.size() )
-			this->copyseeds(  this->seedDataSets.at( this->ui->seedPointsCombo->currentIndex() ), this->dataSets.at(row)->getName()  );
+			this->addVectorToSeeds(  this->seedDataSets.at( this->ui->seedPointsCombo->currentIndex() ), this->dataSets.at(row)->getName()  );
 		else return;
 		cout << " " << this->seedDataSets.size() <<  " " << this->ui->seedPointsCombo->currentIndex() << " " << this->dataSets.at(row)->getName().toStdString()  << " " << this->dataSets.size() << endl;
 		vtkPointSet *temo;
@@ -641,41 +827,47 @@ void VectorVisualizationPlugin::inputDataChanged(int index)
 		else return;
 		if(!this->seedDataSets.at(this->ui->seedPointsCombo->currentIndex())->getVtkObject())  return;
 		temo->Update();
-		glyphFilter->SetInput( temo );
+		glyphFilter->SetInputConnection( temo->GetProducerPort() );
 		this->glyphFilter->Modified();
 		this->glyphFilter->Update();
 
 		this->core()->render(); 
-
+		*/
 		//cout << "TO FALSE"<< endl;  this->changingSelection = false;
-		cout << this->dataSets.size() << " selectVectorData END ========================" <<  row << endl;
+			this->core()->render();
+		cout << this->dataSets.size() << " selectVectorData END ========================" <<  row << endl; 
 	}
 
 	void VectorVisualizationPlugin::setVisible(bool visible)
 	{
-		if (this->changingSelection) return;
-		if (this->selectedData == -1) return;
+		//if (this->changingSelection) return;
+		//if (this->selectedData == -1) return;
 		//this->actors.at(this->selectedData)->SetVisibility(visible);
+		QString name(this->ui->dataList->currentItem()->text());
+		cout << name.toStdString() << endl; 
+		//vtkPointSet::SafeDownCast( this->seedDataSets.at(this->ui->seedPointsCombo->currentIndex())->getVtkObject())->GetPointData()->SetActiveVectors(name.toStdString().c_str());
 		
-		this->actor->SetVisibility(visible);
+		cout << this->ui->dataList->currentRow() << endl;
+		cout << visible << endl;
+		this->actors[this->ui->dataList->currentRow()]->SetVisibility(visible);
 		this->core()->render();
-		 
+
 	}
 
 
-	 
-	 
+
+
 	void VectorVisualizationPlugin::setLighting(bool lighting)
 	{
 		if (this->changingSelection) return;
-			 
-	//	if (this->selectedData == -1) return;
+
+		//	if (this->selectedData == -1) return;
 
 		Q_ASSERT(this->actor);
 		vtkProperty* property = this->actor->GetProperty();
 		Q_ASSERT(property);
 
-		 
+
 		property->SetLighting(lighting);
 		this->core()->render();
 	}
@@ -683,7 +875,7 @@ void VectorVisualizationPlugin::inputDataChanged(int index)
 	void VectorVisualizationPlugin::changeColor()
 	{
 		if (this->changingSelection) return;
-	//	if (this->selectedData == -1) return;
+		//	if (this->selectedData == -1) return;
 
 		Q_ASSERT(this->actor);
 		vtkProperty* property = this->actor->GetProperty();
