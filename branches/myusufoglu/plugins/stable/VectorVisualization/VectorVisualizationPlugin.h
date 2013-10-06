@@ -118,6 +118,7 @@ namespace bmia {
 
 		void inputDataChanged(int index);
 		void insertArrayNamesToTheListBox(vtkImageData *img);
+		void addPointsAndVectorToUnstructuredGrids(int seedNumber);
 		void formPipeLine(vtkImageData *img, int arrayNumber);
 		void formPipeLinesForAllArrays(vtkImageData *img, int arrayNumber);
 

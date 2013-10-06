@@ -332,7 +332,21 @@ namespace bmia {
 		nArrays = img->GetPointData()->GetNumberOfArrays() ;  // 1 for the original image N for the arrays added for unit vectors
 		if (nArrays==0) 
 			return;  
-
+		for( int nr = 0; nr <glyphFilters.size()  ; nr++)
+		{
+			
+		    actors.at(nr)->SetVisibility(false);
+			glyphFilters.at(nr)->Delete();
+			mappers.at(nr)->Delete();
+			actors.at(nr)->Delete();
+			seedGridsOfASeed.at(nr)->Delete();
+		}
+	
+		glyphFilters.clear();
+		actors.clear();
+		mappers.clear();
+		seedGridsOfASeed.clear();
+		
 		for( int nr = 0; nr <nArrays  ; nr++)
 		{
 			QString name(img->GetPointData()->GetArrayName(nr));
@@ -386,15 +400,7 @@ namespace bmia {
 			}
 				seedGridsOfASeed.at(nr)->SetPoints(newPoints);
 					this->addVectorToUnstructuredGrid( seedGridsOfASeed.at(nr), this->ui->dataList->item(nr)->text() );
-					vtkPointSet *temo = vtkPointSet::SafeDownCast( this->seedDataSets.at(seedNumber)->getVtkObject());
-					cout << "Number of Arrays in Seeds: " <<  temo->GetPointData()->GetNumberOfArrays() << endl;
-					//cout << "Number of Arrays in Seeds: " <<  temo->GetPointData()->GetAc << endl;
-					//QString name= this->img->GetPointData()->GetArrayName(arrayNumber);
-					//cout << name.toStdString() << endl;
-
-					temo->Update();
-					//	cout << temo->GetPointData()->GetArray(this->img->GetPointData()->GetArrayName(1))->GetName() << endl;
-					//	cout << temo->GetPointData()->GetArray(this->img->GetPointData()->GetArrayName(1))->GetNumberOfTuples() << endl;
+				 
 					//	cout << temo->GetPointData()->GetArray(this->img->GetPointData()->GetArrayName(1))->GetNumberOfComponents() << endl;
 					//temo->SetActiveAttribute(temo->GetInformation(),nr,this->img->GetPointData()->GetArrayName(nr),VTK_USE_VECTOR);
 					glyphFilters[nr]->SetInput( seedGridsOfASeed.at(nr));
@@ -427,6 +433,31 @@ namespace bmia {
 		// actor->GetMapper().
 		pipeFormed=1;
 		cout << "formPipeLine END "  << endl;
+	}
+
+
+	void  VectorVisualizationPlugin::addPointsAndVectorToUnstructuredGrids(int seedNumber){
+
+		for( int nr = 0; nr <glyphFilters.size() ; nr++)
+		{
+		
+			
+			vtkPointSet * seeds = vtkPointSet::SafeDownCast(this->seedDataSets.at(seedNumber)->getVtkObject());  
+					vtkPoints * newPoints = vtkPoints::New();
+					for (int pointId = 0; pointId < seeds->GetNumberOfPoints(); ++pointId)
+			{
+		 
+
+				// Get the seed point coordinates (glyph center)
+				double * p = seeds->GetPoint(pointId);
+	 
+				// Find the corresponding voxel
+				vtkIdType imagePointId = this->img->FindPoint(p[0], p[1], p[2]);
+			 newPoints->InsertNextPoint(p[0], p[1], p[2]);
+			}
+				seedGridsOfASeed.at(nr)->SetPoints(newPoints);
+					this->addVectorToUnstructuredGrid( seedGridsOfASeed.at(nr), this->ui->dataList->item(nr)->text() );
+		}	 
 	}
 
 	void  VectorVisualizationPlugin::insertArrayNamesToTheListBox(vtkImageData *img)
@@ -771,22 +802,12 @@ namespace bmia {
 		if (index < 0 || index >= this->seedDataSets.size())
 			return;
 
-		if (!this->glyphFilter)
-			return;
+		//if (!this->glyphFilter)
+			//return;
 		 
 		if(this->img && this->dataSets.size() >0 && (this->seedDataSets.size() > 0))
-			this->addVectorToSeeds(this->seedDataSets.at(index), this->ui->dataList->currentItem()->text() );
-		else return;
-		vtkPointSet *temo = vtkPointSet::SafeDownCast( this->seedDataSets.at(index)->getVtkObject());
-		//cout << "TO TRUE"<< endl; this->changingSelection = true;
-		cout << this->ui->seedPointsCombo->currentIndex() << " " << this->seedDataSets.size() <<  " " << this->ui->seedPointsCombo->currentIndex() << " "   << endl;
-
-		temo->Update();
-		//	cout << temo->GetPointData()->GetArray(this->img->GetPointData()->GetArrayName(1))->GetName() << endl;
-		glyphFilter->SetInput( temo);
-		this->glyphFilter->Modified();
-		this->glyphFilter->Update();
-		// << "TO FALSE"<< endl; this->changingSelection = false;
+			this->formPipeLinesForAllArrays(this->img, this->ui->seedPointsCombo->currentIndex() );
+		else return;  
 		this->core()->render();
 		cout << "seedDataChanged END"  << "===========" << endl;
 	}
@@ -808,7 +829,8 @@ namespace bmia {
 		if (!this->glyphFilter)
 			return;
 		// pipe is formed in add scalar but this is callled  just before the pipeline when arraynasmes are added!!!!
-
+		if(this->actors.size()> row)
+			this->ui->visibleCheckBox->setChecked(this->actors[row]->GetVisibility());
 
 		if(this->img && (this->dataSets.size() > 0) && (row < this->dataSets.size()))
 			this->ui->dataSetName->setText(this->dataSets.at(this->selectedData)->getName());
@@ -863,8 +885,8 @@ namespace bmia {
 
 		//	if (this->selectedData == -1) return;
 
-		Q_ASSERT(this->actor);
-		vtkProperty* property = this->actor->GetProperty();
+		Q_ASSERT(this->actors[this->ui->dataList->currentRow()]);
+		vtkProperty* property = this->actors[this->ui->dataList->currentRow()]->GetProperty();
 		Q_ASSERT(property);
 
 
@@ -877,8 +899,8 @@ namespace bmia {
 		if (this->changingSelection) return;
 		//	if (this->selectedData == -1) return;
 
-		Q_ASSERT(this->actor);
-		vtkProperty* property = this->actor->GetProperty();
+		Q_ASSERT(this->actors[this->ui->dataList->currentRow()]);
+		vtkProperty* property = this->actors[this->ui->dataList->currentRow()]->GetProperty();
 		Q_ASSERT(property);
 
 		double oldColorRGB[3];
@@ -897,23 +919,23 @@ namespace bmia {
 
 	void VectorVisualizationPlugin::changeOpacity(int value)
 	{
-		/*if (this->changingSelection) return;
+		if (this->changingSelection) return;
 		if (this->selectedData == -1) return;
 		Q_ASSERT(this->actors.at(this->selectedData));
 		this->actors.at(this->selectedData)->GetProperty()->SetOpacity(1);
 		this->ui->opacityLabel->setText( QString::number(value/100.0));
-		this->core()->render();*/
+		this->core()->render();
 
 	}
 	//-------------------------------[ setScale ]------------------------------\\
 
 	void VectorVisualizationPlugin::setScale(double scale)
 	{
-		if (this->glyphFilter == NULL)
+		if (this->glyphFilters[this->ui->dataList->currentRow()] == NULL)
 			return;
 
-		this->glyphFilter->SetScaleFactor(scale);
-		this->glyphFilter->Modified();
+		this->glyphFilters[this->ui->dataList->currentRow()]->SetScaleFactor(scale);
+		this->glyphFilters[this->ui->dataList->currentRow()]->Modified();
 		this->core()->render();
 	}
 
