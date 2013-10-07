@@ -227,8 +227,11 @@ namespace bmia {
  
 			 
 				
-
+					{
 					this->actors[nr]->SetUserMatrix(mCopy);
+
+					this->actorsOpposite[nr]->SetUserMatrix(mCopy);
+					}
 					mCopy->Delete();
 				}
 			}
@@ -471,8 +474,36 @@ namespace bmia {
 				actorsOpposite[nr]->SetMapper(mappersOpposite[nr]);
 				this->assembly->AddPart(actorsOpposite[nr]);
 
-			 this->core()->render();
+			 
 		}//for
+
+		// Try to get a transformation matrix from the data set
+			vtkObject * obj;
+			if ((this->seedDataSets.at(seedNumber)->getAttributes()->getAttribute("transformation matrix", obj)))
+			{
+				// Try to cast the object to a matrix
+				if (vtkMatrix4x4::SafeDownCast(obj))
+				{
+					//useIdentityMatrix = false;
+
+					// Copy the matrix to a new one, and apply it to the actor
+					vtkMatrix4x4 * m = vtkMatrix4x4::SafeDownCast(obj);
+					vtkMatrix4x4 * mCopy = vtkMatrix4x4::New();
+					mCopy->DeepCopy(m);
+					for( int nr = 0; nr <glyphFilters.size()  ; nr++)
+ 
+			 
+				
+					{
+					this->actors[nr]->SetUserMatrix(mCopy);
+
+					this->actorsOpposite[nr]->SetUserMatrix(mCopy);
+					}
+					mCopy->Delete();
+				}
+			}
+
+			this->core()->render();
 		this->assembly->SetVisibility(true);
 		//mapper->Delete(); mapper = NULL;
 		// Note that the mapper was not actually deleted because it was
