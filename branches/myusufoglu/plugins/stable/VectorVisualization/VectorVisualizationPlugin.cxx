@@ -332,6 +332,7 @@ namespace bmia {
 		nArrays = img->GetPointData()->GetNumberOfArrays() ;  // 1 for the original image N for the arrays added for unit vectors
 		if (nArrays==0) 
 			return;  
+	int size = glyphFilters.size();
 		for( int nr = 0; nr <glyphFilters.size()  ; nr++)
 		{
 			
@@ -346,6 +347,21 @@ namespace bmia {
 		actors.clear();
 		mappers.clear();
 		seedGridsOfASeed.clear();
+
+			for( int nr = 0; nr < size ; nr++)
+		{
+			
+		    actorsOpposite.at(nr)->SetVisibility(false);
+			glyphFiltersOpposite.at(nr)->Delete();
+			mappersOpposite.at(nr)->Delete();
+			actorsOpposite.at(nr)->Delete();
+			seedGridsOfASeedOpposite.at(nr)->Delete();
+		}
+	
+		glyphFiltersOpposite.clear();
+		actorsOpposite.clear();
+		mappersOpposite.clear();
+		seedGridsOfASeedOpposite.clear();
 		
 		for( int nr = 0; nr <nArrays  ; nr++)
 		{
@@ -357,6 +373,10 @@ namespace bmia {
 				actors.append( vtkActor::New() );
 				mappers.append( vtkPolyDataMapper::New() );
 				seedGridsOfASeed.append(vtkUnstructuredGrid::New());
+				glyphFiltersOpposite.append( vtkGlyph3D::New() );
+				actorsOpposite.append( vtkActor::New() );
+				mappersOpposite.append( vtkPolyDataMapper::New() );
+				seedGridsOfASeedOpposite.append(vtkUnstructuredGrid::New());
 	}
 			 
 	}
@@ -372,21 +392,22 @@ namespace bmia {
 				//glyphFilter->OrientOn();
 				glyphFilters[nr]->SetVectorModeToUseVector(); // Or to use Normal
 				glyphFilters[nr]->SetScaling(true);
-				glyphFilters[nr]->SetScaleFactor(1);
-				//	int dsIndex = this->seedDataSets.indexOf(ds);
-
-				// Change the data set name
-				///	glyphFilter->SetInput(0, vtkDataObject::SafeDownCast(this->seedDataSets[dsIndex]->getVtkObject()));
-				//glyphFilter->SetInput(img);
+				glyphFilters[nr]->SetScaleFactor(1);		 
 				glyphFilters[nr]->SetScaleModeToDataScalingOff();
 				glyphFilters[nr]->SetScaleModeToScaleByVector();
 				
 					/*function */
-				
+				glyphFiltersOpposite[nr] ->SetSourceConnection(arrowSource->GetOutputPort());
+				glyphFiltersOpposite[nr]->SetVectorModeToUseVector(); // Or to use Normal
+				glyphFiltersOpposite[nr]->SetScaling(true);
+				glyphFiltersOpposite[nr]->SetScaleFactor(1);
+				glyphFiltersOpposite[nr]->SetScaleModeToDataScalingOff();
+				glyphFiltersOpposite[nr]->SetScaleModeToScaleByVector();
 
 
 	           	vtkPointSet * seeds = vtkPointSet::SafeDownCast(this->seedDataSets.at(seedNumber)->getVtkObject());  
 					vtkPoints * newPoints = vtkPoints::New();
+						 
 					for (int pointId = 0; pointId < seeds->GetNumberOfPoints(); ++pointId)
 			{
 		 
@@ -397,16 +418,16 @@ namespace bmia {
 				// Find the corresponding voxel
 				vtkIdType imagePointId = this->img->FindPoint(p[0], p[1], p[2]);
 			 newPoints->InsertNextPoint(p[0], p[1], p[2]);
+			   
 			}
 				seedGridsOfASeed.at(nr)->SetPoints(newPoints);
+					seedGridsOfASeedOpposite.at(nr)->SetPoints(newPoints);
 					this->addVectorToUnstructuredGrid( seedGridsOfASeed.at(nr), this->ui->dataList->item(nr)->text() );
 				 
-					//	cout << temo->GetPointData()->GetArray(this->img->GetPointData()->GetArrayName(1))->GetNumberOfComponents() << endl;
-					//temo->SetActiveAttribute(temo->GetInformation(),nr,this->img->GetPointData()->GetArrayName(nr),VTK_USE_VECTOR);
-					glyphFilters[nr]->SetInput( seedGridsOfASeed.at(nr));
-
-					//glyphFilter->SetScaleModeToDataScalingOff();
-					//glyphFilter->SetScaleModeToScaleByVector();
+				 this->addVectorToUnstructuredGrid( seedGridsOfASeedOpposite.at(nr), this->ui->dataList->item(nr)->text(),true );
+					
+				 
+				 glyphFilters[nr]->SetInput( seedGridsOfASeed.at(nr));
 					glyphFilters[nr]->Modified();
 					glyphFilters[nr]->Update();
 					
@@ -424,6 +445,32 @@ namespace bmia {
 
 				actors[nr]->SetMapper(mappers[nr]);
 				this->assembly->AddPart(actors[nr]);
+
+				///////////// OPPOSITE
+				//	cout << temo->GetPointData()->GetArray(this->img->GetPointData()->GetArrayName(1))->GetNumberOfComponents() << endl;
+					//temo->SetActiveAttribute(temo->GetInformation(),nr,this->img->GetPointData()->GetArrayName(nr),VTK_USE_VECTOR);
+					glyphFiltersOpposite[nr]->SetInput( seedGridsOfASeedOpposite.at(nr));
+
+					//glyphFilter->SetScaleModeToDataScalingOff();
+					//glyphFilter->SetScaleModeToScaleByVector();
+					glyphFiltersOpposite[nr]->Modified();
+					glyphFiltersOpposite[nr]->Update();
+					
+			 
+				//glyphFilter->Update();
+
+				// Build a pipeline for rendering this data set:
+				
+				mappersOpposite[nr]->ScalarVisibilityOff();
+				mappersOpposite[nr]->SetInput(glyphFiltersOpposite[nr]->GetOutput());
+				
+
+
+				this->actorsOpposite[nr]->SetVisibility(true);
+
+				actorsOpposite[nr]->SetMapper(mappersOpposite[nr]);
+				this->assembly->AddPart(actorsOpposite[nr]);
+
 			 this->core()->render();
 		}//for
 		this->assembly->SetVisibility(true);
@@ -705,8 +752,7 @@ namespace bmia {
 
 
 	// input is seeds set
-	void VectorVisualizationPlugin::addVectorToUnstructuredGrid(vtkUnstructuredGrid *gridForArrayForSeed, QString vectorName) 
-
+	void VectorVisualizationPlugin::addVectorToUnstructuredGrid(vtkUnstructuredGrid *gridForArrayForSeed, QString vectorName, bool Opposite) 
 	{ // Add vector to each seed point
 		cout << "addVector " <<  vectorName.toStdString() << "  ToSeeds Start ===" << endl;
 		// Get the seed points
@@ -774,6 +820,9 @@ namespace bmia {
 			// Find the corresponding voxel
 			vtkIdType imagePointId = this->img->FindPoint(p[0], p[1], p[2]);
 			unitv= (double *) maxUnitVectorImg->GetTuple3(imagePointId);
+				if(Opposite) 
+					{ unitv[0]=-1*unitv[0]; 
+				unitv[1]=-1*unitv[1]; unitv[2]=-1*unitv[2]; }
 			maxUnitVectorSeeds->InsertNextTuple3( unitv[0],unitv[1],unitv[2]);
 			//if(unitv[0]==0 &&  unitv[1] ==0 && unitv[0]==0)
 			// cout << "ZERO UNIUT VECTOR"<< endl; 
@@ -872,6 +921,7 @@ namespace bmia {
 		cout << this->ui->dataList->currentRow() << endl;
 		cout << visible << endl;
 		this->actors[this->ui->dataList->currentRow()]->SetVisibility(visible);
+		this->actorsOpposite[this->ui->dataList->currentRow()]->SetVisibility(visible);
 		this->core()->render();
 
 	}
@@ -888,9 +938,13 @@ namespace bmia {
 		Q_ASSERT(this->actors[this->ui->dataList->currentRow()]);
 		vtkProperty* property = this->actors[this->ui->dataList->currentRow()]->GetProperty();
 		Q_ASSERT(property);
-
-
-		property->SetLighting(lighting);
+        property->SetLighting(lighting);
+		
+				Q_ASSERT(this->actorsOpposite[this->ui->dataList->currentRow()]);
+		vtkProperty* propertyOpposite = this->actorsOpposite[this->ui->dataList->currentRow()]->GetProperty();
+		Q_ASSERT(propertyOpposite);
+        propertyOpposite->SetLighting(lighting);
+		
 		this->core()->render();
 	}
 
@@ -903,9 +957,13 @@ namespace bmia {
 		vtkProperty* property = this->actors[this->ui->dataList->currentRow()]->GetProperty();
 		Q_ASSERT(property);
 
+		Q_ASSERT(this->actorsOpposite[this->ui->dataList->currentRow()]);
+		vtkProperty* propertyOpposite = this->actorsOpposite[this->ui->dataList->currentRow()]->GetProperty();
+		Q_ASSERT(propertyOpposite);
+
 		double oldColorRGB[3];
 		property->GetColor(oldColorRGB);
-
+	 
 		QColor oldColor;
 		oldColor.setRgbF(oldColorRGB[0], oldColorRGB[1], oldColorRGB[2]);    
 
@@ -913,6 +971,7 @@ namespace bmia {
 		if ( newColor.isValid() )
 		{
 			property->SetColor(newColor.redF(), newColor.greenF(), newColor.blueF());
+			propertyOpposite->SetColor(newColor.redF(), newColor.greenF(), newColor.blueF());
 			this->core()->render();
 		}
 	}
@@ -936,6 +995,9 @@ namespace bmia {
 
 		this->glyphFilters[this->ui->dataList->currentRow()]->SetScaleFactor(scale);
 		this->glyphFilters[this->ui->dataList->currentRow()]->Modified();
+
+		this->glyphFiltersOpposite[this->ui->dataList->currentRow()]->SetScaleFactor(scale);
+		this->glyphFiltersOpposite[this->ui->dataList->currentRow()]->Modified();
 		this->core()->render();
 	}
 

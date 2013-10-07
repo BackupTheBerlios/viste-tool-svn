@@ -2185,7 +2185,7 @@ namespace bmia {
 		//int i = readerXML->GetOutput()->GetPointData()->GetArray("maximas")->GetNumberOfComponents();
 
 		// if the image of unit vectors and maxima indexes have been already prepared. 
-		QString saveArrayName("MaxDirectionUnitVectors");
+		QString readArrayName("MaxDirectionUnitVectors");
 		 this->nMaximaForEachPoint=0;  
 
 		//if( readerXML->GetOutput()->GetPointData()->GetArray("maximas"))
@@ -2199,13 +2199,16 @@ namespace bmia {
 		QString arrName;
 		for(unsigned int nr = 0; nr <nMaximaForEachPoint  ; nr++)
 		{
-			//	outUnitVectorList.push_back(vtkDoubleArray::New());
-			//outUnitVectorList.at(nr)->SetNumberOfComponents(3);
-			//outUnitVectorList.at(nr)->SetNumberOfTuples(maximaVolume->GetNumberOfPoints());
-			arrName= saveArrayName + QString::number(nr); 
+			QString name(maximaVolume->GetPointData()->GetArrayName(nr));
+				cout << name.toStdString() << endl;
+				if(name=="") return;
+				if ((maximaVolume->GetPointData()->GetArray(name.toStdString().c_str()  )->GetDataType() == VTK_DOUBLE) && ( maximaVolume->GetPointData()->GetArray( name.toStdString().c_str() )->GetNumberOfComponents() ==3))
+				{
+				
+			//arrName= readArrayName + QString::number(nr); 
 			//outUnitVectorList.at(nr)->SetName( arrName.toStdString().c_str() );  //fist vector array for each point (keeps only the first vector)
-			outUnitVectorListFromFile.push_back( vtkDoubleArray::SafeDownCast(maximaVolume->GetPointData()->GetArray( arrName.toStdString().c_str() )));
-
+			outUnitVectorListFromFile.push_back( vtkDoubleArray::SafeDownCast(maximaVolume->GetPointData()->GetArray( name.toStdString().c_str() )));
+				}
 		}
 
 		//CELL 

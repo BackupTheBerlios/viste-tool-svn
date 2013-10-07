@@ -371,8 +371,8 @@ namespace bmia {
 				MaxFinder.SortUnitVectorsUsingODFValues(ODFlist, outputlistwithunitvectors);
 				//int *indexesOfMaxima = new int[this->nMaximaForEachPoint];
 			 
-				for(int i=0; i<this->nMaximaForEachPoint;i++)
-				{
+				for(int i=0; i<this->nMaximaForEachPoint;i=i+2)// i=i+2, because Second and fourt are opposite of first and tird
+				{  
 					if(i < outputlistwithunitvectors.size())
 					{  
 						//indexesOfMaxima[i]=maxima.at(i);
@@ -442,7 +442,7 @@ namespace bmia {
 		// Add scalars to the output
 		//outPD->AddArray(outArray); NO MAXIMA
 		 
-			for(int i=0; i<this->nMaximaForEachPoint;i++)
+			for(int i=0; i<this->nMaximaForEachPoint;i=i+2)//i=i+2; Second and fourt are opposite of first and tird
 				outPD->AddArray(outUnitVectorList.at(i));
 
 		//outArray->Delete();

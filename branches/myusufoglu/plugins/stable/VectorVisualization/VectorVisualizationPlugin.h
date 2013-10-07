@@ -126,7 +126,7 @@ namespace bmia {
 		vtkImageData *img ;
 		void addVectorToSeeds(data::DataSet* ds,
 			QString vectorName) ;
-		void addVectorToUnstructuredGrid(vtkUnstructuredGrid *gridForArrayForSeed, QString vectorName) ;
+		void addVectorToUnstructuredGrid(vtkUnstructuredGrid *gridForArrayForSeed, QString vectorName, bool Opposite=0) ;
 		protected slots:
 			void seedDataChanged(int index);
 			void selectVectorData(int row);
@@ -174,6 +174,26 @@ namespace bmia {
 		* The actors associated with the data sets in dataSets.
 		*/
 		QList<vtkUnstructuredGrid *> seedGridsOfASeed;
+
+
+		/**
+		* The actors associated with the data sets in dataSets.
+		*/
+		QList<vtkActor*> actorsOpposite;
+
+		QList<vtkPolyDataMapper*> mappersOpposite;
+
+		/**
+		* The actors associated with the data sets in dataSets.
+		*/
+		QList<vtkGlyph3D*> glyphFiltersOpposite;
+
+		/**
+		* The actors associated with the data sets in dataSets.
+		*/
+		QList<vtkUnstructuredGrid *> seedGridsOfASeedOpposite;
+
+
 
 		/**
 		* The actors associated with the data sets in dataSets.
