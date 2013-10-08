@@ -503,7 +503,7 @@ namespace bmia {
 
 		int selectedMaximaData = this->ui->MaxUnitVecDataCombo->currentIndex();
 		// Check if the index is correct
-		if(!this->ui->writeMaxToFileCheck)
+		if(!this->ui->writeMaxToFileCheck->isChecked())
 		if (selectedMaximaData < 0 || selectedMaximaData >=  maxUnitVecDataList.size())
 		{
 			QMessageBox::warning(this->getGUI(), "HARDI Fiber Tracking Plugin", "Maxima Unit Vectors data index out of range!", 
@@ -517,7 +517,7 @@ namespace bmia {
 		vtkImageData *	HARDIimageData = HARDIDataList.at(selectedHARDIData)->getVtkImageData();
 		vtkImageData *  aiImageData =  aiDataList.at( selectedAIData)->getVtkImageData();
 		vtkImageData *  maxUnitVecImageData  ;
-		if(!this->ui->writeMaxToFileCheck)
+		if(!this->ui->writeMaxToFileCheck->isChecked())
 		  maxUnitVecImageData              =   maxUnitVecDataList.at(selectedMaximaData)->getVtkImageData();
 		else 
         maxUnitVecImageData              = NULL; 

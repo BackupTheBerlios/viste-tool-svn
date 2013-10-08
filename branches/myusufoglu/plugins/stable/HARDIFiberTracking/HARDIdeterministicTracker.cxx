@@ -1430,7 +1430,6 @@ namespace bmia {
 	}
 
 
-
 	double *HARDIdeterministicTracker::findFunctionValue(int threshold, std::vector<double*> &anglesArray, double *weights,  vtkIntArray *trianglesArray, std::vector<int> &meshPointsList, std::vector<int> &maxima)
 
 	{
