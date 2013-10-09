@@ -2190,26 +2190,39 @@ namespace bmia {
 		//if( readerXML->GetOutput()->GetPointData()->GetArray("maximas"))
 		//{  
 			nMaximaForEachPoint =  maximaVolume->GetPointData()->GetNumberOfArrays() -1;  // 1 for the original image N for the arrays added for unit vectors
+			// first array is image scalars
 			
 			//->GetArray("maximas")->GetNumberOfComponents();
 			//maximaArrayFromFile =  vtkIntArray::SafeDownCast(readerXML->GetOutput()->GetPointData()->GetArray("maximas"));
 		//}
 		
-		QString arrName;
-		for(unsigned int nr = 0; nr <nMaximaForEachPoint  ; nr++)
-		{
-			QString name(maximaVolume->GetPointData()->GetArrayName(nr));
+			QString arrName;
+			for(unsigned int nr = 0; nr <maximaVolume->GetPointData()->GetNumberOfArrays()  ; nr++)
+			{
+				QString name(maximaVolume->GetPointData()->GetArrayName(nr));
 				cout << name.toStdString() << endl;
 				if(name=="") return;
 				if ((maximaVolume->GetPointData()->GetArray(name.toStdString().c_str()  )->GetDataType() == VTK_DOUBLE) && ( maximaVolume->GetPointData()->GetArray( name.toStdString().c_str() )->GetNumberOfComponents() ==3))
-				{
-				
-			//arrName= readArrayName + QString::number(nr); 
-			//outUnitVectorList.at(nr)->SetName( arrName.toStdString().c_str() );  //fist vector array for each point (keeps only the first vector)
-			outUnitVectorListFromFile.push_back( vtkDoubleArray::SafeDownCast(maximaVolume->GetPointData()->GetArray( name.toStdString().c_str() )));
+				{		
+					//arrName= readArrayName + QString::number(nr); 
+					//outUnitVectorList.at(nr)->SetName( arrName.toStdString().c_str() );  //fist vector array for each point (keeps only the first vector)
+					outUnitVectorListFromFile.push_back( vtkDoubleArray::SafeDownCast(maximaVolume->GetPointData()->GetArray( name.toStdString().c_str() )));
+					 da=vtkDoubleArray::New();
+					int numberOfTuples= outUnitVectorListFromFile.at(outUnitVectorListFromFile.size()-1)->GetNumberOfTuples();
+					da->SetNumberOfComponents(3);
+					da->SetNumberOfTuples(numberOfTuples);
+					// ADD the opposite of the vectors to form vectors array of opposite direction, there are maxima too.
+					for(int i=0; i <numberOfTuples ;i++)
+					{  
+						double *d = new double[3]; 
+						d=outUnitVectorListFromFile.at(outUnitVectorListFromFile.size()-1)->GetTuple(i);
+						da->InsertNextTuple3(-1*d[0],-1*d[1],-1*d[2]);
+					 
+					}
+					outUnitVectorListFromFile.push_back(da);
 				}
-		}
-
+			}
+			nMaximaForEachPoint=outUnitVectorListFromFile.size();
 		//CELL 
 		vtkDataArray* ptr;
 		for(unsigned int nr = 0; nr <nMaximaForEachPoint  ; nr++){

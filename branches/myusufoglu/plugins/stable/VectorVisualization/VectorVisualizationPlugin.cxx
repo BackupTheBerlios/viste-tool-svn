@@ -218,7 +218,7 @@ namespace bmia {
 					vtkMatrix4x4 * m = vtkMatrix4x4::SafeDownCast(obj);
 					vtkMatrix4x4 * mCopy = vtkMatrix4x4::New();
 					mCopy->DeepCopy(m);
-					mCopy->Print(cout);
+					 
 					for( int nr = 0; nr <glyphFilters.size()  ; nr++)
 
 
@@ -475,7 +475,7 @@ namespace bmia {
 				vtkMatrix4x4 * m = vtkMatrix4x4::SafeDownCast(obj);
 				vtkMatrix4x4 * mCopy = vtkMatrix4x4::New();
 				mCopy->DeepCopy(m);
-				mCopy->Print(cout);  
+			 
 				for( int nr = 0; nr <glyphFilters.size()  ; nr++)
 				{
 					this->actors[nr]->SetUserMatrix(mCopy);
