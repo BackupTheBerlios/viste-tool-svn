@@ -37,6 +37,13 @@
 #include <vtkAxis.h>
 #include <vtkContextMouseEvent.h>
 
+/** Includes - std */
+
+#include <iostream>
+#include <fstream>
+
+
+
 namespace Ui
 {
     class DistanceMeasuresForm;
@@ -149,6 +156,7 @@ protected slots:
     void fiberPointSelect();
     void buttonSetLineColorClicked();
     void buttonPlotConnectivityClicked();
+    void updatePointFromSpinBox();
 
 private:
 

@@ -671,9 +671,9 @@ void ScoringTools::ShowHistogram(HistogramType histType)
     line->SetInput(table, 0, 1);
     line->SetColor(0, 255, 0, 255);
 
-    line = chart->AddPlot(vtkChart::LINE);
-    line->SetInput(table, 0, 2);
-    line->SetColor(0, 0, 255, 255);
+    //line = chart->AddPlot(vtkChart::LINE);
+    //line->SetInput(table, 0, 2);
+    //line->SetColor(0, 0, 255, 255);
 
     line = chart->AddPlot(vtkChart::LINE);
     line->SetInput(table, 0, 3);

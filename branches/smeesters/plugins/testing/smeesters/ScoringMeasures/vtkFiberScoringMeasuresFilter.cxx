@@ -397,7 +397,7 @@ void vtkFiberScoringMeasuresFilter::Execute()
                     free(b0);
                     free(b1);
 
-                    internal_energy = sqrt(curvature*curvature + muu*torsion + beta*inv_numberOfFiberPoints*inv_numberOfFiberPoints);
+                    internal_energy = sqrt(/*curvature*curvature*/ + muu*torsion + beta*inv_numberOfFiberPoints*inv_numberOfFiberPoints);
                 }
 
                 //printf("curvature:%f, torsion:%f \n", curvature, torsion);

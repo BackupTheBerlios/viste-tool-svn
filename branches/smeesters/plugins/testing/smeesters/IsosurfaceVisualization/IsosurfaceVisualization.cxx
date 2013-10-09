@@ -124,7 +124,7 @@ void IsosurfaceVisualization::setupClippingPlanesPicker()
 void IsosurfaceVisualization::dataSetAdded(data::DataSet * d)
 {
     //this->fullCore()->canvas()->GetRenderer3D()->GradientBackgroundOff();
-    //this->fullCore()->canvas()->GetRenderer3D()->SetBackground(1,1,1);
+    ////this->fullCore()->canvas()->GetRenderer3D()->SetBackground(1,1,1);
 
     // Assert the data set pointer (should never be NULL)
     Q_ASSERT(d);
@@ -260,6 +260,8 @@ void IsosurfaceVisualization::createModelInfo(data::DataSet * d)
     // Create model info struct for new dataset
     ModelInfo* modelInfo = new ModelInfo;
     modelInfo->ds = d;
+    d->getVtkImageData()->GetDimensions(modelInfo->dataDimensions);
+    std::cout << modelInfo->dataDimensions[0] << modelInfo->dataDimensions[1] << modelInfo->dataDimensions[2] << std::endl;
     modelInfo->alpha = DEFAULT_ALPHA;
     modelInfo->prop = NULL; // null pointer
     modelInfo->polydata = NULL;
@@ -830,6 +832,8 @@ void IsosurfaceVisualization::setClippingPlanesPosition(double* pos)
 
         //vtkImageSliceActor * sliceActor = this->fullCore()->data()->getDataSet()
 
+
+
         for(int i = 0; i<3; i++)
         {
             vtkActor* pointer = this->pointer2DList.at(i);
@@ -837,23 +841,23 @@ void IsosurfaceVisualization::setClippingPlanesPosition(double* pos)
             switch(i)
             {
                 case 0: // sagittal
-                    pointer->SetPosition(frac_pos[0]*181,frac_pos[1]*217,frac_pos[2]*181);
+                    pointer->SetPosition(frac_pos[0]*this->current_modelInfo->dataDimensions[0],frac_pos[1]*this->current_modelInfo->dataDimensions[1],frac_pos[2]*this->current_modelInfo->dataDimensions[2]);
                     break;
 
                 case 1: // coronal
-                    pointer->SetPosition(frac_pos[0]*181,300,frac_pos[2]*181);
+                    pointer->SetPosition(frac_pos[0]*this->current_modelInfo->dataDimensions[0],300,frac_pos[2]*this->current_modelInfo->dataDimensions[2]);
                     break;
 
                 case 2: // axial
-                    pointer->SetPosition(frac_pos[0]*181,frac_pos[1]*217,-90);
+                    pointer->SetPosition(frac_pos[0]*this->current_modelInfo->dataDimensions[0],frac_pos[1]*this->current_modelInfo->dataDimensions[1],-90);
                     break;
             }
         }
 
         // set medical canvas positions
-        this->current_modelInfo->ds->getAttributes()->addAttribute("SlicePosX", (int)(frac_pos[0]*181));
-        this->current_modelInfo->ds->getAttributes()->addAttribute("SlicePosY", (int)(frac_pos[1]*217));
-        this->current_modelInfo->ds->getAttributes()->addAttribute("SlicePosZ", (int)(frac_pos[2]*181));
+        this->current_modelInfo->ds->getAttributes()->addAttribute("SlicePosX", (int)(frac_pos[0]*this->current_modelInfo->dataDimensions[0]));
+        this->current_modelInfo->ds->getAttributes()->addAttribute("SlicePosY", (int)(frac_pos[1]*this->current_modelInfo->dataDimensions[1]));
+        this->current_modelInfo->ds->getAttributes()->addAttribute("SlicePosZ", (int)(frac_pos[2]*this->current_modelInfo->dataDimensions[2]));
 
         if(!current_modelInfo->alignPlanesToPick)
             return;

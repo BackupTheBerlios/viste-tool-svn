@@ -112,6 +112,7 @@ typedef struct
     // raw data
     data::DataSet* ds;
     double scalarRange[2];
+    int dataDimensions[3];
 
     // polydata DataSet
     data::DataSet* ds_poly;

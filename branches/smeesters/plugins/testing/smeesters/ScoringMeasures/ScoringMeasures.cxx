@@ -257,7 +257,7 @@ void ScoringMeasures::ComputeScore()
 
     // check if glyph dataset is none
     bool useGlyphData = sortedFibers->selectedGlyphData != -1;
-    bool useInternalEnergy = sortedFibers->ps->lambda != 0;
+    bool useInternalEnergy = sortedFibers->ps->lambda != 0 || !useGlyphData;
 
     // update in parameter settings if no glyph data is used
     sortedFibers->ps->useGlyphData = useGlyphData;
@@ -289,7 +289,7 @@ void ScoringMeasures::ComputeScore()
         vtkSplineFilter* splineFilter = vtkSplineFilter::New();
         splineFilter->SetInput(smoothPoly->GetOutput());
         splineFilter->SetSubdivideToLength();
-        splineFilter->SetLength(0.2);
+        splineFilter->SetLength(1);
         this->core()->out()->createProgressBarForAlgorithm(splineFilter, "Scoring measure", "Spline sampling the fibers...");
         splineFilter->Update();
         this->core()->out()->deleteProgressBarForAlgorithm(splineFilter);

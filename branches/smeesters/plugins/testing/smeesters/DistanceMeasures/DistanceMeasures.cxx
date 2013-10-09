@@ -377,7 +377,7 @@ void DistanceMeasures::comboBoxFiberDataChanged()
         processFiberAnteriorSorting(sortedFibers);
 
         // Set GUI value limits
-        int amountOfFibers = sortedFibers->selectedLines.length() - 1; // 100 or less
+        int amountOfFibers = sortedFibers->selectedLines.length() - 1;
         this->form->sliderFiberChoice->setMaximum(amountOfFibers);
         this->form->spinFiberChoice->setMaximum(amountOfFibers);
 
@@ -410,8 +410,10 @@ void DistanceMeasures::comboBoxFiberDataChanged()
 void DistanceMeasures::processFiberAnteriorSorting(SortedFibers* sortedFibers)
 {
     // Look if dataset is already processed ...
-    if(sortedFibers->selectedLines.length() != 0)
-        return;
+    //if(sortedFibers->selectedLines.length() != 0)
+    //    return;
+    // clear previous lines
+    sortedFibers->selectedLines.empty();
 
     // Get the polydata from the data set
     vtkPolyData * polydata = sortedFibers->ds->getVtkPolyData();
@@ -524,7 +526,7 @@ void DistanceMeasures::processFiberAnteriorSorting(SortedFibers* sortedFibers)
 
     // Select most anterior fibers
     int rFiberIndex = 0;
-    int numberOfOutputFibers = 100;
+    int numberOfOutputFibers = numberOfFibers;
     QMap<double, FiberData*>::iterator rIter = fiberMap.end();
     while (rIter != fiberMap.begin())
 	{
@@ -702,6 +704,17 @@ void DistanceMeasures::buttonPlotConnectivityClicked()
     }
     table->Update();
 
+    // print results to text file
+    using namespace std;
+    ofstream dataFile("/home/linux/Stephan/connectivityData.csv");
+    //dataFile.open, ios::out, ios::app);
+    dataFile << "Distance, AvgScore, LocalScore\n";
+    for(int j = 0; j<length; j++)
+    {
+        dataFile << table->GetValue(j,0) << "," << table->GetValue(j,1) << "," << table->GetValue(j,2) << "\n";
+    }
+    dataFile.close();
+
     // Add multiple line plots, setting the colors etc
     vtkSmartPointer<vtkChartXY> chart = vtkSmartPointer<vtkChartXY>::New();
     view->GetScene()->AddItem(chart);
@@ -717,6 +730,12 @@ void DistanceMeasures::buttonPlotConnectivityClicked()
     //chart->SetActionToButton(vtkChart::PAN,vtkContextMouseEvent::RIGHT_BUTTON);
     chart->SetClickActionToButton(vtkChart::SELECT, vtkContextMouseEvent::LEFT_BUTTON);
     chart->SetClickActionToButton(vtkChart::NOTIFY, vtkContextMouseEvent::RIGHT_BUTTON);
+    //chart->GetAxis(vtkAxis::LEFT)->SetRange(-0.1, 0.7);
+    //chart->GetAxis(vtkAxis::BOTTOM)->SetRange(27,56);
+    chart->GetAxis(vtkAxis::LEFT)->SetRange(-0.6, 0.6);
+    chart->GetAxis(vtkAxis::BOTTOM)->SetRange(38,75);
+    chart->GetAxis(vtkAxis::BOTTOM)->SetBehavior(vtkAxis::FIXED);
+    chart->GetAxis(vtkAxis::LEFT)->SetBehavior(vtkAxis::FIXED);
 
     vtkSmartPointer<vtkChartXY> chart2 = vtkSmartPointer<vtkChartXY>::New();
     view2->GetScene()->AddItem(chart2);
@@ -726,10 +745,16 @@ void DistanceMeasures::buttonPlotConnectivityClicked()
     line->SetWidth(2.0);
     chart2->GetAxis(vtkAxis::LEFT)->SetTitle("Connectivity measure (-)");
     chart2->GetAxis(vtkAxis::BOTTOM)->SetTitle("Distance (mm)");
-    chart2->SetTitle("Average local score");
-    //chart2->SetClickActionToButton(vtkChart::SELECT, vtkContextMouseEvent::LEFT_BUTTON);
-    //chart2->SetClickActionToButton(vtkChart::NOTIFY, vtkContextMouseEvent::RIGHT_BUTTON);
-    chart2->SetSelectionMode(vtkContextScene::SELECTION_TOGGLE);
+    chart2->SetTitle("Local average score");
+    chart2->SetClickActionToButton(vtkChart::SELECT, vtkContextMouseEvent::LEFT_BUTTON);
+    chart2->SetClickActionToButton(vtkChart::NOTIFY, vtkContextMouseEvent::RIGHT_BUTTON);
+    //chart2->SetSelectionMode(vtkContextScene::SELECTION_TOGGLE);
+    //chart2->GetAxis(vtkAxis::LEFT)->SetRange(-2.8, 0.8);
+    //chart2->GetAxis(vtkAxis::BOTTOM)->SetRange(27,56);
+    chart2->GetAxis(vtkAxis::LEFT)->SetRange(-2.8, 0.8);
+    chart2->GetAxis(vtkAxis::BOTTOM)->SetRange(38,75);
+    chart2->GetAxis(vtkAxis::BOTTOM)->SetBehavior(vtkAxis::FIXED);
+    chart2->GetAxis(vtkAxis::LEFT)->SetBehavior(vtkAxis::FIXED);
 
     // Now lets try to add a table view
     QVBoxLayout *layout = new QVBoxLayout(secondWindow);
@@ -761,6 +786,10 @@ void DistanceMeasures::connectAll()
     connect(this->form->buttonSetLineColor,SIGNAL(clicked()),this,SLOT(buttonSetLineColorClicked()));
 
     connect(this->form->buttonPlotConnectivity,SIGNAL(clicked()),this,SLOT(buttonPlotConnectivityClicked()));
+
+    connect(this->form->inputXPointA,SIGNAL(clicked()),this,SLOT(updatePointFromSpinBox()));
+    connect(this->form->inputYPointA,SIGNAL(clicked()),this,SLOT(updatePointFromSpinBox()));
+    connect(this->form->inputZPointA,SIGNAL(clicked()),this,SLOT(updatePointFromSpinBox()));
 }
 
 //------------------------[ Disconnect Qt elements ]-----------------------\\
@@ -768,6 +797,16 @@ void DistanceMeasures::connectAll()
 void DistanceMeasures::disconnectAll()
 {
 
+}
+
+void DistanceMeasures::updatePointFromSpinBox()
+{
+    std::cout << 123123123;
+    printf("sdsdsdsd");
+    this->settings->getAttributes()->addAttribute("SlicePosX", this->form->inputXPointA->value());
+    this->settings->getAttributes()->addAttribute("SlicePosY", this->form->inputYPointA->value());
+    this->settings->getAttributes()->addAttribute("SlicePosZ", this->form->inputZPointA->value());
+    setMeasuredPoint(0);
 }
 
 //------------------------[ Set point A ]-----------------------\\
