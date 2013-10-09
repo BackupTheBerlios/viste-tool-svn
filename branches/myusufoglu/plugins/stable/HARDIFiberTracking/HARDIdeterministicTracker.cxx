@@ -513,7 +513,7 @@ namespace bmia {
 			//vector to store the unit vectors of the found maxima
 			std::vector<double *> outputlistwithunitvectors;
 			//neede for search space reduction
-			bool searchRegion;
+			
 			std::vector<int> meshPtIndexList;
 			//list with ODF values
 			std::vector<double> ODFlist;
@@ -595,7 +595,7 @@ namespace bmia {
 			this->newSegment[0] = tempDirection[0]; // 0.0;
 			this->newSegment[1] = tempDirection[1];// 0.0;
 			this->newSegment[2] = tempDirection[2];//0.0;
-			double previousAngle[2];
+			
 			this->prevSegment[0]=this->prevSegment[1]=this->prevSegment[2]= 0.0; // CHECK!!!
 
 			// Loop until a stopping condition is met
@@ -814,7 +814,7 @@ namespace bmia {
 			//vector to store the unit vectors of the found maxima
 			std::vector<double *> outputlistwithunitvectors;
 			//neede for search space reduction
-			bool searchRegion;
+	
 			std::vector<int> meshPtIndexList;
 			//list with ODF values
 			std::vector<double> ODFlist;
@@ -918,7 +918,7 @@ namespace bmia {
 			this->newSegment[0] = tempDirection[0]; // 0.0;
 			this->newSegment[1] = tempDirection[1];// 0.0;
 			this->newSegment[2] = tempDirection[2];//0.0;
-			double previousAngle[2];
+			
 			this->prevSegment[0]=this->prevSegment[1]=this->prevSegment[2]= 0.0; // CHECK!!!
 
 			// Loop until a stopping condition is met
@@ -1151,7 +1151,7 @@ namespace bmia {
 			//vector to store the unit vectors of the found maxima
 			std::vector<double *> outputlistwithunitvectors;
 			//neede for search space reduction
-			bool searchRegion;
+		
 			std::vector<int> meshPtIndexList;
 			//list with ODF values
 			std::vector<double> ODFlist;
@@ -1255,7 +1255,7 @@ namespace bmia {
 			this->newSegment[0] = tempDirection[0]; // 0.0;
 			this->newSegment[1] = tempDirection[1];// 0.0;
 			this->newSegment[2] = tempDirection[2];//0.0;
-			double previousAngle[2];
+			
 			this->prevSegment[0]=this->prevSegment[1]=this->prevSegment[2]= 0.0; // CHECK!!!
 
 			// Loop until a stopping condition is met
@@ -2210,7 +2210,7 @@ namespace bmia {
 					 da=vtkDoubleArray::New();
 					int numberOfTuples= outUnitVectorListFromFile.at(outUnitVectorListFromFile.size()-1)->GetNumberOfTuples();
 					da->SetNumberOfComponents(3);
-					da->SetNumberOfTuples(numberOfTuples);
+					//da->SetNumberOfTuples(numberOfTuples);
 					// ADD the opposite of the vectors to form vectors array of opposite direction, there are maxima too.
 					for(int i=0; i <numberOfTuples ;i++)
 					{  
