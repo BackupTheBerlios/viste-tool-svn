@@ -759,7 +759,7 @@ namespace bmia {
 	void HARDIdeterministicTracker::calculateFiberSHDIUseOfflineMaximaDirections(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,int numberOfIterations, bool CLEANMAXIMA, double TRESHOLD)
 	{
 
-		cout << "-----  New Seed for a New Fiber - calculateFiberSHDIMaxDirection ------("<< direction <<")"<<  endl;
+		cout << "-----  New Seed for a New Fiber - calculateFiberSHDIMaxDirection Offline ------("<< direction <<")"<<  endl;
 		vtkCell *	currentCell			= NULL;						// Cell of current point
 		vtkIdType	currentCellId		= 0;						// Id of current cell
 		double		closestPoint[3]		= {0.0, 0.0, 0.0};			// Used in "EvaluatePosition"
@@ -874,12 +874,13 @@ namespace bmia {
 				avgMaxAng[1]=0;
 				for(int i=0; i< this->nMaximaForEachPoint; i++)// START FROM HERE!!! this->n
 				{	
+					if(i%2==0) {
 					avgMaxAng[0]+= acos( outputlistwithunitvectors[i][2]);  // choose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
 					avgMaxAng[1]+= atan2( outputlistwithunitvectors[i][1],  outputlistwithunitvectors[i][0]);  // ose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
-					//cout << "anglesOfmaxOfCorner"  << anglesArray.at(maxima.at(i))[0] << " " << anglesArray.at(maxima.at(i))[1] << endl;
+					}//cout << "anglesOfmaxOfCorner"  << anglesArray.at(maxima.at(i))[0] << " " << anglesArray.at(maxima.at(i))[1] << endl;
 				}
-				avgMaxAng[0]/=this->nMaximaForEachPoint;
-				avgMaxAng[1]/=this->nMaximaForEachPoint;
+				avgMaxAng[0]=avgMaxAng[0]/(this->nMaximaForEachPoint/2);
+				avgMaxAng[1]=avgMaxAng[1]/(this->nMaximaForEachPoint/2);
 				//cout << avgMaxAng[0] << " " << avgMaxAng[1] << endl;
 				anglesBeforeInterpolation.push_back(avgMaxAng); // if angles are in the range of [-pi,pi] interpolation is ok
 				outputlistwithunitvectors.clear();
@@ -1096,7 +1097,7 @@ namespace bmia {
 	void HARDIdeterministicTracker::calculateFiberSHDIUseOfflineMaximaDirectionsRK4(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,int numberOfIterations, bool CLEANMAXIMA, double TRESHOLD)
 	{
 
-		cout << "-----  New Seed for a New Fiber - calculateFiberSHDIMaxDirection ------("<< direction <<")"<<  endl;
+		cout << "-----  New Seed for a New Fiber - calculateFiberSHDI MaxDirection From File ------("<< direction <<")"<<  endl;
 		vtkCell *	currentCell			= NULL;						// Cell of current point
 		vtkIdType	currentCellId		= 0;						// Id of current cell
 		double		closestPoint[3]		= {0.0, 0.0, 0.0};			// Used in "EvaluatePosition"
@@ -1211,8 +1212,10 @@ namespace bmia {
 				avgMaxAng[1]=0;
 				for(int i=0; i< this->nMaximaForEachPoint; i++)// START FROM HERE!!! this->n
 				{	
+					//if(i%2==0) {
 					avgMaxAng[0]+= acos( outputlistwithunitvectors[i][2]);  // choose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
 					avgMaxAng[1]+= atan2( outputlistwithunitvectors[i][1],  outputlistwithunitvectors[i][0]);  // ose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
+					//}
 					//cout << "anglesOfmaxOfCorner"  << anglesArray.at(maxima.at(i))[0] << " " << anglesArray.at(maxima.at(i))[1] << endl;
 				}
 				avgMaxAng[0]/=this->nMaximaForEachPoint;

@@ -151,7 +151,7 @@ namespace bmia {
 			HARDIFiberTrackingFilter->SetStopDegrees((float) this->ui->parametersAngleSpinner->value());
 			HARDIFiberTrackingFilter->SetIterations((unsigned int) this->ui->iterationSpinner->value());
 			HARDIFiberTrackingFilter->SetCleanMaxima((bool) this->ui->cleanBox->isChecked());
-			HARDIFiberTrackingFilter->SetTreshold((float) this->ui->tresholdSpinner->value());
+			HARDIFiberTrackingFilter->SetTreshold((float) this->ui->tresholdSpinner->value());//ODF treshold not AI
 			HARDIFiberTrackingFilter->SetTesselationOrder((unsigned int) this->ui->tesselationSpinner->value());
 			HARDIFiberTrackingFilter->SetUseMaximaFile((bool) this->ui->useMaxFileCheck->isChecked()); 
 			HARDIFiberTrackingFilter->SetWriteMaximaToFile((bool) this->ui->writeMaxToFileCheck->isChecked()); 
@@ -163,6 +163,7 @@ namespace bmia {
 
 			// Set name of Region of Interest
 			HARDIFiberTrackingFilter->setROIName((*seedListIter)->getName());
+			if(HARDIFiberTrackingFilter->GetUseMaximaFile())
 			HARDIFiberTrackingFilter->SetMaximaDirectionsVolume(maxUnitVecData);
 
 			// Before running the whole fiber tracking algorithm the user may prefer to calculate and write maximas and direction unit vectors to a files.
@@ -177,7 +178,7 @@ namespace bmia {
 				vtkSphericalHarmonicsToODFMaxVolumeFilter *HARDIToMaximaFilter = vtkSphericalHarmonicsToODFMaxVolumeFilter::New();
 				this->core()->out()->createProgressBarForAlgorithm(HARDIToMaximaFilter);
 				HARDIToMaximaFilter->SetInput(HARDIimageData);
-				HARDIToMaximaFilter->setTreshold((float) this->ui->tresholdSpinner->value());
+				HARDIToMaximaFilter->setTreshold((float) this->ui->tresholdSpinner->value());// ODFTreshold 
 				HARDIToMaximaFilter->SetTesselationOrder((unsigned int) this->ui->tesselationSpinner->value());
 				HARDIToMaximaFilter->setNMaximaForEachPoint(4);
 				HARDIToMaximaFilter->Update();

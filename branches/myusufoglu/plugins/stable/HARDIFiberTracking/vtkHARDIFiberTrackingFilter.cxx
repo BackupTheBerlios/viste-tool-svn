@@ -525,8 +525,7 @@ namespace bmia {
 			   int percentage = (ptId *100.0/seedPoints->GetNumberOfPoints());
 				if(percentage%5 ==0)
 				cout << percentage << endl;
-			}
-		}
+			}		}
 
 		//print the time to output screen
 		//std::cout<<"Time needed to calculate the fibers from "<<seedPoints->GetNumberOfPoints()<<" seed points: "<<((double) clock()-startTime)/((double) CLOCKS_PER_SEC)<<" sec"<<endl;
