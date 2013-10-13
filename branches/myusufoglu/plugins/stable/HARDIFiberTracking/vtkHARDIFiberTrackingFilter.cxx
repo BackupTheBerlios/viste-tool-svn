@@ -232,7 +232,7 @@ namespace bmia {
 		//get settings from the ui
 		unsigned int NUMBEROFITERATIONS = this->Iterations;
 		bool CLEANMAXIMA = this->CleanMaxima;
-		double TRESHOLD = this->Treshold;
+		double TRESHOLD = this->Treshold;// ODF treshold for maxima
 		unsigned int TESSORDER = this->TesselationOrder;
 	 
 		// Get the output data set

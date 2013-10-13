@@ -499,31 +499,39 @@
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_10">
             <item>
-             <widget class="QCheckBox" name="checkBox">
+             <widget class="QRadioButton" name="initSHInterpolateRB">
               <property name="text">
                <string>SH Interp</string>
               </property>
+              <attribute name="buttonGroup">
+               <string notr="true">buttonGroup</string>
+              </attribute>
              </widget>
             </item>
             <item>
-             <widget class="QCheckBox" name="initFirstMaxAvgCB">
+             <widget class="QRadioButton" name="initFirstMaxAvgRB">
               <property name="text">
                <string>First Max Avg.</string>
               </property>
+              <attribute name="buttonGroup">
+               <string notr="true">buttonGroup</string>
+              </attribute>
              </widget>
             </item>
             <item>
-             <widget class="QCheckBox" name="initSecondMaxAvgCB">
+             <widget class="QRadioButton" name="initSecondMaxAvgRB">
               <property name="text">
                <string>Sec. Max. Avg.</string>
               </property>
+              <attribute name="buttonGroup">
+               <string notr="true">buttonGroup</string>
+              </attribute>
              </widget>
             </item>
            </layout>
           </item>
          </layout>
          <zorder></zorder>
-         <zorder>layoutWidget</zorder>
         </widget>
        </item>
        <item>
@@ -689,4 +697,7 @@
    </hints>
   </connection>
  </connections>
+ <buttongroups>
+  <buttongroup name="buttonGroup"/>
+ </buttongroups>
 </ui>

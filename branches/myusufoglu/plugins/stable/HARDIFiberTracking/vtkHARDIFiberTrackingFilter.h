@@ -126,6 +126,7 @@ class vtkHARDIFiberTrackingFilter : public vtkDataSetToPolyDataFilter
 		vtkSetMacro(Treshold,			float);
 		vtkSetMacro(UseMaximaFile,			bool);
 		vtkSetMacro(UseRKIntegration,bool);
+		vtkSetMacro(InitialConditionType,int);
 			vtkSetMacro(WriteMaximaToFile,			bool);
 			 
 		/** "Get" macros for user processing variables. */
@@ -143,7 +144,7 @@ class vtkHARDIFiberTrackingFilter : public vtkDataSetToPolyDataFilter
 		vtkGetMacro(TesselationOrder,				unsigned int);
 		vtkGetMacro(Treshold,						float);
 		vtkGetMacro(UseRKIntegration,			bool);
-	 
+	    vtkGetMacro(InitialConditionType,int);
 		/** Sets the maximum angle between two consecutive line segments, and
 			computes the threshold for the dot product ("StopDotProduct"). This
 			last threshold is used to determine whether or not the "Maximum Angle"
@@ -237,7 +238,7 @@ class vtkHARDIFiberTrackingFilter : public vtkDataSetToPolyDataFilter
 		bool UseRKIntegration;                    /**<Runge Kutta Integration  ..>*/
 		bool WriteMaximaToFile;
 		float Treshold;							/**< Set the ODF treshold for maxima detection */
-	 
+	    int InitialConditionType;               /**<initial fiber orientation: 0:Interpolation of SH  1:Average of firstmax  2:Average of second Max.
 		/** Derived processing variables, computed from the user variables. */
 
 		float StopDotProduct;					/**< Threshold for dot product. */

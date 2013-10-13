@@ -428,9 +428,9 @@ void PlanesVisPlugin::dataSetChanged(data::DataSet * ds)
 		this->ui->xPositionSpin->setValue(pos[0]); // this will trigger setXSlice
 		this->ui->yPositionSpin->setValue(pos[1]);
 		this->ui->zPositionSpin->setValue(pos[2]);
-		emit this->setXSlice(pos[0],false);
-		emit this->setYSlice(pos[1],false);
-		emit this->setZSlice(pos[2],false);
+		//emit this->setXSlice(pos[0],false);
+		//emit this->setYSlice(pos[1],false);
+		//emit this->setZSlice(pos[2],false);
 
 		this->connectControls(true); 
 		

@@ -756,7 +756,7 @@ namespace bmia {
 		delete [] weights;
 	}
 
-	void HARDIdeterministicTracker::calculateFiberSHDIUseOfflineMaximaDirections(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,int numberOfIterations, bool CLEANMAXIMA, double TRESHOLD)
+	void HARDIdeterministicTracker::calculateFiberSHDIUseOfflineMaximaDirections(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,int numberOfIterations, bool CLEANMAXIMA, double TRESHOLD, int initCondition)
 	{
 
 		cout << "-----  New Seed for a New Fiber - calculateFiberSHDIMaxDirection Offline ------("<< direction <<")"<<  endl;
@@ -815,6 +815,11 @@ namespace bmia {
 			std::vector<double *> outputlistwithunitvectors;
 			//neede for search space reduction
 	
+			
+
+
+
+
 			std::vector<int> meshPtIndexList;
 			//list with ODF values
 			std::vector<double> ODFlist;
@@ -836,6 +841,29 @@ namespace bmia {
 			double **unitVectorsOfAPointFromFile = new double*[this->nMaximaForEachPoint];
 			for (int j = 0; j < this->nMaximaForEachPoint; ++j)
 				unitVectorsOfAPointFromFile[j] = new double[3];
+
+			////////////////////////////////////////////////////////////////////
+			// INITIAL CONDITON PART
+			// 
+			    
+			
+			// Interpolate the SH at the seed point position
+			double * SHAux = new double[numberSHcomponents];
+			this->interpolateSH(SHAux, weights, numberSHcomponents);// uses this cellHARDIData
+
+			//get the ODF
+			//MaxFinder.getOutput(SHAux, this->parentFilter->shOrder, anglesArray); // get output
+			MaxFinder.getOutput(tempSH, this->parentFilter->shOrder,TRESHOLD, anglesArray,  maxima, meshPtIndexList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
+				// maxima has ids use them to get angles
+				MaxFinder.cleanOutput(maxima, outputlistwithunitvectors,tempSH, ODFlist, this->unitVectors, anglesArray);
+			for (int j = 0; j < this->nMaximaForEachPoint; ++j)
+				outputlistwithunitvectors[j] = this->unitVectors[j];
+
+			// Find maximum of this interpolated values here and use as initial condition
+			//deallocate memory
+			delete [] SHAux;
+
+			///////////////////////////////////////////////////
 
 
 			std::vector<double *> anglesBeforeInterpolation; 

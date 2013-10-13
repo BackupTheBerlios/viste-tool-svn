@@ -635,13 +635,13 @@ namespace bmia {
 				if (!this->glyphFilter)
 					return;
 
-				if(this->img && this->dataSets.size() >0 && (this->seedDataSets.size() > 0))
-					this->addVectorToSeeds(this->seedDataSets.at(dsIndex), this->ui->dataList->currentItem()->text() );
-				else
-				{
+				//if(this->img && this->dataSets.size() >0 && (this->seedDataSets.size() > 0))
+				//	this->addVectorToSeeds(this->seedDataSets.at(dsIndex), this->ui->dataList->currentItem()->text() );
+				//else
+				//{
 
 
-					return; }
+					//return; }
 
 
 				//cout << "TO FALSE"<< endl;  this->changingSelection = false;
