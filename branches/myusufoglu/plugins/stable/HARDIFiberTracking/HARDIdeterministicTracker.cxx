@@ -841,12 +841,12 @@ namespace bmia {
 			double **unitVectorsOfAPointFromFile = new double*[this->nMaximaForEachPoint];
 			for (int j = 0; j < this->nMaximaForEachPoint; ++j)
 				unitVectorsOfAPointFromFile[j] = new double[3];
-
+			double tempDirection[3];
 			////////////////////////////////////////////////////////////////////
 			// INITIAL CONDITON PART
 			// 
 			    
-			
+			if(initCondition==0) {
 			// Interpolate the SH at the seed point position
 			double * SHAux = new double[numberSHcomponents];
 			this->interpolateSH(SHAux, weights, numberSHcomponents);// uses this cellHARDIData
@@ -862,10 +862,14 @@ namespace bmia {
 			// Find maximum of this interpolated values here and use as initial condition
 			//deallocate memory
 			delete [] SHAux;
-
+			tempDirection[0] =  unitVectors[0][0];
+			tempDirection[1] =  unitVectors[0][1];
+			tempDirection[2] =  unitVectors[0][2];
+			}
 			///////////////////////////////////////////////////
 
-
+			else if (initCondition==1 || initCondition==2 )
+			{
 			std::vector<double *> anglesBeforeInterpolation; 
 
 			//initial regionlist includes all points not some points of the ODF
@@ -921,7 +925,7 @@ namespace bmia {
 			double interpolatedDirection[2];
 			this->interpolateAngles(anglesBeforeInterpolation,weights, interpolatedDirection); // this average will be used as initial value. 
 			anglesBeforeInterpolation.clear();
-			double tempDirection[3];
+			
 			tempDirection[0] = sinf(interpolatedDirection[0]) * cosf(interpolatedDirection[1]);
 			tempDirection[1] = sinf(interpolatedDirection[0]) * sinf(interpolatedDirection[1]);
 			tempDirection[2] = cosf(interpolatedDirection[0]);
@@ -930,7 +934,7 @@ namespace bmia {
 			// add 
 			//deallocate memory
 
-
+			}
 			// Get the AI scalar at the seed point position
 			//MaxFinder.getGFA(&(currentPoint.AI));
 			this->interpolateScalar(&(currentPoint.AI), weights);
