@@ -853,11 +853,11 @@ namespace bmia {
 
 			//get the ODF
 			//MaxFinder.getOutput(SHAux, this->parentFilter->shOrder, anglesArray); // get output
-			MaxFinder.getOutput(tempSH, this->parentFilter->shOrder,TRESHOLD, anglesArray,  maxima, meshPtIndexList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
+			MaxFinder.getOutput(SHAux, this->parentFilter->shOrder,TRESHOLD, anglesArray,  maxima, meshPtIndexList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
 				// maxima has ids use them to get angles
-				MaxFinder.cleanOutput(maxima, outputlistwithunitvectors,tempSH, ODFlist, this->unitVectors, anglesArray);
-			for (int j = 0; j < this->nMaximaForEachPoint; ++j)
-				outputlistwithunitvectors[j] = this->unitVectors[j];
+				MaxFinder.cleanOutput(maxima, outputlistwithunitvectors,SHAux, ODFlist, this->unitVectors, anglesArray);
+	//		for (int j = 0; j < this->nMaximaForEachPoint; ++j)
+		//		outputlistwithunitvectors[j] = this->unitVectors[j];
 
 			// Find maximum of this interpolated values here and use as initial condition
 			//deallocate memory
@@ -906,12 +906,19 @@ namespace bmia {
 				avgMaxAng[1]=0;
 				for(int i=0; i< this->nMaximaForEachPoint; i++)// START FROM HERE!!! this->n
 				{	
+					if (initCondition==1)
 					if(i%2==0) {
 					avgMaxAng[0]+= acos( outputlistwithunitvectors[i][2]);  // choose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
 					avgMaxAng[1]+= atan2( outputlistwithunitvectors[i][1],  outputlistwithunitvectors[i][0]);  // ose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
 					}//cout << "anglesOfmaxOfCorner"  << anglesArray.at(maxima.at(i))[0] << " " << anglesArray.at(maxima.at(i))[1] << endl;
+				else if (initCondition==2)
+					if(i%2==1) {
+					avgMaxAng[0]+= acos( outputlistwithunitvectors[i][2]);  // choose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
+					avgMaxAng[1]+= atan2( outputlistwithunitvectors[i][1],  outputlistwithunitvectors[i][0]);  // ose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
+					}//co
+				
 				}
-				avgMaxAng[0]=avgMaxAng[0]/(this->nMaximaForEachPoint/2);
+				avgMaxAng[0]=avgMaxAng[0]/(this->nMaximaForEachPoint/2); // 2 CAREFULL
 				avgMaxAng[1]=avgMaxAng[1]/(this->nMaximaForEachPoint/2);
 				//cout << avgMaxAng[0] << " " << avgMaxAng[1] << endl;
 				anglesBeforeInterpolation.push_back(avgMaxAng); // if angles are in the range of [-pi,pi] interpolation is ok
