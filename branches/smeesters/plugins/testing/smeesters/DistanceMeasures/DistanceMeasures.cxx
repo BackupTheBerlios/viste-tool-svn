@@ -462,6 +462,14 @@ void DistanceMeasures::processFiberAnteriorSorting(SortedFibers* sortedFibers)
 	double currentPoint[3];
     fibers->InitTraversal();
 
+//--------------------------------------------------------------------------
+
+// print results to text file (temporary)
+using namespace std;
+ofstream dataFile("/home/linux/Stephan/fiberScoring_output.csv");
+
+//--------------------------------------------------------------------------
+
     // Loop through all fibers
 	for (vtkIdType fiberId = 0; fiberId < numberOfFibers; ++fiberId)
 	{
@@ -512,6 +520,21 @@ void DistanceMeasures::processFiberAnteriorSorting(SortedFibers* sortedFibers)
             {
                 fiberData->scalarData.append(scalars->GetTuple1(pointList[pointId]));
             }
+
+//--------------------------------------------------------------------------
+
+            float avgVal = 0.0;
+            int samplesize = 10;
+            for (vtkIdType pointId = std::max(0,anteriorPointIndex-samplesize); pointId < std::min((int)numberOfPoints,anteriorPointIndex+samplesize); ++pointId)
+            {
+                avgVal += scalars->GetTuple1(pointList[pointId]);
+            }
+            avgVal /= std::min((int)numberOfPoints,anteriorPointIndex+samplesize) - std::max(0,anteriorPointIndex-samplesize);
+
+            dataFile << avgVal << "\n";
+
+//--------------------------------------------------------------------------
+
 		}
 
         // Set anterior point index in struct
@@ -523,6 +546,12 @@ void DistanceMeasures::processFiberAnteriorSorting(SortedFibers* sortedFibers)
         // Add fiber data in QMap for sorting
 		fiberMap.insert(mostAnteriorPoint, fiberData);
 	}
+
+//--------------------------------------------------------------------------
+
+dataFile.close();
+
+//--------------------------------------------------------------------------
 
     // Select most anterior fibers
     int rFiberIndex = 0;
@@ -704,7 +733,10 @@ void DistanceMeasures::buttonPlotConnectivityClicked()
     }
     table->Update();
 
-    // print results to text file
+
+//--------------------------------------------------------------------------
+
+    // print results to text file (temporary)
     using namespace std;
     ofstream dataFile("/home/linux/Stephan/connectivityData.csv");
     //dataFile.open, ios::out, ios::app);
@@ -714,6 +746,8 @@ void DistanceMeasures::buttonPlotConnectivityClicked()
         dataFile << table->GetValue(j,0) << "," << table->GetValue(j,1) << "," << table->GetValue(j,2) << "\n";
     }
     dataFile.close();
+
+//--------------------------------------------------------------------------
 
     // Add multiple line plots, setting the colors etc
     vtkSmartPointer<vtkChartXY> chart = vtkSmartPointer<vtkChartXY>::New();
@@ -732,8 +766,8 @@ void DistanceMeasures::buttonPlotConnectivityClicked()
     chart->SetClickActionToButton(vtkChart::NOTIFY, vtkContextMouseEvent::RIGHT_BUTTON);
     //chart->GetAxis(vtkAxis::LEFT)->SetRange(-0.1, 0.7);
     //chart->GetAxis(vtkAxis::BOTTOM)->SetRange(27,56);
-    chart->GetAxis(vtkAxis::LEFT)->SetRange(-0.6, 0.6);
-    chart->GetAxis(vtkAxis::BOTTOM)->SetRange(38,75);
+    chart->GetAxis(vtkAxis::LEFT)->SetRange(-0.4, 0.9);
+    chart->GetAxis(vtkAxis::BOTTOM)->SetRange(30,72);
     chart->GetAxis(vtkAxis::BOTTOM)->SetBehavior(vtkAxis::FIXED);
     chart->GetAxis(vtkAxis::LEFT)->SetBehavior(vtkAxis::FIXED);
 
@@ -751,8 +785,8 @@ void DistanceMeasures::buttonPlotConnectivityClicked()
     //chart2->SetSelectionMode(vtkContextScene::SELECTION_TOGGLE);
     //chart2->GetAxis(vtkAxis::LEFT)->SetRange(-2.8, 0.8);
     //chart2->GetAxis(vtkAxis::BOTTOM)->SetRange(27,56);
-    chart2->GetAxis(vtkAxis::LEFT)->SetRange(-2.8, 0.8);
-    chart2->GetAxis(vtkAxis::BOTTOM)->SetRange(38,75);
+    chart2->GetAxis(vtkAxis::LEFT)->SetRange(-2.8, 1);
+    chart2->GetAxis(vtkAxis::BOTTOM)->SetRange(30,72);
     chart2->GetAxis(vtkAxis::BOTTOM)->SetBehavior(vtkAxis::FIXED);
     chart2->GetAxis(vtkAxis::LEFT)->SetBehavior(vtkAxis::FIXED);
 
