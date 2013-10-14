@@ -176,7 +176,7 @@ namespace bmia {
 			if(HARDIFiberTrackingFilter->GetWriteMaximaToFile())
 
 			{
-				QString FilePath = QFileDialog::getSaveFileName(nullptr , tr("Save File of Maxima and Unit Vectors"), "D:/vISTe", tr("VTK files (*.vtk)"));
+				QString FilePath = QFileDialog::getSaveFileName(nullptr , tr("Save File of Maxima and Unit Vectors"), "D:/vISTe", tr("VTK files (*.vti)"));
 				 if(FilePath.isEmpty() || FilePath.isNull())
             return;
 				// This part can be taken to another plugin. Creates a volme consisting indexes of maximums.

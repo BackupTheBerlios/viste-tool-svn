@@ -604,7 +604,7 @@ namespace bmia {
 			this->ui->glyphDataCombo->setItemText(dsIndex, ds->getName());
 
 			// If we're changing the currently selected data set...
-			if (this->ui->glyphDataCombo->currentIndex() == dsIndex && this->glyphFilter)
+			if (this->ui->glyphDataCombo->currentIndex() == dsIndex  )
 			{
 				// ...update the geometry of the builder, and render the scene
 				//this->builder->setInputVolume(this->glyphDataSets[dsIndex]->getVtkImageData());
@@ -616,32 +616,24 @@ namespace bmia {
 
 		else if (ds->getKind() == "seed points" && this->seedDataSets.contains(ds))
 		{
-			cout << "seed dataset changed" << endl; 
+			//cout << "seed dataset changed" << endl; 
 			// Get the index of the data set
 			int dsIndex = this->seedDataSets.indexOf(ds);
 
 			// Change the data set name
-			this->ui->seedPointsCombo->setItemText(dsIndex, ds->getName());
+			//this->ui->seedPointsCombo->setItemText(dsIndex, ds->getName());
 
 			// If we're changing the currently selected data set...
-			if (this->ui->seedPointsCombo->currentIndex() == dsIndex && this->glyphFilter)
+			if (this->ui->seedPointsCombo->currentIndex() == dsIndex  )
 			{
 				if(!this->pipeFormed) return;
 				//	cout << "TO TRUE"<< endl; 
 				//	this->changingSelection = true;
 
-
-
-				if (!this->glyphFilter)
-					return;
-
-				//if(this->img && this->dataSets.size() >0 && (this->seedDataSets.size() > 0))
-				//	this->addVectorToSeeds(this->seedDataSets.at(dsIndex), this->ui->dataList->currentItem()->text() );
-				//else
-				//{
-
-
-					//return; }
+				 
+				if(this->img && this->dataSets.size() >0 && (this->seedDataSets.size() > 0) && (this->ui->seedPointsCombo->itemText(dsIndex)== ds->getName()))
+			this->formPipeLinesForAllArrays(this->img, this->ui->seedPointsCombo->currentIndex() );
+		else return;  
 
 
 				//cout << "TO FALSE"<< endl;  this->changingSelection = false;

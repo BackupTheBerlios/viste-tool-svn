@@ -310,9 +310,9 @@ void PlanesVisPlugin::dataSetAdded(data::DataSet * ds)
 			this->changeWeightVolume(1);
 		}
 	   //slicePosXYZ are used if another plugin wants to change the slice position
-		ds->getAttributes()->addAttribute("SlicePosX",0);
-		ds->getAttributes()->addAttribute("SlicePosY",0);
-		ds->getAttributes()->addAttribute("SlicePosZ",0);
+		//ds->getAttributes()->addAttribute("SlicePosX",0);
+		//ds->getAttributes()->addAttribute("SlicePosY",0);
+		//ds->getAttributes()->addAttribute("SlicePosZ",0);
 		this->connectControls(true);
 
 	} // if [scalar volume]
@@ -347,9 +347,9 @@ void PlanesVisPlugin::dataSetAdded(data::DataSet * ds)
 			this->changeWeightVolume(1);
 		}
 	   //slicePosXYZ are used if another plugin wants to change the slice position
-		ds->getAttributes()->addAttribute("SlicePosX",0);
-		ds->getAttributes()->addAttribute("SlicePosY",0);
-		ds->getAttributes()->addAttribute("SlicePosZ",0);
+		//ds->getAttributes()->addAttribute("SlicePosX",0);
+		//ds->getAttributes()->addAttribute("SlicePosY",0);
+		//ds->getAttributes()->addAttribute("SlicePosZ",0);
 		this->connectControls(true);
 
 	} // if [scalar volume]
@@ -421,13 +421,13 @@ void PlanesVisPlugin::dataSetChanged(data::DataSet * ds)
 		
 
 		//if other plugin wants to change slice position
-		int pos[3];
-		ds->getAttributes()->getAttribute("SlicePosX",pos[0]);
-		ds->getAttributes()->getAttribute("SlicePosY",pos[1]);
-		ds->getAttributes()->getAttribute("SlicePosZ",pos[2]);
-		this->ui->xPositionSpin->setValue(pos[0]); // this will trigger setXSlice
-		this->ui->yPositionSpin->setValue(pos[1]);
-		this->ui->zPositionSpin->setValue(pos[2]);
+		//int pos[3];
+		//ds->getAttributes()->getAttribute("SlicePosX",pos[0]);
+		//ds->getAttributes()->getAttribute("SlicePosY",pos[1]);
+		//ds->getAttributes()->getAttribute("SlicePosZ",pos[2]);
+		//this->ui->xPositionSpin->setValue(pos[0]); // this will trigger setXSlice
+		//this->ui->yPositionSpin->setValue(pos[1]);
+		//this->ui->zPositionSpin->setValue(pos[2]);
 		//emit this->setXSlice(pos[0],false);
 		//emit this->setYSlice(pos[1],false);
 		//emit this->setZSlice(pos[2],false);
