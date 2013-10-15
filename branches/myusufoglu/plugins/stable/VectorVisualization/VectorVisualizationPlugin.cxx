@@ -175,11 +175,7 @@ namespace bmia {
 			bool hasVector=false;
 			for(unsigned int nr = 0; nr <nArrays  ; nr++)
 			{
-				//	outUnitVectorList.push_back(vtkDoubleArray::New());
-				//outUnitVectorList.at(nr)->SetNumberOfComponents(3);
-				//outUnitVectorList.at(nr)->SetNumberOfTuples(maximaVolume->GetNumberOfPoints());
-
-				//outUnitVectorList.at(nr)->SetName( arrName.toStdString().c_str() );  //fist vector array for each point (keeps only the first vector)
+				 
 				QString name(img_temp->GetPointData()->GetArrayName(nr));
 				cout << name.toStdString() << endl;
 				if(name=="") return;
@@ -232,14 +228,7 @@ namespace bmia {
 				}
 			}
 
-			// Add the actor to the assembly to be rendered:
-			//this->assembly->AddPart(actor);
-
-			// Add the actor to the list of actors, for easy access to its parameters
-			// later on:
-			//this->actors.append(actor);
-
-			// Add the new data set to the list of data sets in the GUI:
+			 
 
 			this->ui->optionsFrame->setEnabled(true);
 
@@ -257,10 +246,8 @@ namespace bmia {
 
 	void  VectorVisualizationPlugin::formPipeLine(vtkImageData *img, int seedNumber)
 	{
-		//QString name(img->GetPointData()->GetArrayName(arrayNumber));
-		//	cout << name.toStdString() << endl;
-		//img->GetPointData()->SetActiveVectors(name.toStdString().c_str());
-		cout << "formPipeLine START "  << endl;
+ 
+		//cout << "formPipeLine START "  << endl;
 		vtkArrowSource  *arrowSource =  vtkArrowSource::New();
 		arrowSource->Update();
 		glyphFilter =  vtkGlyph3D::New();
@@ -270,10 +257,7 @@ namespace bmia {
 		glyphFilter->SetScaling(true);
 		glyphFilter->SetScaleFactor(1);
 		//	int dsIndex = this->seedDataSets.indexOf(ds);
-
-		// Change the data set name
-		///	glyphFilter->SetInput(0, vtkDataObject::SafeDownCast(this->seedDataSets[dsIndex]->getVtkObject()));
-		//glyphFilter->SetInput(img);
+ 
 		glyphFilter->SetScaleModeToDataScalingOff();
 		glyphFilter->SetScaleModeToScaleByVector();
 		if(seedDataSets.size()>0)
@@ -287,8 +271,7 @@ namespace bmia {
 
 			temo->Update();
 			//	cout << temo->GetPointData()->GetArray(this->img->GetPointData()->GetArrayName(1))->GetName() << endl;
-			//	cout << temo->GetPointData()->GetArray(this->img->GetPointData()->GetArrayName(1))->GetNumberOfTuples() << endl;
-			//	cout << temo->GetPointData()->GetArray(this->img->GetPointData()->GetArrayName(1))->GetNumberOfComponents() << endl;
+ 
 			//temo->SetActiveAttributeInfo(nullptr,0,1,
 			glyphFilter->SetInput( temo);
 
@@ -311,9 +294,7 @@ namespace bmia {
 		this->assembly->SetVisibility(true);
 		actor->SetMapper(mapper);
 		//mapper->Delete(); mapper = NULL;
-		// Note that the mapper was not actually deleted because it was
-		// registered by the actor. And it can still be accessed through
-		// actor->GetMapper().
+ 
 		pipeFormed=1;
 		cout << "formPipeLine END "  << endl;
 	}
@@ -523,9 +504,7 @@ namespace bmia {
 
 		for(unsigned int nr = 0; nr <nArrays  ; nr++)
 		{
-			//	outUnitVectorList.push_back(vtkDoubleArray::New());
-			//outUnitVectorList.at(nr)->SetNumberOfComponents(3);
-			//outUnitVectorList.at(nr)->SetNumberOfTuples(maximaVolume->GetNumberOfPoints());
+ 
 
 			//outUnitVectorList.at(nr)->SetName( arrName.toStdString().c_str() );  //fist vector array for each point (keeps only the first vector)
 			QString name(img->GetPointData()->GetArrayName(nr));
@@ -533,10 +512,9 @@ namespace bmia {
 			{
 				//outUnitVectorListFromFile.push_back( vtkDoubleArray::SafeDownCast( img->GetPointData()->GetArray(name.toStdString().c_str()  )));
 				data::DataSet* ds_local = new data::DataSet(name, "vector", vtkDoubleArray::SafeDownCast( img->GetPointData()->GetArray(name.toStdString().c_str())));
-				//this->core()->data()->addDataSet(ds);
+ 
 				this->dataSets.append(ds_local);
-				// Add the new data set to the list of currently available polydata sets:
-				//this->dataSets.append(ds); // local list
+ 
 
 				this->ui->dataList->addItem(ds_local->getName());
 
@@ -567,18 +545,7 @@ namespace bmia {
 
 
 		/* Setup the builder
-		this->setNormalizationMethod(this->ui->normMethodCombo->currentIndex());
-		this->setNormalizationScope(this->ui->normScopeCombo->currentIndex());
-		this->setScale(this->ui->scaleSpin->value());
-		this->setSharpeningExponent(this->ui->sharpenPowerSpin->value());
-		this->enableNormalization(this->ui->normalizeGroup->isChecked());
-		this->enableSharpening(this->ui->sharpenGroup->isChecked());
-		this->enableSmoothing(this->ui->smoothGroup->isChecked());
-		this->updateSmoothOptions();
-		this->changeColorMethod(this->ui->colorMethodCombo->currentIndex());
-		this->setLUT(this->ui->colorLUTCombo->currentIndex());
-		this->setScalarVolume(this->ui->colorScalarsCombo->currentIndex(), false);
-		this->setTessellationOrder(this->ui->tessSpin->value());
+	 
 		*/
 		// Re-enable rendering
 		this->core()->enableRendering();
@@ -650,7 +617,7 @@ namespace bmia {
 		// TODO: disable optionsFrame if number of datasets == 0.
 	}
 
-	// input is seeds set
+	// input is seeds set, not used
 	void VectorVisualizationPlugin::addVectorToSeeds(data::DataSet* dsSeeds, QString vectorName) 
 
 	{ // Add vector to each seed point
@@ -878,23 +845,7 @@ namespace bmia {
 		//this->seedDataSets.at( this->ui->seedPointsCombo->currentIndex() )->getVtkObject()->SetAc
 		vtkPointSet * seeds = vtkPointSet::SafeDownCast(  this->seedDataSets.at( this->ui->seedPointsCombo->currentIndex() )->getVtkObject());
 		seeds->GetPointData()->SetActiveVectors(this->dataSets.at( this->selectedData )->getName().toStdString().c_str());
-		/*
-		if(this->img && (this->dataSets.size() > 0) && (row < this->dataSets.size())&& (this->seedDataSets.size() > 0) && this->ui->seedPointsCombo->currentIndex() < this->seedDataSets.size() )
-		this->addVectorToSeeds(  this->seedDataSets.at( this->ui->seedPointsCombo->currentIndex() ), this->dataSets.at(row)->getName()  );
-		else return;
-		cout << " " << this->seedDataSets.size() <<  " " << this->ui->seedPointsCombo->currentIndex() << " " << this->dataSets.at(row)->getName().toStdString()  << " " << this->dataSets.size() << endl;
-		vtkPointSet *temo;
-		if(this->seedDataSets.at(this->ui->seedPointsCombo->currentIndex())->getVtkObject())
-		temo = vtkPointSet::SafeDownCast( this->seedDataSets.at(this->ui->seedPointsCombo->currentIndex())->getVtkObject());
-		else return;
-		if(!this->seedDataSets.at(this->ui->seedPointsCombo->currentIndex())->getVtkObject())  return;
-		temo->Update();
-		glyphFilter->SetInputConnection( temo->GetProducerPort() );
-		this->glyphFilter->Modified();
-		this->glyphFilter->Update();
-
-		this->core()->render(); 
-		*/
+	 
 		//cout << "TO FALSE"<< endl;  this->changingSelection = false;
 		this->core()->render();
 		cout << this->dataSets.size() << " selectVectorData END ========================" <<  row << endl; 

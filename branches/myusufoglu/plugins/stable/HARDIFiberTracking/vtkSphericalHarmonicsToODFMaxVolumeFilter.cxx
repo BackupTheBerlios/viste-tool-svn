@@ -184,7 +184,7 @@ namespace bmia {
 
 
 		std::vector<double> ODFlist;
-
+		std::vector<double> ODFNormalizedList;
 
 
 		// Start reporting the progress of this filter
@@ -368,12 +368,15 @@ namespace bmia {
 				//remove repeated maxima
 				MaxFinder.cleanOutput(maxima, outputlistwithunitvectors,tempSH, ODFlist, this->unitVectors, anglesArray1);
 	 
+				//MaxFinder.Normalize(ODFlist, ODFNormalizedList);
+
 				MaxFinder.SortUnitVectorsUsingODFValues(ODFlist, outputlistwithunitvectors);
+
 				//int *indexesOfMaxima = new int[this->nMaximaForEachPoint];
 			 
 				for(int i=0; i<this->nMaximaForEachPoint;i=i+2)// i=i+2, because Second and fourt are opposite of first and tird
 				{  
-					if(i < outputlistwithunitvectors.size())
+					if(i < outputlistwithunitvectors.size() && ODFlist.at(i) > this->getTreshold()) // normally this treshold is used in maxima finding now used to select maxima after finding.
 					{  
 						//indexesOfMaxima[i]=maxima.at(i);
 						outUnitVectorList.at(i)->SetTuple3(ptId,outputlistwithunitvectors.at(i)[0],outputlistwithunitvectors.at(i)[1],outputlistwithunitvectors.at(i)[2]);
@@ -391,6 +394,7 @@ namespace bmia {
 				outputlistwithunitvectors.clear();
 					maxima.clear();
 					ODFlist.clear();
+					ODFNormalizedList.clear();
 			}
 			else 
 			{

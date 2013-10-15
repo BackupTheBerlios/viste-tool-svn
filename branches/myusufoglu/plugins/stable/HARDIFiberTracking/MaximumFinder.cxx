@@ -126,6 +126,34 @@ namespace bmia {
 
 
 
+	void MaximumFinder::Normalize( std::vector<double> &radii, std::vector<double> &radii_norm )
+	{
+		//list with neighborhood
+		std::vector<int> neighborslist;
+
+		//find maximum and minimum radii
+		double min = *min_element( radii.begin(), ( radii).end());
+		double max = *max_element(radii.begin(), ( radii).end());
+		//min-max normalization
+		//for all points on the sphere
+		( radii_norm).clear();
+		for (unsigned int i = 0; i < ( radii).size(); ++i)
+		{
+			//dont divide by 0
+			if (min != max)
+			{
+				//add normalized radius
+				 radii_norm.push_back((( radii.at(i))-min)/(max-min));
+			}
+			//in case of sphere (SH-order = 0)
+			else
+			{	//add 1.0 (sphere)    
+				 radii_norm.push_back(1.0);
+			}
+		}
+
+	}
+
 
 	//-----------------------------[ Get neighbors ]------------------------------\\
 
@@ -533,7 +561,9 @@ namespace bmia {
 		for(int i=0; i < odfValueWithUnitVecPointer.size(); i++)
 		{
 			ODFlist[i]= odfValueWithUnitVecPointer[i].first;
+		 
 			outputlistwithunitvectors[i]= odfValueWithUnitVecPointer[i].second;
+			
 		}
 
 	}

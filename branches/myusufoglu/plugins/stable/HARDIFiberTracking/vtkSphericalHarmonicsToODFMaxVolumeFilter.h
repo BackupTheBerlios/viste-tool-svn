@@ -107,7 +107,10 @@ class vtkSphericalHarmonicsToODFMaxVolumeFilter : public vtkSimpleImageToImageFi
 			{
 				 this->nMaximaForEachPoint = value;
 			}
-
+			int  getTreshold( )
+			{
+				return this->treshold ;
+			}
 			
 
 		/** Enumeration of all scalar measures supported by this filter. New measures

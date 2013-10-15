@@ -116,7 +116,7 @@ public:
   std::vector<double> radii;
 
   void SortUnitVectorsUsingODFValues( std::vector<double> &ODFlist, std::vector<double *>& outputlistwithunitvectors);
-
+  	void  Normalize( std::vector<double> &radii, std::vector<double> &radii_norm);
 private:
 	
 	//array with triangles, needed for neighbor-search
@@ -135,6 +135,9 @@ private:
 	@param temp_neighbors		temporary list with direct neighbors
 	*/
 	void getDirectNeighbors(std::vector<int> seedpoints, std::vector<int> &temp_neighbors);
+
+
+
 };
 
 }
