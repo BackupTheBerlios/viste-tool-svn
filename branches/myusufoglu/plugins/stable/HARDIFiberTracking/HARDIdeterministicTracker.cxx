@@ -1089,7 +1089,7 @@ namespace bmia {
 					//MaxFinder.getGFA(&(currentPoint.AI));
 					this->interpolateScalar(&(currentPoint.AI), weights); // WEIGHTS are OLD for next point?				 
 				}
-				double *a=this->prevSegment;double *b=this->newSegment;
+				double *a=this->prevSegment; double *b=this->newSegment;
 				vtkMath::Normalize(a); vtkMath::Normalize(b);
 				testDot = vtkMath::Dot(a, b); // stop condition new segment is normalized after the increment for dotproduct
 
