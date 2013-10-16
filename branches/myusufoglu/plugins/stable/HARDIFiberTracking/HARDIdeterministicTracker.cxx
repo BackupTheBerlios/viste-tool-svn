@@ -1046,6 +1046,9 @@ namespace bmia {
 				testDot = 0.0;
 				//value to compare local maxima (either random value or dot product)
 				//double value;
+		
+				//Normalize
+		      // vtkMath::Normalize(interpolatedVector);
 
 				this->newSegment[0] = interpolatedVector[0]; // we will haveone unitvector !!! interpolation of angels will 
 				this->newSegment[1] = interpolatedVector[1]; // produce an angle and we will calculate tempDirection!!!!
@@ -1086,8 +1089,9 @@ namespace bmia {
 					//MaxFinder.getGFA(&(currentPoint.AI));
 					this->interpolateScalar(&(currentPoint.AI), weights); // WEIGHTS are OLD for next point?				 
 				}
-
-				testDot = vtkMath::Dot(this->prevSegment, this->newSegment); // stop condition new segment is normalized after the increment for dotproduct
+				double *a=this->prevSegment;double *b=this->newSegment;
+				vtkMath::Normalize(a); vtkMath::Normalize(b);
+				testDot = vtkMath::Dot(a, b); // stop condition new segment is normalized after the increment for dotproduct
 
 				if(this->printStepInfo)
 					cout << "testDot: " << testDot  <<  "current point AI: " << currentPoint.AI << endl;
