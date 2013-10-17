@@ -471,7 +471,7 @@ namespace bmia {
 			weights[i] = 0.0;
 		}
 
-
+		
 		// Check if there's a point in the point list
 		if (!pointList->empty())
 		{
@@ -778,7 +778,7 @@ namespace bmia {
 		{
 			weights[i] = 0.0;
 		}
-
+		this->printStepInfo=1;
 
 		// Check if there's a point in the point list
 		if (!pointList->empty())
@@ -992,9 +992,10 @@ namespace bmia {
 				for(int i=0;i<anglesArray.size();i++)
 					meshPtIndexList.push_back(i);
 			// Check AI values of initial step, otherwise we cannot check the dot product etc
+			bool firstDotProductTestSkipParam=1;
 			while (1) 
 			{
-
+				
 				cout << endl << "===== while ======== " << direction << " ==" << endl;
 
 				// Check if we've moved to a new cell. NEXT POINT is USE DTO FIND CURRENT CELL!!
@@ -1039,7 +1040,7 @@ namespace bmia {
 
 				double *interpolatedVector;
 				//unitVectorCellListFromFile used in findFunctionValueUsingMaxFil
-				interpolatedVector = findFunctionValueUsingMaximaFile(TRESHOLD, anglesArray, weights,  trianglesArray, meshPtIndexList, maxima);
+				interpolatedVector = findFunctionValueUsingMaximaFile(TRESHOLD, anglesArray, weights,  trianglesArray, meshPtIndexList, maxima, this->parentFilter->StopDotProduct);
 				                     //NOT USE: findFunctionValueAtPointUsingMaximaFile(pos )  // newCEllId BREAK sorununu coz!!!
 				
 				                    // USE findRK4DeltaX() 1 tanesi disari cikarsa bulamadim de kes o zaman bastan celli hepsinden once etc...
@@ -1097,6 +1098,10 @@ namespace bmia {
 					cout << "testDot: " << testDot  <<  "current point AI: " << currentPoint.AI << endl;
 				// Call "continueTracking" function of parent filter to determine if
 				// one of the stopping criteria has been met.
+				if(firstDotProductTestSkipParam) {  testDot=1; //fully alligned to skip first test
+				firstDotProductTestSkipParam=0;
+				}
+
 				if (!(this->parentFilter->continueTracking(&(this->currentPoint), testDot, currentCellId)))// Current of NExt Point???
 				{
 					// If so, stop tracking.
@@ -1552,7 +1557,7 @@ namespace bmia {
 	}
 
 	// 
-	double *HARDIdeterministicTracker::findFunctionValueUsingMaximaFile(int threshold, std::vector<double*> &anglesArray, double *weights,  vtkIntArray *trianglesArray, std::vector<int> &meshPtIndexList, std::vector<int> &maxima)
+	double *HARDIdeterministicTracker::findFunctionValueUsingMaximaFile(int threshold, std::vector<double*> &anglesArray, double *weights,  vtkIntArray *trianglesArray, std::vector<int> &meshPtIndexList, std::vector<int> &maxima, double dotLimit)
 
 	{
 		std::vector<double> ODFlist; // null can be used 
@@ -1614,7 +1619,7 @@ namespace bmia {
 			{ 
 				angularSimilarity = vtkMath::Dot(this->newSegment, outputlistwithunitvectors.at(i)); // new segment is actually old increment for coming to xextpoint.
 
-				if( value < angularSimilarity   ) 
+				if( value < angularSimilarity   ) //
 				{  
 					value = angularSimilarity; indexHighestSimilarity = i; 
 					//cout << value << " ";
@@ -1623,12 +1628,18 @@ namespace bmia {
 			}
 			if (!(maxima.size() > 0) || (indexHighestSimilarity==-1) )	
 			{
-				cout << "No Maxima or no similarity" << endl;
+				cout << "No Maxima or no similarity for this vertex" << endl;
 				break;
+				avgMaxVect[j][0]=0;
+			avgMaxVect[j][1]=0;
+			avgMaxVect[j][2]=0;
 			}
+			else {
 			avgMaxVect[j][0]=outputlistwithunitvectors[indexHighestSimilarity][0];
 			avgMaxVect[j][1]=outputlistwithunitvectors[indexHighestSimilarity][1];
 			avgMaxVect[j][2]=outputlistwithunitvectors[indexHighestSimilarity][2];
+
+			}
 			//avgMaxAng[j][0] = acos( outputlistwithunitvectors[indexHighestSimilarity][2]);
 			//avgMaxAng[j][1] = atan2( outputlistwithunitvectors[indexHighestSimilarity][1],  outputlistwithunitvectors[indexHighestSimilarity][0]);
 			//cout << "angles w/ highest ang sim."<< avgMaxAng[j][0] << " " << avgMaxAng[j][1] << " n highest :" << indexHighestSimilarity << endl;

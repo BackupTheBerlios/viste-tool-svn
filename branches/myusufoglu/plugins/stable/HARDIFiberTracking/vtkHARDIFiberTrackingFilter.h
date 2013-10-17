@@ -211,7 +211,7 @@ class vtkHARDIFiberTrackingFilter : public vtkDataSetToPolyDataFilter
 
 		/*  Spherical harmonics or discrete sphere ? SH:1 , DS:0 */
 		int sphericalHarmonics;
-
+		float StopDotProduct;					/**< Threshold for dot product. */
 
 	protected:
 
@@ -241,7 +241,7 @@ class vtkHARDIFiberTrackingFilter : public vtkDataSetToPolyDataFilter
 	    int InitialConditionType;               /**<initial fiber orientation: 0:Interpolation of SH  1:Average of firstmax  2:Average of second Max.
 		/** Derived processing variables, computed from the user variables. */
 
-		float StopDotProduct;					/**< Threshold for dot product. */
+		
 
 		/** Name of the current ROI. Used for the progress bar. */
 		
