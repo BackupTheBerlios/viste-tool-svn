@@ -846,7 +846,7 @@ namespace bmia {
 			// INITIAL CONDITON PART
 			// 
 			    
-			if(initCondition==0) {
+			if(initCondition==0) { 
 			// Interpolate the SH at the seed point position
 			double * SHAux = new double[numberSHcomponents];
 			this->interpolateSH(SHAux, weights, numberSHcomponents);// uses this cellHARDIData
@@ -1099,7 +1099,7 @@ namespace bmia {
 				// Call "continueTracking" function of parent filter to determine if
 				// one of the stopping criteria has been met.
 				if(firstDotProductTestSkipParam) {  testDot=1; //fully alligned to skip first test
-				firstDotProductTestSkipParam=0;
+				firstDotProductTestSkipParam=0; // INITIAL ANGLE IS NOT IMPORTANT, BECAUSE TRIES TO REACH TO THE FIBER
 				}
 
 				if (!(this->parentFilter->continueTracking(&(this->currentPoint), testDot, currentCellId)))// Current of NExt Point???
@@ -1619,7 +1619,7 @@ namespace bmia {
 			{ 
 				angularSimilarity = vtkMath::Dot(this->newSegment, outputlistwithunitvectors.at(i)); // new segment is actually old increment for coming to xextpoint.
 
-				if( value < angularSimilarity   ) //
+				if( value < angularSimilarity  && angularSimilarity >0 && angularSimilarity >= dotLimit ) //
 				{  
 					value = angularSimilarity; indexHighestSimilarity = i; 
 					//cout << value << " ";
@@ -1629,7 +1629,7 @@ namespace bmia {
 			if (!(maxima.size() > 0) || (indexHighestSimilarity==-1) )	
 			{
 				cout << "No Maxima or no similarity for this vertex" << endl;
-				break;
+				//break;
 				avgMaxVect[j][0]=0;
 			avgMaxVect[j][1]=0;
 			avgMaxVect[j][2]=0;
