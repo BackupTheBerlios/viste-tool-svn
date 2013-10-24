@@ -778,7 +778,7 @@ namespace bmia {
 		{
 			weights[i] = 0.0;
 		}
-		this->printStepInfo=1;
+		this->printStepInfo=0;
 
 		// Check if there's a point in the point list
 		if (!pointList->empty())
@@ -1038,14 +1038,19 @@ namespace bmia {
 				}
 
 
-				double *interpolatedVector;
+				double *interpolatedVector = new double[3];
 				//unitVectorCellListFromFile used in findFunctionValueUsingMaxFil
-				interpolatedVector = findFunctionValueUsingMaximaFile(TRESHOLD, anglesArray, weights,  trianglesArray, meshPtIndexList, maxima, this->parentFilter->StopDotProduct);
+				findFunctionValueUsingMaximaFile(TRESHOLD, anglesArray, weights,  trianglesArray, meshPtIndexList, maxima, this->parentFilter->StopDotProduct,interpolatedVector);
 				                     //NOT USE: findFunctionValueAtPointUsingMaximaFile(pos )  // newCEllId BREAK sorununu coz!!!
-				
+				cout << "interpolated vector : "<<  interpolatedVector[0] << interpolatedVector[1] << interpolatedVector[2] << endl;
 				                    // USE findRK4DeltaX() 1 tanesi disari cikarsa bulamadim de kes o zaman bastan celli hepsinden once etc...
 				testDot = 0.0;
-				//value to compare local maxima (either random value or dot product)
+				if (vtkMath::Norm(interpolatedVector) < (this->stepSize / 5))
+					{
+						cout << "very small increment due to maxima directions are nor ok"<< endl;
+						break; // WHY; for stability if no maxima is found incremental movement is close to ZERO. DEAD LOCK.
+				} 
+						//value to compare local maxima (either random value or dot product)
 				//double value;
 		
 				//Normalize
@@ -1068,12 +1073,12 @@ namespace bmia {
 				if (!this->solveIntegrationStepSHDI(currentCell, currentCellId, weights)) //Add NEwSegment to Current Point to Determine NEXT Point!!!
 					break;	
 
-				if(this->printStepInfo)
-				{
+			//	if(this->printStepInfo)
+			//	{
 					cout <<"nextpoimt after:" << this->nextPoint.X[0] << " " << this->nextPoint.X[1]  << " "<< this->nextPoint.X[2]  << endl;
 					cout <<"prev segment1.1:" << this->prevSegment[0] << " " << this->prevSegment[1] << " "<< this->prevSegment[2] << endl;
 					cout <<"new segment1.1:" << this->newSegment[0] << " " << this->newSegment[1] << " "<< this->newSegment[2] << endl;
-				}	
+			//	}	
 				// Update the total fiber length
 				incrementalDistance = sqrt((double) vtkMath::Distance2BetweenPoints(currentPoint.X, nextPoint.X)); // next point nerede dolar ??
 
@@ -1557,7 +1562,7 @@ namespace bmia {
 	}
 
 	// 
-	double *HARDIdeterministicTracker::findFunctionValueUsingMaximaFile(int threshold, std::vector<double*> &anglesArray, double *weights,  vtkIntArray *trianglesArray, std::vector<int> &meshPtIndexList, std::vector<int> &maxima, double dotLimit)
+	void HARDIdeterministicTracker::findFunctionValueUsingMaximaFile(int threshold, std::vector<double*> &anglesArray, double *weights,  vtkIntArray *trianglesArray, std::vector<int> &meshPtIndexList, std::vector<int> &maxima, double dotLimit, double * interpolatedVector )
 
 	{
 		std::vector<double> ODFlist; // null can be used 
@@ -1618,18 +1623,18 @@ namespace bmia {
 			for( int i=0;i< outputlistwithunitvectors.size()  ;i++ )
 			{ 
 				angularSimilarity = vtkMath::Dot(this->newSegment, outputlistwithunitvectors.at(i)); // new segment is actually old increment for coming to xextpoint.
-
-				if( value < angularSimilarity  && angularSimilarity >0 && angularSimilarity >= dotLimit ) //
+				 //cout << value << " " << angularSimilarity << " " << dotLimit << endl;
+				if( value <= angularSimilarity  && angularSimilarity >0  && angularSimilarity >= dotLimit ) //&& angularSimilarity >= dotLimit
 				{  
 					value = angularSimilarity; indexHighestSimilarity = i; 
-					//cout << value << " ";
+					
 
 				}
 			}
 			if (!(maxima.size() > 0) || (indexHighestSimilarity==-1) )	
 			{
-				cout << "No Maxima or no similarity for this vertex" << endl;
-				//break;
+				cout << "No  similarity for this vrtx" << endl;
+//				break; // if no break many of vectors can be zero and interpolated vector can be 0 then; 
 				avgMaxVect[j][0]=0;
 			avgMaxVect[j][1]=0;
 			avgMaxVect[j][2]=0;
@@ -1638,7 +1643,7 @@ namespace bmia {
 			avgMaxVect[j][0]=outputlistwithunitvectors[indexHighestSimilarity][0];
 			avgMaxVect[j][1]=outputlistwithunitvectors[indexHighestSimilarity][1];
 			avgMaxVect[j][2]=outputlistwithunitvectors[indexHighestSimilarity][2];
-
+			
 			}
 			//avgMaxAng[j][0] = acos( outputlistwithunitvectors[indexHighestSimilarity][2]);
 			//avgMaxAng[j][1] = atan2( outputlistwithunitvectors[indexHighestSimilarity][1],  outputlistwithunitvectors[indexHighestSimilarity][0]);
@@ -1654,10 +1659,10 @@ namespace bmia {
 		}// for cell 8 
 
 
-		double interpolatedVector[3];
+		//double interpolatedVector[3]; //={ 0,0,0 } ;
 		this->interpolateVectors(anglesBeforeInterpolation,weights, interpolatedVector); // this average will be used as initial value. 
 		anglesBeforeInterpolation.clear(); // INTERPOLATE VECTORS !!!
-		return interpolatedVector;
+		 
 	}
  
 
@@ -1697,7 +1702,7 @@ namespace bmia {
 					}
 		int numberSHcomponents = HARDIArray->GetNumberOfComponents();
 		
-		interpolatedVector =  findFunctionValueUsingMaximaFile(threshold, anglesArray, weights,  trianglesArray, meshPtIndexList, maxima);
+		 findFunctionValueUsingMaximaFile(threshold, anglesArray, weights,  trianglesArray, meshPtIndexList, maxima,1,interpolatedVector);
 		return interpolatedVector;
 	}
 
@@ -2172,12 +2177,13 @@ namespace bmia {
 
 	void HARDIdeterministicTracker::interpolateVectors(std::vector<double *> &angles, double * weights, double *interpolatedVector)
 	{
-
+		
 		interpolatedVector[0]=0.0;
 		interpolatedVector[1]=0.0;
 		interpolatedVector[2]=0.0;
+		if(angles.size()==0) return;
 		// For all eight surrounding voxels...
-		for (int i = 0; i < 8; ++i)
+		for (int i = 0; i < angles.size(); ++i)
 		{
 
 
