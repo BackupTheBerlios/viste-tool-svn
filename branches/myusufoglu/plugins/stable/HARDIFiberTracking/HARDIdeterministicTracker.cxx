@@ -56,7 +56,7 @@ namespace bmia {
 
 		//initializations
 		//debug options
-		printStepInfo =0;
+		printStepInfo =1;
 		breakLoop=0;
 
 
@@ -1147,10 +1147,10 @@ namespace bmia {
 	}
 
 
-	void HARDIdeterministicTracker::calculateFiberSHDIUseOfflineMaximaDirectionsRK4(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,int numberOfIterations, bool CLEANMAXIMA, double TRESHOLD)
+	void HARDIdeterministicTracker::calculateFiberSHDIUseOfflineMaximaDirectionsRK4(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,int numberOfIterations, bool CLEANMAXIMA,double TRESHOLD, int initCondition)
 	{
 
-		cout << "-----  New Seed for a New Fiber - calculateFiberSHDI MaxDirection From File ------("<< direction <<")"<<  endl;
+			cout << "-----  New Seed for a New Fiber - calculateFiberSHDIMaxDirection Offline ------("<< direction <<")"<<  endl;
 		vtkCell *	currentCell			= NULL;						// Cell of current point
 		vtkIdType	currentCellId		= 0;						// Id of current cell
 		double		closestPoint[3]		= {0.0, 0.0, 0.0};			// Used in "EvaluatePosition"
@@ -1169,7 +1169,7 @@ namespace bmia {
 		{
 			weights[i] = 0.0;
 		}
-
+		this->printStepInfo=0;
 
 		// Check if there's a point in the point list
 		if (!pointList->empty())
@@ -1205,7 +1205,12 @@ namespace bmia {
 			//vector to store the unit vectors of the found maxima
 			std::vector<double *> outputlistwithunitvectors;
 			//neede for search space reduction
-		
+	
+			
+
+
+
+
 			std::vector<int> meshPtIndexList;
 			//list with ODF values
 			std::vector<double> ODFlist;
@@ -1227,8 +1232,35 @@ namespace bmia {
 			double **unitVectorsOfAPointFromFile = new double*[this->nMaximaForEachPoint];
 			for (int j = 0; j < this->nMaximaForEachPoint; ++j)
 				unitVectorsOfAPointFromFile[j] = new double[3];
+			double tempDirection[3];
+			////////////////////////////////////////////////////////////////////
+			// INITIAL CONDITON PART
+			// 
+			    
+			if(initCondition==0) { 
+			// Interpolate the SH at the seed point position
+			double * SHAux = new double[numberSHcomponents];
+			this->interpolateSH(SHAux, weights, numberSHcomponents);// uses this cellHARDIData
 
+			//get the ODF
+			//MaxFinder.getOutput(SHAux, this->parentFilter->shOrder, anglesArray); // get output
+			MaxFinder.getOutput(SHAux, this->parentFilter->shOrder,TRESHOLD, anglesArray,  maxima, meshPtIndexList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
+				// maxima has ids use them to get angles
+				MaxFinder.cleanOutput(maxima, outputlistwithunitvectors,SHAux, ODFlist, this->unitVectors, anglesArray);
+	//		for (int j = 0; j < this->nMaximaForEachPoint; ++j)
+		//		outputlistwithunitvectors[j] = this->unitVectors[j];
 
+			// Find maximum of this interpolated values here and use as initial condition
+			//deallocate memory
+			delete [] SHAux;
+			tempDirection[0] =  unitVectors[0][0];
+			tempDirection[1] =  unitVectors[0][1];
+			tempDirection[2] =  unitVectors[0][2];
+			}
+			///////////////////////////////////////////////////
+
+			else if (initCondition==1 || initCondition==2 )
+			{
 			std::vector<double *> anglesBeforeInterpolation; 
 
 			//initial regionlist includes all points not some points of the ODF
@@ -1265,14 +1297,20 @@ namespace bmia {
 				avgMaxAng[1]=0;
 				for(int i=0; i< this->nMaximaForEachPoint; i++)// START FROM HERE!!! this->n
 				{	
-					//if(i%2==0) {
+					if (initCondition==1)
+					if(i%2==0) {
 					avgMaxAng[0]+= acos( outputlistwithunitvectors[i][2]);  // choose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
 					avgMaxAng[1]+= atan2( outputlistwithunitvectors[i][1],  outputlistwithunitvectors[i][0]);  // ose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
-					//}
-					//cout << "anglesOfmaxOfCorner"  << anglesArray.at(maxima.at(i))[0] << " " << anglesArray.at(maxima.at(i))[1] << endl;
+					}//cout << "anglesOfmaxOfCorner"  << anglesArray.at(maxima.at(i))[0] << " " << anglesArray.at(maxima.at(i))[1] << endl;
+				else if (initCondition==2)
+					if(i%2==1) {
+					avgMaxAng[0]+= acos( outputlistwithunitvectors[i][2]);  // choose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
+					avgMaxAng[1]+= atan2( outputlistwithunitvectors[i][1],  outputlistwithunitvectors[i][0]);  // ose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
+					}//co
+				
 				}
-				avgMaxAng[0]/=this->nMaximaForEachPoint;
-				avgMaxAng[1]/=this->nMaximaForEachPoint;
+				avgMaxAng[0]=avgMaxAng[0]/(this->nMaximaForEachPoint/2); // 2 CAREFULL
+				avgMaxAng[1]=avgMaxAng[1]/(this->nMaximaForEachPoint/2);
 				//cout << avgMaxAng[0] << " " << avgMaxAng[1] << endl;
 				anglesBeforeInterpolation.push_back(avgMaxAng); // if angles are in the range of [-pi,pi] interpolation is ok
 				outputlistwithunitvectors.clear();
@@ -1285,7 +1323,7 @@ namespace bmia {
 			double interpolatedDirection[2];
 			this->interpolateAngles(anglesBeforeInterpolation,weights, interpolatedDirection); // this average will be used as initial value. 
 			anglesBeforeInterpolation.clear();
-			double tempDirection[3];
+			
 			tempDirection[0] = sinf(interpolatedDirection[0]) * cosf(interpolatedDirection[1]);
 			tempDirection[1] = sinf(interpolatedDirection[0]) * sinf(interpolatedDirection[1]);
 			tempDirection[2] = cosf(interpolatedDirection[0]);
@@ -1294,7 +1332,7 @@ namespace bmia {
 			// add 
 			//deallocate memory
 
-
+			}
 			// Get the AI scalar at the seed point position
 			//MaxFinder.getGFA(&(currentPoint.AI));
 			this->interpolateScalar(&(currentPoint.AI), weights);
@@ -1345,6 +1383,7 @@ namespace bmia {
 				for(int i=0;i<anglesArray.size();i++)
 					meshPtIndexList.push_back(i);
 			// Check AI values of initial step, otherwise we cannot check the dot product etc
+			bool firstDotProductTestSkipParam=1;
 			while (1) 
 			{
 
@@ -1633,7 +1672,7 @@ namespace bmia {
 			}
 			if (!(maxima.size() > 0) || (indexHighestSimilarity==-1) )	
 			{
-				cout << "No  similarity for this vrtx" << endl;
+				cout << "No  similarity for this vrtx " << j << endl;
 //				break; // if no break many of vectors can be zero and interpolated vector can be 0 then; 
 				avgMaxVect[j][0]=0;
 			avgMaxVect[j][1]=0;
@@ -1668,11 +1707,11 @@ namespace bmia {
 
 
      // Use this function if  RK4 and maxima unitvecr=tors from file
-	double * HARDIdeterministicTracker::findFunctionValueAtPointUsingMaximaFile(double pos[3],vtkCell * currentCell, vtkIdType currentCellId, int threshold, std::vector<double*> &anglesArray,  vtkIntArray *trianglesArray, std::vector<int> &meshPtIndexList, std::vector<int> &maxima){
+	void HARDIdeterministicTracker::findFunctionValueAtPointUsingMaximaFile(double pos[3],vtkCell * currentCell, vtkIdType currentCellId, int threshold, std::vector<double*> &anglesArray,  vtkIntArray *trianglesArray, std::vector<int> &meshPtIndexList, std::vector<int> &maxima, double *interpolatedVector){
 		double pCoords[3] = { 0.0, 0.0,0.0};
 		int subId=0;
 		double weights[8];
-		double *interpolatedVector = new double[3];
+		//double *interpolatedVector = new double[3];
 		vtkIdType newCellId = this->HARDIimageData->FindCell(pos,currentCell, currentCellId,this->tolerance, subId, pCoords, weights);
 
 		// If we're in a new cell, and we're still inside the volume...
@@ -1693,7 +1732,7 @@ namespace bmia {
 			if (newCellId == -1)
 		{
 			interpolatedVector[0]=interpolatedVector[0]=interpolatedVector[0]=0.0;
-			return interpolatedVector;
+			return ;
 		}
 		 // outUnitVectorListFromFile (values for  the whole volume) if filled in formarraysfromfile
 		for(unsigned int nr = 0; nr <outUnitVectorListFromFile.size()  ; nr++)
@@ -1703,32 +1742,32 @@ namespace bmia {
 		int numberSHcomponents = HARDIArray->GetNumberOfComponents();
 		
 		 findFunctionValueUsingMaximaFile(threshold, anglesArray, weights,  trianglesArray, meshPtIndexList, maxima,1,interpolatedVector);
-		return interpolatedVector;
+		//return interpolatedVector;
 	}
 
-	double *HARDIdeterministicTracker::findRK4DeltaX(double pos[3],vtkCell * currentCell, vtkIdType currentCellId, int threshold, std::vector<double*> &anglesArray, double *interpolatedVector,  vtkIntArray *trianglesArray, std::vector<int> &meshPtIndexList, std::vector<int> &maxima)
+	double *HARDIdeterministicTracker::findRK4DeltaX(double pos[3],vtkCell * currentCell, vtkIdType currentCellId, int threshold, std::vector<double*> &anglesArray, double *weights,  vtkIntArray *trianglesArray, std::vector<int> &meshPtIndexList, std::vector<int> &maxima)
 	{
 		double H= this->step;
 		double *K1= new double[3]; double *K2= new double[3]; double *K3= new double[3]; double *K4= new double[3];
 		double *posK1= new double[3]; double *posK2= new double[3]; double *posK3= new double[3]; double *posK4= new double[3];
 		double *local_new_segment= new double[3];
 
-		K1 = findFunctionValueAtPointUsingMaximaFile( pos,currentCell, currentCellId,threshold, anglesArray, trianglesArray, meshPtIndexList,maxima);
+		  findFunctionValueAtPointUsingMaximaFile( pos,currentCell, currentCellId,threshold, anglesArray, trianglesArray, meshPtIndexList,maxima,K1);
 	    
 		posK2[0]=pos[0]+(H/2.0)*K1[0]; 
 		posK2[1]=pos[1]+(H/2.0)*K1[1];
 		posK2[2]=pos[2]+(H/2.0)*K1[2];
-		K2 = findFunctionValueAtPointUsingMaximaFile( posK2,currentCell, currentCellId,threshold, anglesArray, trianglesArray, meshPtIndexList,maxima);
+		  findFunctionValueAtPointUsingMaximaFile( posK2,currentCell, currentCellId,threshold, anglesArray, trianglesArray, meshPtIndexList,maxima, K2);
 
 		posK3[0]=pos[0]+(H/2.0)*K2[0]; 
 		posK3[1]=pos[1]+(H/2.0)*K2[1]; 
 		posK3[2]=pos[2]+(H/2.0)*K2[2];
-		K3 = findFunctionValueAtPointUsingMaximaFile( posK3,currentCell, currentCellId,threshold, anglesArray, trianglesArray, meshPtIndexList,maxima);
+		  findFunctionValueAtPointUsingMaximaFile( posK3,currentCell, currentCellId,threshold, anglesArray, trianglesArray, meshPtIndexList,maxima,K3);
 
 		posK4[0]=pos[0]+(H)*K3[0]; 
 		posK4[1]=pos[1]+(H)*K3[1]; 
 		posK4[2]=pos[2]+(H)*K3[2];
-		K4 = findFunctionValueAtPointUsingMaximaFile( posK4,currentCell, currentCellId,threshold, anglesArray, trianglesArray, meshPtIndexList,maxima);
+		  findFunctionValueAtPointUsingMaximaFile( posK4,currentCell, currentCellId,threshold, anglesArray, trianglesArray, meshPtIndexList,maxima, K4);
 
 		for(int i=0;i<3;i++)
 		local_new_segment[i]=  (1/6.0) *  (K1[i] + 2*K2[i] + 2*K3[i] + K4[i]);
@@ -1740,7 +1779,7 @@ namespace bmia {
 		//double runge = (y + (1 / 6) *  (K1 + 2 * K2 + 2 * K3 + K4));
 		
 		//Set the current cell to previous value:
-		K1 = findFunctionValueAtPointUsingMaximaFile( pos,currentCell, currentCellId,threshold, anglesArray, trianglesArray, meshPtIndexList,maxima);
+	 findFunctionValueAtPointUsingMaximaFile( pos,currentCell, currentCellId,threshold, anglesArray, trianglesArray, meshPtIndexList,maxima, K1);
 	   
 		return local_new_segment; //interpolated? NORMALIZE???
 

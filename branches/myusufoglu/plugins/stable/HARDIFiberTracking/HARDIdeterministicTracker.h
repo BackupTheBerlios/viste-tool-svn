@@ -139,7 +139,7 @@ class HARDIdeterministicTracker
 
 		virtual void calculateFiberSHDI(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,  int numberOfIterations, bool cLEANMAXIMA, double TRESHOLD);
 		virtual void calculateFiberSHDIUseOfflineMaximaDirections(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,  int numberOfIterations, bool cLEANMAXIMA, double TRESHOLD, int initCondition=1);
-		virtual void calculateFiberSHDIUseOfflineMaximaDirectionsRK4(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,  int numberOfIterations, bool cLEANMAXIMA, double TRESHOLD);
+		virtual void calculateFiberSHDIUseOfflineMaximaDirectionsRK4(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,  int numberOfIterations, bool cLEANMAXIMA, double TRESHOLD, int initCondition=1);
 		
 
 		void readMaximaVectorsFile();
@@ -157,10 +157,10 @@ class HARDIdeterministicTracker
 		
 
 	 	
-		double *findFunctionValueAtPointUsingMaximaFile(double pos[3],vtkCell * currentCell, vtkIdType currentCellId, int threshold, std::vector<double*> &anglesArray,    vtkIntArray *trianglesArray, std::vector<int> &meshPtIndexList, std::vector<int> &maxima);
+		void findFunctionValueAtPointUsingMaximaFile(double pos[3],vtkCell * currentCell, vtkIdType currentCellId, int threshold, std::vector<double*> &anglesArray,    vtkIntArray *trianglesArray, std::vector<int> &meshPtIndexList, std::vector<int> &maxima, double *interpolatedVector=nullptr);
 
 
-		double * findRK4DeltaX(double pos[3],vtkCell * currentCell, vtkIdType currentCellId, int threshold, std::vector<double*> &anglesArray, double *interpolatedVector,  vtkIntArray *trianglesArray, std::vector<int> &meshPtIndexList, std::vector<int> &maxima);
+		double * findRK4DeltaX(double pos[3],vtkCell * currentCell, vtkIdType currentCellId, int threshold, std::vector<double*> &anglesArray, double *weights,  vtkIntArray *trianglesArray, std::vector<int> &meshPtIndexList, std::vector<int> &maxima);
 
 		void findMax2( std::vector<double> &array, std::vector<double> &maxima, std::vector<double*> &maximaunitvectors, std::vector<double *> &anglesReturn);
 		/** Sets the unit vectors for this class. */ 
