@@ -74,7 +74,10 @@
  * - Changed showAbout function, which shows the Help->About window. Reads the data from an xml file. AboutInfo.xml.
  *
  *   2013-05-12 Mehmet Yusufoglu
- * - Added Tooltips and Status Tips.
+ * - Added Tooltips and Status Tips. 
+ *
+  *   2013-10-01 Mehmet Yusufoglu
+ * - Added  lines for depth peeling functionality to renderer and window. In function initializeVtkRenderWindow().
  */
 
 
@@ -699,6 +702,13 @@ void MainWindow::initializeVtkRenderWindow()
 
 	// Store the 3D renderer of the meta-canvas
 	this->renderer = this->metaCanvas->GetRenderer3D();
+
+	// this can be put to polydata visualisation plugin
+	this->vtkWidget->GetRenderWindow()->SetAlphaBitPlanes(1);
+this->vtkWidget->GetRenderWindow()->SetMultiSamples(0);
+this->renderer->SetUseDepthPeeling(1);
+this->renderer->SetMaximumNumberOfPeels(50);
+this->renderer->SetOcclusionRatio(0.1); 
 }
 
 
