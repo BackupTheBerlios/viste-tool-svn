@@ -7,7 +7,9 @@ namespace bmia {
 typedef struct
 {
     bool useGlyphData;
-    bool normalizeScalars;
+    bool standardizeScalars;
+    bool normalizeGlyphData;
+    bool applyLog;
 
     double lambda;
     double beta;

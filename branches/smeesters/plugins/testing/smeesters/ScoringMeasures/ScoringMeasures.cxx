@@ -94,7 +94,9 @@ void ScoringMeasures::dataSetAdded(data::DataSet * d)
 		ps->beta = 0.0;
 		ps->muu = 0.0;
 		ps->typeOfCurve = vtkFiberScoringMeasuresFilter::CURVE_TYPE_GEODESIC;
-		ps->normalizeScalars = true;
+		ps->standardizeScalars = true;
+		ps->normalizeGlyphData = false;
+		ps->applyLog = true;
 		sortedFibers->ps = ps;
 
         // Add the new data set to the list of currently available fiber sets
@@ -386,6 +388,8 @@ void ScoringMeasures::EnableGUI()
     this->form->dataIndependentGroupBox->setEnabled(true);
     this->form->updateButton->setEnabled(true);
     this->form->outputLineEdit->setEnabled(true);
+
+    this->form->settingsGroupBox->setEnabled(true);
 }
 
 void ScoringMeasures::DisableGUI()
@@ -394,6 +398,9 @@ void ScoringMeasures::DisableGUI()
     this->form->dataIndependentGroupBox->setEnabled(false);
     this->form->updateButton->setEnabled(false);
     this->form->outputLineEdit->setEnabled(false);
+
+    this->form->settingsGroupBox->setEnabled(false);
+
 }
 
 void ScoringMeasures::BlockSignals()
@@ -423,7 +430,9 @@ void ScoringMeasures::UpdateGUI()
     this->form->muuSlider->setValue(ps->muu*SLIDER_SUBSTEPS);
     this->form->muuSpinBox->setValue(ps->muu);
 
-    this->form->normalizeScalarsCheckBox->setChecked(ps->normalizeScalars);
+    this->form->standardizeScalarsCheckBox->setChecked(ps->standardizeScalars);
+    this->form->normalizeGlyphDataCheckBox->setChecked(ps->normalizeGlyphData);
+    this->form->applyLogarithmCheckBox->setChecked(ps->applyLog);
 
     // re-enable signals
     AllowSignals();
@@ -461,9 +470,19 @@ void ScoringMeasures::updateButtonClicked()
     ComputeScore();
 }
 
-void ScoringMeasures::normalizeScalarsCheckBoxChanged(bool checked)
+void ScoringMeasures::standardizeScalarsCheckBoxChanged(bool checked)
 {
-    GetSortedFibers()->ps->normalizeScalars = checked;
+    GetSortedFibers()->ps->standardizeScalars = checked;
+}
+
+void ScoringMeasures::normalizeGlyphDataCheckBoxChanged(bool checked)
+{
+    GetSortedFibers()->ps->normalizeGlyphData = checked;
+}
+
+void ScoringMeasures::applyLogarithmCheckBoxChanged(bool checked)
+{
+    GetSortedFibers()->ps->applyLog = checked;
 }
 
 void ScoringMeasures::lambdaSliderChanged(int value)
@@ -513,7 +532,10 @@ void ScoringMeasures::connectAll()
     connect(this->form->fibersCombo,SIGNAL(currentIndexChanged(int)),this,SLOT(fibersComboChanged(int)));
     connect(this->form->glyphDataCombo,SIGNAL(currentIndexChanged(int)),this,SLOT(glyphDataComboChanged(int)));
     connect(this->form->updateButton,SIGNAL(clicked()),this,SLOT(updateButtonClicked()));
-    connect(this->form->normalizeScalarsCheckBox,SIGNAL(toggled(bool)),this,SLOT(normalizeScalarsCheckBoxChanged(bool)));
+
+    connect(this->form->standardizeScalarsCheckBox,SIGNAL(toggled(bool)),this,SLOT(standardizeScalarsCheckBoxChanged(bool)));
+    connect(this->form->normalizeGlyphDataCheckBox,SIGNAL(toggled(bool)),this,SLOT(normalizeGlyphDataCheckBoxChanged(bool)));
+    connect(this->form->applyLogarithmCheckBox,SIGNAL(toggled(bool)),this,SLOT(applyLogarithmCheckBoxChanged(bool)));
 
     connect(this->form->lambdaSlider,SIGNAL(valueChanged(int)),this,SLOT(lambdaSliderChanged(int)));
     connect(this->form->lambdaSpinBox,SIGNAL(valueChanged(double)),this,SLOT(lambdaSpinBoxChanged(double)));

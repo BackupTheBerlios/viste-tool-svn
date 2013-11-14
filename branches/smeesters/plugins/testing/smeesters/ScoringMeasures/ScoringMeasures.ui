@@ -249,15 +249,35 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox">
+    <widget class="QGroupBox" name="settingsGroupBox">
      <property name="title">
       <string>Settings</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_4">
       <item>
-       <widget class="QCheckBox" name="normalizeScalarsCheckBox">
+       <widget class="QCheckBox" name="applyLogarithmCheckBox">
         <property name="text">
-         <string>Normalize scalars</string>
+         <string>Apply logarithm</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="normalizeGlyphDataCheckBox">
+        <property name="text">
+         <string>Normalize glyph data</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="standardizeScalarsCheckBox">
+        <property name="text">
+         <string>Standardize output</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
         </property>
        </widget>
       </item>

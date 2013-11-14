@@ -355,8 +355,18 @@ void vtkFiberScoringMeasuresFilter::Execute()
 
                         // External energy
                         external_energy = radiiArray->GetComponent(imagePointId, matchedId);
-                        if(external_energy > 0.0)
-                            external_energy = log10(external_energy);
+
+                        // Normalize glyph data
+                        if(ps->normalizeGlyphData)
+                            external_energy /= 30000.0;
+
+                        // Apply log
+                        if(ps->applyLog)
+                        {
+                            if(external_energy > 0.0)
+                                external_energy = log10(external_energy);
+                        }
+
 
                         //double* matchedAngles = anglesArray->GetTuple2(matchedId);
                         //printf("p:%f %f %f, prev_p:%f %f %f, dp:%f %f %f \n", p[0], p[1], p[2], prev_p[0], prev_p[1], prev_p[2], dp[0], dp[1], dp[2]);
@@ -397,7 +407,7 @@ void vtkFiberScoringMeasuresFilter::Execute()
                     free(b0);
                     free(b1);
 
-                    internal_energy = sqrt(/*curvature*curvature*/ + muu*torsion + beta*inv_numberOfFiberPoints*inv_numberOfFiberPoints);
+                    internal_energy = sqrt(curvature*curvature + muu*torsion + beta*inv_numberOfFiberPoints*inv_numberOfFiberPoints);
                 }
 
                 //printf("curvature:%f, torsion:%f \n", curvature, torsion);
@@ -427,7 +437,7 @@ void vtkFiberScoringMeasuresFilter::Execute()
 
 	// Normalize SM
 	int numTuples = SMScalars->GetNumberOfTuples();
-	if(ps->normalizeScalars)
+	if(ps->standardizeScalars)
 	{
 	    double mean = 0.0;
 	    int nrTuples = numTuples;
