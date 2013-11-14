@@ -405,12 +405,12 @@ void ScoringMeasures::DisableGUI()
 
 void ScoringMeasures::BlockSignals()
 {
-
+    this->form->glyphDataCombo->blockSignals(true);
 }
 
 void ScoringMeasures::AllowSignals()
 {
-
+    this->form->glyphDataCombo->blockSignals(false);
 }
 
 void ScoringMeasures::UpdateGUI()
@@ -429,6 +429,8 @@ void ScoringMeasures::UpdateGUI()
     this->form->betaSpinBox->setValue(ps->beta);
     this->form->muuSlider->setValue(ps->muu*SLIDER_SUBSTEPS);
     this->form->muuSpinBox->setValue(ps->muu);
+
+    this->form->glyphDataCombo->setCurrentIndex(sortedFibers->selectedGlyphData + 1);
 
     this->form->standardizeScalarsCheckBox->setChecked(ps->standardizeScalars);
     this->form->normalizeGlyphDataCheckBox->setChecked(ps->normalizeGlyphData);
