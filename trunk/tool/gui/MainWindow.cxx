@@ -78,6 +78,9 @@
  *
   *   2013-10-01 Mehmet Yusufoglu
  * - Added  lines for depth peeling functionality to renderer and window. In function initializeVtkRenderWindow().
+ *
+ *    2013-11-26 Mehmet Yusufoglu
+ * - The folder of last opened file is kept and used in the next file open. Added fileOpenedBefore variable.
  */
 
 
@@ -176,6 +179,9 @@ MainWindow::MainWindow(Core * coreInstance, QWidget * parent) : QMainWindow(pare
 	this->pluginChooserTop->setStatusTip("Select one of the plugins to display its user interface");
 	this->pluginChooserBot->setToolTip("Select the plugin");
 	this->pluginChooserBot->setStatusTip("Select one of the plugins to display its user interface");
+
+	// Used in the process to keep the last value of Opened Folder
+	this->fileOpenedBefore = false;
 }
 
 
@@ -365,14 +371,14 @@ void MainWindow::changeBackground(QColor newColor, bool applyGradient)
 void MainWindow::openData()
 {
 	// String containing the default folder
-	QString defaultFolder = "";
+	static QString defaultFolder = "";
 
 	// If we've got at least one profile, we can get the default folder
 	if (this->core->profiles.size() > 0)
 	{
 		// Get the path of the data directory of the first profile, in case
 		// no default profile has been set (should not happen).
-
+		if(!fileOpenedBefore)
 		defaultFolder = this->core->profiles.at(0)->dataDir.absolutePath();
 
 		// Loop through the remainder of the profile
@@ -382,12 +388,14 @@ void MainWindow::openData()
 			DTIToolProfile * currentProfile = this->core->profiles.at(i);
 
 			// Check if this is the default profile
-			if (currentProfile->isDefault)
+			if (currentProfile->isDefault && !fileOpenedBefore)
 			{
 				// If so, get the path of the profile's data directory
 				defaultFolder = currentProfile->dataDir.absolutePath();
 				break;
 			}
+		 
+
 		}
 	}
 
@@ -407,7 +415,7 @@ void MainWindow::openData()
 		filterString.append(";;");
 		filterString.append(filterList.at(i));
 	}
-
+	 
 	// Get filename of one or more file
     QStringList filenames = QFileDialog::getOpenFileNames(	this,				// Parent
 															"Choose file(s)",	// Caption
@@ -417,14 +425,18 @@ void MainWindow::openData()
 	// Do nothing if the list of names is empty
     if (filenames.isEmpty()) 
 		return;
-
+	 
 	// Loop through all filenames
 	foreach(QString filename, filenames)
 	{
+		QFileInfo fileinfo(filename);
+		 
 		// Do nothing if the filename is invalid
 		if (filename.isEmpty() || filename.isNull())
 			continue;
-
+		defaultFolder = fileinfo.absoluteDir().absolutePath();
+		fileOpenedBefore = true;
+		 
 		// Load the file
 		this->core->data()->loadDataFromFile(filename);
 	}

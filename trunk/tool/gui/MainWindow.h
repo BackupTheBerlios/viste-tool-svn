@@ -75,9 +75,12 @@
  *   gui/ui_MainWindow.h (either with double quotes or parentheses).
  *
  *
- *  * 2013-02-12 Mehmet Yusufoglu
+ * 2013-02-12 Mehmet Yusufoglu
  * - Changed showAbout function, which shows the Help->About window. Reads the data from an xml file. AboutInfo.xml.
  *  Included file : QXmlStreamReader. 
+ *
+ * 2013-11-26 Mehmet Yusufoglu
+ * - The folder of last opened file is kept and used in the next file open. Added fileOpenedBefore variable.
  */
 
 
@@ -224,6 +227,9 @@ class MainWindow : public QMainWindow, public Ui::MainWindow, public MainWindowI
 		{
 			return pluginChooserTop;
 		}
+
+		/** if a file opened before this becomes 1 so that the last path would be used */
+		bool fileOpenedBefore;
 
 	protected:
 		
