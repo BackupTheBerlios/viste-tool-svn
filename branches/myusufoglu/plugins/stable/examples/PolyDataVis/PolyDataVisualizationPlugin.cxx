@@ -46,6 +46,10 @@
 *  2013-07-02	Mehmet Yusufoglu
 * - Added an opacity slider,corresponding slot and lines to the
 * list box data selection slot. No class variables added.
+*
+*  2013-10-29  Mehmet Yusufoglu
+* - Added depth peeling feature. 
+*  
 * 
 */
 
@@ -77,8 +81,6 @@ namespace bmia {
 		this->ui->setupUi(this->widget);
 		// disable the options frame if there is no data
 		this->ui->optionsFrame->setEnabled(false);
-
-
 
 
 		// Link events in the GUI to function calls:
@@ -163,11 +165,11 @@ namespace bmia {
 		//		this->fullCore()->canvas()->GetRenderer3D()->ResetCamera();
 		//// Depth Peeling
 		//this->fullCore()->canvas()->GetRenderer3D()->GetRenderWindow()->SetOffScreenRendering(1);
-		cout << this->fullCore()->canvas()->GetRenderer3D()->GetRenderWindow()->GetAlphaBitPlanes() << endl ; //defa 0
-		cout << this->fullCore()->canvas()->GetRenderer3D()->GetRenderWindow()->GetMultiSamples() << endl; // def 8
+		//cout << this->fullCore()->canvas()->GetRenderer3D()->GetRenderWindow()->GetAlphaBitPlanes() << endl ; //default 0
+		//cout << this->fullCore()->canvas()->GetRenderer3D()->GetRenderWindow()->GetMultiSamples() << endl; // def 8
 
-		cout << this->fullCore()->canvas()->GetRenderer3D()->GetMaximumNumberOfPeels() << endl; //def 4
-		cout << this->fullCore()->canvas()->GetRenderer3D()->GetOcclusionRatio() << endl; //def 0 ?
+		//cout << this->fullCore()->canvas()->GetRenderer3D()->GetMaximumNumberOfPeels() << endl; //def 4
+		//cout << this->fullCore()->canvas()->GetRenderer3D()->GetOcclusionRatio() << endl; //def 0 ?
 		this->core()->render();
 	}
 
@@ -212,17 +214,7 @@ namespace bmia {
 	}
 
 
-	/**
- * Setup the rendering environment for depth peeling (general depth peeling
- * support is requested).
- * @see IsDepthPeelingSupported()
- * @param renderWindow a valid openGL-supporting render window
- * @param renderer a valid renderer instance
- * @param maxNoOfPeels maximum number of depth peels (multi-pass rendering)
- * @param occulusionRation the occlusion ration (0.0 means a perfect image,
- * >0.0 means a non-perfect image which in general results in faster rendering)
- * @return TRUE if depth peeling could be set up
- */
+
 bool PolyDataVisualizationPlugin::SetupEnvironmentForDepthPeeling(
    vtkRenderWindow *renderWindow,
    vtkRenderer *renderer, int maxNoOfPeels,
@@ -281,14 +273,14 @@ bool PolyDataVisualizationPlugin::IsDepthPeelingSupported( vtkRenderWindow *rend
   int origMaxPeels = renderer->GetMaximumNumberOfPeels();
   double origOcclusionRatio = renderer->GetOcclusionRatio();
  
-  cout << "origOffScreenRendering" << origOffScreenRendering << endl;
+ /* cout << "origOffScreenRendering" << origOffScreenRendering << endl;
    cout << "origAlphaBitPlanes" << origAlphaBitPlanes << endl;
 cout << "origMultiSamples" << origMultiSamples << endl;
 cout << "origUseDepthPeeling" << origUseDepthPeeling << endl;
 cout << "origMaxPeels" << origMaxPeels << endl;
 cout << "origOcclusionRatio" << origOcclusionRatio << endl;
  
-
+ */
 
 
 
@@ -359,14 +351,14 @@ cout << "origOcclusionRatio" << origOcclusionRatio << endl;
   int origMaxPeels = renderer->GetMaximumNumberOfPeels();
   double origOcclusionRatio = renderer->GetOcclusionRatio();
  
-  cout << "origOffScreenRendering" << origOffScreenRendering << endl;
+ /* cout << "origOffScreenRendering" << origOffScreenRendering << endl;
    cout << "origAlphaBitPlanes" << origAlphaBitPlanes << endl;
 cout << "origMultiSamples" << origMultiSamples << endl;
 cout << "origUseDepthPeeling" << origUseDepthPeeling << endl;
 cout << "origMaxPeels" << origMaxPeels << endl;
 cout << "origOcclusionRatio" << origOcclusionRatio << endl;
 
-		 
+		*/ 
 		this->core()->render();
 		  
 		if(renderer->GetLastRenderingUsedDepthPeeling())
