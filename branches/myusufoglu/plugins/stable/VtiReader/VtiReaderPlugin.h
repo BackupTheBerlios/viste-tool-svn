@@ -83,7 +83,7 @@ public:
      */
     void loadDataFromFile(QString filename);
 
-	void loadArraysAsDataSet(vtkImageData *img);
+	 
 
 protected:
 private:
