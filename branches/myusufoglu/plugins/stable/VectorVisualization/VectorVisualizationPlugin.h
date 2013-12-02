@@ -36,15 +36,11 @@
 /*
 * VectorVisualizationPlugin.h
 *
-* 2010-06-23	Tim Peeters
-* - First version
+*  2013-10-29	Mehmet Yusufoglu
+* - Created for displaying vtkImageData having 3 component (double) vectors. 
+* Image Data is expected to be read by any other plugin e.g. vtiReaderPlugin, dataset type is "unit vector volume".
+* Each vector is shown together with its negative since they are assumed to be maxima vectors of HARDI ODFs.
 * 
-* 2010-10-19	Evert van Aart
-* - Disabled this plugin for fiber data sets, as those are handled by the
-*   Fiber Visualization plugin.
-* 
-*  2013-07-02	Mehmet Yusufoglu
-* - Added an opacity slider slot declaration.
 */
 
 // This example plugin shows how to create a plugin that uses
@@ -213,8 +209,6 @@ namespace bmia {
 		*/
 		int selectedData;
 
-
- 
 		 
 		/** Volumes including vector arrays */
 		QList<data::DataSet *> glyphDataSets;

@@ -36,16 +36,11 @@
 /*
 * VectorVisualizationPlugin.cxx
 *
-* 2010-06-25	Tim Peeters
-* - First version
 *
-* 2010-10-19	Evert van Aart
-* - Disabled this plugin for fiber data sets, as those are handled by the
-*   Fiber Visualization plugin.
-*
-*  2013-07-02	Mehmet Yusufoglu
-* - Added an opacity slider,corresponding slot and lines to the
-* list box data selection slot. No class variables added.
+*  2013-10-29	Mehmet Yusufoglu
+* - Created for displaying vtkImageData having 3 component (double) vectors. 
+* Image Data is expected to be read by any other plugin e.g. vtiReaderPlugin, dataset type is "unit vector volume".
+* Each vector is shown together with its negative since they are assumed to be maxima vectors of HARDI ODFs.
 * 
 */
 
@@ -113,7 +108,6 @@ namespace bmia {
 	}
 
 
-
 	void VectorVisualizationPlugin::dataSetAdded(data::DataSet* ds)
 	{
 		Q_ASSERT(ds);
@@ -136,8 +130,6 @@ namespace bmia {
 		{
 			// Get the index of the data set
 			int dsIndex = this->seedDataSets.indexOf(ds);
-
-
 
 			// Change the data set name
 			this->ui->seedPointsCombo->setItemText(dsIndex, ds->getName());
@@ -688,11 +680,7 @@ namespace bmia {
 			vtkIdType imagePointId = this->img->FindPoint(p[0], p[1], p[2]);
 			unitv= (double *) maxUnitVectorImg->GetTuple3(imagePointId);
 			maxUnitVectorSeeds->InsertNextTuple3( unitv[0],unitv[1],unitv[2]);
-			//if(unitv[0]==0 &&  unitv[1] ==0 && unitv[0]==0)
-			// cout << "ZERO UNIUT VECTOR"<< endl; 
-
-			// maxUnitVectorSeeds->InsertNextTuple3( maxUnitVectorImg->GetTuple3(imagePointId)[0],0.1,0);
-
+			 
 			// Check if the seed point lies inside the image
 
 			if (imagePointId == -1)
