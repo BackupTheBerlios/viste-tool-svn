@@ -756,7 +756,7 @@ namespace bmia {
 		delete [] weights;
 	}
 
-	void HARDIdeterministicTracker::calculateFiberSHDIUseOfflineMaximaDirections(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,int numberOfIterations, bool CLEANMAXIMA, double TRESHOLD, int initCondition)
+	void HARDIdeterministicTracker::calculateFiberSHDIUseOfflineMaximaDirections(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,int numberOfIterations, bool CLEANMAXIMA, double TRESHOLD, int initCondition, int loopAngleSingleCompareOrAverage,  int loopAngleSelectMaximaCombinationType)
 	{
 
 		cout << "-----  New Seed for a New Fiber - calculateFiberSHDIMaxDirection Offline ------("<< direction <<")"<<  endl;
@@ -868,7 +868,7 @@ namespace bmia {
 			}
 			///////////////////////////////////////////////////
 			// use 
-			else if (initCondition==1 || initCondition==2 )
+			else if (initCondition==1 || initCondition==2 || initCondition==3 || initCondition==4  )
 			{
 				std::vector<double *> anglesBeforeInterpolation; 
 
@@ -1002,6 +1002,10 @@ namespace bmia {
 					meshPtIndexList.push_back(i);
 			// Check AI values of initial step, otherwise we cannot check the dot product etc
 			bool firstDotProductTestSkipParam=1;
+			
+			//
+			////// WHILE   ////////////////////
+			//
 			while (1) 
 			{
 
@@ -1049,7 +1053,7 @@ namespace bmia {
 
 				double *interpolatedVector = new double[3];
 				//unitVectorCellListFromFile used in findFunctionValueUsingMaxFil
-				findFunctionValueUsingMaximaFile(TRESHOLD, anglesArray, weights,  trianglesArray, meshPtIndexList, maxima, this->parentFilter->StopDotProduct,interpolatedVector);
+				findFunctionValueUsingMaximaFile(TRESHOLD, anglesArray, weights,  trianglesArray, meshPtIndexList, maxima, this->parentFilter->StopDotProduct,interpolatedVector, loopAngleSingleCompareOrAverage ,   loopAngleSelectMaximaCombinationType );
 				//NOT USE: findFunctionValueAtPointUsingMaximaFile(pos )  // newCEllId BREAK sorununu coz!!!
 				cout << "interpolated vector : "<<  interpolatedVector[0] << interpolatedVector[1] << interpolatedVector[2] << endl;
 				// USE findRK4DeltaX() 1 tanesi disari cikarsa bulamadim de kes o zaman bastan celli hepsinden once etc...
@@ -1618,7 +1622,7 @@ namespace bmia {
 	}
 
 	// 
-	void HARDIdeterministicTracker::findFunctionValueUsingMaximaFile(int threshold, std::vector<double*> &anglesArray, double *weights,  vtkIntArray *trianglesArray, std::vector<int> &meshPtIndexList, std::vector<int> &maxima, double dotLimit, double * interpolatedVector )
+	void HARDIdeterministicTracker::findFunctionValueUsingMaximaFile(int threshold, std::vector<double*> &anglesArray, double *weights,  vtkIntArray *trianglesArray, std::vector<int> &meshPtIndexList, std::vector<int> &maxima, double dotLimit, double * interpolatedVector, int loopAngleSingleCompareOrAverage,  int loopAngleSelectMaximaCombinationType )
 
 	{
 		std::vector<double> ODFlist; // null can be used 

@@ -138,7 +138,7 @@ class HARDIdeterministicTracker
 			@param pointList	List of fiber points */
 
 		virtual void calculateFiberSHDI(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,  int numberOfIterations, bool cLEANMAXIMA, double TRESHOLD);
-		virtual void calculateFiberSHDIUseOfflineMaximaDirections(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,  int numberOfIterations, bool cLEANMAXIMA, double TRESHOLD, int initCondition=1);
+		virtual void calculateFiberSHDIUseOfflineMaximaDirections(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,  int numberOfIterations, bool cLEANMAXIMA, double TRESHOLD, int initCondition=1, int loopAngleSingleCompareOrAverage=0, int loopAngleSelectMaximaCombinationType=0);
 		virtual void calculateFiberSHDIUseOfflineMaximaDirectionsRK4(int direction, std::vector<HARDIstreamlinePoint> * pointList, std::vector<double*> &anglesArray, vtkIntArray * trianglesArray,  int numberOfIterations, bool cLEANMAXIMA, double TRESHOLD, int initCondition=1);
 		
 
@@ -153,7 +153,7 @@ class HARDIdeterministicTracker
 		
 		double *findFunctionValue(int threshold, std::vector<double*> &anglesArray, double *weights,  vtkIntArray *trianglesArray, std::vector<int> &meshPtIndexList, std::vector<int> &maxima);
 		
-		void findFunctionValueUsingMaximaFile(int threshold, std::vector<double*> &anglesArray, double *weights,  vtkIntArray *trianglesArray, std::vector<int> &meshPtIndexList, std::vector<int> &maxima,double dotLimit=1.0, double *interpolatedVector=nullptr);
+		void findFunctionValueUsingMaximaFile(int threshold, std::vector<double*> &anglesArray, double *weights,  vtkIntArray *trianglesArray, std::vector<int> &meshPtIndexList, std::vector<int> &maxima,double dotLimit=1.0, double *interpolatedVector=nullptr,   int loopAngleSingleCompareOrAverage=0, int loopAngleSelectMaximaCombinationType=0);
 		
 
 	 	

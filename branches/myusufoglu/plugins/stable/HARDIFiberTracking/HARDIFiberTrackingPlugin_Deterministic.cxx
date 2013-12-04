@@ -156,12 +156,37 @@ namespace bmia {
 			HARDIFiberTrackingFilter->SetUseMaximaFile((bool) this->ui->useMaxFileCheck->isChecked()); 
 			HARDIFiberTrackingFilter->SetWriteMaximaToFile((bool) this->ui->writeMaxToFileCheck->isChecked()); 
 			HARDIFiberTrackingFilter->SetUseRKIntegration((bool) this->ui->useRungeKuttaCBox->isChecked()); 
+			
 			if(this->ui->initFirstMaxAvgRB->isChecked())
 				HARDIFiberTrackingFilter->SetInitialConditionType(1);
 			else if(this->ui->initSecondMaxAvgRB->isChecked())
 				HARDIFiberTrackingFilter->SetInitialConditionType(2);
+			else	if(this->ui->initAvg1122RB->isChecked())
+				HARDIFiberTrackingFilter->SetInitialConditionType(3);
+			else if(this->ui->initAvg1221RB->isChecked())
+				HARDIFiberTrackingFilter->SetInitialConditionType(4);
 			else 
 				HARDIFiberTrackingFilter->SetInitialConditionType(0);
+
+
+			if(this->ui->loopFirstMaxAvgRB->isChecked())
+				HARDIFiberTrackingFilter->SetloopAngleSelectMaximaCombinationType(1);
+			else if(this->ui->loopSecondMaxRB->isChecked())
+				HARDIFiberTrackingFilter->SetloopAngleSelectMaximaCombinationType(2);
+			else	if(this->ui->loop1122RB->isChecked())
+				HARDIFiberTrackingFilter->SetloopAngleSelectMaximaCombinationType(3);
+			else if(this->ui->loop1221RB->isChecked())
+				HARDIFiberTrackingFilter->SetloopAngleSelectMaximaCombinationType(4);
+			else 
+				HARDIFiberTrackingFilter->SetloopAngleSelectMaximaCombinationType(0);
+
+			if(this->ui->loopCompareAvgRB->isChecked())
+				HARDIFiberTrackingFilter->SetloopAngleSingleCompareOrAverage(1);
+			else if(this->ui->loopCompareAfterIntpRB->isChecked())
+				HARDIFiberTrackingFilter->SetloopAngleSingleCompareOrAverage(2);		 
+			else 
+				HARDIFiberTrackingFilter->SetloopAngleSingleCompareOrAverage(0);
+
 			//HARDIFiberTrackingFilter->Set
 			// Set the current seed point set as the input of the filter
 			HARDIFiberTrackingFilter->SetSeedPoints((vtkDataSet *) seedUG);

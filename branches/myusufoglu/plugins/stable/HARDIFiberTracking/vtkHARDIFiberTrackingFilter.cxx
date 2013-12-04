@@ -484,8 +484,9 @@ namespace bmia {
 
 							}
 							else {
-								tracker->calculateFiberSHDIUseOfflineMaximaDirections( 1, &streamlinePointListPos, anglesArray, trianglesArray, NUMBEROFITERATIONS, CLEANMAXIMA, TRESHOLD, this->InitialConditionType);
-				 					tracker->calculateFiberSHDIUseOfflineMaximaDirections(-1, &streamlinePointListNeg, anglesArray, trianglesArray, NUMBEROFITERATIONS, CLEANMAXIMA, TRESHOLD, this->InitialConditionType);
+								tracker->calculateFiberSHDIUseOfflineMaximaDirections( 1, &streamlinePointListPos, anglesArray, trianglesArray, NUMBEROFITERATIONS, CLEANMAXIMA, TRESHOLD, this->InitialConditionType, this->loopAngleSingleCompareOrAverage, this->loopAngleSelectMaximaCombinationType);  // two additional params !!!
+				 					tracker->calculateFiberSHDIUseOfflineMaximaDirections(-1, &streamlinePointListNeg, anglesArray, trianglesArray, NUMBEROFITERATIONS, CLEANMAXIMA, TRESHOLD, this->InitialConditionType, this->loopAngleSingleCompareOrAverage, this->loopAngleSelectMaximaCombinationType);   int ;        
+	  
 							}
 						}
 						else
