@@ -842,6 +842,10 @@ namespace bmia {
 			for (int j = 0; j < this->nMaximaForEachPoint; ++j)
 				unitVectorsOfAPointFromFile[j] = new double[3];
 			double tempDirection[3];
+			//initial regionlist includes all points not some points
+			if(meshPtIndexList.size()==0)
+				for(int i=0;i<anglesArray.size();i++)
+					meshPtIndexList.push_back(i);
 			////////////////////////////////////////////////////////////////////
 			// INITIAL CONDITON PART
 			// 
@@ -850,7 +854,7 @@ namespace bmia {
 				// Interpolate the SH at the seed point position
 				double * SHAux = new double[numberSHcomponents];
 				this->interpolateSH(SHAux, weights, numberSHcomponents);// uses this cellHARDIData
-
+				
 				//get the ODF
 				//MaxFinder.getOutput(SHAux, this->parentFilter->shOrder, anglesArray); // get output
 				MaxFinder.getOutput(SHAux, this->parentFilter->shOrder,TRESHOLD, anglesArray,  maxima, meshPtIndexList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
@@ -862,9 +866,14 @@ namespace bmia {
 				// Find maximum of this interpolated values here and use as initial condition
 				//deallocate memory
 				delete [] SHAux;
-				tempDirection[0] =  unitVectors[0][0];
-				tempDirection[1] =  unitVectors[0][1];
-				tempDirection[2] =  unitVectors[0][2];
+				//tempDirection[0] =  unitVectors[0][0]; // ERROR
+				//tempDirection[1] =  unitVectors[0][1];
+				//tempDirection[2] =  unitVectors[0][2];
+
+				tempDirection[0] = outputlistwithunitvectors[0][0];
+					tempDirection[1] = outputlistwithunitvectors[0][1];
+					tempDirection[2] = outputlistwithunitvectors[0][2];
+
 			}
 			///////////////////////////////////////////////////
 			// use 
@@ -996,10 +1005,7 @@ namespace bmia {
 
 			//create a maximum finder
 			//	M
-			//initial regionlist includes all points not some points
-			if(meshPtIndexList.size()==0)
-				for(int i=0;i<anglesArray.size();i++)
-					meshPtIndexList.push_back(i);
+			
 			// Check AI values of initial step, otherwise we cannot check the dot product etc
 			bool firstDotProductTestSkipParam=1;
 			
@@ -1009,7 +1015,7 @@ namespace bmia {
 			while (1) 
 			{
 
-				cout << endl << "===== while ======== " << direction << " ==" << endl;
+				cout << endl << "==in loop of while === " << direction << " ==" << endl;
 
 				// Check if we've moved to a new cell. NEXT POINT is USE DTO FIND CURRENT CELL!!
 				vtkIdType newCellId = this->HARDIimageData->FindCell(currentPoint.X, currentCell, currentCellId,this->tolerance, subId, pCoords, weights);
@@ -1665,42 +1671,114 @@ namespace bmia {
 
 
 
+			if( loopAngleSingleCompareOrAverage ==0) // single by single angle compare
+			{
+				double value =-1 , angularSimilarity = -1;
+				int indexHighestSimilarity=-1;
+				//	cout << "choose the max with highest angular similarities" << endl;
+				for( int i=0;i< outputlistwithunitvectors.size()  ;i++ ) // 4 maxima of a vertice, 2 are opposite of others use 4 options among them!!!
+				{ 
+					angularSimilarity = vtkMath::Dot(this->newSegment, outputlistwithunitvectors.at(i)); // new segment is actually old increment for coming to xextpoint.
+					//cout << value << " " << angularSimilarity << " " << dotLimit << endl;
+
+					// Check conditions here angular similarity >0  or angular similarity > dotlimit !!! Select them in GUI!!!
+					if (loopAngleSelectMaximaCombinationType==4) { //Without dot limit
+					if( value <= angularSimilarity  && angularSimilarity >0   ) //&& angularSimilarity >= dotLimit
+					{  
+						value = angularSimilarity; indexHighestSimilarity = i; 
 
 
-			double value =-1 , angularSimilarity = -1;
-			int indexHighestSimilarity=-1;
-			//	cout << "choose the max with highest angular similarities" << endl;
-			for( int i=0;i< outputlistwithunitvectors.size()  ;i++ ) // 4 maxima, 2 are opposite of others use 4 options among them!!!
-			{ 
-				angularSimilarity = vtkMath::Dot(this->newSegment, outputlistwithunitvectors.at(i)); // new segment is actually old increment for coming to xextpoint.
-				//cout << value << " " << angularSimilarity << " " << dotLimit << endl;
+					} }
+					else
+						if( value <= angularSimilarity  && angularSimilarity >0  && angularSimilarity >= dotLimit ) //&& angularSimilarity >= dotLimit
+					{  
+						value = angularSimilarity; indexHighestSimilarity = i; 
 
-				// Check conditions here angular similarity >0  or angular similarity > dotlimit !!! Select them in GUI!!!
-				if( value <= angularSimilarity  && angularSimilarity >0  && angularSimilarity >= dotLimit ) //&& angularSimilarity >= dotLimit
-				{  
-					value = angularSimilarity; indexHighestSimilarity = i; 
 
+					}
+
+				}
+				if ( (indexHighestSimilarity==-1) )	// Removevthis maxima !!! !(maxima.size() > 0) ||
+				{
+					cout << "No  similarity for this vrtx " << j << endl;
+					//				break; // if no break many of vectors can be zero and interpolated vector can be 0 then; 
+					avgMaxVect[j][0]=0;  // THIS MAY BE WRONG ASK !!!!!
+					avgMaxVect[j][1]=0;
+					avgMaxVect[j][2]=0;
+				}
+				else {
+					avgMaxVect[j][0]=outputlistwithunitvectors[indexHighestSimilarity][0];
+					avgMaxVect[j][1]=outputlistwithunitvectors[indexHighestSimilarity][1];
+					avgMaxVect[j][2]=outputlistwithunitvectors[indexHighestSimilarity][2];
 
 				}
 			}
-			if ( (indexHighestSimilarity==-1) )	// Removevthis maxima !!! !(maxima.size() > 0) ||
+			else if( loopAngleSingleCompareOrAverage ==1   )  // take initially average of first maxima
 			{
-				cout << "No  similarity for this vrtx " << j << endl;
-				//				break; // if no break many of vectors can be zero and interpolated vector can be 0 then; 
-				avgMaxVect[j][0]=0;  // THIS MAY BE WRONG ASK !!!!!
-				avgMaxVect[j][1]=0;
-				avgMaxVect[j][2]=0;
-			}
-			else {
-				avgMaxVect[j][0]=outputlistwithunitvectors[indexHighestSimilarity][0];
-				avgMaxVect[j][1]=outputlistwithunitvectors[indexHighestSimilarity][1];
-				avgMaxVect[j][2]=outputlistwithunitvectors[indexHighestSimilarity][2];
+
+				avgMaxVect[j][0]=0;  
+					avgMaxVect[j][1]=0;
+					avgMaxVect[j][2]=0;
+					for(int i=0; i< this->nMaximaForEachPoint; i++)// START FROM HERE!!! this->n
+					{	
+						if (loopAngleSelectMaximaCombinationType==1)
+							if(i%2==0) {
+								avgMaxVect[j][0]+=outputlistwithunitvectors[i][0];
+					avgMaxVect[j][1]+=outputlistwithunitvectors[i][1];
+					avgMaxVect[j][2]+=outputlistwithunitvectors[i][2];
+							}//cout << "anglesOfmaxOfCorner"  << anglesArray.at(maxima.at(i))[0] << " " << anglesArray.at(maxima.at(i))[1] << endl;
+							else if (loopAngleSelectMaximaCombinationType==2)
+								if(i%2==1) {
+									avgMaxVect[j][0]+=outputlistwithunitvectors[i][0];
+					avgMaxVect[j][1]+=outputlistwithunitvectors[i][1];
+					avgMaxVect[j][2]+=outputlistwithunitvectors[i][2];// ose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
+								}//co
+								else if (loopAngleSelectMaximaCombinationType==3)
+									if(i==0 || i==1) {avgMaxVect[j][0]+=outputlistwithunitvectors[i][0];
+					avgMaxVect[j][1]+=outputlistwithunitvectors[i][1];
+					avgMaxVect[j][2]+=outputlistwithunitvectors[i][2];
+						}
+									else if (loopAngleSelectMaximaCombinationType==4)
+										if(i==2 || i==3) {
+											avgMaxVect[j][0]+=outputlistwithunitvectors[i][0];
+					avgMaxVect[j][1]+=outputlistwithunitvectors[i][1];
+					avgMaxVect[j][2]+=outputlistwithunitvectors[i][2];
+										}
+					}
+					avgMaxVect[j][0]=avgMaxVect[j][0]/(this->nMaximaForEachPoint/2); // 2 CAREFULL
+					avgMaxVect[j][1]=avgMaxVect[j][1]/(this->nMaximaForEachPoint/2);
+					avgMaxVect[j][2]=avgMaxVect[j][2]/(this->nMaximaForEachPoint/2);
+					//cout << avgMaxAng[0] << " " << avgMaxAng[1] << endl;
+					 
+					double angularSimilarity = vtkMath::Dot(this->newSegment, avgMaxVect[j]);// if averages are bad do not take them
+					if(angularSimilarity < dotLimit) {
+						avgMaxVect[j][0]=0;  // THIS MAY BE WRONG ASK !!!!!
+					avgMaxVect[j][1]=0;
+					avgMaxVect[j][2]=0;
+					}
 
 			}
-
 			vectorsBeforeInterpolation.push_back(avgMaxVect[j]); // give real pointers here DELETED!!!!
 
+			/*
+			if(this->ui->loopFirstMaxAvgRB->isChecked())
+				HARDIFiberTrackingFilter->SetloopAngleSelectMaximaCombinationType(1);
+			else if(this->ui->loopSecondMaxRB->isChecked())
+				HARDIFiberTrackingFilter->SetloopAngleSelectMaximaCombinationType(2);
+			else	if(this->ui->loop1122RB->isChecked())
+				HARDIFiberTrackingFilter->SetloopAngleSelectMaximaCombinationType(3);
+			else if(this->ui->loop1221RB->isChecked())
+				HARDIFiberTrackingFilter->SetloopAngleSelectMaximaCombinationType(4);
+			else 
+				HARDIFiberTrackingFilter->SetloopAngleSelectMaximaCombinationType(0);
 
+			if(this->ui->loopCompareAvgRB->isChecked())
+				HARDIFiberTrackingFilter->SetloopAngleSingleCompareOrAverage(1);
+			else if(this->ui->loopCompareAfterIntpRB->isChecked())
+				HARDIFiberTrackingFilter->SetloopAngleSingleCompareOrAverage(2);		 
+			else 
+				HARDIFiberTrackingFilter->SetloopAngleSingleCompareOrAverage(0);
+			*/
 			outputlistwithunitvectors.clear();
 
 			ODFlist.clear();
@@ -2174,7 +2252,7 @@ namespace bmia {
 			//add the weighted SH to the output array
 			for (int i = 0; i < numberSHcomponents; ++i)
 			{		
-				//cout << " data"<< i << ": " << tempSH[i];
+				//cout << " sh"<< i << ": " << tempSH[i];
 				interpolatedSH[i] += weights[j] * tempSH[i];
 			}
 			//cout << endl << "weight["<< j << ":] " << weights[j] << endl;  
