@@ -1064,13 +1064,12 @@ namespace bmia {
 				cout << "interpolated vector : "<<  interpolatedVector[0] << interpolatedVector[1] << interpolatedVector[2] << endl;
 				// USE findRK4DeltaX() 1 tanesi disari cikarsa bulamadim de kes o zaman bastan celli hepsinden once etc...
 				testDot = 0.0;
-				if (vtkMath::Norm(interpolatedVector) < (this->stepSize / 5))
-				{
-					cout << "very small increment due to maxima directions are nor ok"<< endl;
-					break; // WHY; for stability if no maxima is found incremental movement is close to ZERO. DEAD LOCK.
-				} 
-				//value to compare local maxima (either random value or dot product)
-				//double value;
+				//if (vtkMath::Norm(interpolatedVector) < (this->stepSize / 5))
+				//{
+				//	cout << "very small increment due to maxima directions are nor ok"<< endl;
+				///	break; // WHY; for stability if no maxima is found incremental movement is close to ZERO. DEAD LOCK.
+				//} 
+		 
 
 				//Normalize
 				// vtkMath::Normalize(interpolatedVector);
@@ -1122,9 +1121,9 @@ namespace bmia {
 					cout << "testDot: " << testDot  <<  "current point AI: " << currentPoint.AI << endl;
 				// Call "continueTracking" function of parent filter to determine if
 				// one of the stopping criteria has been met.
-				if(firstDotProductTestSkipParam) {  testDot=1; //fully alligned to skip first test
-				firstDotProductTestSkipParam=0; // INITIAL ANGLE IS NOT IMPORTANT, BECAUSE TRIES TO REACH TO THE FIBER
-				}
+			//	if(firstDotProductTestSkipParam) {  testDot=1; //fully alligned to skip first test
+			//	firstDotProductTestSkipParam=0; // INITIAL ANGLE IS NOT IMPORTANT, BECAUSE TRIES TO REACH TO THE FIBER
+			//	}
 
 				if (!(this->parentFilter->continueTracking(&(this->currentPoint), testDot, currentCellId)))// Current of NExt Point???
 				{
