@@ -45,7 +45,7 @@
 * 2013-10-29  Mehmet Yusufoglu
 * - Added functionality of loading array volume. 
 * Volume is assumed to be having many arrays. Vector Visualisation plugin or other plugins may use them.
-* Arrays are assumed to be 3 component arrays and data type of the each component is double.
+* Arrays are assumed to be 3 component arrays and data type of the each component is double. 
 */
 
 #include "VtiReaderPlugin.h"

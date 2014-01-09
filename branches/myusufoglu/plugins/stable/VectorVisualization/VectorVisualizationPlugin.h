@@ -112,7 +112,7 @@ namespace bmia {
 		void dataSetChanged(data::DataSet* ds);
 		void dataSetRemoved(data::DataSet* ds);
 
-		void inputDataChanged(int index);
+		
 		void insertArrayNamesToTheListBox(vtkImageData *img);
 		void addPointsAndVectorToUnstructuredGrids(int seedNumber);
 		void formPipeLine(vtkImageData *img, int arrayNumber);
@@ -125,6 +125,7 @@ namespace bmia {
 		void addVectorToUnstructuredGrid(vtkUnstructuredGrid *gridForArrayForSeed, QString vectorName, bool Opposite=0) ;
 		protected slots:
 			void seedDataChanged(int index);
+			void inputDataChanged(int index); //volume of vectors
 			void selectVectorData(int row);
 			void setVisible(bool visible);
 			void setLighting(bool lighting);
