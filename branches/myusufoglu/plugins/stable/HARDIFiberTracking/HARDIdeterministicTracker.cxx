@@ -992,7 +992,7 @@ namespace bmia {
 				cout << "Problem at the first integratioon step"<< endl; 
 				return; 
 			} 
-			cout <<"nextpoimt after:" << this->nextPoint.X[0] << " " << this->nextPoint.X[1]  << " "<< this->nextPoint.X[2]  << endl;
+		//	cout <<"nextpoimt after:" << this->nextPoint.X[0] << " " << this->nextPoint.X[1]  << " "<< this->nextPoint.X[2]  << endl;
 
 			// Update the current and previous points
 			this->prevPoint = this->currentPoint;
@@ -1064,11 +1064,11 @@ namespace bmia {
 				cout << "interpolated vector : "<<  interpolatedVector[0] << interpolatedVector[1] << interpolatedVector[2] << endl;
 				// USE findRK4DeltaX() 1 tanesi disari cikarsa bulamadim de kes o zaman bastan celli hepsinden once etc...
 				testDot = 0.0;
-				//if (vtkMath::Norm(interpolatedVector) < (this->stepSize / 5))
-				//{
-				//	cout << "very small increment due to maxima directions are nor ok"<< endl;
-				///	break; // WHY; for stability if no maxima is found incremental movement is close to ZERO. DEAD LOCK.
-				//} 
+				if (vtkMath::Norm(interpolatedVector) < (this->stepSize / 6))
+				{
+					cout << "very small increment due to maxima directions are nor ok"<< endl;
+					break; // WHY; for stability if no maxima is found incremental movement is close to ZERO. DEAD LOCK.
+				} 
 		 
 
 				//Normalize
@@ -1091,12 +1091,12 @@ namespace bmia {
 				if (!this->solveIntegrationStepSHDI(currentCell, currentCellId, weights)) //Add NEwSegment to Current Point to Determine NEXT Point!!!
 					break;	
 
-				//	if(this->printStepInfo)
-				//	{
+				 	if(this->printStepInfo)
+				 	{
 				cout <<"nextpoimt after:" << this->nextPoint.X[0] << " " << this->nextPoint.X[1]  << " "<< this->nextPoint.X[2]  << endl;
 				cout <<"prev segment1.1:" << this->prevSegment[0] << " " << this->prevSegment[1] << " "<< this->prevSegment[2] << endl;
 				cout <<"new segment1.1:" << this->newSegment[0] << " " << this->newSegment[1] << " "<< this->newSegment[2] << endl;
-				//	}	
+			 	}	
 				// Update the total fiber length
 				incrementalDistance = sqrt((double) vtkMath::Distance2BetweenPoints(currentPoint.X, nextPoint.X)); // next point nerede dolar ??
 
@@ -1699,7 +1699,7 @@ namespace bmia {
 				}
 				if ( (indexHighestSimilarity==-1) )	// Removevthis maxima !!! !(maxima.size() > 0) ||
 				{
-					cout << "No  similarity for this vrtx " << j << endl;
+					//cout << "No  similarity for this vrtx " << j << endl;
 					//				break; // if no break many of vectors can be zero and interpolated vector can be 0 then; 
 					avgMaxVect[j][0]=0;  // THIS MAY BE WRONG ASK !!!!!
 					avgMaxVect[j][1]=0;
