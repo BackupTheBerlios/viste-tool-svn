@@ -112,7 +112,7 @@ namespace bmia {
 		void dataSetChanged(data::DataSet* ds);
 		void dataSetRemoved(data::DataSet* ds);
 
-		
+
 		void insertArrayNamesToTheListBox(vtkImageData *img);
 		void addPointsAndVectorToUnstructuredGrids(int seedNumber);
 		void formPipeLine(vtkImageData *img, int arrayNumber);
@@ -130,7 +130,7 @@ namespace bmia {
 			void setVisible(bool visible);
 			void setLighting(bool lighting);
 			void changeColor();
-			void changeOpacity(int value);
+
 			void setScale(double scale);
 
 	private:
@@ -210,7 +210,7 @@ namespace bmia {
 		*/
 		int selectedData;
 
-		 
+
 		/** Volumes including vector arrays */
 		QList<data::DataSet *> glyphDataSets;
 

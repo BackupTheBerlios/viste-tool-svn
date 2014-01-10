@@ -87,7 +87,7 @@ namespace bmia {
 		connect(this->ui->visibleCheckBox, SIGNAL(toggled(bool)), this, SLOT(setVisible(bool)));
 		connect(this->ui->lightingCheckBox, SIGNAL(toggled(bool)), this, SLOT(setLighting(bool)));
 		connect(this->ui->colorButton, SIGNAL(clicked()), this, SLOT(changeColor()));
-		connect(this->ui->opacitySlider, SIGNAL(valueChanged(int)), this, SLOT(changeOpacity(int)));
+ 
 	}
 
 	VectorVisualizationPlugin::~VectorVisualizationPlugin()
@@ -327,7 +327,7 @@ namespace bmia {
 
 			this->actors[nr]->SetVisibility(true);
 
-			actors[nr]->SetMapper(mappers[nr]);
+			this->actors[nr]->SetMapper(mappers[nr]);
 			this->assembly->AddPart(actors[nr]);
 
 			///////////// OPPOSITE 
@@ -404,7 +404,7 @@ namespace bmia {
 
 			}
 		}
-		if(nArrays > 0) this->selectedData = 0;
+		//if(nArrays > 0) this->selectedData = 0;
 	}
 
 
@@ -463,9 +463,9 @@ namespace bmia {
 
 
 					{
-						this->actors[nr]->SetUserMatrix(mCopy);
+						//this->actors[nr]->SetUserMatrix(mCopy);
 
-						this->actorsOpposite[nr]->SetUserMatrix(mCopy);
+						//this->actorsOpposite[nr]->SetUserMatrix(mCopy);
 					}
 					mCopy->Delete();
 				}
@@ -691,13 +691,12 @@ namespace bmia {
 	void VectorVisualizationPlugin::setVisible(bool visible)
 	{
 		//if (this->changingSelection) return;
-		//if (this->selectedData == -1) return;
+	if (this->selectedData == -1) return;
 		//this->actors.at(this->selectedData)->SetVisibility(visible);
-		QString name(this->ui->dataList->currentItem()->text());
-		cout << name.toStdString() << endl; 
-		//vtkPointSet::SafeDownCast( this->seedDataSets.at(this->ui->seedPointsCombo->currentIndex())->getVtkObject())->GetPointData()->SetActiveVectors(name.toStdString().c_str());
-
-		cout << this->ui->dataList->currentRow() << endl;
+		
+	 
+		if(this->ui->dataList->currentRow() <0) 
+			return;
 		cout << visible << endl;
 		this->actors[this->ui->dataList->currentRow()]->SetVisibility(visible);
 		this->actorsOpposite[this->ui->dataList->currentRow()]->SetVisibility(visible);
@@ -712,8 +711,9 @@ namespace bmia {
 	{
 		if (this->changingSelection) return;
 
-		//	if (this->selectedData == -1) return;
-
+		if (this->selectedData == -1) return;
+		if(this->ui->dataList->currentRow() <0) 
+			return;
 		Q_ASSERT(this->actors[this->ui->dataList->currentRow()]);
 		vtkProperty* property = this->actors[this->ui->dataList->currentRow()]->GetProperty();
 		Q_ASSERT(property);
@@ -730,8 +730,9 @@ namespace bmia {
 	void VectorVisualizationPlugin::changeColor()
 	{
 		if (this->changingSelection) return;
-		//	if (this->selectedData == -1) return;
-
+		if (this->selectedData == -1) return;
+		if(this->ui->dataList->currentRow() <0) 
+			return;
 		Q_ASSERT(this->actors[this->ui->dataList->currentRow()]);
 		vtkProperty* property = this->actors[this->ui->dataList->currentRow()]->GetProperty();
 		Q_ASSERT(property);
@@ -755,20 +756,14 @@ namespace bmia {
 		}
 	}
 
-	void VectorVisualizationPlugin::changeOpacity(int value)
-	{
-		if (this->changingSelection) return;
-		if (this->selectedData == -1) return;
-		Q_ASSERT(this->actors.at(this->selectedData));
-		this->actors.at(this->selectedData)->GetProperty()->SetOpacity(1);
-		this->ui->opacityLabel->setText( QString::number(value/100.0));
-		this->core()->render();
-
-	}
+ 
 	//-------------------------------[ setScale ]------------------------------\\
 
 	void VectorVisualizationPlugin::setScale(double scale)
 	{
+		if (this->changingSelection) return;
+		if (this->selectedData == -1) return;
+		if (this->ui->dataList->currentRow() < 0 ) return;
 		if (this->glyphFilters[this->ui->dataList->currentRow()] == NULL)
 			return;
 
