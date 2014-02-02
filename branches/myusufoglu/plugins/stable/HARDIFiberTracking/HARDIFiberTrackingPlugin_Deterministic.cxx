@@ -161,10 +161,7 @@ namespace bmia {
 				HARDIFiberTrackingFilter->SetInitialConditionType(1);
 			else if(this->ui->initSecondMaxAvgRB->isChecked())
 				HARDIFiberTrackingFilter->SetInitialConditionType(2);
-			else	if(this->ui->initAvg1122RB->isChecked())
-				HARDIFiberTrackingFilter->SetInitialConditionType(3);
-			else if(this->ui->initAvg1221RB->isChecked())
-				HARDIFiberTrackingFilter->SetInitialConditionType(4);
+			
 			else 
 				HARDIFiberTrackingFilter->SetInitialConditionType(0);
 
@@ -173,18 +170,15 @@ namespace bmia {
 				HARDIFiberTrackingFilter->SetloopAngleSelectMaximaCombinationType(1);
 			else if(this->ui->loopSecondMaxRB->isChecked())
 				HARDIFiberTrackingFilter->SetloopAngleSelectMaximaCombinationType(2);
-			else	if(this->ui->loop1122RB->isChecked())
-				HARDIFiberTrackingFilter->SetloopAngleSelectMaximaCombinationType(3);
-			else if(this->ui->loop1221RB->isChecked())
-				HARDIFiberTrackingFilter->SetloopAngleSelectMaximaCombinationType(4);
+			
 			else 
 				HARDIFiberTrackingFilter->SetloopAngleSelectMaximaCombinationType(0);
 
-			if(this->ui->loopCompareAvgRB->isChecked())
+		/*	if(this->ui->loopCompareAvgRB->isChecked())
 				HARDIFiberTrackingFilter->SetloopAngleSingleCompareOrAverage(1);
 			else if(this->ui->loopCompareAfterIntpRB->isChecked())
 				HARDIFiberTrackingFilter->SetloopAngleSingleCompareOrAverage(2);		 
-			else 
+			else */
 				HARDIFiberTrackingFilter->SetloopAngleSingleCompareOrAverage(0);
 
 			//HARDIFiberTrackingFilter->Set

@@ -136,9 +136,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-94</y>
+        <y>-36</y>
         <width>439</width>
-        <height>516</height>
+        <height>458</height>
        </rect>
       </property>
       <attribute name="label">
@@ -526,58 +526,10 @@
             </attribute>
            </widget>
           </item>
-          <item>
-           <widget class="QRadioButton" name="initAvg1221RB">
-            <property name="text">
-             <string>1221Avg</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="initAvg1122RB">
-            <property name="text">
-             <string>1122Avg</string>
-            </property>
-           </widget>
-          </item>
          </layout>
-         <zorder></zorder>
-         <zorder>initAvg1221RB</zorder>
-         <zorder>initAvg1122RB</zorder>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBox_2">
-         <property name="title">
-          <string>Loop Compare Before Averaging Vectors of Each Vertice</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_4">
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_11">
-            <item>
-             <widget class="QRadioButton" name="loopCompareSingleRB">
-              <property name="text">
-               <string>Single</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QRadioButton" name="loopCompareAvgRB">
-              <property name="text">
-               <string>After Avg</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QRadioButton" name="loopCompareAfterIntpRB">
-              <property name="text">
-               <string>After Intrp.</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-         </layout>
+         <zorder>initFirstMaxAvgRB</zorder>
+         <zorder>initSecondMaxAvgRB</zorder>
+         <zorder>initSHInterpolateRB</zorder>
         </widget>
        </item>
        <item>
@@ -600,20 +552,6 @@
           <widget class="QRadioButton" name="loopSecondMaxRB">
            <property name="text">
             <string>SMax.</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QRadioButton" name="loop1122RB">
-           <property name="text">
-            <string>11-22</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QRadioButton" name="loop1221RB">
-           <property name="text">
-            <string>12-21</string>
            </property>
           </widget>
          </item>
