@@ -32,7 +32,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 add_subdirectory( examples )
-
+# add_subdirectory( TCKReader )
 add_subdirectory( AxesVisualization )
 add_subdirectory( Clustering )
 add_subdirectory( ConnectivityMeasures )
@@ -65,3 +65,9 @@ add_subdirectory( Transformation )
 add_subdirectory( VectorVisualization )
 add_subdirectory( VolumeReader )
 add_subdirectory( VtiReader )
+add_subdirectory( CameraTools )
+add_subdirectory( IsosurfaceVisualization )
+add_subdirectory( PDBReader )
+add_subdirectory( DistanceMeasures )
+add_subdirectory( ScoringTools )
+add_subdirectory( ScoringMeasures )
