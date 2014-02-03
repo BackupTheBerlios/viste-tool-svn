@@ -17,7 +17,7 @@ namespace bmia
 
 //------------------------[ Plugin constructor ]-----------------------\\
 
-IsosurfaceVisualization::IsosurfaceVisualization() : plugin::AdvancedPlugin("IsosurfaceVisualization")
+IsosurfaceVisualization::IsosurfaceVisualization() : plugin::AdvancedPlugin("IsosurfaceGeneration")
 {
     this->widget = NULL;
     this->form   = NULL;
@@ -546,7 +546,7 @@ void IsosurfaceVisualization::updateRenderingModels()
         mcubes->GenerateValues(1,current_modelInfo->minimumThreshold,current_modelInfo->maximumThreshold);
 
 		// marching cubes progress bar
-		this->core()->out()->createProgressBarForAlgorithm(mcubes, "Isosurface Visualization", "Creating isosurface mesh...");
+		this->core()->out()->createProgressBarForAlgorithm(mcubes, "Isosurface Generation", "Creating isosurface mesh...");
 		mcubes->Update();
 		this->core()->out()->deleteProgressBarForAlgorithm(mcubes);
 
@@ -571,7 +571,7 @@ void IsosurfaceVisualization::updateRenderingModels()
             deci->AccumulateErrorOn();
 
 			// decimator progress bar
-			this->core()->out()->createProgressBarForAlgorithm(deci, "Isosurface Visualization", "Decimating the mesh...");
+			this->core()->out()->createProgressBarForAlgorithm(deci, "Isosurface Generation", "Decimating the mesh...");
 			deci->Update();
 			this->core()->out()->deleteProgressBarForAlgorithm(deci);
         }
@@ -631,7 +631,7 @@ void IsosurfaceVisualization::updateRenderingModels()
 			}
 
 			// progress of curvature
-			this->core()->out()->createProgressBarForAlgorithm(curvaturesFilter, "Isosurface Visualization", "Curvature filter...");
+			this->core()->out()->createProgressBarForAlgorithm(curvaturesFilter, "Isosurface Generation", "Curvature filter...");
 			curvaturesFilter->Update();
 			this->core()->out()->deleteProgressBarForAlgorithm(curvaturesFilter);
 
