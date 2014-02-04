@@ -33,7 +33,7 @@
 
 add_subdirectory( examples )
 # add_subdirectory( TCKReader )
-add_subdirectory( IsosurfaceVisualization )
+add_subdirectory( IsosurfaceGeneration )
 add_subdirectory( PDBReader )
 add_subdirectory( DistanceMeasures )
 add_subdirectory( ScoringTools )
