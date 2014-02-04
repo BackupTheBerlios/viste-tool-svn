@@ -118,7 +118,7 @@ protected slots:
     void fibersComboChanged(int index);
     void glyphDataComboChanged(int index);
     void updateButtonClicked();
-    void usedInScoringCheckBoxChanged(bool checked);
+    //void usedInScoringCheckBoxChanged(bool checked);
     void lambdaSliderChanged(int value);
     void lambdaSpinBoxChanged(double value);
     void betaSliderChanged(int value);

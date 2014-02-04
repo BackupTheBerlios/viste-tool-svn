@@ -69,7 +69,7 @@
 //#include <iostream>
 #include <fstream>
 #include <assert.h>
-
+#include <limits>
 
 namespace bmia {
 

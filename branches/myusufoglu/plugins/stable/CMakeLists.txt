@@ -32,12 +32,12 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 add_subdirectory( examples )
-# add_subdirectory( TCKReader )
+add_subdirectory( TCKReader )
 add_subdirectory( IsosurfaceGeneration )
 add_subdirectory( PDBReader )
 add_subdirectory( DistanceMeasures )
 add_subdirectory( ScoringTools )
-#add_subdirectory( ScoringMeasures ) 
+add_subdirectory( ScoringMeasures ) 
 add_subdirectory( CameraTools )
 add_subdirectory( AxesVisualization ) 
 add_subdirectory( Clustering )

@@ -45,7 +45,20 @@
 
 #include "TCKReaderPlugin.h"
 
+template<typename T>
+inline bool isnan(T value)
+{
+return value != value;
 
+}
+
+// requires #include <limits>
+template<typename T>
+inline bool isinf(T value)
+{
+return std::numeric_limits<T>::has_infinity &&
+value == std::numeric_limits<T>::infinity();
+}
 
 namespace bmia {
 
@@ -121,8 +134,8 @@ void TCKReaderPlugin::loadDataFromFile(QString filename)
             break;
     }
 
-    double inf = 1.0/0.0;
-    double nan = 0.0/0.0;
+   // double inf = 1.0/0.0;
+   // double nan = 0.0/0.0;
     QList< QList<float> > fibersList;
 
     int headerPos = TCKFile.tellg();
@@ -171,7 +184,7 @@ void TCKReaderPlugin::loadDataFromFile(QString filename)
                 if(f1 != f1 && f2!=f2 && f3!=f3)
                     break;
 
-                if(f1 == inf && f2==inf && f3==inf)
+                if(  isinf(f1) && isinf(f2) && isinf(f3))
                     break;
 
                 if(TCKFile.eof())
@@ -211,7 +224,7 @@ void TCKReaderPlugin::loadDataFromFile(QString filename)
             if(TCKFile.eof())
                 break;
 
-            if(f1 == inf && f2==inf && f3==inf)
+             if(  isinf(f1) && isinf(f2) && isinf(f3))
                 break;
         }
 
