@@ -7,7 +7,7 @@
 
 /** Includes - Qt */
 
-#include "ui_IsosurfaceVisualization.h"
+#include "ui_IsosurfaceGeneration.h"
 
 /** Includes - STL */
 
