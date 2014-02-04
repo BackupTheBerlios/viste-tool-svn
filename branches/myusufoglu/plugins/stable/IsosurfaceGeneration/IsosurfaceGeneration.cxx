@@ -14,7 +14,7 @@ namespace bmia
 ///
 ///      INITIALIZATION
 ///
-
+/// Disable Curvature related features.
 //------------------------[ Plugin constructor ]-----------------------\\
 
 IsosurfaceGeneration::IsosurfaceGeneration() : plugin::AdvancedPlugin("IsosurfaceGeneration")
@@ -155,13 +155,13 @@ void IsosurfaceGeneration::dataSetAdded(data::DataSet * d)
 	    this->tf_datasets.append(d);
 
         // Add to UI combobox for selection of overlay plane LUT
-		this->form->comboBoxOverlayLUT->addItem(d->getName());
+		//this->form->comboBoxOverlayLUT->addItem(d->getName());
 
 		// Add to UI combobox for selection of base layer plane LUT
-		this->form->comboBoxBaseLayerLUT->addItem(d->getName());
+		//this->form->comboBoxBaseLayerLUT->addItem(d->getName());
 
 		// Add to UI combobox for selection of curvature LUT
-		this->form->comboBoxCurvatureLUT->addItem(d->getName());
+		//this->form->comboBoxCurvatureLUT->addItem(d->getName());
 
         // Create the lookup table from the transfer function
         createLookupTable(d);
@@ -203,9 +203,9 @@ void IsosurfaceGeneration::dataSetChanged(data::DataSet * d)
         createLookupTable(d,index);
 
         // Update the LUTs
-        comboBoxOverlayLUTChanged();
-        comboBoxBaseLayerLUTChanged();
-		comboBoxCurvatureLUTChanged();
+        //comboBoxOverlayLUTChanged();
+        //comboBoxBaseLayerLUTChanged();
+		//comboBoxCurvatureLUTChanged();
 	}
 }
 
@@ -513,7 +513,7 @@ void IsosurfaceGeneration::createLookupTable(data::DataSet * d, int index)
 //------------------------[ Create or update the mesh ]-----------------------\\
 
 void IsosurfaceGeneration::updateRenderingModels()
-{
+{cout << "Add produced dataset as polydata: 0.0"<< endl;
     // recalculate model
     if(bModelDirty)
     {
@@ -594,7 +594,7 @@ void IsosurfaceGeneration::updateRenderingModels()
 		// Create polydata mapper
 		vtkPolyDataMapper* polyMapper = vtkPolyDataMapper::New();
 		//polyMapper->ImmediateModeRenderingOn();
-
+		cout << "Add produced dataset as polydata1: "<< endl;
 		// curvature
 		if(useCurvature)
 		{
@@ -759,7 +759,7 @@ void IsosurfaceGeneration::updateRenderingModels()
         }
 
         id->Delete();
-        tfm->Delete();
+      //  tfm->Delete();
 
 		current_modelInfo->polyDataMapper = polyMapper;
         current_modelInfo->polydata = connectivity->GetOutput();
@@ -771,11 +771,38 @@ void IsosurfaceGeneration::updateRenderingModels()
             this->updateClippingPlaneSlider(i,current_modelInfo->clippingValues[i]);
         }
 
+
+		cout << "Add produced dataset as polydata: "<< endl;
+			data::DataSet * dsPolyData = NULL;
+
+	// For  generic polydata,  add the data set so that other plugins can use it.
+	QString kind("polydata");
+		
+		dsPolyData = new data::DataSet(name+"isosurface", kind,    current_modelInfo->polydata);
+		 
+	  
+	// If we succeeded, add the matrix to the data set
+	if (tfm)
+	{
+		dsPolyData->getAttributes()->addAttribute("transformation matrix", vtkObject::SafeDownCast(tfm));
+	}
+	// If an error occurred while reading the matrix file, print it
+	else  
+	{
+		this->core()->out()->showMessage(QString("Polydata creted without a transformation"));
+	}
+
+	// Add the new DataSet to the data manager:
+	this->core()->data()->addDataSet(dsPolyData);
+
+
+
     }
 
     // adjust existing model
     else
     {
+		cout << "Add produced dataset as polydata ELSE: "<< endl;
         current_modelInfo->prop->GetProperty()->SetColor(current_modelInfo->color);
         current_modelInfo->prop->GetProperty()->SetOpacity(current_modelInfo->alpha);
         current_modelInfo->prop->GetProperty()->SetSpecular(current_modelInfo->specular);
@@ -1065,8 +1092,8 @@ void IsosurfaceGeneration::connectAll()
     connect(this->form->inputSpecular,SIGNAL(valueChanged(double)),this,SLOT(inputSpecularChanged(double)));
     connect(this->form->inputAlpha,SIGNAL(valueChanged(double)),this,SLOT(inputAlphaChanged(double)));
     connect(this->form->checkBoxLargestComponent,SIGNAL(toggled(bool)),this,SLOT(checkBoxLargestComponentChanged(bool)));
-    connect(this->form->comboBoxCurvatureType,SIGNAL(currentIndexChanged(int)),this,SLOT(comboBoxCurvatureTypeChanged()));
-	connect(this->form->comboBoxCurvatureLUT,SIGNAL(currentIndexChanged(int)),this,SLOT(comboBoxCurvatureLUTChanged()));
+    //connect(this->form->comboBoxCurvatureType,SIGNAL(currentIndexChanged(int)),this,SLOT(comboBoxCurvatureTypeChanged()));
+	//connect(this->form->comboBoxCurvatureLUT,SIGNAL(currentIndexChanged(int)),this,SLOT(comboBoxCurvatureLUTChanged()));
     connect(this->form->buttonUpdate,SIGNAL(clicked()),this,SLOT(buttonUpdateClicked()));
 
     // Clipping planes
@@ -1316,11 +1343,11 @@ void IsosurfaceGeneration::comboBoxBaseLayerLUTChanged()
 void IsosurfaceGeneration::comboBoxCurvatureLUTChanged()
 {
     // select model info matching the dataset
-    int index = this->form->comboBoxCurvatureLUT->currentIndex();
+     int index = 0;//this->form->comboBoxCurvatureLUT->currentIndex();
 
     if(this->current_modelInfo->prop != NULL)
     {
-		this->current_modelInfo->curvatureLUTIndex = index;
+		//this->current_modelInfo->curvatureLUTIndex = index;
 
         if(index > 0)
         {
@@ -1351,7 +1378,7 @@ void IsosurfaceGeneration::comboBoxCurvatureLUTChanged()
 
 void IsosurfaceGeneration::comboBoxCurvatureTypeChanged()
 {
-    this->current_modelInfo->curvatureType = this->form->comboBoxCurvatureType->currentIndex();
+    //this->current_modelInfo->curvatureType = this->form->comboBoxCurvatureType->currentIndex();
     bModelDirty = true;
 }
 
@@ -1399,8 +1426,10 @@ void IsosurfaceGeneration::comboBoxStyleChanged()
 
 void IsosurfaceGeneration::buttonUpdateClicked()
 {
+	cout << "buttonUpdateClicked "<< endl;
     if(this->form->inputMinimumThreshold->value() > this->form->inputMaximumThreshold->value())
     {
+		cout << "buttonUpdateClicked in if "<< endl;
         this->form->inputMinimumThreshold->setValue(this->form->inputMaximumThreshold->value());
         this->core()->render();
     }

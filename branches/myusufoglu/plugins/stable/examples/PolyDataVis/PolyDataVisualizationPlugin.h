@@ -114,6 +114,8 @@ namespace bmia {
 		protected slots:
 			void selectData(int row);
 			void setVisible(bool visible);
+			void setSpecular(double value);
+			void setAlpha(double value);
 			/**
 			Set parameters of the Depth Peeling.
 			*/

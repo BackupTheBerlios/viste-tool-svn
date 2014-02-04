@@ -86,6 +86,7 @@ namespace bmia {
 		// Link events in the GUI to function calls:
 		connect(this->ui->dataList, SIGNAL(currentRowChanged(int)), this, SLOT(selectData(int)));
 		connect(this->ui->visibleCheckBox, SIGNAL(toggled(bool)), this, SLOT(setVisible(bool)));
+			connect(this->ui->inputSpecular, SIGNAL(toggled(double)), this, SLOT(setSpecular(double)));
 		connect(this->ui->depthPeelingCheckBox, SIGNAL(toggled(bool)), this, SLOT(setDepthPeeling(bool)));
 		connect(this->ui->lightingCheckBox, SIGNAL(toggled(bool)), this, SLOT(setLighting(bool)));
 		connect(this->ui->colorButton, SIGNAL(clicked()), this, SLOT(changeColor()));
@@ -122,7 +123,7 @@ namespace bmia {
 			// with the fiber visualization plugin
 			return;
 		} // if
-
+		cout << "polydata dataset added" << endl;
 		// Add the new data set to the list of currently available polydata sets:
 		this->dataSets.append(ds);
 
@@ -211,6 +212,25 @@ namespace bmia {
 		cout << "IsDepthPeelingSupported (offscreen true):" << IsDepthPeelingSupported(this->fullCore()->canvas()->GetRenderWindow(), this->fullCore()->canvas()->GetRenderer3D(), true) << endl;
 	  // cout << "IsDepthPeelingSupported (offscreen false):" << IsDepthPeelingSupported(this->fullCore()->canvas()->GetRenderWindow(), this->fullCore()->canvas()->GetRenderer3D(), false);
 	
+	}
+
+	void PolyDataVisualizationPlugin::setSpecular(double value)
+	{
+		cout << "set specular"<<endl;
+		if (this->changingSelection) return;
+		if (this->selectedData == -1) return;
+		this->actors.at(this->selectedData)->GetProperty()->SetSpecular(value);
+		this->core()->render();
+		 	
+	}
+
+	void PolyDataVisualizationPlugin::setAlpha(double value)
+	{
+		if (this->changingSelection) return;
+		if (this->selectedData == -1) return;
+		this->actors.at(this->selectedData)->GetProperty()->SetOpacity(value);
+		this->core()->render();
+		 
 	}
 
 
