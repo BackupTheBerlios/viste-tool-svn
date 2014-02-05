@@ -98,7 +98,8 @@ void vtkFiberROICutting::Execute()
 	vtkCellArray * outputLines = vtkCellArray::New();
 	output->SetLines(outputLines);
 	outputLines->Delete();
-
+	double *bnd = new double[6];
+	this->roiData->getVtkPolyData()->GetBounds(bnd);
 	// Get image data from ROI data
 	vtkImageData * roi = this->roiData->getVtkImageData();
     if (!roi)

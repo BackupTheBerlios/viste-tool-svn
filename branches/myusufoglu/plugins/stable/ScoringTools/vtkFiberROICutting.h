@@ -63,6 +63,9 @@ class vtkFiberROICutting : public vtkPolyDataToPolyDataFilter
             this->cutAtROIEnds = b;
         }
 
+		//void SetImageOfFibers(vtkImageData *img);
+		//vtkImageData *imageOfFibers;
+
 	protected:
 
 		/** Main entry point of the filter. */

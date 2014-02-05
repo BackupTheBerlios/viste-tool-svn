@@ -269,7 +269,7 @@ void IsosurfaceGeneration::createModelInfo(data::DataSet * d)
     modelInfo->color[0] = modelInfo->color[1] = modelInfo->color[2] = 1.0;  // corresponding to white: #FFFFFF
     modelInfo->renderStyle = 0;
     modelInfo->reduction = 0.0;
-    modelInfo->visible = true;
+    modelInfo->visible = false;
     modelInfo->specular = DEFAULT_SPECULAR;
     modelInfo->selectLargestComponent = true;
 
@@ -713,6 +713,8 @@ void IsosurfaceGeneration::updateRenderingModels()
         actor->SetScale(1,1,1);
         actor->SetOrigin(0,0,0);
 
+		//another plugin will display
+		actor->SetVisibility(false);
 		vtkProperty *prop = actor->GetProperty();
 
 		//vtkXMLMaterial* material = vtkXMLMaterial::CreateInstance("D:/Research/Software/vISTe/source/plugins/testing/smeesters/IsosurfaceGeneration/GLSLTwisted.xml");
@@ -1082,15 +1084,15 @@ void IsosurfaceGeneration::connectAll()
     connect(this->form->comboBoxDataset,SIGNAL(currentIndexChanged(int)),this,SLOT(comboBoxDataChanged()));
 
     // Generation
-    connect(this->form->checkBoxVisible,SIGNAL(toggled(bool)),this,SLOT(checkBoxVisibleChanged(bool)));
+//    connect(this->form->checkBoxVisible,SIGNAL(toggled(bool)),this,SLOT(checkBoxVisibleChanged(bool)));
     connect(this->form->comboBoxStyle,SIGNAL(currentIndexChanged(int)),this,SLOT(comboBoxStyleChanged()));
     connect(this->form->inputSmoothing,SIGNAL(valueChanged(double)),this,SLOT(inputSmoothingChanged(double)));
     connect(this->form->inputReduction,SIGNAL(valueChanged(double)),this,SLOT(inputReductionChanged(double)));
     connect(this->form->inputMinimumThreshold,SIGNAL(valueChanged(double)),this,SLOT(inputMinimumThresholdChanged(double)));
     connect(this->form->inputMaximumThreshold,SIGNAL(valueChanged(double)),this,SLOT(inputMaximumThresholdChanged(double)));
-    connect(this->form->inputColor,SIGNAL(clicked()),this,SLOT(inputColorChanged()));
-    connect(this->form->inputSpecular,SIGNAL(valueChanged(double)),this,SLOT(inputSpecularChanged(double)));
-    connect(this->form->inputAlpha,SIGNAL(valueChanged(double)),this,SLOT(inputAlphaChanged(double)));
+//    connect(this->form->inputColor,SIGNAL(clicked()),this,SLOT(inputColorChanged()));
+   // connect(this->form->inputSpecular,SIGNAL(valueChanged(double)),this,SLOT(inputSpecularChanged(double)));
+   // connect(this->form->inputAlpha,SIGNAL(valueChanged(double)),this,SLOT(inputAlphaChanged(double)));
     connect(this->form->checkBoxLargestComponent,SIGNAL(toggled(bool)),this,SLOT(checkBoxLargestComponentChanged(bool)));
     //connect(this->form->comboBoxCurvatureType,SIGNAL(currentIndexChanged(int)),this,SLOT(comboBoxCurvatureTypeChanged()));
 	//connect(this->form->comboBoxCurvatureLUT,SIGNAL(currentIndexChanged(int)),this,SLOT(comboBoxCurvatureLUTChanged()));
@@ -1128,15 +1130,15 @@ void IsosurfaceGeneration::connectAll()
 void IsosurfaceGeneration::disconnectAll()
 {
     disconnect(this->form->comboBoxDataset,SIGNAL(currentIndexChanged(int)),this,SLOT(comboBoxDataChanged()));
-    disconnect(this->form->checkBoxVisible,SIGNAL(toggled(bool)),this,SLOT(checkBoxVisibleChanged(bool)));
+//    disconnect(this->form->checkBoxVisible,SIGNAL(toggled(bool)),this,SLOT(checkBoxVisibleChanged(bool)));
     disconnect(this->form->buttonUpdate,SIGNAL(clicked()),this,SLOT(buttonUpdateClicked()));
     disconnect(this->form->inputMaximumThreshold,SIGNAL(valueChanged(double)),this,SLOT(inputMaximumThresholdChanged(double)));
     disconnect(this->form->inputMinimumThreshold,SIGNAL(valueChanged(double)),this,SLOT(inputMinimumThresholdChanged(double)));
     disconnect(this->form->inputSmoothing,SIGNAL(valueChanged(double)),this,SLOT(inputSmoothingChanged(double)));
-    disconnect(this->form->inputColor,SIGNAL(textChanged(QString)),this,SLOT(inputColorChanged(QString)));
-    disconnect(this->form->inputAlpha,SIGNAL(valueChanged(double)),this,SLOT(inputAlphaChanged(double)));
+   // disconnect(this->form->inputColor,SIGNAL(textChanged(QString)),this,SLOT(inputColorChanged(QString)));
+   // disconnect(this->form->inputAlpha,SIGNAL(valueChanged(double)),this,SLOT(inputAlphaChanged(double)));
     disconnect(this->form->inputReduction,SIGNAL(valueChanged(double)),this,SLOT(inputReductionChanged(double)));
-    disconnect(this->form->inputSpecular,SIGNAL(valueChanged(double)),this,SLOT(inputSpecularChanged(double)));
+   // disconnect(this->form->inputSpecular,SIGNAL(valueChanged(double)),this,SLOT(inputSpecularChanged(double)));
     disconnect(this->form->horizontalSliderX,SIGNAL(valueChanged(int)),this,SLOT(horizontalSliderXChanged(int)));
     disconnect(this->form->horizontalSliderY,SIGNAL(valueChanged(int)),this,SLOT(horizontalSliderYChanged(int)));
     disconnect(this->form->horizontalSliderZ,SIGNAL(valueChanged(int)),this,SLOT(horizontalSliderZChanged(int)));
@@ -1198,10 +1200,10 @@ void IsosurfaceGeneration::comboBoxDataChanged()
         this->form->spinY->setValue(current_modelInfo->clippingValues[1]);
         this->form->spinZ->setValue(current_modelInfo->clippingValues[2]);
 
-        this->form->inputAlpha->setValue(current_modelInfo->alpha);
+//        this->form->inputAlpha->setValue(current_modelInfo->alpha);
         this->form->inputSmoothing->setValue(current_modelInfo->smoothing);
-        this->form->inputSpecular->setValue(current_modelInfo->specular);
-        this->form->checkBoxVisible->setChecked(current_modelInfo->visible);
+//        this->form->inputSpecular->setValue(current_modelInfo->specular);
+//        this->form->checkBoxVisible->setChecked(current_modelInfo->visible);
         this->form->inputReduction->setValue(current_modelInfo->reduction);
         this->form->comboBoxStyle->setCurrentIndex(current_modelInfo->renderStyle);
         this->form->checkBoxLargestComponent->setChecked(current_modelInfo->selectLargestComponent);

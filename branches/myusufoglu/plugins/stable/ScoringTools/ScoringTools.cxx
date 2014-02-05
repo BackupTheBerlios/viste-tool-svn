@@ -100,6 +100,20 @@ void ScoringTools::dataSetAdded(data::DataSet * d)
         // Add to UI combobox for selection of data
         this->form->selectROICombo->addItem(d->getName());
     }
+	// Regions of Interest
+	else if (kind == "regionOfInterest")
+	{
+		// Get the polydata of the ROI
+		vtkPolyData * roiPolyData = d->getVtkPolyData();
+
+		if (!roiPolyData)
+			return;
+		// Keep track of the datasets used by this plugin
+        this->roiDataSets.append(d);
+
+        // Add to UI combobox for selection of data
+        this->form->selectROICombo->addItem(d->getName());
+	}
 }
 
 //------------------------[ Dataset changed ]-----------------------\\
@@ -424,6 +438,7 @@ void ScoringTools::ComputeFibers()
     if(this->form->selectROICombo->currentIndex() > 0)
     {
         vtkFiberROICutting* roiCutting = vtkFiberROICutting::New();
+		//fiber
         roiCutting->SetInput(selectionFilter->GetOutput());
         roiCutting->SetROIData(this->roiDataSets.at(this->form->selectROICombo->currentIndex()-1));
         roiCutting->SetCutFibersAtROIEnds(this->form->checkCutFibersAtROI->isChecked());
