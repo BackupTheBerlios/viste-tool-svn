@@ -877,7 +877,7 @@ namespace bmia {
 			}
 			///////////////////////////////////////////////////
 			// use 
-			else if (initCondition==1 || initCondition==2 || initCondition==3 || initCondition==4  )
+			else if (initCondition==1 || initCondition==2   )
 			{
 				std::vector<double *> anglesBeforeInterpolation; 
 
@@ -925,16 +925,7 @@ namespace bmia {
 									avgMaxAng[0]+= acos( outputlistwithunitvectors[i][2]);  // choose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
 									avgMaxAng[1]+= atan2( outputlistwithunitvectors[i][1],  outputlistwithunitvectors[i][0]);  // ose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
 								}//co
-								else if (initCondition==3)
-									if(i==0 || i==1) {
-										avgMaxAng[0]+= acos( outputlistwithunitvectors[i][2]);  // choose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
-										avgMaxAng[1]+= atan2( outputlistwithunitvectors[i][1],  outputlistwithunitvectors[i][0]);  // ose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
-									}
-									else if (initCondition==4)
-										if(i==2 || i==3) {
-											avgMaxAng[0]+= acos( outputlistwithunitvectors[i][2]);  // choose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
-											avgMaxAng[1]+= atan2( outputlistwithunitvectors[i][1],  outputlistwithunitvectors[i][0]);  // ose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
-										}
+						 
 					}
 					avgMaxAng[0]=avgMaxAng[0]/(this->nMaximaForEachPoint/2); // 2 CAREFULL
 					avgMaxAng[1]=avgMaxAng[1]/(this->nMaximaForEachPoint/2);
@@ -1006,8 +997,8 @@ namespace bmia {
 			//create a maximum finder
 			//	M
 			
-			// Check AI values of initial step, otherwise we cannot check the dot product etc
-			bool firstDotProductTestSkipParam=1;
+		 
+		 
 			
 			//
 			////// WHILE   ////////////////////
@@ -1055,8 +1046,7 @@ namespace bmia {
 					cout << "NOT  A CELL; BREAK " << endl; 
 					break;
 				}
-
-
+ 
 				double *interpolatedVector = new double[3];
 				//unitVectorCellListFromFile used in findFunctionValueUsingMaxFil
 				findFunctionValueUsingMaximaFile(TRESHOLD, anglesArray, weights,  trianglesArray, meshPtIndexList, maxima, this->parentFilter->StopDotProduct,interpolatedVector, loopAngleSingleCompareOrAverage ,   loopAngleSelectMaximaCombinationType );
@@ -1254,34 +1244,41 @@ namespace bmia {
 			// INITIAL CONDITON PART
 			// 
 
-			if(initCondition==0) { 
-				// Interpolate the SH at the seed point position
-				double * SHAux = new double[numberSHcomponents];
-				this->interpolateSH(SHAux, weights, numberSHcomponents);// uses this cellHARDIData
-				
-				//get the ODF
-				//MaxFinder.getOutput(SHAux, this->parentFilter->shOrder, anglesArray); // get output
-				MaxFinder.getOutput(SHAux, this->parentFilter->shOrder,TRESHOLD, anglesArray,  maxima, meshPtIndexList);// SHAux is empty now we will give 8 differen , radiusun buyuk oldugu yerdeki angellari dizer donen 
-				// maxima has ids use them to get angles
-				MaxFinder.cleanOutput(maxima, outputlistwithunitvectors,SHAux, ODFlist, this->unitVectors, anglesArray);
-				//		for (int j = 0; j < this->nMaximaForEachPoint; ++j)
-				//		outputlistwithunitvectors[j] = this->unitVectors[j];
+			if(initCondition==0) 
+{ 
+				for(unsigned int nr = 0; nr <outUnitVectorListFromFile.size()  ; nr++)
+					{
+						this->outUnitVectorListFromFile.at(nr)->GetTuples(currentCell->PointIds, unitVectorCellListFromFile.at(nr));// get 8 nr th maxima 
+					}
+				double *interpolatedVector = new double[3];
+				//unitVectorCellListFromFile used in findFunctionValueUsingMaxFil
+				findFunctionValueUsingMaximaFile(TRESHOLD, anglesArray, weights,  trianglesArray, meshPtIndexList, maxima, this->parentFilter->StopDotProduct,interpolatedVector, loopAngleSingleCompareOrAverage ,   loopAngleSelectMaximaCombinationType );
+				//NOT USE: findFunctionValueAtPointUsingMaximaFile(pos )  // newCEllId BREAK sorununu coz!!!
+				cout << "interpolated vector : "<<  interpolatedVector[0] << interpolatedVector[1] << interpolatedVector[2] << endl;
+				// USE findRK4DeltaX() 1 tanesi disari cikarsa bulamadim de kes o zaman bastan celli hepsinden once etc...
+				testDot = 0.0;
+				if (vtkMath::Norm(interpolatedVector) < (this->stepSize / 6))
+				{
+					cout << "very small increment due to maxima directions are nor ok"<< endl;
+					//break; // WHY; for stability if no maxima is found incremental movement is close to ZERO. DEAD LOCK.
+				} 
+		 
 
-				// Find maximum of this interpolated values here and use as initial condition
-				//deallocate memory
-				delete [] SHAux;
-				//tempDirection[0] =  unitVectors[0][0]; // ERROR
-				//tempDirection[1] =  unitVectors[0][1];
-				//tempDirection[2] =  unitVectors[0][2];
+				//Normalize
+				// vtkMath::Normalize(interpolatedVector);
 
-				tempDirection[0] = outputlistwithunitvectors[0][0];
-					tempDirection[1] = outputlistwithunitvectors[0][1];
-					tempDirection[2] = outputlistwithunitvectors[0][2];
+				tempDirection[0] = interpolatedVector[0]; // we will haveone unitvector !!! interpolation of angels will 
+				tempDirection[1]= interpolatedVector[1]; // produce an angle and we will calculate tempDirection!!!!
+					tempDirection[2] = interpolatedVector[2];
+
+				//tempDirection[0] = outputlistwithunitvectors[0][0];
+					//tempDirection[1] = outputlistwithunitvectors[0][1];
+					//tempDirection[2] = outputlistwithunitvectors[0][2];
 
 			}
 			///////////////////////////////////////////////////
 			// use 
-			else if (initCondition==1 || initCondition==2 || initCondition==3 || initCondition==4  )
+			else if (initCondition==1 || initCondition==2   )
 			{
 				std::vector<double *> anglesBeforeInterpolation; 
 
@@ -1321,30 +1318,22 @@ namespace bmia {
 					{	
 						if (initCondition==1)
 							if(i%2==0) {
-								avgMaxAng[0]+= acos( outputlistwithunitvectors[i][2]);  // choose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
-								avgMaxAng[1]+= atan2( outputlistwithunitvectors[i][1],  outputlistwithunitvectors[i][0]);  // ose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
+								avgMaxAng[0]+= acos( unitVectorsOfAPointFromFile[i][2]);  // choose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
+								avgMaxAng[1]+= atan2( unitVectorsOfAPointFromFile[i][1],  unitVectorsOfAPointFromFile[i][0]);  // ose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
 							}//cout << "anglesOfmaxOfCorner"  << anglesArray.at(maxima.at(i))[0] << " " << anglesArray.at(maxima.at(i))[1] << endl;
 							else if (initCondition==2)
 								if(i%2==1) {
-									avgMaxAng[0]+= acos( outputlistwithunitvectors[i][2]);  // choose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
-									avgMaxAng[1]+= atan2( outputlistwithunitvectors[i][1],  outputlistwithunitvectors[i][0]);  // ose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
+									avgMaxAng[0]+= acos( unitVectorsOfAPointFromFile[i][2]);  // choose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
+									avgMaxAng[1]+= atan2( unitVectorsOfAPointFromFile[i][1],  unitVectorsOfAPointFromFile[i][0]);  // ose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
 								}//co
-								else if (initCondition==3)
-									if(i==0 || i==1) {
-										avgMaxAng[0]+= acos( outputlistwithunitvectors[i][2]);  // choose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
-										avgMaxAng[1]+= atan2( outputlistwithunitvectors[i][1],  outputlistwithunitvectors[i][0]);  // ose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
-									}
-									else if (initCondition==4)
-										if(i==2 || i==3) {
-											avgMaxAng[0]+= acos( outputlistwithunitvectors[i][2]);  // choose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
-											avgMaxAng[1]+= atan2( outputlistwithunitvectors[i][1],  outputlistwithunitvectors[i][0]);  // ose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
-										}
+							 
 					}
 					avgMaxAng[0]=avgMaxAng[0]/(this->nMaximaForEachPoint/2); // 2 CAREFULL
 					avgMaxAng[1]=avgMaxAng[1]/(this->nMaximaForEachPoint/2);
 					//cout << avgMaxAng[0] << " " << avgMaxAng[1] << endl;
 					anglesBeforeInterpolation.push_back(avgMaxAng); // if angles are in the range of [-pi,pi] interpolation is ok
 					outputlistwithunitvectors.clear();
+			 
 					// TAKEN BEFORE THE AVERAGING MaxFinder.cleanOutput(maxima, outputlistwithunitvectors,SHAux, ODFlist, this->unitVectors, anglesArray);
 					ODFlist.clear();
 					maxima.clear();
@@ -2084,12 +2073,12 @@ namespace bmia {
 				double value =-1 , angularSimilarity = -1;
 				int indexHighestSimilarity=-1;
 					cout << "choose the max with highest angular similarities" << endl;
-				for( int i=0;i< outputlistwithunitvectors.size()  ;i++ ) // 4 maxima of a vertice, 2 are opposite of others use 4 options among them!!!
+				for( int i=0;i< nMaximaForEachPoint ;i++ ) // 4 maxima of a vertice, 2 are opposite of others use 4 options among them!!!
 				{ 
-					cout << "maximum vec" << outputlistwithunitvectors.at(i)[0] << " " << outputlistwithunitvectors.at(i)[1]  << " " << outputlistwithunitvectors.at(i)[0]  <<endl;
-					cout << "newsegment" << newSegment[0] << " " <<  newSegment[1] << " " << newSegment[2]  << endl;
+					//cout << "maximum vec" << outputlistwithunitvectors.at(i)[0] << " " << outputlistwithunitvectors.at(i)[1]  << " " << outputlistwithunitvectors.at(i)[0]  <<endl;
+					//cout << "newsegment" << newSegment[0] << " " <<  newSegment[1] << " " << newSegment[2]  << endl;
 					
-					angularSimilarity = vtkMath::Dot(this->newSegment, outputlistwithunitvectors.at(i)); // new segment is actually old increment for coming to xextpoint.
+					angularSimilarity = vtkMath::Dot(this->newSegment, unitVectorsOfAPointFromFile[i]); // new segment is actually old increment for coming to xextpoint.
 					cout << value << " " << angularSimilarity << " " << dotLimit << endl;
 					// Check conditions here angular similarity >0  or angular similarity > dotlimit !!! Select them in GUI!!!
 					if (loopAngleSelectMaximaCombinationType==4) { //Without dot limit
@@ -2117,9 +2106,10 @@ namespace bmia {
 					avgMaxVect[j][2]=0;
 				}
 				else {
-					avgMaxVect[j][0]=outputlistwithunitvectors[indexHighestSimilarity][0];
-					avgMaxVect[j][1]=outputlistwithunitvectors[indexHighestSimilarity][1];
-					avgMaxVect[j][2]=outputlistwithunitvectors[indexHighestSimilarity][2];
+					cout << "value highest similarity and index: " <<  value <<", " << indexHighestSimilarity << endl;
+					avgMaxVect[j][0]=unitVectorsOfAPointFromFile[indexHighestSimilarity][0];
+					avgMaxVect[j][1]=unitVectorsOfAPointFromFile[indexHighestSimilarity][1];
+					avgMaxVect[j][2]=unitVectorsOfAPointFromFile[indexHighestSimilarity][2];
 
 				}
 			}
@@ -2133,15 +2123,15 @@ namespace bmia {
 					{	
 						if (loopAngleSelectMaximaCombinationType==1)
 							if(i%2==0) {
-								avgMaxVect[j][0]+=outputlistwithunitvectors[i][0];
-					avgMaxVect[j][1]+=outputlistwithunitvectors[i][1];
-					avgMaxVect[j][2]+=outputlistwithunitvectors[i][2];
+								avgMaxVect[j][0]+=unitVectorsOfAPointFromFile[i][0];
+					avgMaxVect[j][1]+=unitVectorsOfAPointFromFile[i][1];
+					avgMaxVect[j][2]+=unitVectorsOfAPointFromFile[i][2];
 							}//cout << "anglesOfmaxOfCorner"  << anglesArray.at(maxima.at(i))[0] << " " << anglesArray.at(maxima.at(i))[1] << endl;
 							else if (loopAngleSelectMaximaCombinationType==2)
 								if(i%2==1) {
-									avgMaxVect[j][0]+=outputlistwithunitvectors[i][0];
-					avgMaxVect[j][1]+=outputlistwithunitvectors[i][1];
-					avgMaxVect[j][2]+=outputlistwithunitvectors[i][2];// ose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
+									avgMaxVect[j][0]+=unitVectorsOfAPointFromFile[i][0];
+					avgMaxVect[j][1]+=unitVectorsOfAPointFromFile[i][1];
+					avgMaxVect[j][2]+=unitVectorsOfAPointFromFile[i][2];// ose the angle which is closer to ours keep in an array. Ilk ise elimizde previous yok ...
 								}//co
 								
 					}
@@ -2182,7 +2172,7 @@ namespace bmia {
 			else 
 				HARDIFiberTrackingFilter->SetloopAngleSingleCompareOrAverage(0);
 			*/
-			outputlistwithunitvectors.clear();
+			//unitVectorsOfAPointFromFile.clear();
 
 			ODFlist.clear();
 		}// for cell 8 

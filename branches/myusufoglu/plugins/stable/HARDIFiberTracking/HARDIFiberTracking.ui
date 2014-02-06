@@ -136,7 +136,7 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-71</y>
+        <y>0</y>
         <width>439</width>
         <height>493</height>
        </rect>
@@ -476,6 +476,9 @@
         <layout class="QHBoxLayout" name="horizontalLayout_8">
          <item>
           <widget class="QCheckBox" name="cleanBox">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>Clean ODF maxima</string>
            </property>
@@ -531,9 +534,6 @@
            </layout>
           </item>
          </layout>
-         <zorder>initFirstMaxAvgRB</zorder>
-         <zorder>initSecondMaxAvgRB</zorder>
-         <zorder>initSHInterpolateRB</zorder>
         </widget>
        </item>
        <item>
@@ -643,12 +643,12 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>198</x>
-     <y>709</y>
+     <x>255</x>
+     <y>560</y>
     </hint>
     <hint type="destinationlabel">
-     <x>40</x>
-     <y>708</y>
+     <x>49</x>
+     <y>561</y>
     </hint>
    </hints>
   </connection>
@@ -659,12 +659,12 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>40</x>
-     <y>708</y>
+     <x>49</x>
+     <y>561</y>
     </hint>
     <hint type="destinationlabel">
-     <x>198</x>
-     <y>709</y>
+     <x>255</x>
+     <y>560</y>
     </hint>
    </hints>
   </connection>
@@ -675,12 +675,12 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>199</x>
-     <y>589</y>
+     <x>259</x>
+     <y>457</y>
     </hint>
     <hint type="destinationlabel">
-     <x>42</x>
-     <y>588</y>
+     <x>51</x>
+     <y>458</y>
     </hint>
    </hints>
   </connection>
@@ -691,12 +691,12 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>42</x>
-     <y>588</y>
+     <x>51</x>
+     <y>458</y>
     </hint>
     <hint type="destinationlabel">
-     <x>199</x>
-     <y>589</y>
+     <x>259</x>
+     <y>457</y>
     </hint>
    </hints>
   </connection>
@@ -707,12 +707,12 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>199</x>
-     <y>529</y>
+     <x>259</x>
+     <y>410</y>
     </hint>
     <hint type="destinationlabel">
-     <x>42</x>
-     <y>528</y>
+     <x>51</x>
+     <y>411</y>
     </hint>
    </hints>
   </connection>
@@ -723,12 +723,28 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>42</x>
-     <y>528</y>
+     <x>51</x>
+     <y>411</y>
     </hint>
     <hint type="destinationlabel">
-     <x>199</x>
-     <y>529</y>
+     <x>259</x>
+     <y>410</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>useRungeKuttaCBox</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>useMaxFileCheck</receiver>
+   <slot>setChecked(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>334</x>
+     <y>690</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>122</x>
+     <y>690</y>
     </hint>
    </hints>
   </connection>

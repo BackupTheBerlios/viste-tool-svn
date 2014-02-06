@@ -161,7 +161,6 @@ namespace bmia {
 				HARDIFiberTrackingFilter->SetInitialConditionType(1);
 			else if(this->ui->initSecondMaxAvgRB->isChecked())
 				HARDIFiberTrackingFilter->SetInitialConditionType(2);
-			
 			else 
 				HARDIFiberTrackingFilter->SetInitialConditionType(0);
 

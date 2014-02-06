@@ -479,6 +479,20 @@ QString bmiaNiftiReader::readNIfTIFile(const char * filename, bool showProgress)
 		tM[15] = 1.0;	
 	}
 
+	if( this->NiftiImage->dx!=0 && this->NiftiImage->dy!=0 && this->NiftiImage->dz!=0   )
+	{
+	// Anna dirty programming should be deleted
+	tM[ 0] = tM[0]/((double) this->NiftiImage->dx);
+	 
+	tM[ 5] = tM[5]/((double) this->NiftiImage->dy);
+	tM[ 10] = tM[10]/((double) this->NiftiImage->dz);
+	}
+	else
+		{
+		cout << "NIFTI spacing can not be taken out from matrix.";// White VTK window
+		//return;
+	} 
+	//end Anna
 	// Create a VTK matrix
 	m = vtkMatrix4x4::New();
 	m->DeepCopy(tM);
@@ -1027,9 +1041,23 @@ vtkImageData * bmiaNiftiReader::createimageData(double * data, int numberOfCompo
 	// if we were to use the provided spacing values, this spacing would
 	// essentially be applied twice. A more elegant solution to this problem
 	// should be created in the future.
+	
+	// Nifti spacing not 1 anymore ; Anna
+	
+	if( this->NiftiImage->dx!=0 && this->NiftiImage->dy!=0 && this->NiftiImage->dz!=0   )
+	{
+	// Anna dirty programming should be deleted
+	
+	newVolume->SetSpacing(this->NiftiImage->dx,this->NiftiImage->dy,this->NiftiImage->dz);//1.0, 1.0, 1.0); // nifti spacing
 
-	newVolume->SetSpacing(1.0, 1.0, 1.0); // nifti spacing
-
+	}
+	else
+		{
+				newVolume->SetSpacing(1.0, 1.0, 1.0); // nifti spacing
+	 cout << "Volume spacing all set to 1; since nifti spacing values are zero." << endl;// White VTK window
+		//return;
+	}
+	
 	newVolume->SetExtent(	0, this->NiftiImage->dim[1] - 1, 
 							0, this->NiftiImage->dim[2] - 1, 
 							0, this->NiftiImage->dim[3] - 1);
